@@ -1,0 +1,32 @@
+table tbl_Config
+	lineageTag: f3ff42b4-a229-4bf8-8a7d-c8548920c4af
+
+	column Parâmetro
+		dataType: string
+		lineageTag: 8efa3df9-58d5-452d-a9ce-d53a4e69536b
+		summarizeBy: none
+		sourceColumn: Parâmetro
+
+		annotation SummarizationSetBy = Automatic
+
+	column Valor
+		dataType: string
+		lineageTag: 47b3659d-e2dc-4081-ad71-b31d9c8292b2
+		summarizeBy: none
+		sourceColumn: Valor
+
+		annotation SummarizationSetBy = Automatic
+
+	partition tbl_Config = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				
+				    Bruto = Fonte{[Item="tbl_Config",Kind="Table"]}[Data],
+				    Tipos = Table.TransformColumnTypes( Bruto, {{ "Parâmetro", type text }}, "pt-BR" ),
+				    Texto = Table.TransformColumns( Tipos, {{ "Valor", each if _ = null then null else Text.From( _ ), type nullable text }} )
+				in
+				    Texto
+
+	annotation PBI_ResultType = Table

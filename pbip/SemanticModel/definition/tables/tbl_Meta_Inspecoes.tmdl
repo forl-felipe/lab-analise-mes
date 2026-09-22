@@ -1,0 +1,40 @@
+table tbl_Meta_Inspecoes
+	lineageTag: 02a17d19-54a0-4c31-857f-000ed1c0c687
+
+	column Responsavel
+		dataType: string
+		lineageTag: df52b368-7c83-4744-82a3-2dea3aca76da
+		summarizeBy: none
+		sourceColumn: Responsavel
+
+		annotation SummarizationSetBy = Automatic
+
+	column Meta_Semanal
+		dataType: int64
+		formatString: 0
+		lineageTag: 2ef9cfe4-4e3b-4c85-a8ab-74a8b0db96fa
+		summarizeBy: sum
+		sourceColumn: Meta_Semanal
+
+		annotation SummarizationSetBy = Automatic
+
+	partition tbl_Meta_Inspecoes = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				
+				    // lê o item "tbl_Mediçõesinspeções" do Excel — o nome da aba não descreve o
+				    // conteúdo (são METAS, não medições). Vale renomear na planilha.
+				    Bruto = Fonte{[Item="tbl_Mediçõesinspeções",Kind="Table"]}[Data],
+				    Tipos = Table.TransformColumnTypes( Bruto, {{ "Responsavel", type text }, { "Meta_Semanal", Int64.Type }}, "pt-BR" ),
+				
+				    // a versão anterior carregava 9 linhas, 4 delas em branco
+				    Limpo = Table.SelectRows( Tipos, each [Responsavel] <> null and Text.Trim( [Responsavel] ) <> "" ),
+				    Nome  = Table.TransformColumns( Limpo, {{ "Responsavel", each Text.Trim( Text.From( _ ) ), type text }} )
+				in
+				    Nome
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação

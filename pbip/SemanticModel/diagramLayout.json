@@ -1,0 +1,225 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 75.11834739742035
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 653,
+            "y": 0
+          },
+          "nodeIndex": "tbl_Calibracao",
+          "nodeLineageTag": "126be2af-b9e1-45d5-bd9b-cd4a22711cb3",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 39,
+            "y": 345
+          },
+          "nodeIndex": "tbl_Config",
+          "nodeLineageTag": "f3ff42b4-a229-4bf8-8a7d-c8548920c4af",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 334,
+            "y": -25
+          },
+          "nodeIndex": "tbl_Equipamentos",
+          "nodeLineageTag": "08d74e8c-2660-4df7-acad-16fb7719a1fe",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 13
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": -11
+          },
+          "nodeIndex": "tbl_Grupos",
+          "nodeLineageTag": "7e571f15-5eae-47ad-8e6f-d0cba1857791",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 613,
+            "y": 347
+          },
+          "nodeIndex": "tbl_Intervencoes",
+          "nodeLineageTag": "832de6b8-1937-407f-91bc-a3cee8a6f5e9",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 938,
+            "y": 0
+          },
+          "nodeIndex": "tbl_Notas",
+          "nodeLineageTag": "703454f9-72b2-4ed5-922a-e7246176d275",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 936,
+            "y": 353
+          },
+          "nodeIndex": "Tbl_Paradas",
+          "nodeLineageTag": "f33c069c-ab9d-434c-9d3b-fb34bff4377b",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 1210,
+            "y": 8
+          },
+          "nodeIndex": "DimCalendario",
+          "nodeLineageTag": "f8c3885e-b7e8-47ec-8729-1a3e5c5d8d34",
+          "size": {
+            "height": 200,
+            "width": 233
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 1210,
+            "y": 252
+          },
+          "nodeIndex": "_Medidas",
+          "nodeLineageTag": "c8742488-d882-4a84-92f6-b371cd8e2e7a",
+          "size": {
+            "height": 482,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 317,
+            "y": 334
+          },
+          "nodeIndex": "tbl_Meta_Inspecoes",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 49.89485220282131,
+            "y": 535.3252929508403
+          },
+          "nodeIndex": "tbl_Inspecoes",
+          "nodeLineageTag": "483b58fc-3cc2-476d-b292-07cf0cdab09f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 322.62018702491014,
+            "y": 670.6212750857743
+          },
+          "nodeIndex": "tbl_Medicoes_Operacionais",
+          "nodeLineageTag": "59e9f1a2-81a5-4a4a-917e-4f6dddf8f4df",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 1455,
+            "y": 397.81063754288715
+          },
+          "nodeIndex": "DimTecnicos",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 1750,
+            "y": 40
+          },
+          "nodeIndex": "tbl_Sobressalentes",
+          "size": {
+            "height": 240,
+            "width": 234
+          },
+          "zIndex": 15
+        },
+        {
+          "location": {
+            "x": 1750,
+            "y": 300
+          },
+          "nodeIndex": "DimLaboratorio",
+          "size": {
+            "height": 240,
+            "width": 234
+          },
+          "zIndex": 16
+        },
+        {
+          "location": {
+            "x": 1750,
+            "y": 560
+          },
+          "nodeIndex": "DePara_Inspecao_Equipamento",
+          "size": {
+            "height": 240,
+            "width": 234
+          },
+          "zIndex": 17
+        }
+      ],
+      "name": "Todas as tabelas",
+      "zoomValue": 89.1925905205695,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas as tabelas",
+  "defaultDiagram": "Todas as tabelas"
+}

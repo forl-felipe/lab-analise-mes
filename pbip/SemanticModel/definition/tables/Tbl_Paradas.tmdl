@@ -1,0 +1,150 @@
+table Tbl_Paradas
+	lineageTag: f33c069c-ab9d-434c-9d3b-fb34bff4377b
+
+	column Data
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 162332be-7fe1-4804-9927-8b85464e9094
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Equip. (Tag)'
+		dataType: string
+		lineageTag: 5681a2e7-5d02-4a4d-a696-d68c85167a07
+		summarizeBy: none
+		sourceColumn: Equip. (Tag)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Horas Parado'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 98746ba0-dcb7-45cf-a92a-57b5f003f0a1
+		summarizeBy: sum
+		sourceColumn: Horas Parado
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ocorrência
+		dataType: string
+		lineageTag: 38f25a3a-c874-44a2-a304-fa4305c2fd59
+		summarizeBy: none
+		sourceColumn: Ocorrência
+
+		annotation SummarizationSetBy = Automatic
+
+	column Responsável
+		dataType: string
+		lineageTag: f5f6ac02-a949-4bfb-975b-e43a0429b26f
+		summarizeBy: none
+		sourceColumn: Responsável
+
+		annotation SummarizationSetBy = Automatic
+
+	column Situação
+		dataType: string
+		lineageTag: fef1fce7-c485-4ce4-b46d-570bec31f87c
+		summarizeBy: none
+		sourceColumn: Situação
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Equipamento (auto)'
+		dataType: string
+		lineageTag: 51b7f353-ca70-4fec-abff-dca02eb94c67
+		summarizeBy: none
+		sourceColumn: Equipamento (auto)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Grupo (auto)'
+		dataType: string
+		lineageTag: d461b802-e5d6-43f8-9084-0651d8385f43
+		summarizeBy: none
+		sourceColumn: Grupo (auto)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mês (auto)'
+		dataType: string
+		lineageTag: ae6ae096-8775-478f-b52f-6565a515b2f4
+		summarizeBy: none
+		sourceColumn: Mês (auto)
+
+		annotation SummarizationSetBy = Automatic
+
+	column ID_Parada
+		dataType: int64
+		formatString: 0
+		lineageTag: e2670002-3599-4682-82de-3bd88376e62b
+		summarizeBy: sum
+		sourceColumn: ID_Parada
+
+		annotation SummarizationSetBy = Automatic
+
+	column MesAno
+		dataType: string
+		lineageTag: 52fb94f6-cce3-46b5-b70a-48f492e6cdf3
+		summarizeBy: none
+		sourceColumn: MesAno
+
+		annotation SummarizationSetBy = Automatic
+
+	column TagKey
+		dataType: string
+		isHidden
+		lineageTag: 13696460-724c-5b31-9936-11412691317f
+		summarizeBy: none
+		sourceColumn: TagKey
+
+		annotation SummarizationSetBy = Automatic
+	partition Tbl_Paradas = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+				    fxTag = ( tag as any ) as nullable text =>
+				        let
+				            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+				            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+				        in
+				            if s = null or s = "" then null else s,
+				
+				    Bruto = Fonte{[Item="Tbl_Paradas",Kind="Table"]}[Data],
+				    SemVazias =
+				        Table.SelectRows(
+				            Bruto,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( Bruto ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    Tipos = Table.TransformColumnTypes(
+				        SemVazias,
+				        {
+				            { "Data", type date }, { "Equip. (Tag)", type text },
+				            { "Horas Parado", type number }, { "Ocorrência", type text },
+				            { "Responsável", type text }, { "Situação", type text },
+				            { "Equipamento (auto)", type text }, { "Grupo (auto)", type text }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    ComTagKey = Table.AddColumn( Tipos, "TagKey", each fxTag( Record.Field( _, "Equip. (Tag)" ) ), type nullable text ),
+				    ComID     = Table.AddIndexColumn( ComTagKey, "ID_Parada", 1, 1, Int64.Type ),
+				    ComMesAno = Table.AddColumn( ComID, "MesAno",
+				        each if [Data] = null then null else Date.ToText( [Data], "yyyy-MM" ), type nullable text )
+				in
+				    ComMesAno
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação

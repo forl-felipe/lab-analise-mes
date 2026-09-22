@@ -1,0 +1,230 @@
+table tbl_Medicoes_Operacionais
+	lineageTag: 59e9f1a2-81a5-4a4a-917e-4f6dddf8f4df
+
+	column ID_Inspecao
+		dataType: string
+		lineageTag: 8e06d68a-42a7-4423-a344-c3b09586dd1f
+		summarizeBy: none
+		sourceColumn: ID_Inspecao
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 21b4aa30-42a2-4959-936b-12e0afffb4c7
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+	column Equip_Tag
+		dataType: string
+		lineageTag: a17848ea-7812-49f7-9c4f-f5b57ba47473
+		summarizeBy: none
+		sourceColumn: Equip_Tag
+
+		annotation SummarizationSetBy = Automatic
+
+	column Equipamento
+		dataType: string
+		lineageTag: 7e518302-51d9-44b6-a470-823dcdb8ceb5
+		summarizeBy: none
+		sourceColumn: Equipamento
+
+		annotation SummarizationSetBy = Automatic
+
+	column Comprimento_Cortador
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 73cff8c0-49c4-40bd-a612-682d9ee51b25
+		summarizeBy: sum
+		sourceColumn: Comprimento_Cortador
+
+		annotation SummarizationSetBy = Automatic
+
+	column Distancia_Percurso
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 4b8152c5-7b21-4c03-9e87-4eafe8914753
+		summarizeBy: sum
+		sourceColumn: Distancia_Percurso
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tempo_1
+		dataType: double
+		formatString: #,0.000
+		lineageTag: ee293796-cf01-4e4c-8d40-8f20e174abc5
+		summarizeBy: sum
+		sourceColumn: Tempo_1
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tempo_2
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 2fba3421-92ec-4c61-a5e5-41329960b1c0
+		summarizeBy: sum
+		sourceColumn: Tempo_2
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tempo_3
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 331102c5-95de-468a-8084-f4e16c10495e
+		summarizeBy: sum
+		sourceColumn: Tempo_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tempo_4
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 7601a7e2-668c-4042-8059-c5b9896ee5de
+		summarizeBy: sum
+		sourceColumn: Tempo_4
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tempo_5
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 75868871-f87a-4b6f-bf52-cb428095b82e
+		summarizeBy: sum
+		sourceColumn: Tempo_5
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tempo_Medio
+		dataType: double
+		formatString: #,0.000
+		lineageTag: 8ed709c5-e977-406c-9462-a7e81504ec6a
+		summarizeBy: sum
+		sourceColumn: Tempo_Medio
+
+		annotation SummarizationSetBy = Automatic
+
+	column Velocidade_Calculada
+		dataType: double
+		formatString: #,0.000
+		lineageTag: b5b0788f-9364-494a-9e84-36ca6b3e1b68
+		summarizeBy: sum
+		sourceColumn: Velocidade_Calculada
+
+		annotation SummarizationSetBy = Automatic
+
+	column Velocidade_Uniforme
+		dataType: string
+		lineageTag: 9c154b6f-733d-490f-97ac-c86769ddb4fc
+		summarizeBy: none
+		sourceColumn: Velocidade_Uniforme
+
+		annotation SummarizationSetBy = Automatic
+
+	column Resultado_Medicao
+		dataType: string
+		lineageTag: b07618ab-92ab-460d-b566-67f92d70bd95
+		summarizeBy: none
+		sourceColumn: Resultado_Medicao
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'TagKey Inspecao'
+		dataType: string
+		isHidden
+		lineageTag: 0c85e2b4-d05a-5be9-bd7a-468365e4b0b3
+		summarizeBy: none
+		sourceColumn: TagKey Inspecao
+
+		annotation SummarizationSetBy = Automatic
+	partition tbl_Medicoes_Operacionais = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+				    fxTag = ( tag as any ) as nullable text =>
+				        let
+				            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+				            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+				        in
+				            if s = null or s = "" then null else s,
+				    // interpreta os SEIS formatos que convivem nas colunas de data:
+				    //   serial do Excel · data nativa · dd/mm/aaaa · dd/mm/aa · mm/aa · mm/aaaa
+				    // fimDoMes=true usa o último dia quando o dia não foi informado (vencimentos)
+				    fxData = ( valor as any, fimDoMes as logical ) as nullable date =>
+				        let
+				            ehData   = valor is date or valor is datetime or valor is datetimezone,
+				            ehNumero = valor is number,
+				            texto    = if valor = null then null else Text.Trim( Text.From( valor ) ),
+				            vazio    = texto = null or texto = "",
+				            porData   = if ehData then try Date.From( valor ) otherwise null else null,
+				            porSerial = if ehNumero and valor > 1 and valor < 100000 then try Date.From( valor ) otherwise null else null,
+				            partes    = if vazio then {} else Text.Split( texto, "/" ),
+				            n         = List.Count( partes ),
+				            nums      = List.Transform( partes, each try Number.FromText( Text.Trim( _ ) ) otherwise null ),
+				            numerico  = n >= 2 and not List.Contains( nums, null ),
+				            anoCheio  = ( a as number ) as number => if a < 100 then 2000 + a else a,
+				            porCompleta =
+				                if numerico and n = 3
+				                then try #date( anoCheio( nums{2} ), nums{1}, nums{0} ) otherwise null
+				                else null,
+				            porMesAno =
+				                if numerico and n = 2 then
+				                    let p = try #date( anoCheio( nums{1} ), nums{0}, 1 ) otherwise null
+				                    in  if p = null then null else if fimDoMes then Date.EndOfMonth( p ) else p
+				                else null
+				        in
+				            if porData <> null then porData
+				            else if porSerial <> null then porSerial
+				            else if porCompleta <> null then porCompleta
+				            else porMesAno,
+				
+				    Bruto = Fonte{[Item="tbl_Medicoes_Operacionais",Kind="Table"]}[Data],
+				    SemVazias =
+				        Table.SelectRows(
+				            Bruto,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( Bruto ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    Tipos = Table.TransformColumnTypes(
+				        SemVazias,
+				        {
+				            { "ID_Inspecao", type text }, { "Equip_Tag", type text },
+				            { "Equipamento", type text }, { "Velocidade_Uniforme", type text },
+				            { "Resultado_Medicao", type text }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    ComData  = Table.AddColumn( Tipos, "DataConv", each fxData( [Data], false ), type nullable date ),
+				    TiraData = Table.RemoveColumns( ComData, { "Data" }, MissingField.Ignore ),
+				    RenData  = Table.RenameColumns( TiraData, {{ "DataConv", "Data" }} ),
+				
+				    // decimais com vírgula ("0,471") chegavam como texto — o gráfico de
+				    // velocidade contava ocorrências de texto em vez de medir velocidade
+				    ParaNumero = List.Accumulate(
+				        { "Comprimento_Cortador", "Distancia_Percurso", "Tempo_1", "Tempo_2",
+				          "Tempo_3", "Tempo_4", "Tempo_5", "Tempo_Medio", "Velocidade_Calculada" },
+				        RenData,
+				        ( tab, col ) =>
+				            if List.Contains( Table.ColumnNames( tab ), col )
+				            then Table.TransformColumns( tab,
+				                    {{ col, each try Number.FromText( Text.Replace( Text.Trim( Text.From( _ ) ), ",", "." ) ) otherwise null, type nullable number }} )
+				            else tab
+				    ),
+				
+				    ComTagKey = Table.AddColumn( ParaNumero, "TagKey Inspecao", each fxTag( [Equip_Tag] ), type nullable text )
+				in
+				    ComTagKey
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table

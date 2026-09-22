@@ -1,0 +1,33 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["tbl_Equipamentos","tbl_Calibracao","Tbl_Paradas","tbl_Intervencoes","tbl_Meta_Inspecoes","tbl_Notas","tbl_Config","tbl_Grupos","tbl_Inspecoes","tbl_Medicoes_Operacionais","tbl_Sobressalentes","DimLaboratorio","DePara_Inspecao_Equipamento"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table tbl_Equipamentos
+ref table tbl_Calibracao
+ref table Tbl_Paradas
+ref table tbl_Intervencoes
+ref table tbl_Meta_Inspecoes
+ref table tbl_Notas
+ref table tbl_Config
+ref table tbl_Grupos
+ref table tbl_Inspecoes
+ref table tbl_Medicoes_Operacionais
+ref table tbl_Sobressalentes
+ref table DimLaboratorio
+ref table DePara_Inspecao_Equipamento
+ref table DimCalendario
+ref table DimTecnicos
+ref table _Medidas
+
+ref cultureInfo pt-BR

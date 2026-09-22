@@ -1,0 +1,51 @@
+table DimLaboratorio
+	lineageTag: f5b994c7-a55b-5cc2-872f-bf0fc5eca0cc
+	column Laboratorio
+		dataType: string
+		lineageTag: 2c8ebca2-ee37-599f-9178-0c2610ffca5c
+		summarizeBy: none
+		sourceColumn: Laboratorio
+		sortByColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Nome do Laboratório'
+		dataType: string
+		lineageTag: 6282773c-d8c5-55be-829d-832ff759837d
+		summarizeBy: none
+		sourceColumn: Nome do Laboratório
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordem
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: a63141fe-ef8f-50f0-9b54-44f3c5133ba2
+		summarizeBy: none
+		sourceColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+	partition DimLaboratorio = m
+		mode: import
+		source =
+				
+				let
+				    // A ÚNICA dimensão realmente compartilhada entre os dois domínios.
+				    //              LCP   LCE   LDP
+				    //   Equipamentos 26     8     —
+				    //   Calibração  119    57    32
+				    // ⚠ AJUSTAR: os nomes por extenso abaixo são marcadores.
+				    Origem = #table(
+				        type table [ Laboratorio = text, #"Nome do Laboratório" = text, Ordem = Int64.Type ],
+				        {
+				            { "LCP", "LCP — ajustar nome oficial", 1 },
+				            { "LCE", "LCE — ajustar nome oficial", 2 },
+				            { "LDP", "LDP — ajustar nome oficial", 3 },
+				            { "N/A", "Não informado",              9 }
+				        }
+				    )
+				in
+				    Origem
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,491 @@
+table _Medidas
+	lineageTag: c8742488-d882-4a84-92f6-b371cd8e2e7a
+
+	measure 'Identificação' =
+			
+			VAR _Empresa = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Empresa" )
+			VAR _Unidade = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Unidade" )
+			VAR _Area    = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Área" )
+			RETURN
+			    _Empresa & "  ·  " & _Unidade & "  ·  " & _Area
+		displayFolder: 00 Cabeçalho
+		lineageTag: fa2080b2-3511-5f4e-9778-f9e0d53d59c5
+
+	measure 'Última Atualização' =
+			
+			"Última atualização: " & FORMAT ( UTCNOW () - TIME ( 3, 0, 0 ), "dd/MM/yyyy HH:mm" )
+		displayFolder: 00 Cabeçalho
+		lineageTag: ccf53384-e999-5c21-afc1-4027fe4494e1
+
+	measure 'Param Dias Alerta' =
+			
+			VALUE ( LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Dias p/ Alerta Vencimento Calibração" ) )
+		formatString: 0
+		displayFolder: 00 Cabeçalho
+		lineageTag: 2a3b2c2b-230f-5260-8e3a-0db254fab029
+
+	measure 'Param Meta Disponibilidade' =
+			
+			DIVIDE ( VALUE ( LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Meta Disponibilidade (%)" ) ), 100 )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 00 Cabeçalho
+		lineageTag: 126e1a98-4843-5e75-b31f-fcdc74476b5e
+
+	measure 'Total Equipamentos' =
+			
+			COUNTROWS ( tbl_Equipamentos )
+		formatString: #,0
+		displayFolder: 01 Equipamentos
+		lineageTag: 1c7debce-c7f7-55c8-8022-04b393507555
+
+	measure 'Equipamentos Críticos' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Equipamentos ), tbl_Equipamentos[Crítico] = "Sim" )
+		formatString: #,0
+		displayFolder: 01 Equipamentos
+		lineageTag: 34733277-8c79-5380-9207-5cd7c0bc1b23
+
+	measure '% Equipamentos Críticos' =
+			
+			DIVIDE ( [Equipamentos Críticos], [Total Equipamentos] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 Equipamentos
+		lineageTag: 58a881c9-2a27-59dd-b9da-fa629bd572f0
+
+	measure 'Qtd Equipamentos' =
+			
+			DISTINCTCOUNT ( tbl_Equipamentos[Tag] )
+		formatString: #,0
+		displayFolder: 01 Equipamentos
+		lineageTag: c6c9ad52-a048-5c06-a04a-29cbb9fd18d6
+
+	measure 'Equipamentos Operantes' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Equipamentos ), tbl_Equipamentos[Status Operacional] = "Operante" )
+		formatString: #,0
+		displayFolder: 01 Equipamentos
+		lineageTag: 1c8960f8-f2ae-55f2-936d-4cda04347fcd
+
+	measure 'Total Instrumentos' =
+			
+			COUNTROWS ( tbl_Calibracao )
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: 93af5c0e-7226-5c91-a523-a82d44544de3
+
+	measure 'Calibracoes Em Dia' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Em Dia" ) )
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: 8a0a64dd-84f0-5d32-9604-3efac0f0ef72
+
+	measure 'Calibracoes A Vencer' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "A Vencer" ) )
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: f55b3548-398d-5b08-8c63-21d39c7861e9
+
+	measure 'Calibracoes Vencidas' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Vencido" ) )
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: 4d46d3aa-b3bf-5a79-b7d7-014dcaf257ce
+
+	measure 'Calibracoes Sem Data' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Sem Data" ) )
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: a3239cab-fa43-5349-8a60-91372e9c2752
+
+	measure '% Conformidade' =
+			
+			-- Denominador agora é a base inteira. A versão anterior somava só
+			-- Em Dia + A Vencer + Vencido, descartando em silêncio os registros Sem Data.
+			DIVIDE ( [Calibracoes Em Dia], [Total Instrumentos] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: f9f659ca-3fe3-571f-8752-ae414759e7ff
+
+	measure '% Conformidade (base avaliável)' =
+			
+			VAR _Avaliaveis = [Calibracoes Em Dia] + [Calibracoes A Vencer] + [Calibracoes Vencidas]
+			RETURN
+			    DIVIDE ( [Calibracoes Em Dia], _Avaliaveis )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: 713246e0-d3eb-579f-a481-e712bcec2f12
+
+	measure 'Calibracoes Criticas' =
+			
+			CALCULATE (
+			    COUNTROWS ( tbl_Calibracao ),
+			    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] >= 0 ),
+			    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] <= 30 )
+			)
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: 9e2e1cb4-b96c-518a-9e97-5a97754178d6
+
+	measure 'Calibracoes Atencao' =
+			
+			CALCULATE (
+			    COUNTROWS ( tbl_Calibracao ),
+			    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] > 30 ),
+			    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] <= 90 )
+			)
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: 80e63639-f1a1-544c-b6e4-68282c8f5eff
+
+	measure 'Calibracoes Criticas Severas' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] < -180 ) )
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: d325f6a5-ccc0-5169-b9d1-9ba6d36a54f3
+
+	measure 'Dias Médios Para Vencer' =
+			
+			CALCULATE (
+			    AVERAGE ( tbl_Calibracao[DiasParaVencer] ),
+			    KEEPFILTERS ( NOT ISBLANK ( tbl_Calibracao[DiasParaVencer] ) )
+			)
+		formatString: #,0
+		displayFolder: 02 Calibrações\Prazo
+		lineageTag: e5658c84-e675-5bec-8d26-4807363fe9b8
+
+	measure 'Instrumentos Aprovados' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Status Metrologico] = "Aprovado" ) )
+		formatString: #,0
+		displayFolder: 03 Calibrações\Metrologia
+		lineageTag: e0827b66-984b-53b4-af86-38967b8e8f4e
+
+	measure 'Instrumentos Reprovados' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Status Metrologico] = "Reprovado" ) )
+		formatString: #,0
+		displayFolder: 03 Calibrações\Metrologia
+		lineageTag: cdcfedd1-5b67-5a37-baa7-3c9deaec1230
+
+	measure 'Instrumentos Em Calibração' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Status Metrologico] = "Em calibração" ) )
+		formatString: #,0
+		displayFolder: 03 Calibrações\Metrologia
+		lineageTag: 71d97f37-f0be-5055-99f5-9443fa72f395
+
+	measure '% Aprovação Metrológica' =
+			
+			VAR _Avaliados = [Instrumentos Aprovados] + [Instrumentos Reprovados]
+			RETURN
+			    DIVIDE ( [Instrumentos Aprovados], _Avaliados )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 03 Calibrações\Metrologia
+		lineageTag: f18d1009-671c-5fd7-b738-202ac706275a
+
+	measure 'Instrumentos em Risco' =
+			
+			-- Reprovado na metrologia OU fora do prazo.
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Em Risco] = TRUE ) )
+		formatString: #,0
+		displayFolder: 03 Calibrações\Metrologia
+		lineageTag: f637060d-2216-595e-8726-828c9cbf158a
+
+	measure '% Instrumentos em Risco' =
+			
+			DIVIDE ( [Instrumentos em Risco], [Total Instrumentos] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 03 Calibrações\Metrologia
+		lineageTag: 7ee13d5f-1549-5ff7-b994-e1e07eddbad5
+
+	measure 'Reprovados no Prazo' =
+			
+			-- O caso mais grave: certificado dentro do prazo e resultado reprovado.
+			-- O instrumento está em uso, medindo errado, e não aparecia em lugar nenhum.
+			CALCULATE (
+			    COUNTROWS ( tbl_Calibracao ),
+			    KEEPFILTERS ( tbl_Calibracao[Status Metrologico] = "Reprovado" ),
+			    KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Em Dia" )
+			)
+		formatString: #,0
+		displayFolder: 03 Calibrações\Metrologia
+		lineageTag: 6490092b-26c6-5c8a-bde5-e93921efa37e
+
+	measure 'Registros Data Não Interpretável' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Qualidade Vencimento] = "Não interpretável" ) )
+		formatString: #,0
+		displayFolder: 04 Qualidade do Dado
+		lineageTag: 1bccb4df-8db2-5b47-af30-2997f428e373
+
+	measure 'Registros Mês Sem Dia' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Qualidade Última Calibração] = "Mês sem dia" ) )
+		formatString: #,0
+		displayFolder: 04 Qualidade do Dado
+		lineageTag: 390af2e2-77cd-5c67-9d0a-59be804309b3
+
+	measure 'Registros Calibração Futura' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Última Calibração no Futuro] = TRUE ) )
+		formatString: #,0
+		displayFolder: 04 Qualidade do Dado
+		lineageTag: 8426a060-5c0e-551f-8635-311fb6a82779
+
+	measure '% Base Confiável' =
+			
+			VAR _Ruins = [Registros Data Não Interpretável] + [Calibracoes Sem Data]
+			RETURN
+			    DIVIDE ( [Total Instrumentos] - _Ruins, [Total Instrumentos] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 04 Qualidade do Dado
+		lineageTag: d720bea1-6abf-5725-b4fd-fbb4a3b7e8ce
+
+	measure 'Inspecoes com ID Inválido' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Inspecoes ), KEEPFILTERS ( tbl_Inspecoes[ID Válido] = FALSE ) )
+		formatString: #,0
+		displayFolder: 04 Qualidade do Dado
+		lineageTag: d6d15c4c-5047-562c-adf1-c50ef65a1fe8
+
+	measure 'Inspeções Sem Equipamento Mapeado' =
+			
+			CALCULATE ( COUNTROWS ( DePara_Inspecao_Equipamento ), KEEPFILTERS ( DePara_Inspecao_Equipamento[Resolvido] = FALSE ) )
+		formatString: #,0
+		displayFolder: 04 Qualidade do Dado
+		lineageTag: aea3605c-6416-5a78-910e-56dd036f512e
+
+	measure 'Total Intervencoes' =
+			
+			COUNTROWS ( tbl_Intervencoes )
+		formatString: #,0
+		displayFolder: 05 Manutenção
+		lineageTag: 86abfcff-396b-58e7-99e9-f9d5787d5a55
+
+	measure 'Horas Paradas' =
+			
+			SUM ( Tbl_Paradas[Horas Parado] )
+		formatString: #,0.00
+		displayFolder: 05 Manutenção
+		lineageTag: e8929c4c-ceca-59e5-b774-a6763e914453
+
+	measure 'Paradas Registradas' =
+			
+			COUNTROWS ( Tbl_Paradas )
+		formatString: #,0
+		displayFolder: 05 Manutenção
+		lineageTag: 0ecd5d5b-2918-5a4d-b0c9-1b98445657e5
+
+	measure 'Total OMs' =
+			
+			COUNTROWS ( tbl_Notas )
+		formatString: #,0
+		displayFolder: 05 Manutenção
+		lineageTag: 75c81814-8bfa-5c81-8105-e44dc6645bea
+
+	measure 'OMs Abertas' =
+			
+			-- "Aberta" não existe no domínio de tbl_Listas. É a soma dos dois estados
+			-- que ainda demandam ação. Sem o "+ 0" antigo: sem dado, a medida fica VAZIA.
+			CALCULATE (
+			    COUNTROWS ( tbl_Notas ),
+			    KEEPFILTERS ( tbl_Notas[Situação] IN { "Em andamento", "Aguardando peças" } )
+			)
+		formatString: #,0
+		displayFolder: 05 Manutenção
+		lineageTag: d2f676c6-0617-50bc-ab07-d6d8432c3a76
+
+	measure 'OMs Concluídas' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Concluída" ) )
+		formatString: #,0
+		displayFolder: 05 Manutenção
+		lineageTag: 086bcd64-ec08-5cd9-a4c0-e3d70eeb383e
+
+	measure 'OMs Em Andamento' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Em andamento" ) )
+		formatString: #,0
+		displayFolder: 05 Manutenção
+		lineageTag: 839b9291-a7b1-5c37-9f37-edc19d091601
+
+	measure 'OMs Aguardando Peças' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Aguardando peças" ) )
+		formatString: #,0
+		displayFolder: 05 Manutenção
+		lineageTag: 94f47d6a-24c1-5cc7-bf74-28f1196afa05
+
+	measure '% OMs Concluídas' =
+			
+			DIVIDE ( [OMs Concluídas], [Total OMs] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Manutenção
+		lineageTag: d125e366-eb43-5732-b999-725d29e345d3
+
+	measure 'Lead Time Médio' =
+			
+			-- Sem nota registrada o resultado é VAZIO, não zero.
+			-- Zero dia de lead time é um número excelente, e falso.
+			IF ( NOT ISBLANK ( [Total OMs] ), AVERAGE ( tbl_Notas[LeadTimeDias] ) )
+		formatString: #,0.0
+		displayFolder: 05 Manutenção
+		lineageTag: 8271ed74-b576-568c-be8d-e33e6fd7396c
+
+	measure '% Disponibilidade' =
+			
+			-- Capacidade = nº de equipamentos × horas do período.
+			-- Sem período selecionado, assume o mês corrente.
+			VAR _Equipamentos = [Total Equipamentos]
+			VAR _TemPeriodo   = ISFILTERED ( DimCalendario[Data] )
+			VAR _Dias =
+			    IF (
+			        _TemPeriodo,
+			        CALCULATE ( COUNTROWS ( DimCalendario ), KEEPFILTERS ( DimCalendario[Data Passada] = TRUE ) ),
+			        DAY ( EOMONTH ( TODAY (), 0 ) )
+			    )
+			VAR _Capacidade = _Equipamentos * COALESCE ( _Dias, 0 ) * 24
+			RETURN
+			    IF ( _Capacidade > 0, DIVIDE ( _Capacidade - [Horas Paradas], _Capacidade ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Manutenção
+		lineageTag: 9305d9bc-44be-5bbf-8a40-e6c2839c6d64
+
+	measure 'Desvio da Meta de Disponibilidade' =
+			
+			[% Disponibilidade] - [Param Meta Disponibilidade]
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Manutenção
+		lineageTag: 9b4085c7-3391-506f-9ada-89f1921eb627
+
+	measure 'Inspecoes Realizadas' =
+			
+			DISTINCTCOUNT ( tbl_Inspecoes[ID_Inspecao] )
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: 86812336-1006-5e3d-951e-7d7271ce87c4
+
+	measure 'Equipamentos Inspecionados' =
+			
+			DISTINCTCOUNT ( tbl_Inspecoes[Equip_Tag] )
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: d1b60261-0ac9-5732-9b87-cfdb225282be
+
+	measure 'Qtd Inspecoes por Criticidade' =
+			
+			-- Mantida porque está vinculada a um visual da página INSPEÇÕES.
+			-- É idêntica a [Inspecoes Realizadas]; ao repontar o visual, pode ser excluída.
+			[Inspecoes Realizadas]
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: eccdb059-469f-5fe8-bf2a-ca8aafc5cdd6
+
+	measure 'Nao Conformidades' =
+			
+			-- Agora soma número de verdade: Qtd_NC era texto ('0','2','4').
+			SUM ( tbl_Inspecoes[Qtd_NC] )
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: 2f17bbeb-9050-5406-b24f-293c555d3cb1
+
+	measure 'Equipamentos com Desvio' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( tbl_Inspecoes[Equip_Tag] ),
+			    KEEPFILTERS ( tbl_Inspecoes[Resultado_Inspecao] = "Nao Conforme" )
+			)
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: daaf4147-a90c-5dba-8858-b58b7923cd68
+
+	measure '% Conformidade Inspecoes' =
+			
+			VAR _Conformes =
+			    CALCULATE (
+			        DISTINCTCOUNT ( tbl_Inspecoes[ID_Inspecao] ),
+			        KEEPFILTERS ( tbl_Inspecoes[Resultado_Inspecao] = "Conforme" )
+			    )
+			RETURN
+			    DIVIDE ( _Conformes, [Inspecoes Realizadas] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 06 Inspeções
+		lineageTag: ae1b2f5d-165f-517b-9a7f-f3d47acffb0c
+
+	measure 'Meta Semanal' =
+			
+			SUM ( tbl_Meta_Inspecoes[Meta_Semanal] )
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: caf29973-e792-5e9e-9cf2-b42f06d68113
+
+	measure 'Cumprimento Meta' =
+			
+			DIVIDE ( [Inspecoes Realizadas], [Meta Semanal] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 06 Inspeções
+		lineageTag: 58bc7505-ab91-520b-a82a-d3a18195fc0d
+
+	measure 'Itens Cadastrados' =
+			
+			COUNTROWS ( tbl_Sobressalentes )
+		formatString: #,0
+		displayFolder: 07 Sobressalentes
+		lineageTag: 00c13b60-6268-54bb-a465-3959508b6e7d
+
+	measure 'Itens Críticos' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Sobressalentes ), KEEPFILTERS ( tbl_Sobressalentes[Situação] = "Crítico" ) )
+		formatString: #,0
+		displayFolder: 07 Sobressalentes
+		lineageTag: c8f612ab-5aab-56f9-8470-403919a416c8
+
+	measure 'Cobertura Média' =
+			
+			AVERAGE ( tbl_Sobressalentes[Cobertura] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 07 Sobressalentes
+		lineageTag: 22394e1d-b5a4-581e-ae12-554ce298456d
+
+	measure 'Itens Sem Vínculo' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Sobressalentes ), KEEPFILTERS ( tbl_Sobressalentes[Vinculado a Equipamento] = FALSE ) )
+		formatString: #,0
+		displayFolder: 07 Sobressalentes
+		lineageTag: dfb7eda2-8b73-5c27-a12e-de65f6e9ffee
+
+	measure 'Aviso OMs' =
+			
+			IF ( ISBLANK ( [Total OMs] ), "Sem notas de manutenção registradas na base" )
+		displayFolder: 99 Auxiliares
+		lineageTag: 3f822e58-54a1-533a-bca7-585b246f8963
+
+	measure 'Aviso Sobressalentes' =
+			
+			IF (
+			    [Itens Sem Vínculo] = [Itens Cadastrados],
+			    "Cobertura pendente — preencher Qtd. Atual, Estoque Mín. e Compatível com"
+			)
+		displayFolder: 99 Auxiliares
+		lineageTag: 0696f75d-49b5-5cb3-bca5-b22b8cbfaa7c
+
+	column Value
+		isHidden
+		formatString: 0
+		lineageTag: 977bd81c-753c-4d9a-a36b-d6f91c5e670e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Medidas = calculated
+		mode: import
+		source = {1}
+
+	annotation PBI_Id = c43984bc8f104a2ca484029d42e7db2c

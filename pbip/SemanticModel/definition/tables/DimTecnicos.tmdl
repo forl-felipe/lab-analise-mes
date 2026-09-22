@@ -1,0 +1,27 @@
+table DimTecnicos
+	lineageTag: f66b3e78-c125-427d-877d-28af6157226a
+	column Responsavel
+		dataType: string
+		lineageTag: 61178751-05a2-5359-a67f-5e88bd5b9fe6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Responsavel]
+
+		annotation SummarizationSetBy = Automatic
+	partition DimTecnicos = calculated
+		mode: import
+		source =
+				
+				-- TRIM resolve a linha com espaço em branco que sobrevivia ao filtro anterior
+				-- e aparecia como uma barra anônima no gráfico por responsável.
+				VAR _Uniao =
+				    DISTINCT (
+				        UNION (
+				            SELECTCOLUMNS ( tbl_Inspecoes,      "Responsavel", TRIM ( tbl_Inspecoes[Responsavel] ) ),
+				            SELECTCOLUMNS ( tbl_Meta_Inspecoes, "Responsavel", TRIM ( tbl_Meta_Inspecoes[Responsavel] ) )
+				        )
+				    )
+				RETURN
+				    FILTER ( _Uniao, NOT ISBLANK ( [Responsavel] ) && [Responsavel] <> "" )
+
+	annotation PBI_ResultType = Table

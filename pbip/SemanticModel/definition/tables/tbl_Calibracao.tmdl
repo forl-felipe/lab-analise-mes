@@ -1,0 +1,426 @@
+table tbl_Calibracao
+	lineageTag: 126be2af-b9e1-45d5-bd9b-cd4a22711cb3
+
+	column Tag
+		dataType: string
+		lineageTag: c3d4a928-632d-494f-98e2-ca594b5e962f
+		summarizeBy: none
+		sourceColumn: Tag
+
+		annotation SummarizationSetBy = Automatic
+
+	column Equipamento
+		dataType: string
+		lineageTag: 83bd26fd-7e1a-4682-9e79-891c03af3c20
+		summarizeBy: none
+		sourceColumn: Equipamento
+
+		annotation SummarizationSetBy = Automatic
+
+	column Laboratorio
+		dataType: string
+		lineageTag: a1b0c67d-be79-4f56-89a2-a9a31574ffef
+		summarizeBy: none
+		sourceColumn: Laboratorio
+
+		annotation SummarizationSetBy = Automatic
+
+	column Local
+		dataType: string
+		lineageTag: f4fccf07-18fe-4ad8-98ea-2b8f1898a917
+		summarizeBy: none
+		sourceColumn: Local
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Frequência (meses)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0fc32aba-2f95-43fd-9e18-b067f03a9d13
+		summarizeBy: sum
+		sourceColumn: Frequência (meses)
+
+		annotation SummarizationSetBy = Automatic
+
+	column UltimaCalibracao
+		dataType: string
+		lineageTag: 83120b47-7d0e-44ae-8d78-b867c20c0bfd
+		summarizeBy: none
+		sourceColumn: UltimaCalibracao
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProxVencimento
+		dataType: string
+		lineageTag: 453ad40d-4cb1-4184-8b40-e0490651abe2
+		summarizeBy: none
+		sourceColumn: ProxVencimento
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Status Calibração'
+		dataType: string
+		lineageTag: 3d3a6f84-08fc-4485-84ad-e0f35014c9de
+		summarizeBy: none
+		sourceColumn: Status Calibração
+
+		annotation SummarizationSetBy = Automatic
+
+	column UltimaCalibData
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 8fed77b3-ac89-4e10-8eb7-a74c11c35f26
+		summarizeBy: none
+		sourceColumn: UltimaCalibData
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DataVencimento
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 57426195-3743-4e41-a2c4-6bdc00a539dd
+		summarizeBy: none
+		sourceColumn: DataVencimento
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column DiasParaVencer
+		dataType: int64
+		formatString: 0
+		lineageTag: 77ba8f60-d296-4a62-b52b-e51f12d5d325
+		summarizeBy: sum
+		sourceColumn: DiasParaVencer
+
+		annotation SummarizationSetBy = Automatic
+
+	column StatusAtual
+		dataType: string
+		lineageTag: 1e74a22a-64d2-4675-88b2-6545fc3b08a2
+		summarizeBy: none
+		sortByColumn: 'Ordem Status'
+		sourceColumn: StatusAtual
+
+		annotation SummarizationSetBy = Automatic
+
+	column CriticidadeCalibracao
+		dataType: string
+		lineageTag: 91779f8e-972d-4e47-a885-235432db7624
+		summarizeBy: none
+		sourceColumn: CriticidadeCalibracao
+
+		annotation SummarizationSetBy = Automatic
+
+	column Certificado
+		dataType: string
+		lineageTag: 8f376728-09dd-573c-99c4-b5b2fe60a050
+		summarizeBy: none
+		sourceColumn: Certificado
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Empresa Calibradora'
+		dataType: string
+		lineageTag: 7e7935c5-41ba-5ded-a5d5-dd50677de711
+		summarizeBy: none
+		sourceColumn: Empresa Calibradora
+
+		annotation SummarizationSetBy = Automatic
+
+	column Observações
+		dataType: string
+		lineageTag: f444f9ae-5090-5e8c-a4c5-07634273a790
+		summarizeBy: none
+		sourceColumn: Observações
+
+		annotation SummarizationSetBy = Automatic
+
+	column TagKey
+		dataType: string
+		isHidden
+		lineageTag: 13696460-724c-5b31-9936-11412691317f
+		summarizeBy: none
+		sourceColumn: TagKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qualidade Última Calibração'
+		dataType: string
+		lineageTag: 48689efb-93cb-5ba1-9908-b85694b4b51a
+		summarizeBy: none
+		sourceColumn: Qualidade Última Calibração
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qualidade Vencimento'
+		dataType: string
+		lineageTag: 2e262eab-f2aa-5c2d-97c2-2eb94547e5e7
+		summarizeBy: none
+		sourceColumn: Qualidade Vencimento
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Última Calibração no Futuro'
+		dataType: boolean
+		formatString: ""#TRUE##FALSE#
+		lineageTag: fa43c797-c355-593e-8ca7-0fa54d430a60
+		summarizeBy: none
+		sourceColumn: Última Calibração no Futuro
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ordem Status'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: ce830a1d-d0c1-54cd-8a35-9e44cbce10ad
+		summarizeBy: none
+		sourceColumn: Ordem Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Faixa de Vencimento'
+		dataType: string
+		lineageTag: c7e179d4-d9b1-5d52-a7b7-07b1a30403df
+		summarizeBy: none
+		sourceColumn: Faixa de Vencimento
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Status Metrologico'
+		dataType: string
+		lineageTag: b768bac5-48b2-525f-9cbf-492bae354de7
+		summarizeBy: none
+		sourceColumn: Status Metrologico
+		sortByColumn: 'Ordem Metrologico'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ordem Metrologico'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 85bf12de-3958-5dc5-b5fa-be87125fdeb4
+		summarizeBy: none
+		sourceColumn: Ordem Metrologico
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Em Risco'
+		dataType: boolean
+		formatString: ""#TRUE##FALSE#
+		lineageTag: 2ba87cd7-48cb-56bd-b50f-a30123b821bd
+		summarizeBy: none
+		sourceColumn: Em Risco
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tipo Instrumento'
+		dataType: string
+		lineageTag: 8c9c4195-bcec-58a4-aa29-0478901496fa
+		summarizeBy: none
+		sourceColumn: Tipo Instrumento
+
+		annotation SummarizationSetBy = Automatic
+	partition tbl_Calibracao = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+				    fxTag = ( tag as any ) as nullable text =>
+				        let
+				            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+				            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+				        in
+				            if s = null or s = "" then null else s,
+				    // interpreta os SEIS formatos que convivem nas colunas de data:
+				    //   serial do Excel · data nativa · dd/mm/aaaa · dd/mm/aa · mm/aa · mm/aaaa
+				    // fimDoMes=true usa o último dia quando o dia não foi informado (vencimentos)
+				    fxData = ( valor as any, fimDoMes as logical ) as nullable date =>
+				        let
+				            ehData   = valor is date or valor is datetime or valor is datetimezone,
+				            ehNumero = valor is number,
+				            texto    = if valor = null then null else Text.Trim( Text.From( valor ) ),
+				            vazio    = texto = null or texto = "",
+				            porData   = if ehData then try Date.From( valor ) otherwise null else null,
+				            porSerial = if ehNumero and valor > 1 and valor < 100000 then try Date.From( valor ) otherwise null else null,
+				            partes    = if vazio then {} else Text.Split( texto, "/" ),
+				            n         = List.Count( partes ),
+				            nums      = List.Transform( partes, each try Number.FromText( Text.Trim( _ ) ) otherwise null ),
+				            numerico  = n >= 2 and not List.Contains( nums, null ),
+				            anoCheio  = ( a as number ) as number => if a < 100 then 2000 + a else a,
+				            porCompleta =
+				                if numerico and n = 3
+				                then try #date( anoCheio( nums{2} ), nums{1}, nums{0} ) otherwise null
+				                else null,
+				            porMesAno =
+				                if numerico and n = 2 then
+				                    let p = try #date( anoCheio( nums{1} ), nums{0}, 1 ) otherwise null
+				                    in  if p = null then null else if fimDoMes then Date.EndOfMonth( p ) else p
+				                else null
+				        in
+				            if porData <> null then porData
+				            else if porSerial <> null then porSerial
+				            else if porCompleta <> null then porCompleta
+				            else porMesAno,
+				    // classifica a confiabilidade do valor de origem, em vez de escondê-la
+				    fxQual = ( valor as any ) as text =>
+				        let
+				            texto = if valor = null then null else Text.Trim( Text.From( valor ) ),
+				            vazio = texto = null or texto = "",
+				            nativo = valor is date or valor is datetime or valor is number,
+				            partes = if vazio then {} else Text.Split( texto, "/" ),
+				            n = List.Count( partes ),
+				            nums = List.Transform( partes, each try Number.FromText( Text.Trim( _ ) ) otherwise null ),
+				            numerico = n >= 2 and not List.Contains( nums, null )
+				        in
+				            if vazio then "Vazio"
+				            else if nativo then "OK"
+				            else if numerico and n = 3 then "OK"
+				            else if numerico and n = 2 then "Mês sem dia"
+				            else "Não interpretável",
+				
+				    // limiares lidos de tbl_Config, onde sempre estiveram (estavam fixos no código)
+				    Cfg         = Fonte{[Item="tbl_Config",Kind="Table"]}[Data],
+				    DiasAlerta  = try Number.From( Table.SelectRows( Cfg, each [Parâmetro] = "Dias p/ Alerta Vencimento Calibração" ){0}[Valor] ) otherwise 30,
+				    DiasCritico = try Number.From( Table.SelectRows( Cfg, each [Parâmetro] = "Dias p/ Alerta Vencimento Crítico" ){0}[Valor] ) otherwise 15,
+				
+				    // DateTimeZone.SwitchZone(-3): no Serviço, DateTime.LocalNow() roda em UTC
+				    Hoje = Date.From( DateTimeZone.SwitchZone( DateTimeZone.UtcNow(), -3 ) ),
+				
+				    Bruto = Fonte{[Item="tbl_Calibracao",Kind="Table"]}[Data],
+				    SemVazias =
+				        Table.SelectRows(
+				            Bruto,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( Bruto ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    Renomear = Table.RenameColumns(
+				        SemVazias,
+				        {
+				            { "Laboratório",        "Laboratorio"      },
+				            { "Última Calibração",  "UltimaCalibracao" },
+				            { "Próximo Vencimento", "ProxVencimento"   }
+				        },
+				        MissingField.Ignore
+				    ),
+				
+				    Tipos = Table.TransformColumnTypes(
+				        Renomear,
+				        {
+				            { "Equipamento",        type text },
+				            { "Laboratorio",        type text },
+				            { "Local",              type text },
+				            { "Frequência (meses)", Int64.Type },
+				            { "Status Calibração",  type text },
+				            { "Certificado",        type text },
+				            { "Empresa Calibradora", type text },
+				            { "Observações",        type text }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    TagTexto = Table.TransformColumns( Tipos, {{ "Tag", each if _ = null then null else Text.Trim( Text.From( _ ) ), type nullable text }} ),
+				    ComTagKey = Table.AddColumn( TagTexto, "TagKey", each fxTag( [Tag] ), type nullable text ),
+				
+				    UltimaCalib = Table.AddColumn( ComTagKey,   "UltimaCalibData", each fxData( [UltimaCalibracao], false ), type nullable date ),
+				    Vencimento  = Table.AddColumn( UltimaCalib, "DataVencimento",  each fxData( [ProxVencimento],  true  ), type nullable date ),
+				    QualUltima  = Table.AddColumn( Vencimento,  "Qualidade Última Calibração", each fxQual( [UltimaCalibracao] ), type text ),
+				    QualVenc    = Table.AddColumn( QualUltima,  "Qualidade Vencimento",        each fxQual( [ProxVencimento]   ), type text ),
+				
+				    // calibração "realizada" com data futura é impossível — melhor deixar visível
+				    DataFutura = Table.AddColumn( QualVenc, "Última Calibração no Futuro",
+				        each [UltimaCalibData] <> null and [UltimaCalibData] > Hoje, type logical ),
+				
+				    Dias = Table.AddColumn( DataFutura, "DiasParaVencer",
+				        each if [DataVencimento] = null then null else Duration.Days( [DataVencimento] - Hoje ), Int64.Type ),
+				
+				    Status = Table.AddColumn( Dias, "StatusAtual",
+				        each if [DiasParaVencer] = null then "Sem Data"
+				             else if [DiasParaVencer] < 0 then "Vencido"
+				             else if [DiasParaVencer] <= DiasAlerta then "A Vencer"
+				             else "Em Dia", type text ),
+				
+				    OrdemStatus = Table.AddColumn( Status, "Ordem Status",
+				        each if [StatusAtual] = "Vencido" then 1
+				             else if [StatusAtual] = "A Vencer" then 2
+				             else if [StatusAtual] = "Em Dia" then 3
+				             else 4, Int64.Type ),
+				
+				    // ⚠ OS EMOJIS SÃO MANTIDOS DE PROPÓSITO: a tabela da página CALIBRAÇÕES tem
+				    //   um filtro de visual fixo em ('🔴 Vencido','🟠 Atenção','🟡 Crítico').
+				    //   Mudar os rótulos deixaria aquela tabela VAZIA, sem mensagem de erro.
+				    //   Agora com guarda de nulo — o if antigo deixava 22 linhas em branco,
+				    //   porque em M  null < 0  devolve null, não false.
+				    Criticidade = Table.AddColumn( OrdemStatus, "CriticidadeCalibracao",
+				        each if [DiasParaVencer] = null then "⚪ Sem Data"
+				             else if [DiasParaVencer] < 0 then "🔴 Vencido"
+				             else if [DiasParaVencer] <= DiasCritico then "🟡 Crítico"
+				             else if [DiasParaVencer] <= 90 then "🟠 Atenção"
+				             else "🟢 OK", type text ),
+				
+				    // faixa detalhada em coluna separada, para não interferir naquele filtro
+				    Faixa = Table.AddColumn( Criticidade, "Faixa de Vencimento",
+				        each if [DiasParaVencer] = null then "Sem data"
+				             else if [DiasParaVencer] < -180 then "Vencido há +180 dias"
+				             else if [DiasParaVencer] < -30 then "Vencido há 31 a 180 dias"
+				             else if [DiasParaVencer] < 0 then "Vencido há até 30 dias"
+				             else if [DiasParaVencer] <= DiasCritico then "Vence em até 15 dias"
+				             else if [DiasParaVencer] <= DiasAlerta then "Vence em 16 a 30 dias"
+				             else if [DiasParaVencer] <= 90 then "Vence em 31 a 90 dias"
+				             else "Vence em mais de 90 dias", type text ),
+				
+				    // STATUS METROLÓGICO — a coluna que o relatório nunca usou.
+				    // origem: OK 137 · N/OK 47 · E/C 23 · NOK 1 (erro de digitação)
+				    Metro = Table.AddColumn( Faixa, "Status Metrologico",
+				        each let b = if [Status Calibração] = null then "" else Text.Upper( Text.Remove( Text.Trim( [Status Calibração] ), { "/", " ", "-" } ) )
+				             in  if b = "OK" then "Aprovado"
+				                 else if b = "NOK" then "Reprovado"
+				                 else if b = "EC" then "Em calibração"
+				                 else "Não informado", type text ),
+				
+				    OrdemMetro = Table.AddColumn( Metro, "Ordem Metrologico",
+				        each if [Status Metrologico] = "Reprovado" then 1
+				             else if [Status Metrologico] = "Em calibração" then 2
+				             else if [Status Metrologico] = "Aprovado" then 3
+				             else 4, Int64.Type ),
+				
+				    // reprovado OU fora do prazo
+				    Risco = Table.AddColumn( OrdemMetro, "Em Risco",
+				        each [Status Metrologico] = "Reprovado" or [StatusAtual] = "Vencido", type logical ),
+				
+				    Tipo = Table.AddColumn( Risco, "Tipo Instrumento",
+				        each let d = if [Equipamento] = null then "" else Text.Upper( Text.From( [Equipamento] ) )
+				             in  if      Text.Contains( d, "PENEIRA"    ) then "Peneira"
+				                 else if Text.Contains( d, "BALAN"      ) then "Balança"
+				                 else if Text.Contains( d, "ESTUFA"     ) then "Estufa"
+				                 else if Text.Contains( d, "PRENSA"     ) then "Prensa"
+				                 else if Text.Contains( d, "ANALISADOR" ) then "Analisador"
+				                 else if Text.Contains( d, "TAMBOR"     ) then "Tambor"
+				                 else if Text.Contains( d, "PERMEAB"    ) then "Permeabilímetro"
+				                 else if Text.Contains( d, "TITULA"     ) then "Titulador"
+				                 else if Text.Contains( d, "FORNO"      ) then "Forno"
+				                 else if Text.Contains( d, "DINAM"      ) then "Dinamômetro"
+				                 else if Text.Contains( d, "PESAGEM"    ) then "Pesagem"
+				                 else "Outros", type text ),
+				
+				    // 6 linhas sem laboratório viram "N/A" para casar com DimLaboratorio
+				    Lab = Table.TransformColumns( Tipo,
+				        {{ "Laboratorio", each if _ = null or Text.Trim( Text.From( _ ) ) = "" then "N/A" else Text.Upper( Text.Trim( Text.From( _ ) ) ), type text }} )
+				in
+				    Lab
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table

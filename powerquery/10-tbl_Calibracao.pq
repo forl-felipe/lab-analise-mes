@@ -22,9 +22,9 @@ let
     Renomear = Table.RenameColumns(
         Origem,
         {
-            { "Laboratório",        "Laboratorio"            },
-            { "Última Calibração",  "UltimaCalibracaoOrigem" },
-            { "Próximo Vencimento", "ProxVencimentoOrigem"   }
+            { "Laboratório",        "Laboratorio"      },
+            { "Última Calibração",  "UltimaCalibracao" },
+            { "Próximo Vencimento", "ProxVencimento"   }
         },
         MissingField.Ignore
     ),
@@ -48,10 +48,10 @@ let
     TagTexto  = Table.TransformColumns( ComTagKey, {{ "Tag", each if _ = null then null else Text.Trim( Text.From( _ ) ), type nullable text }} ),
 
     // ── datas interpretadas + qualidade ─────────────────────────────────────
-    UltimaCalib = Table.AddColumn( TagTexto,     "UltimaCalibData",     each fx_ParseData( [UltimaCalibracaoOrigem], false ), type nullable date ),
-    Vencimento  = Table.AddColumn( UltimaCalib,  "DataVencimento",      each fx_ParseData( [ProxVencimentoOrigem],  true  ), type nullable date ),
-    QualUltima  = Table.AddColumn( Vencimento,   "Qualidade Última Calibração", each fx_QualidadeData( [UltimaCalibracaoOrigem] ), type text ),
-    QualVenc    = Table.AddColumn( QualUltima,   "Qualidade Vencimento",        each fx_QualidadeData( [ProxVencimentoOrigem]   ), type text ),
+    UltimaCalib = Table.AddColumn( TagTexto,     "UltimaCalibData",     each fx_ParseData( [UltimaCalibracao], false ), type nullable date ),
+    Vencimento  = Table.AddColumn( UltimaCalib,  "DataVencimento",      each fx_ParseData( [ProxVencimento],  true  ), type nullable date ),
+    QualUltima  = Table.AddColumn( Vencimento,   "Qualidade Última Calibração", each fx_QualidadeData( [UltimaCalibracao] ), type text ),
+    QualVenc    = Table.AddColumn( QualUltima,   "Qualidade Vencimento",        each fx_QualidadeData( [ProxVencimento]   ), type text ),
 
     // sinaliza o absurdo lógico: calibração "realizada" com data futura
     DataFutura = Table.AddColumn(

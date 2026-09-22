@@ -1,0 +1,494 @@
+table tbl_Inspecoes
+	lineageTag: 483b58fc-3cc2-476d-b292-07cf0cdab09f
+
+	column ID_Inspecao
+		dataType: string
+		lineageTag: 4ed406ee-a2d8-47b5-b616-b6bb6a42c047
+		summarizeBy: none
+		sourceColumn: ID_Inspecao
+
+		annotation SummarizationSetBy = Automatic
+
+	column Carimbo_DataHora
+		dataType: string
+		lineageTag: 0e028325-a8a7-4e51-873c-8c76835bf1c0
+		summarizeBy: none
+		sourceColumn: Carimbo_DataHora
+
+		annotation SummarizationSetBy = Automatic
+
+	column Data
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 7c4b4f5d-b795-4cf9-8f4b-30993d9cbd3e
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+	column Semana
+		dataType: string
+		lineageTag: 5fa7d54f-cf96-497c-9f49-d86b9c500eb1
+		summarizeBy: none
+		sourceColumn: Semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mes
+		dataType: string
+		lineageTag: 75e65eda-502d-4542-82df-04505b6f1c09
+		summarizeBy: none
+		sourceColumn: Mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano
+		dataType: string
+		lineageTag: a11420ff-ac50-4a79-9e3e-8807aac6ca08
+		summarizeBy: none
+		sourceColumn: Ano
+
+		annotation SummarizationSetBy = Automatic
+
+	column Turno
+		dataType: string
+		lineageTag: 13f7d452-ae67-4726-bc4a-f0613d29b6dd
+		summarizeBy: none
+		sourceColumn: Turno
+
+		annotation SummarizationSetBy = Automatic
+
+	column Responsavel
+		dataType: string
+		lineageTag: a9165a25-adee-40d8-862a-68f55beed120
+		summarizeBy: none
+		sourceColumn: Responsavel
+
+		annotation SummarizationSetBy = Automatic
+
+	column Equip_Tag
+		dataType: string
+		lineageTag: e91b6043-5483-4000-a0a6-ce1c70b22d38
+		summarizeBy: none
+		sourceColumn: Equip_Tag
+
+		annotation SummarizationSetBy = Automatic
+
+	column Equipamento
+		dataType: string
+		lineageTag: bfd9712f-2db0-4f2e-81c4-40e0a70dc46c
+		summarizeBy: none
+		sourceColumn: Equipamento
+
+		annotation SummarizationSetBy = Automatic
+
+	column Grupo
+		dataType: string
+		lineageTag: 0b4638d9-6206-41ca-8119-6f2cee0d9b44
+		summarizeBy: none
+		sourceColumn: Grupo
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tipo_Equipamento
+		dataType: string
+		lineageTag: 79c7a05e-d313-442c-97d9-6d23fd05eff9
+		summarizeBy: none
+		sourceColumn: Tipo_Equipamento
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Limpeza_Sistema
+		dataType: string
+		lineageTag: b1806e18-59ea-4087-a9e4-16f81d424cc5
+		summarizeBy: none
+		sourceColumn: GER_Limpeza_Sistema
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Obstrucoes_Sistema
+		dataType: string
+		lineageTag: 62d9fdf3-6581-48f6-89a8-1d5ba93d39d4
+		summarizeBy: none
+		sourceColumn: GER_Obstrucoes_Sistema
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Protecoes_Seguranca
+		dataType: string
+		lineageTag: d4b205d0-e34c-4b6b-a3d9-3d552fa08dbc
+		summarizeBy: none
+		sourceColumn: GER_Protecoes_Seguranca
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Lubrificacao
+		dataType: string
+		lineageTag: 9b86afe9-034e-4e08-adc0-efcff6414231
+		summarizeBy: none
+		sourceColumn: GER_Lubrificacao
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Fixacao_Estrutura
+		dataType: string
+		lineageTag: 452fdff1-5a26-4bc7-a58a-437d4bd06706
+		summarizeBy: none
+		sourceColumn: GER_Fixacao_Estrutura
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Motor_Acionamento
+		dataType: string
+		lineageTag: 7a6ed8af-20c3-452a-b238-8cdce8c8ba58
+		summarizeBy: none
+		sourceColumn: GER_Motor_Acionamento
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Mancais_Rolamentos
+		dataType: string
+		lineageTag: 210acbeb-4046-4894-8aa5-9e487a0540c7
+		summarizeBy: none
+		sourceColumn: GER_Mancais_Rolamentos
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Contaminacao_Amostra
+		dataType: string
+		lineageTag: 65353126-3b80-4edd-82b5-46aacae63227
+		summarizeBy: none
+		sourceColumn: GER_Contaminacao_Amostra
+
+		annotation SummarizationSetBy = Automatic
+
+	column GER_Condicao_Geral
+		dataType: string
+		lineageTag: a244e034-8c36-44b2-92dc-120a9d959828
+		summarizeBy: none
+		sourceColumn: GER_Condicao_Geral
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Acionamento_Cortador
+		dataType: string
+		lineageTag: d686f532-c00a-4a51-8c3a-2d9f95c5bf33
+		summarizeBy: none
+		sourceColumn: PQ_Acionamento_Cortador
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Parada_Fora_Fluxo
+		dataType: string
+		lineageTag: 0523b8a0-810b-412c-a754-480b9d5026f3
+		summarizeBy: none
+		sourceColumn: PQ_Parada_Fora_Fluxo
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Comprimento_Medido
+		dataType: string
+		lineageTag: 15160f45-5dfa-4aa6-b501-aaab9f17df24
+		summarizeBy: none
+		sourceColumn: PQ_Comprimento_Medido
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Distancia_Percurso
+		dataType: string
+		lineageTag: b426d416-37e5-438e-b55f-3aa75dff54e9
+		summarizeBy: none
+		sourceColumn: PQ_Distancia_Percurso
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Tempo_1
+		dataType: string
+		lineageTag: 5bf311e7-df38-41cf-80a0-e8287e5d59ee
+		summarizeBy: none
+		sourceColumn: PQ_Tempo_1
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Tempo_2
+		dataType: string
+		lineageTag: 4c70b170-8c41-4dbb-84d9-c089073981bb
+		summarizeBy: none
+		sourceColumn: PQ_Tempo_2
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Tempo_3
+		dataType: string
+		lineageTag: 302dcbf7-8f44-4b20-a59f-fb4da728655d
+		summarizeBy: none
+		sourceColumn: PQ_Tempo_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Tempo_4
+		dataType: string
+		lineageTag: 72c5d30e-d634-4c0b-b375-d833d18718cc
+		summarizeBy: none
+		sourceColumn: PQ_Tempo_4
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Tempo_5
+		dataType: string
+		lineageTag: 1ccff23b-80ff-4f99-8cab-5e8240f907cf
+		summarizeBy: none
+		sourceColumn: PQ_Tempo_5
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Tempo_Medio
+		dataType: string
+		lineageTag: 600fa63c-cbaf-44c6-a664-e666ae8ae36c
+		summarizeBy: none
+		sourceColumn: PQ_Tempo_Medio
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Velocidade_Cortador
+		dataType: string
+		lineageTag: aaae2b99-cabe-40f8-aea7-885d62a7af9a
+		summarizeBy: none
+		sourceColumn: PQ_Velocidade_Cortador
+
+		annotation SummarizationSetBy = Automatic
+
+	column PQ_Velocidade_Uniforme
+		dataType: string
+		lineageTag: d9ba3886-0d88-4f63-9c74-8d696eb810df
+		summarizeBy: none
+		sourceColumn: PQ_Velocidade_Uniforme
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Integridade_Mecanica
+		dataType: string
+		lineageTag: efdb55df-a219-49a0-b163-194897c358d0
+		summarizeBy: none
+		sourceColumn: CB_Integridade_Mecanica
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Centralizacao_Cortador
+		dataType: string
+		lineageTag: 9b47ae31-494a-4b4b-b7a6-c621751901a5
+		summarizeBy: none
+		sourceColumn: CB_Centralizacao_Cortador
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Condicao_Trilhos
+		dataType: string
+		lineageTag: a245dde0-6128-4c29-8284-eb71f9adbefb
+		summarizeBy: none
+		sourceColumn: CB_Condicao_Trilhos
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Desgaste_Bracos
+		dataType: string
+		lineageTag: d5f789ba-8ea5-42b1-bfbd-51a7689b4272
+		summarizeBy: none
+		sourceColumn: CB_Desgaste_Bracos
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Condicao_Mancais
+		dataType: string
+		lineageTag: 471b121e-9d17-4876-a9f6-9dbd9936ced8
+		summarizeBy: none
+		sourceColumn: CB_Condicao_Mancais
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Lubrificacao
+		dataType: string
+		lineageTag: 15075890-599c-4c5e-834f-bc6d9e0d0758
+		summarizeBy: none
+		sourceColumn: CB_Lubrificacao
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Vedacao
+		dataType: string
+		lineageTag: 3e384415-ff53-4abe-a32d-3ac9dc298279
+		summarizeBy: none
+		sourceColumn: CB_Vedacao
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Retorno_Completo
+		dataType: string
+		lineageTag: 82470e79-960c-41d4-ad29-e46fdd88b44b
+		summarizeBy: none
+		sourceColumn: CB_Retorno_Completo
+
+		annotation SummarizationSetBy = Automatic
+
+	column CB_Material_Acumulado
+		dataType: string
+		lineageTag: e629e8ea-1914-4308-b986-508f83af391a
+		summarizeBy: none
+		sourceColumn: CB_Material_Acumulado
+
+		annotation SummarizationSetBy = Automatic
+
+	column Qtd_NC
+		dataType: int64
+		formatString: 0
+		lineageTag: a596cfc5-b08e-4e5a-8438-1f49d2177f24
+		summarizeBy: sum
+		sourceColumn: Qtd_NC
+
+		annotation SummarizationSetBy = Automatic
+
+	column Resultado_Inspecao
+		dataType: string
+		lineageTag: 8cc8644b-7806-4ce7-92cf-6d2fe16657eb
+		summarizeBy: none
+		sourceColumn: Resultado_Inspecao
+
+		annotation SummarizationSetBy = Automatic
+
+	column Requer_Acao
+		dataType: string
+		lineageTag: 0a672d81-8a2e-4c99-8463-fbff8b5d536d
+		summarizeBy: none
+		sourceColumn: Requer_Acao
+
+		annotation SummarizationSetBy = Automatic
+
+	column Criticidade
+		dataType: string
+		lineageTag: ef81bdf2-18fb-4b0e-8ad7-5863dea72585
+		summarizeBy: none
+		sourceColumn: Criticidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column Observacoes
+		dataType: string
+		lineageTag: 9239b96e-93d7-453e-ae9a-3b7a64438286
+		summarizeBy: none
+		sourceColumn: Observacoes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'TagKey Inspecao'
+		dataType: string
+		isHidden
+		lineageTag: 0c85e2b4-d05a-5be9-bd7a-468365e4b0b3
+		summarizeBy: none
+		sourceColumn: TagKey Inspecao
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'ID Válido'
+		dataType: boolean
+		formatString: ""#TRUE##FALSE#
+		lineageTag: a9ed7e01-3d2c-5c87-83a4-6ece521f049d
+		summarizeBy: none
+		sourceColumn: ID Válido
+
+		annotation SummarizationSetBy = Automatic
+	partition tbl_Inspecoes = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+				    fxTag = ( tag as any ) as nullable text =>
+				        let
+				            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+				            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+				        in
+				            if s = null or s = "" then null else s,
+				    // interpreta os SEIS formatos que convivem nas colunas de data:
+				    //   serial do Excel · data nativa · dd/mm/aaaa · dd/mm/aa · mm/aa · mm/aaaa
+				    // fimDoMes=true usa o último dia quando o dia não foi informado (vencimentos)
+				    fxData = ( valor as any, fimDoMes as logical ) as nullable date =>
+				        let
+				            ehData   = valor is date or valor is datetime or valor is datetimezone,
+				            ehNumero = valor is number,
+				            texto    = if valor = null then null else Text.Trim( Text.From( valor ) ),
+				            vazio    = texto = null or texto = "",
+				            porData   = if ehData then try Date.From( valor ) otherwise null else null,
+				            porSerial = if ehNumero and valor > 1 and valor < 100000 then try Date.From( valor ) otherwise null else null,
+				            partes    = if vazio then {} else Text.Split( texto, "/" ),
+				            n         = List.Count( partes ),
+				            nums      = List.Transform( partes, each try Number.FromText( Text.Trim( _ ) ) otherwise null ),
+				            numerico  = n >= 2 and not List.Contains( nums, null ),
+				            anoCheio  = ( a as number ) as number => if a < 100 then 2000 + a else a,
+				            porCompleta =
+				                if numerico and n = 3
+				                then try #date( anoCheio( nums{2} ), nums{1}, nums{0} ) otherwise null
+				                else null,
+				            porMesAno =
+				                if numerico and n = 2 then
+				                    let p = try #date( anoCheio( nums{1} ), nums{0}, 1 ) otherwise null
+				                    in  if p = null then null else if fimDoMes then Date.EndOfMonth( p ) else p
+				                else null
+				        in
+				            if porData <> null then porData
+				            else if porSerial <> null then porSerial
+				            else if porCompleta <> null then porCompleta
+				            else porMesAno,
+				
+				    Bruto = Fonte{[Item="tbl_Inspeções",Kind="Table"]}[Data],
+				
+				    // a versão anterior não tinha esta etapa: 195 linhas em branco entravam no
+				    // modelo e apareciam como linhas vazias na tabela do relatório
+				    SemVazias =
+				        Table.SelectRows(
+				            Bruto,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( Bruto ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    // nem esta: as 47 colunas chegavam como TEXTO, incluindo Qtd_NC (somada por SUM)
+				    Tipos = Table.TransformColumnTypes(
+				        SemVazias,
+				        {
+				            { "ID_Inspecao", type text }, { "Carimbo_DataHora", type text },
+				            { "Semana", type text }, { "Mes", type text }, { "Ano", type text },
+				            { "Turno", type text }, { "Responsavel", type text },
+				            { "Equip_Tag", type text }, { "Equipamento", type text },
+				            { "Grupo", type text }, { "Tipo_Equipamento", type text },
+				            { "Resultado_Inspecao", type text }, { "Requer_Acao", type text },
+				            { "Criticidade", type text }, { "Observacoes", type text }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    // Data chegava como texto "21/09/2026"
+				    ComData  = Table.AddColumn( Tipos, "DataConv", each fxData( [Data], false ), type nullable date ),
+				    TiraData = Table.RemoveColumns( ComData, { "Data" }, MissingField.Ignore ),
+				    RenData  = Table.RenameColumns( TiraData, {{ "DataConv", "Data" }} ),
+				
+				    QtdNC = Table.TransformColumns( RenData,
+				        {{ "Qtd_NC", each try Number.FromText( Text.Trim( Text.From( _ ) ), "pt-BR" ) otherwise null, Int64.Type }} ),
+				
+				    Nome = Table.TransformColumns( QtdNC,
+				        {{ "Responsavel", each if _ = null then null else Text.Trim( Text.From( _ ) ), type nullable text }} ),
+				
+				    ComTagKey = Table.AddColumn( Nome, "TagKey Inspecao", each fxTag( [Equip_Tag] ), type nullable text ),
+				
+				    // BUG NA ORIGEM: ID_Inspecao traz o literal "yyyy" — INS-yyyy0921-...
+				    // contra INS-20260921-... em tbl_Medicoes_Operacionais. As duas nunca cruzam.
+				    IdValido = Table.AddColumn( ComTagKey, "ID Válido",
+				        each [ID_Inspecao] <> null and not Text.Contains( Text.Lower( [ID_Inspecao] ), "yyyy" ), type logical )
+				in
+				    IdValido
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table

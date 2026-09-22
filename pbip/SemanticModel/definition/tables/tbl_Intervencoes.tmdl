@@ -1,0 +1,179 @@
+table tbl_Intervencoes
+	lineageTag: 832de6b8-1937-407f-91bc-a3cee8a6f5e9
+
+	column Data
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 1c51e40f-8515-4471-92f7-16d0da209fc3
+		summarizeBy: none
+		sourceColumn: Data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Hora
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: bb73a3bf-f21a-484a-afda-4201c0e05886
+		summarizeBy: none
+		sourceColumn: Hora
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column Turno
+		dataType: string
+		lineageTag: 0242a503-0eb9-49c1-965d-8917b7bb30ec
+		summarizeBy: none
+		sourceColumn: Turno
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Equip. (Tag)'
+		dataType: string
+		lineageTag: d2e778c8-b9ab-4589-a1f3-8abeaad6ad22
+		summarizeBy: none
+		sourceColumn: Equip. (Tag)
+
+		annotation SummarizationSetBy = Automatic
+
+	column Disciplina
+		dataType: string
+		lineageTag: 6f45f218-eb15-46a0-bfd6-4f8bbec2bad1
+		summarizeBy: none
+		sourceColumn: Disciplina
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Descrição da Ocorrência'
+		dataType: string
+		lineageTag: 7e3e0150-682b-41c1-8164-9183e51f4be9
+		summarizeBy: none
+		sourceColumn: Descrição da Ocorrência
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ação Executada'
+		dataType: string
+		lineageTag: 3040a181-02c4-44fa-a356-1fb666deccd8
+		summarizeBy: none
+		sourceColumn: Ação Executada
+
+		annotation SummarizationSetBy = Automatic
+
+	column Técnico
+		dataType: string
+		lineageTag: d1445e30-6aa5-4998-8003-582c831b66bf
+		summarizeBy: none
+		sourceColumn: Técnico
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: e6be7fdc-b23a-4e36-ba66-9a9e89aeea55
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Equipamento (auto)'
+		dataType: string
+		lineageTag: c68154a9-152b-4923-bb4a-d4f0f67cde3a
+		summarizeBy: none
+		sourceColumn: Equipamento (auto)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Grupo (auto)'
+		dataType: string
+		lineageTag: cf7a3092-c605-466e-ba41-173dba275c2a
+		summarizeBy: none
+		sourceColumn: Grupo (auto)
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataHora
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: d0e645c4-475e-4795-8301-f614e2020cae
+		summarizeBy: none
+		sourceColumn: DataHora
+
+		annotation SummarizationSetBy = Automatic
+
+	column ID_Intervencao
+		dataType: int64
+		formatString: 0
+		lineageTag: 21cab1a9-d9e3-4e43-aeab-cf9df94739a0
+		summarizeBy: sum
+		sourceColumn: ID_Intervencao
+
+		annotation SummarizationSetBy = Automatic
+
+	column TagKey
+		dataType: string
+		isHidden
+		lineageTag: 13696460-724c-5b31-9936-11412691317f
+		summarizeBy: none
+		sourceColumn: TagKey
+
+		annotation SummarizationSetBy = Automatic
+	partition tbl_Intervencoes = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+				    fxTag = ( tag as any ) as nullable text =>
+				        let
+				            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+				            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+				        in
+				            if s = null or s = "" then null else s,
+				
+				    Bruto = Fonte{[Item="tbl_Intervencoes",Kind="Table"]}[Data],
+				    SemVazias =
+				        Table.SelectRows(
+				            Bruto,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( Bruto ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    Tipos = Table.TransformColumnTypes(
+				        SemVazias,
+				        {
+				            { "Data", type date }, { "Hora", type time }, { "Turno", type text },
+				            { "Equip. (Tag)", type text }, { "Disciplina", type text },
+				            { "Descrição da Ocorrência", type text }, { "Ação Executada", type text },
+				            { "Técnico", type text }, { "Status", type text },
+				            { "Equipamento (auto)", type text }, { "Grupo (auto)", type text }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    ComTagKey = Table.AddColumn( Tipos, "TagKey", each fxTag( Record.Field( _, "Equip. (Tag)" ) ), type nullable text ),
+				
+				    // CORREÇÃO: DataHora estava NULA em todas as linhas. O código anterior fazia
+				    // DateTime.From([Data]) + Duration.From([Hora]), e Duration.From sobre um
+				    // valor do tipo time não produz o deslocamento esperado. Composição explícita:
+				    DataHora = Table.AddColumn( ComTagKey, "DataHora",
+				        each if [Data] = null then null
+				             else if [Hora] = null then DateTime.From( [Data] )
+				             else #datetime( Date.Year( [Data] ), Date.Month( [Data] ), Date.Day( [Data] ),
+				                             Time.Hour( [Hora] ), Time.Minute( [Hora] ), 0 ),
+				        type nullable datetime ),
+				
+				    ComID = Table.AddIndexColumn( DataHora, "ID_Intervencao", 1, 1, Int64.Type )
+				in
+				    ComID
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação

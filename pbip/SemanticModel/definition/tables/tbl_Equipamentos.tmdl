@@ -1,0 +1,190 @@
+table tbl_Equipamentos
+	lineageTag: 08d74e8c-2660-4df7-acad-16fb7719a1fe
+
+	column Tag
+		dataType: string
+		lineageTag: b510f2d5-1d1d-4037-b45d-0403874a5d57
+		summarizeBy: none
+		sourceColumn: Tag
+
+		annotation SummarizationSetBy = Automatic
+
+	column Equipamento
+		dataType: string
+		lineageTag: 30067ec5-7f7a-405e-95ba-1f6cf5f7c7f7
+		summarizeBy: none
+		sourceColumn: Equipamento
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: 02251bb8-671c-4dee-bc00-dc90f7e50bdd
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column Área
+		dataType: string
+		lineageTag: b4a00c4c-f936-42cf-8b34-98db8eb771ed
+		summarizeBy: none
+		sourceColumn: Área
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sistema
+		dataType: string
+		lineageTag: 1fd78884-6f3c-439c-b4d6-7a2b167626c9
+		summarizeBy: none
+		sourceColumn: Sistema
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tipo
+		dataType: string
+		lineageTag: fd6d81af-aeea-4c89-9285-7ef9e3bfe1a6
+		summarizeBy: none
+		sourceColumn: Tipo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Grupo Operacional'
+		dataType: string
+		lineageTag: 02643acb-3fc6-457b-9e39-c37c84b8ebda
+		summarizeBy: none
+		sourceColumn: Grupo Operacional
+
+		annotation SummarizationSetBy = Automatic
+
+	column Laboratório
+		dataType: string
+		lineageTag: a675aaeb-7d98-4501-87ad-060270372eb8
+		summarizeBy: none
+		sourceColumn: Laboratório
+
+		annotation SummarizationSetBy = Automatic
+
+	column Local
+		dataType: string
+		lineageTag: d303d869-408d-4355-b26d-140b48efa648
+		summarizeBy: none
+		sourceColumn: Local
+
+		annotation SummarizationSetBy = Automatic
+
+	column Crítico
+		dataType: string
+		lineageTag: e804dd7c-83b6-4208-a70a-d7aee7e59b21
+		summarizeBy: none
+		sourceColumn: Crítico
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Status Operacional'
+		dataType: string
+		lineageTag: 41e1bfff-72bd-4611-ae31-c8fa6ddd4fc1
+		summarizeBy: none
+		sourceColumn: Status Operacional
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Data Cadastro'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 2e538fcc-45b4-46a0-92b9-90654d2b56e8
+		summarizeBy: none
+		sourceColumn: Data Cadastro
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Observações
+		dataType: string
+		lineageTag: 9f17c8f4-37dc-46e1-a346-39652cb4ef6f
+		summarizeBy: none
+		sourceColumn: Observações
+
+		annotation SummarizationSetBy = Automatic
+
+	column Criticidade
+		dataType: int64
+		formatString: 0
+		lineageTag: 124aff2b-1321-44f5-9729-34800cd05711
+		summarizeBy: sum
+		sourceColumn: Criticidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column TagKey
+		dataType: string
+		isHidden
+		lineageTag: 13696460-724c-5b31-9936-11412691317f
+		summarizeBy: none
+		sourceColumn: TagKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Laboratorio
+		dataType: string
+		lineageTag: 2c8ebca2-ee37-599f-9178-0c2610ffca5c
+		summarizeBy: none
+		sourceColumn: Laboratorio
+
+		annotation SummarizationSetBy = Automatic
+	partition tbl_Equipamentos = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+				    fxTag = ( tag as any ) as nullable text =>
+				        let
+				            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+				            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+				        in
+				            if s = null or s = "" then null else s,
+				
+				    Bruto = Fonte{[Item="tbl_Equipamentos",Kind="Table"]}[Data],
+				    SemVazias =
+				        Table.SelectRows(
+				            Bruto,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( Bruto ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    Tipos = Table.TransformColumnTypes(
+				        SemVazias,
+				        {
+				            { "Tag", type text }, { "Equipamento", type text }, { "Categoria", type text },
+				            { "Área", type text }, { "Sistema", type text }, { "Tipo", type text },
+				            { "Grupo Operacional", type text }, { "Laboratório", type text },
+				            { "Local", type text }, { "Crítico", type text },
+				            { "Status Operacional", type text }, { "Data Cadastro", type date },
+				            { "Observações", type text }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    ComTagKey = Table.AddColumn( Tipos, "TagKey", each fxTag( [Tag] ), type nullable text ),
+				
+				    // ⚠ Hoje as 34 linhas têm Crítico = "Sim", então este indicador repete o
+				    //   total de equipamentos. O problema é a base, não a fórmula.
+				    Criticidade = Table.AddColumn( ComTagKey, "Criticidade",
+				        each if [Crítico] = "Sim" then 1 else 0, Int64.Type ),
+				
+				    // alinha o nome com tbl_Calibracao (lá é "Laboratorio", sem acento)
+				    Lab = Table.AddColumn( Criticidade, "Laboratorio",
+				        each if [Laboratório] = null or Text.Trim( Text.From( [Laboratório] ) ) = "" then "N/A"
+				             else Text.Upper( Text.Trim( Text.From( [Laboratório] ) ) ), type text )
+				in
+				    Lab
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table

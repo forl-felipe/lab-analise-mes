@@ -1,0 +1,73 @@
+relationship AutoDetected_55ee6e80-d73d-4796-8ad3-65fa97e6bf56
+	fromColumn: tbl_Equipamentos.'Grupo Operacional'
+	toColumn: tbl_Grupos.'Grupo Operacional'
+
+relationship a5b88940-df84-3071-0e89-fed28c830544
+	fromColumn: Tbl_Paradas.'Equip. (Tag)'
+	toColumn: tbl_Equipamentos.Tag
+
+relationship 630a494e-0b02-d4a4-4406-7611bdeb0393
+	fromColumn: tbl_Notas.Tag
+	toColumn: tbl_Equipamentos.Tag
+
+relationship 367bba0d-92c9-287d-e984-69c893c0ba9e
+	fromColumn: tbl_Intervencoes.'Equip. (Tag)'
+	toColumn: tbl_Equipamentos.Tag
+
+relationship 8aebb5b6-da4b-ac1d-b901-17a64859c9cb
+	fromColumn: tbl_Inspecoes.Responsavel
+	toColumn: DimTecnicos.Responsavel
+
+relationship ab826259-d27a-544e-9c7f-39020e663420
+	fromColumn: tbl_Calibracao.Laboratorio
+	toColumn: DimLaboratorio.Laboratorio
+
+relationship 353e2922-e128-5aa2-83ff-19612d23f14a
+	fromColumn: tbl_Equipamentos.Laboratorio
+	toColumn: DimLaboratorio.Laboratorio
+
+relationship 93298c7a-0c31-572a-8e62-a1d5675c339c
+	fromColumn: tbl_Meta_Inspecoes.Responsavel
+	toColumn: DimTecnicos.Responsavel
+
+relationship 79106fec-a6e1-5697-a9ba-d010975a1331
+	fromColumn: tbl_Calibracao.DataVencimento
+	toColumn: DimCalendario.Data
+
+relationship 426ceafa-bc24-5b54-8e55-615c4583afc7
+	isActive: false
+	fromColumn: tbl_Calibracao.UltimaCalibData
+	toColumn: DimCalendario.Data
+
+relationship 92bea3a0-1d34-5d16-930a-be12faeefdbd
+	fromColumn: tbl_Intervencoes.Data
+	toColumn: DimCalendario.Data
+
+relationship 6e3e720b-7d86-5e82-beb5-8c82fcb9733c
+	fromColumn: Tbl_Paradas.Data
+	toColumn: DimCalendario.Data
+
+relationship ebbbce05-6e30-52a6-9efb-35258b70bc0c
+	fromColumn: tbl_Inspecoes.Data
+	toColumn: DimCalendario.Data
+
+relationship bc4609d2-9cc7-5472-993d-0452169cfdf5
+	fromColumn: tbl_Notas.Abertura
+	toColumn: DimCalendario.Data
+
+relationship 7352cd98-c813-5bb9-9544-ba56569619cc
+	isActive: false
+	fromColumn: tbl_Notas.Atendimento
+	toColumn: DimCalendario.Data
+
+relationship d370224c-73bd-515a-869d-38e5b1aae611
+	fromColumn: tbl_Inspecoes.'TagKey Inspecao'
+	toColumn: DePara_Inspecao_Equipamento.'TagKey Inspecao'
+
+relationship 678b4946-95f0-5c67-bc65-a84ca09ce71b
+	fromColumn: tbl_Medicoes_Operacionais.'TagKey Inspecao'
+	toColumn: DePara_Inspecao_Equipamento.'TagKey Inspecao'
+
+relationship da486851-7656-57ea-8cca-8a6e3496333c
+	fromColumn: DePara_Inspecao_Equipamento.TagKey
+	toColumn: tbl_Equipamentos.TagKey

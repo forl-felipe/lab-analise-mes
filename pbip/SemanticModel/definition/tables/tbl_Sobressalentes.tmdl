@@ -1,0 +1,151 @@
+table tbl_Sobressalentes
+	lineageTag: 88c22c9c-4299-5e2f-a713-7e4688bd0ade
+	column Código
+		dataType: string
+		lineageTag: 0dbda199-7369-5d14-b7a0-07f7cfabbfca
+		summarizeBy: none
+		sourceColumn: Código
+
+		annotation SummarizationSetBy = Automatic
+
+	column Descrição
+		dataType: string
+		lineageTag: 21e4bec2-59b3-523b-a6e1-1648b20dc51f
+		summarizeBy: none
+		sourceColumn: Descrição
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: 5b87db09-7c1a-508a-ae2a-b94ec3aa44ac
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Qtd. Atual'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 46f65023-60c7-534c-81b1-413204613515
+		summarizeBy: sum
+		sourceColumn: Qtd. Atual
+
+		annotation SummarizationSetBy = Automatic
+
+	column Unidade
+		dataType: string
+		lineageTag: 494ce1f9-341a-50c1-a4ed-bf5a6fa6afc6
+		summarizeBy: none
+		sourceColumn: Unidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Estoque Mín.'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 03c97e5a-5872-58f3-8f62-7e26c135dcc7
+		summarizeBy: sum
+		sourceColumn: Estoque Mín.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Local
+		dataType: string
+		lineageTag: 141daea3-0753-5d6c-915a-f275179c4caf
+		summarizeBy: none
+		sourceColumn: Local
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Compatível com'
+		dataType: string
+		lineageTag: 10bd0fae-2b1e-5fb1-b8cf-6bfc8f3e6546
+		summarizeBy: none
+		sourceColumn: Compatível com
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cobertura
+		dataType: double
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 622b20ca-1698-5a63-8f62-572d0ee3acda
+		summarizeBy: none
+		sourceColumn: Cobertura
+
+		annotation SummarizationSetBy = Automatic
+
+	column Situação
+		dataType: string
+		lineageTag: 2c846a05-6d56-5b08-8c95-f961f073ccd1
+		summarizeBy: none
+		sourceColumn: Situação
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vinculado a Equipamento'
+		dataType: boolean
+		formatString: ""#TRUE##FALSE#
+		lineageTag: f82850e3-3541-5eb6-bb92-9bd9a9c9279a
+		summarizeBy: none
+		sourceColumn: Vinculado a Equipamento
+
+		annotation SummarizationSetBy = Automatic
+	partition tbl_Sobressalentes = m
+		mode: import
+		source =
+				
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				
+				    Bruto = Fonte{[Item="tbl_Sobressalentes",Kind="Table"]}[Data],
+				    SemVazias =
+				        Table.SelectRows(
+				            Bruto,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( Bruto ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    Tipos = Table.TransformColumnTypes(
+				        SemVazias,
+				        {
+				            { "Código", type text }, { "Descrição", type text }, { "Categoria", type text },
+				            { "Qtd. Atual", Int64.Type }, { "Unidade", type text },
+				            { "Estoque Mín.", Int64.Type }, { "Local", type text }, { "Compatível com", type text }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    // 'Consumivel ' (com espaço à direita) em 26 linhas e 'sobressalente' em 1
+				    Cat = Table.TransformColumns( Tipos,
+				        {{ "Categoria", each let c = if _ = null then "" else Text.Proper( Text.Trim( Text.From( _ ) ) )
+				                             in if c = "" then "Não classificado" else c, type text }} ),
+				
+				    Desc = Table.TransformColumns( Cat,
+				        {{ "Descrição", each if _ = null then null else Text.Trim( Text.Replace( Text.From( _ ), "#(lf)", " " ) ), type nullable text }} ),
+				
+				    // Cobertura e Situação vêm VAZIAS da origem nas 27 linhas. Aqui elas passam
+				    // a ser CALCULADAS — quando as quantidades reais forem lançadas, o
+				    // indicador funciona sozinho, sem retrabalho.
+				    Remover = Table.RemoveColumns( Desc, { "Cobertura (%)", "Situação" }, MissingField.Ignore ),
+				
+				    Cobertura = Table.AddColumn( Remover, "Cobertura",
+				        each if Record.Field( _, "Estoque Mín." ) = null or Record.Field( _, "Estoque Mín." ) = 0 then null
+				             else Record.Field( _, "Qtd. Atual" ) / Record.Field( _, "Estoque Mín." ), type nullable number ),
+				
+				    Situacao = Table.AddColumn( Cobertura, "Situação",
+				        each if [Cobertura] = null then "Sem parâmetro"
+				             else if [Cobertura] < 0.5 then "Crítico"
+				             else if [Cobertura] < 1 then "Atenção"
+				             else "Adequado", type text ),
+				
+				    Vinculo = Table.AddColumn( Situacao, "Vinculado a Equipamento",
+				        each [Compatível com] <> null and Text.Trim( Text.From( [Compatível com] ) ) <> "", type logical )
+				in
+				    Vinculo
+
+	annotation PBI_ResultType = Table

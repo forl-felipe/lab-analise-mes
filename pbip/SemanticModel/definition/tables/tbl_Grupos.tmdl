@@ -1,0 +1,124 @@
+table tbl_Grupos
+	lineageTag: 7e571f15-5eae-47ad-8e6f-d0cba1857791
+
+	column 'Grupo Operacional'
+		dataType: string
+		lineageTag: 5e5ed4ea-1d02-4797-a6fe-3f792b781463
+		summarizeBy: none
+		sourceColumn: Grupo Operacional
+
+		annotation SummarizationSetBy = Automatic
+
+	column Área
+		dataType: string
+		lineageTag: 1de041fd-41ea-45cc-a06c-02d42e30d8d0
+		summarizeBy: none
+		sourceColumn: Área
+
+		annotation SummarizationSetBy = Automatic
+
+	column Categoria
+		dataType: string
+		lineageTag: 4799f775-3946-4428-8cbf-0a158088c849
+		summarizeBy: none
+		sourceColumn: Categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Nº Equipamentos'
+		dataType: int64
+		formatString: 0
+		lineageTag: 412b76a3-ecdb-493a-a044-6c84c7ccf0d0
+		summarizeBy: none
+		sourceColumn: Nº Equipamentos
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mín. em Operação'
+		dataType: int64
+		formatString: 0
+		lineageTag: 331ecc17-a34b-49d6-8bb2-010004c703bd
+		summarizeBy: none
+		sourceColumn: Mín. em Operação
+
+		annotation SummarizationSetBy = Automatic
+
+	column Regra
+		dataType: string
+		lineageTag: 0cba246f-ac6c-4a10-ad98-006aaecab51b
+		summarizeBy: none
+		sourceColumn: Regra
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Meta Disponibilidade (%)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4ecb979a-b77e-47c3-aa29-851c30cd6e49
+		summarizeBy: none
+		sourceColumn: Meta Disponibilidade (%)
+
+		annotation SummarizationSetBy = Automatic
+
+	column Domínio
+		dataType: string
+		lineageTag: 108ecaf9-e0bf-5b46-b0f4-83eef91beed4
+		summarizeBy: none
+		sourceColumn: Domínio
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Meta Disponibilidade'
+		dataType: double
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: efe4c5f7-2b4a-5c0b-b428-8a8991d8a245
+		summarizeBy: none
+		sourceColumn: Meta Disponibilidade
+
+		annotation SummarizationSetBy = Automatic
+	partition tbl_Grupos = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				
+				    Bruto = Fonte{[Item="tbl_Grupos",Kind="Table"]}[Data],
+				    SemColuna1 = Table.RemoveColumns( Bruto, { "Coluna1" }, MissingField.Ignore ),
+				    SemVazias =
+				        Table.SelectRows(
+				            SemColuna1,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( SemColuna1 ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    Tipos = Table.TransformColumnTypes(
+				        SemVazias,
+				        {
+				            { "Grupo Operacional", type text }, { "Área", type text },
+				            { "Categoria", type text }, { "Nº Equipamentos", Int64.Type },
+				            { "Mín. em Operação", Int64.Type }, { "Regra", type text },
+				            { "Meta Disponibilidade (%)", Int64.Type }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    // os 5 primeiros grupos têm equipamento em tbl_Equipamentos; os 5 últimos
+				    // (Tambores, Peneiradores, Prensas, Analisadores, Espectrometria) são
+				    // famílias de instrumento de laboratório e correspondem a tbl_Calibracao
+				    Dominio = Table.AddColumn( Tipos, "Domínio",
+				        each if [Regra] = "Série · todos necessários" then "Equipamentos de amostragem"
+				             else "Instrumentos de laboratório", type text ),
+				
+				    Meta = Table.AddColumn( Dominio, "Meta Disponibilidade",
+				        each if Record.Field( _, "Meta Disponibilidade (%)" ) = null then null
+				             else Record.Field( _, "Meta Disponibilidade (%)" ) / 100, type nullable number )
+				in
+				    Meta
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table

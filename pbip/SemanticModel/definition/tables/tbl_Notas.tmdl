@@ -1,0 +1,197 @@
+table tbl_Notas
+	lineageTag: 703454f9-72b2-4ed5-922a-e7246176d275
+
+	column OM
+		dataType: string
+		lineageTag: 06b8422d-cac5-4b6b-8376-13289cc16597
+		summarizeBy: none
+		sourceColumn: OM
+
+		annotation SummarizationSetBy = Automatic
+
+	column Disciplina
+		dataType: string
+		lineageTag: b73e3fac-f3fa-49d4-84da-f3af79918153
+		summarizeBy: none
+		sourceColumn: Disciplina
+
+		annotation SummarizationSetBy = Automatic
+
+	column Atividade
+		dataType: string
+		lineageTag: ed68d674-6b2c-4af5-9e24-3c4fb9f797cf
+		summarizeBy: none
+		sourceColumn: Atividade
+
+		annotation SummarizationSetBy = Automatic
+
+	column Tag
+		dataType: string
+		lineageTag: c3a9fc4c-d665-4af6-8e82-a329e68347d0
+		summarizeBy: none
+		sourceColumn: Tag
+
+		annotation SummarizationSetBy = Automatic
+
+	column Área
+		dataType: string
+		lineageTag: 77d26cf5-f48f-4229-ab57-4c50de72e1de
+		summarizeBy: none
+		sourceColumn: Área
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: 3b8950cc-4feb-4171-bb29-59a6e39705a4
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Semana
+		dataType: string
+		lineageTag: 71eca3db-20af-430f-9872-971d35db419b
+		summarizeBy: none
+		sourceColumn: Semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column Abertura
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: cd67d442-c239-4cde-bb23-6571a1ca601f
+		summarizeBy: none
+		sourceColumn: Abertura
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Atendimento
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: eaec768b-23e1-420d-bae9-690c46e897f1
+		summarizeBy: none
+		sourceColumn: Atendimento
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Empresa
+		dataType: string
+		lineageTag: f7ea2a13-fba5-43c7-b07e-1924b73622c6
+		summarizeBy: none
+		sourceColumn: Empresa
+
+		annotation SummarizationSetBy = Automatic
+
+	column Site
+		dataType: string
+		lineageTag: 1addaf45-6d63-4273-a527-6d5b4345375f
+		summarizeBy: none
+		sourceColumn: Site
+
+		annotation SummarizationSetBy = Automatic
+
+	column Observação
+		dataType: string
+		lineageTag: 0ab3ccab-87d3-4c18-a64c-a6311bf9765f
+		summarizeBy: none
+		sourceColumn: Observação
+
+		annotation SummarizationSetBy = Automatic
+
+	column ID_Nota
+		dataType: int64
+		formatString: 0
+		lineageTag: a39b70f4-112c-44b7-a741-8c8d351832d0
+		summarizeBy: sum
+		sourceColumn: ID_Nota
+
+		annotation SummarizationSetBy = Automatic
+
+	column LeadTimeDias
+		dataType: int64
+		formatString: 0
+		lineageTag: 6573ce31-4331-4394-bd0b-e476caeef522
+		summarizeBy: sum
+		sourceColumn: LeadTimeDias
+
+		annotation SummarizationSetBy = Automatic
+
+	column TagKey
+		dataType: string
+		isHidden
+		lineageTag: 13696460-724c-5b31-9936-11412691317f
+		summarizeBy: none
+		sourceColumn: TagKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Situação
+		dataType: string
+		lineageTag: 2c846a05-6d56-5b08-8c95-f961f073ccd1
+		summarizeBy: none
+		sourceColumn: Situação
+
+		annotation SummarizationSetBy = Automatic
+	partition tbl_Notas = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+				    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+				    fxTag = ( tag as any ) as nullable text =>
+				        let
+				            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+				            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+				        in
+				            if s = null or s = "" then null else s,
+				
+				    Bruto = Fonte{[Item="tbl_Notas",Kind="Table"]}[Data],
+				    SemVazias =
+				        Table.SelectRows(
+				            Bruto,
+				            each List.AnyTrue(
+				                List.Transform(
+				                    Table.ColumnNames( Bruto ),
+				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                )
+				            )
+				        ),
+				
+				    Tipos = Table.TransformColumnTypes(
+				        SemVazias,
+				        {
+				            { "OM", type text }, { "Disciplina", type text }, { "Atividade", type text },
+				            { "Tag", type text }, { "Área", type text }, { "Status", type text },
+				            { "Semana", type text }, { "Abertura", type date }, { "Atendimento", type date },
+				            { "Empresa", type text }, { "Site", type text }, { "Observação", type text }
+				        },
+				        "pt-BR"
+				    ),
+				
+				    ComTagKey = Table.AddColumn( Tipos, "TagKey", each fxTag( [Tag] ), type nullable text ),
+				    ComID     = Table.AddIndexColumn( ComTagKey, "ID_Nota", 1, 1, Int64.Type ),
+				
+				    LeadTime = Table.AddColumn( ComID, "LeadTimeDias",
+				        each if [Atendimento] = null or [Abertura] = null then null
+				             else Duration.Days( [Atendimento] - [Abertura] ), Int64.Type ),
+				
+				    // domínio válido em tbl_Listas: Em andamento · Concluído · Aguardando peças · Cancelado
+				    // "Aberta" NÃO existe no domínio — é derivada nas medidas
+				    Situacao = Table.AddColumn( LeadTime, "Situação",
+				        each let s = if [Status] = null then "" else Text.Lower( Text.Trim( [Status] ) )
+				             in  if s = "concluído" or s = "concluido" then "Concluída"
+				                 else if s = "cancelado" then "Cancelada"
+				                 else if s = "em andamento" then "Em andamento"
+				                 else if s = "aguardando peças" or s = "aguardando pecas" then "Aguardando peças"
+				                 else "Não informado", type text )
+				in
+				    Situacao
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação

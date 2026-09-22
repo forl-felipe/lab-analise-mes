@@ -1,0 +1,225 @@
+table DimCalendario
+	lineageTag: f8c3885e-b7e8-47ec-8729-1a3e5c5d8d34
+	dataCategory: Time
+	column Data
+		isKey
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: aebd8d87-4f83-4e3f-afe7-8d4191b87681
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Data]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano
+		dataType: int64
+		formatString: 0
+		lineageTag: 280c6ed1-cd67-5660-b038-42e663430e85
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Trimestre
+		dataType: string
+		lineageTag: a0a09884-8f1a-5425-8117-816609367c42
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Trimestre]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ano Trimestre'
+		dataType: string
+		lineageTag: 2dd244ff-d73f-5038-84d1-c41e24c3ff3f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano Trimestre]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mês Número'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 2f07faa6-8ebc-5207-a9f8-0b51769a047e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mês Número]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mês
+		dataType: string
+		lineageTag: a3746fed-6956-5a51-bbc7-d8f071fd332d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mês]
+		sortByColumn: 'Mês Número'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mês Completo'
+		dataType: string
+		lineageTag: 51702582-51e0-519a-9c40-0cdc95aa3cb1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mês Completo]
+		sortByColumn: 'Mês Número'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ano Mês'
+		dataType: string
+		isHidden
+		lineageTag: 01e8bddf-9c78-5f7e-aba0-c4f12b009c6d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano Mês]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ano Mês Nome'
+		dataType: string
+		lineageTag: b17389e3-9588-5a66-b1c0-825e38f61e1e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano Mês Nome]
+		sortByColumn: 'Ano Mês'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dia
+		dataType: int64
+		formatString: 0
+		lineageTag: e78ef1c2-5679-5209-b7ab-99bbd2736c6e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Dia]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dia Semana Número'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: bcd055cf-dca3-5b45-8db6-6541463a349b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Dia Semana Número]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dia Semana'
+		dataType: string
+		lineageTag: 8365f4b3-eb31-54f2-a53d-8736bf98f88d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Dia Semana]
+		sortByColumn: 'Dia Semana Número'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Semana ISO'
+		dataType: int64
+		formatString: 0
+		lineageTag: 78bdc55d-f5f4-51ef-acee-86337f1041ff
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Semana ISO]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ano Semana'
+		dataType: string
+		lineageTag: d8cf3feb-0475-55cc-8023-500a79c4c694
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano Semana]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tipo de Dia'
+		dataType: string
+		lineageTag: 5d14842a-3fe3-5ae5-a22a-07b4bf42b9a3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tipo de Dia]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ano Offset'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: cc7383b8-7c26-57d2-a1af-9ce996b15c3d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano Offset]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mês Offset'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 23928f0e-7866-52bd-9164-b3f28992f0f4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mês Offset]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Data Passada'
+		dataType: boolean
+		formatString: ""#TRUE##FALSE#
+		isHidden
+		lineageTag: 523f1dc8-a7b9-558d-8bc9-648dde27d77f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Data Passada]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mês Atual'
+		dataType: boolean
+		formatString: ""#TRUE##FALSE#
+		isHidden
+		lineageTag: 3c50b347-37f7-5dad-807d-810b222c607f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mês Atual]
+
+		annotation SummarizationSetBy = Automatic
+	partition DimCalendario = calculated
+		mode: import
+		source =
+				
+				VAR _Hoje = TODAY ()
+				VAR _Base = SELECTCOLUMNS ( CALENDAR ( DATE ( 2024, 1, 1 ), DATE ( 2030, 12, 31 ) ), "Data", [Date] )
+				RETURN
+				ADDCOLUMNS (
+				    _Base,
+				    "Ano",               YEAR ( [Data] ),
+				    "Trimestre",         "T" & FORMAT ( [Data], "Q" ),
+				    "Ano Trimestre",     YEAR ( [Data] ) & "-T" & FORMAT ( [Data], "Q" ),
+				    "Mês Número",        MONTH ( [Data] ),
+				    "Mês",               FORMAT ( [Data], "MMM", "pt-BR" ),
+				    "Mês Completo",      FORMAT ( [Data], "MMMM", "pt-BR" ),
+				    "Ano Mês",           FORMAT ( [Data], "yyyy-MM" ),
+				    "Ano Mês Nome",      FORMAT ( [Data], "MMM/yy", "pt-BR" ),
+				    "Dia",               DAY ( [Data] ),
+				    "Dia Semana Número", WEEKDAY ( [Data], 2 ),
+				    "Dia Semana",        FORMAT ( [Data], "ddd", "pt-BR" ),
+				    "Semana ISO",        WEEKNUM ( [Data], 21 ),
+				    "Ano Semana",        YEAR ( [Data] ) & "-S" & FORMAT ( WEEKNUM ( [Data], 21 ), "00" ),
+				    "Tipo de Dia",       IF ( WEEKDAY ( [Data], 2 ) > 5, "Fim de semana", "Dia útil" ),
+				    "Ano Offset",        YEAR ( [Data] ) - YEAR ( _Hoje ),
+				    "Mês Offset",        ( YEAR ( [Data] ) - YEAR ( _Hoje ) ) * 12 + MONTH ( [Data] ) - MONTH ( _Hoje ),
+				    "Data Passada",      [Data] <= _Hoje,
+				    "Mês Atual",         EOMONTH ( [Data], 0 ) = EOMONTH ( _Hoje, 0 )
+				)
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,102 @@
+table DePara_Inspecao_Equipamento
+	lineageTag: 7fdab859-4271-59ed-93e2-10d1f9be6323
+	isHidden
+	column TagInspecao
+		dataType: string
+		lineageTag: bfb27f95-4a0d-5fe7-9fc8-a2432a3d5168
+		summarizeBy: none
+		sourceColumn: TagInspecao
+
+		annotation SummarizationSetBy = Automatic
+
+	column DescricaoOrigem
+		dataType: string
+		lineageTag: 59fe0d24-3d43-544b-b70a-47ec1867ed5e
+		summarizeBy: none
+		sourceColumn: DescricaoOrigem
+
+		annotation SummarizationSetBy = Automatic
+
+	column TagEquipamento
+		dataType: string
+		lineageTag: fed26391-a70f-52fd-bc77-97bc847e446b
+		summarizeBy: none
+		sourceColumn: TagEquipamento
+
+		annotation SummarizationSetBy = Automatic
+
+	column Observação
+		dataType: string
+		lineageTag: a6d94b8a-33ef-53b9-850e-d306f78f4827
+		summarizeBy: none
+		sourceColumn: Observação
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'TagKey Inspecao'
+		dataType: string
+		isHidden
+		lineageTag: 0c85e2b4-d05a-5be9-bd7a-468365e4b0b3
+		summarizeBy: none
+		sourceColumn: TagKey Inspecao
+
+		annotation SummarizationSetBy = Automatic
+
+	column TagKey
+		dataType: string
+		isHidden
+		lineageTag: 13696460-724c-5b31-9936-11412691317f
+		summarizeBy: none
+		sourceColumn: TagKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Resolvido
+		dataType: boolean
+		formatString: ""#TRUE##FALSE#
+		lineageTag: 7564fc66-7975-5c8f-a530-8ae99c065225
+		summarizeBy: none
+		sourceColumn: Resolvido
+
+		annotation SummarizationSetBy = Automatic
+	partition DePara_Inspecao_Equipamento = m
+		mode: import
+		source =
+				
+				let
+				    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+				    fxTag = ( tag as any ) as nullable text =>
+				        let
+				            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+				            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+				        in
+				            if s = null or s = "" then null else s,
+				
+				    // Liga o domínio das INSPEÇÕES (tags AM-XX-NN) ao mestre de EQUIPAMENTOS
+				    // (U03-*/U04-*/U00-*). A interseção direta entre os dois é ZERO.
+				    //
+				    // Respondido em 22/09/2026: os cortadores são PQ 03 e PQ 04.
+				    // ⚠ CONFIRMAR a leitura — se os dois forem da MESMA usina, trocar
+				    //   U04-07TP018 por U03-07CR005 (Cortador Secundário PQ 03).
+				    //
+				    // Cross Belt, Bomba de Polpa e Divisor Rotativo entram no cadastro mestre;
+				    // até lá ficam com TagEquipamento vazio e [Resolvido] = false, de modo que
+				    // o painel mostre quantos faltam em vez de fingir que estão ligados.
+				    Origem = #table(
+				        type table [ TagInspecao = text, DescricaoOrigem = text, TagEquipamento = text, Observação = text ],
+				        {
+				            { "AM-CT-01", "Cortador Primario PQ 01",      "U03-07CR002", "Cortador Primário PQ 03 — confirmar" },
+				            { "AM-CT-03", "Cortador Secundario PQ 01",    "U04-07TP018", "Cortador Secundário PQ 04 — confirmar" },
+				            { "AM-CB-01", "Amostrador Cross Belt 01",     "",            "A cadastrar em tbl_Equipamentos" },
+				            { "AM-BP-01", "Bomba de Polpa Amostragem 01", "",            "A cadastrar em tbl_Equipamentos" },
+				            { "AM-DR-01", "Divisor Rotativo 01",          "",            "A cadastrar em tbl_Equipamentos" }
+				        }
+				    ),
+				
+				    ChaveInsp = Table.AddColumn( Origem,    "TagKey Inspecao", each fxTag( [TagInspecao] ),    type nullable text ),
+				    ChaveEqui = Table.AddColumn( ChaveInsp, "TagKey",          each fxTag( [TagEquipamento] ), type nullable text ),
+				    Resolvido = Table.AddColumn( ChaveEqui, "Resolvido",       each [TagKey] <> null,          type logical )
+				in
+				    Resolvido
+
+	annotation PBI_ResultType = Table
