@@ -13,7 +13,7 @@ table _Medidas
 
 	measure 'Última Atualização' =
 			
-			"Última atualização: " & FORMAT ( UTCNOW () - TIME ( 3, 0, 0 ), "dd/MM/yyyy HH:mm" )
+			FORMAT ( UTCNOW () - TIME ( 3, 0, 0 ), "dd/MM/yyyy HH:mm" )
 		displayFolder: 00 Cabeçalho
 		lineageTag: ccf53384-e999-5c21-afc1-4027fe4494e1
 

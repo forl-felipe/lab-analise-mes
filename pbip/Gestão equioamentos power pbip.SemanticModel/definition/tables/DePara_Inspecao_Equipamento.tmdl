@@ -95,8 +95,16 @@ table DePara_Inspecao_Equipamento
 				
 				    ChaveInsp = Table.AddColumn( Origem,    "TagKey Inspecao", each fxTag( [TagInspecao] ),    type nullable text ),
 				    ChaveEqui = Table.AddColumn( ChaveInsp, "TagKey",          each fxTag( [TagEquipamento] ), type nullable text ),
-				    Resolvido = Table.AddColumn( ChaveEqui, "Resolvido",       each [TagKey] <> null,          type logical )
+				    Resolvido = Table.AddColumn( ChaveEqui, "Resolvido",       each [TagKey] <> null,          type logical ),
+				
+				    // ⚠ Só as linhas com equipamento mapeado entram no modelo.
+				    //   Chave vazia do lado "muitos" faz o Power BI criar uma LINHA EM
+				    //   BRANCO em tbl_Equipamentos, que aparecia como "--" nos slicers e
+				    //   se propagava para DimLaboratorio. As três linhas pendentes
+				    //   (Cross Belt, Bomba de Polpa, Divisor Rotativo) voltam sozinhas
+				    //   assim que forem cadastradas em tbl_Equipamentos.
+				    SomenteResolvidos = Table.SelectRows( Resolvido, each [TagKey] <> null )
 				in
-				    Resolvido
+				    SomenteResolvidos
 
 	annotation PBI_ResultType = Table
