@@ -1,0 +1,25 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// TABELA CALCULADA: DimTecnicos
+// ═════════════════════════════════════════════════════════════════════════════
+// A versão atual tem um problema silencioso: o FILTER tenta remover vazios com
+//     NOT(ISBLANK([Responsavel])) && [Responsavel] <> ""
+// mas uma linha com espaço em branco sobrevive — e vira uma barra anônima no
+// gráfico "Inspeções por Responsável". TRIM resolve.
+//
+// ⚠ MAIS IMPORTANTE: hoje esta tabela NÃO TEM RELACIONAMENTO nenhum. O gráfico
+//   que usa DimTecnicos[Responsavel] com a medida [Inspecoes Realizadas] mostra
+//   o MESMO total em todas as barras. Depois de criar, relacionar:
+//        tbl_Inspecoes[Responsavel]      → DimTecnicos[Responsavel]   (M:1)
+//        tbl_Meta_Inspecoes[Responsavel] → DimTecnicos[Responsavel]   (M:1)
+//   Sem esses dois relacionamentos, [Cumprimento Meta] também fica errado.
+
+DimTecnicos =
+VAR _Uniao =
+    DISTINCT (
+        UNION (
+            SELECTCOLUMNS ( tbl_Inspecoes,      "Responsavel", TRIM ( tbl_Inspecoes[Responsavel] ) ),
+            SELECTCOLUMNS ( tbl_Meta_Inspecoes, "Responsavel", TRIM ( tbl_Meta_Inspecoes[Responsavel] ) )
+        )
+    )
+RETURN
+    FILTER ( _Uniao, NOT ISBLANK ( [Responsavel] ) && [Responsavel] <> "" )

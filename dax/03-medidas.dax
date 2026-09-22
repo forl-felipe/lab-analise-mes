@@ -1,0 +1,392 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// MEDIDAS — Painel Gestão de Equipamentos e Calibrações
+// ═════════════════════════════════════════════════════════════════════════════
+// Tabela de destino: _Medidas (única).
+// Consolidar _Medidas_Inspecoes em _Medidas mudando a "Tabela Inicial" de cada
+// medida na exibição de Modelo — isso NÃO quebra visual nenhum. Depois, excluir
+// a tabela _Medidas_Inspecoes vazia. Ocultar a coluna [Value] das duas.
+//
+// EXCLUIR (resíduos, não usadas em nenhum visual — confirmei no JSON do report):
+//     DAXQtd Equipamentos Distintos
+//     DAXInstrumentos Sem Data
+//     DAXQtd Inspecoes
+// EXCLUIR depois de repontar o visual:
+//     Qtd Inspecoes por Criticidade   (idêntica a [Inspecoes Realizadas];
+//                                      usada no gráfico de Criticidade da
+//                                      página INSPEÇÕES — trocar o campo lá)
+//
+// "Pasta" = propriedade Pasta de Exibição. "Formato" = Formato na faixa de
+// ferramentas. Nenhuma das 25 medidas atuais tem formato definido — é a causa
+// mais comum de um painel correto parecer amador.
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 00 · Cabeçalho
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Pasta: 00 Cabeçalho
+Última Atualização =
+VAR _Ultima = MAX ( tbl_Calibracao[DataVencimento] )   -- placeholder; ver nota
+RETURN
+    "Última atualização: "
+        & FORMAT ( NOW () - TIME ( 3, 0, 0 ), "dd/MM/yyyy HH:mm" )
+// NOTA: NOW() no Serviço roda em UTC — daí o -3h para Brasília. Para carimbar
+// o instante REAL da atualização (e não o da consulta), criar no Power Query
+// uma consulta de 1 linha:
+//     = #table( type table [Atualizado em = datetime],
+//               { { DateTime.From( DateTimeZone.SwitchZone( DateTimeZone.UtcNow(), -3 ) ) } } )
+// e medir MAX sobre ela. Essa é a forma correta.
+
+// Pasta: 00 Cabeçalho
+Identificação =
+VAR _Empresa = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Empresa" )
+VAR _Unidade = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Unidade" )
+VAR _Area    = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Área" )
+RETURN
+    _Empresa & "  ·  " & _Unidade & "  ·  " & _Area
+
+// Pasta: 00 Cabeçalho | Oculta
+Param Dias Alerta =
+VALUE ( LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Dias p/ Alerta Vencimento Calibração" ) )
+
+// Pasta: 00 Cabeçalho | Oculta
+Param Meta Disponibilidade =
+DIVIDE ( VALUE ( LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Meta Disponibilidade (%)" ) ), 100 )
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 01 · Equipamentos
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Pasta: 01 Equipamentos | Formato: #.##0
+Total Equipamentos = COUNTROWS ( tbl_Equipamentos )
+
+// Pasta: 01 Equipamentos | Formato: #.##0
+// ANTES: SUM(tbl_Equipamentos[Criticidade]) — o resultado estava certo, mas a
+// intenção ficava escondida atrás de uma coluna 1/0.
+// ⚠ Hoje as 34 linhas têm Crítico = "Sim", então este card repete
+//   [Total Equipamentos]. O problema é a base, não a medida.
+Equipamentos Críticos =
+CALCULATE ( COUNTROWS ( tbl_Equipamentos ), tbl_Equipamentos[Crítico] = "Sim" )
+
+// Pasta: 01 Equipamentos | Formato: 0,0%
+% Equipamentos Críticos =
+DIVIDE ( [Equipamentos Críticos], [Total Equipamentos] )
+
+// Pasta: 01 Equipamentos | Formato: #.##0
+// Mantida: usada no gráfico "Disponibilidade por Grupo" da VISÃO GERAL.
+Qtd Equipamentos = DISTINCTCOUNT ( tbl_Equipamentos[Tag] )
+
+// Pasta: 01 Equipamentos | Formato: #.##0
+Equipamentos Operantes =
+CALCULATE ( COUNTROWS ( tbl_Equipamentos ), tbl_Equipamentos[Status Operacional] = "Operante" )
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 02 · Calibrações · Prazo
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+Total Instrumentos = COUNTROWS ( tbl_Calibracao )
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+Calibracoes Em Dia =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Em Dia" ) )
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+Calibracoes A Vencer =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "A Vencer" ) )
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+Calibracoes Vencidas =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Vencido" ) )
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+Calibracoes Sem Data =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Sem Data" ) )
+
+// Pasta: 02 Calibrações\Prazo | Formato: 0,0%
+// ⚠ MUDANÇA DE RESULTADO. Antes o denominador somava apenas
+//   Em Dia + A Vencer + Vencido, excluindo em silêncio os 22 "Sem Data":
+//   o card mostrava 63,5% quando o valor real sobre a base toda é 57,0%.
+//   E a rosca ao lado sempre mostrou os 214 — card e gráfico não fechavam.
+//   Agora o denominador é a base inteira.
+% Conformidade =
+DIVIDE ( [Calibracoes Em Dia], [Total Instrumentos] )
+
+// Pasta: 02 Calibrações\Prazo | Formato: 0,0%
+// Versão alternativa, para quando "sem data" for tratado como não avaliável.
+// Use UMA das duas, nunca as duas no mesmo painel.
+% Conformidade (base avaliável) =
+VAR _Avaliaveis = [Calibracoes Em Dia] + [Calibracoes A Vencer] + [Calibracoes Vencidas]
+RETURN
+    DIVIDE ( [Calibracoes Em Dia], _Avaliaveis )
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+// ANTES: COUNTROWS(FILTER(tbl_Calibracao, ...)) materializava as 13 colunas.
+// ⚠ Esta medida tem a MESMA definição de [Calibracoes A Vencer] (0 a 30 dias)
+//   e as duas aparecem em cards diferentes na página CALIBRAÇÕES, mostrando o
+//   mesmo número. Decidir qual fica.
+Calibracoes Criticas =
+CALCULATE (
+    COUNTROWS ( tbl_Calibracao ),
+    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] >= 0 ),
+    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] <= [Param Dias Alerta] )
+)
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+Calibracoes Atencao =
+CALCULATE (
+    COUNTROWS ( tbl_Calibracao ),
+    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] > 30 ),
+    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] <= 90 )
+)
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+Calibracoes Criticas Severas =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] < -180 ) )
+
+// Pasta: 02 Calibrações\Prazo | Formato: #.##0
+Dias Médios Para Vencer =
+CALCULATE (
+    AVERAGE ( tbl_Calibracao[DiasParaVencer] ),
+    KEEPFILTERS ( NOT ISBLANK ( tbl_Calibracao[DiasParaVencer] ) )
+)
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 03 · Calibrações · Metrologia      ★ NOVO — hoje invisível no painel
+// ─────────────────────────────────────────────────────────────────────────────
+// A base traz o RESULTADO da calibração (OK / N/OK / E/C) e o relatório atual
+// ignora essa coluna por completo, olhando só o prazo. São 48 instrumentos
+// reprovados sem nenhuma representação no painel — inclusive os que estão
+// "Em Dia" de prazo e continuam em uso medindo errado.
+
+// Pasta: 03 Calibrações\Metrologia | Formato: #.##0
+Instrumentos Aprovados =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Status Metrologico] = "Aprovado" ) )
+
+// Pasta: 03 Calibrações\Metrologia | Formato: #.##0
+Instrumentos Reprovados =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Status Metrologico] = "Reprovado" ) )
+
+// Pasta: 03 Calibrações\Metrologia | Formato: #.##0
+Instrumentos Em Calibração =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Status Metrologico] = "Em calibração" ) )
+
+// Pasta: 03 Calibrações\Metrologia | Formato: 0,0%
+% Aprovação Metrológica =
+VAR _Avaliados = [Instrumentos Aprovados] + [Instrumentos Reprovados]
+RETURN
+    DIVIDE ( [Instrumentos Aprovados], _Avaliados )
+
+// Pasta: 03 Calibrações\Metrologia | Formato: #.##0
+// O indicador que resume o risco real: reprovado OU fora do prazo.
+Instrumentos em Risco =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Em Risco] = TRUE ) )
+
+// Pasta: 03 Calibrações\Metrologia | Formato: 0,0%
+% Instrumentos em Risco =
+DIVIDE ( [Instrumentos em Risco], [Total Instrumentos] )
+
+// Pasta: 03 Calibrações\Metrologia | Formato: #.##0
+// O caso mais grave: certificado no prazo, resultado reprovado. Em uso, medindo
+// errado, e sem nenhum alerta no painel de hoje.
+Reprovados no Prazo =
+CALCULATE (
+    COUNTROWS ( tbl_Calibracao ),
+    KEEPFILTERS ( tbl_Calibracao[Status Metrologico] = "Reprovado" ),
+    KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Em Dia" )
+)
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 04 · Qualidade do dado          ★ NOVO
+// ─────────────────────────────────────────────────────────────────────────────
+// Expõe o que hoje é abafado por try/otherwise. Serve para dirigir a limpeza
+// na origem — um painel profissional mostra a confiança do próprio número.
+
+// Pasta: 04 Qualidade do Dado | Formato: #.##0
+Registros Data Não Interpretável =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Qualidade Vencimento] = "Não interpretável" ) )
+
+// Pasta: 04 Qualidade do Dado | Formato: #.##0
+Registros Mês Sem Dia =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Qualidade Última Calibração] = "Mês sem dia" ) )
+
+// Pasta: 04 Qualidade do Dado | Formato: #.##0
+Registros Calibração Futura =
+CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[Última Calibração no Futuro] = TRUE ) )
+
+// Pasta: 04 Qualidade do Dado | Formato: 0,0%
+% Base Confiável =
+VAR _Ruins = [Registros Data Não Interpretável] + [Calibracoes Sem Data]
+RETURN
+    DIVIDE ( [Total Instrumentos] - _Ruins, [Total Instrumentos] )
+
+// Pasta: 04 Qualidade do Dado | Formato: #.##0
+Inspecoes com ID Inválido =
+CALCULATE ( COUNTROWS ( tbl_Inspecoes ), KEEPFILTERS ( tbl_Inspecoes[ID Válido] = FALSE ) )
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 05 · Manutenção
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Pasta: 05 Manutenção | Formato: #.##0
+Total Intervencoes = COUNTROWS ( tbl_Intervencoes )
+
+// Pasta: 05 Manutenção | Formato: #.##0,00
+Horas Paradas = SUM ( Tbl_Paradas[Horas Parado] )
+
+// Pasta: 05 Manutenção | Formato: #.##0
+Paradas Registradas = COUNTROWS ( Tbl_Paradas )
+
+// Pasta: 05 Manutenção | Formato: #.##0
+Total OMs = COUNTROWS ( tbl_Notas )
+
+// Pasta: 05 Manutenção | Formato: #.##0
+// ANTES: COUNTROWS(tbl_Notas) + 0  — contava TODAS as notas (o nome mentia) e
+// o "+ 0" convertia "não tenho dado" em "zero OM aberta".
+// tbl_Notas está vazia: esta medida deve retornar VAZIO, e o visual deve
+// exibir o estado "Não há dados para exibir" — como o próprio mockup propõe.
+// "Aberta" não existe no domínio de tbl_Listas; é a soma dos dois estados
+// que ainda demandam ação.
+OMs Abertas =
+CALCULATE (
+    COUNTROWS ( tbl_Notas ),
+    KEEPFILTERS ( tbl_Notas[Situação] IN { "Em andamento", "Aguardando peças" } )
+)
+
+// Pasta: 05 Manutenção | Formato: #.##0
+OMs Concluídas =
+CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Concluída" ) )
+
+// Pasta: 05 Manutenção | Formato: #.##0
+OMs Em Andamento =
+CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Em andamento" ) )
+
+// Pasta: 05 Manutenção | Formato: #.##0
+OMs Aguardando Peças =
+CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Aguardando peças" ) )
+
+// Pasta: 05 Manutenção | Formato: 0,0%
+% OMs Concluídas = DIVIDE ( [OMs Concluídas], [Total OMs] )
+
+// Pasta: 05 Manutenção | Formato: #.##0,0
+// ANTES: COALESCE(AVERAGE(...), 0) — devolvia 0 quando não havia nota.
+// Zero dia de lead time é um número excelente, e falso. Sem dado = vazio.
+Lead Time Médio =
+IF ( NOT ISBLANK ( [Total OMs] ), AVERAGE ( tbl_Notas[LeadTimeDias] ) )
+
+// Pasta: 05 Manutenção | Formato: 0,0%
+// Capacidade = nº de equipamentos × horas do período.
+// Sem período selecionado, assume o mês corrente — e isso precisa estar
+// escrito no subtítulo do visual, não subentendido.
+// ⚠ Esta é a versão SIMPLES. A regra de tbl_Grupos (Série · todos necessários
+//   vs Redundância parcial + Mín. em Operação) exige parada no grão de
+//   equipamento com início e fim, que a base ainda não tem (Tbl_Paradas guarda
+//   só "Horas Parado" agregado, e tem 1 linha). Ver Fase 3.
+% Disponibilidade =
+VAR _Equipamentos = [Total Equipamentos]
+VAR _TemPeriodo   = ISFILTERED ( DimCalendario[Data] )
+VAR _Dias =
+    IF (
+        _TemPeriodo,
+        CALCULATE ( COUNTROWS ( DimCalendario ), KEEPFILTERS ( DimCalendario[Data Passada] = TRUE ) ),
+        DAY ( EOMONTH ( TODAY (), 0 ) )
+    )
+VAR _Capacidade = _Equipamentos * COALESCE ( _Dias, 0 ) * 24
+RETURN
+    IF ( _Capacidade > 0, DIVIDE ( _Capacidade - [Horas Paradas], _Capacidade ) )
+
+// Pasta: 05 Manutenção | Formato: 0,0%
+Desvio da Meta de Disponibilidade =
+[% Disponibilidade] - [Param Meta Disponibilidade]
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 06 · Inspeções
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Pasta: 06 Inspeções | Formato: #.##0
+Inspecoes Realizadas = DISTINCTCOUNT ( tbl_Inspecoes[ID_Inspecao] )
+
+// Pasta: 06 Inspeções | Formato: #.##0
+Equipamentos Inspecionados = DISTINCTCOUNT ( tbl_Inspecoes[Equip_Tag] )
+
+// Pasta: 06 Inspeções | Formato: #.##0
+// Agora soma um número de verdade: Qtd_NC era TEXTO ('0','2','4') porque a
+// consulta não tinha etapa de tipagem.
+Nao Conformidades = SUM ( tbl_Inspecoes[Qtd_NC] )
+
+// Pasta: 06 Inspeções | Formato: #.##0
+Equipamentos com Desvio =
+CALCULATE (
+    DISTINCTCOUNT ( tbl_Inspecoes[Equip_Tag] ),
+    KEEPFILTERS ( tbl_Inspecoes[Resultado_Inspecao] = "Nao Conforme" )
+)
+
+// Pasta: 06 Inspeções | Formato: 0,0%
+% Conformidade Inspecoes =
+VAR _Conformes =
+    CALCULATE (
+        DISTINCTCOUNT ( tbl_Inspecoes[ID_Inspecao] ),
+        KEEPFILTERS ( tbl_Inspecoes[Resultado_Inspecao] = "Conforme" )
+    )
+RETURN
+    DIVIDE ( _Conformes, [Inspecoes Realizadas] )
+
+// Pasta: 06 Inspeções | Formato: #.##0
+// ⚠ Só passa a fazer sentido depois de relacionar tbl_Meta_Inspecoes a
+//   DimTecnicos. Hoje a tabela está solta: a medida devolve a soma de TODAS as
+//   metas (50) em qualquer contexto, e [Cumprimento Meta] fica errado em todo
+//   gráfico segmentado por responsável.
+Meta Semanal = SUM ( tbl_Meta_Inspecoes[Meta_Semanal] )
+
+// Pasta: 06 Inspeções | Formato: 0,0%
+Cumprimento Meta = DIVIDE ( [Inspecoes Realizadas], [Meta Semanal] )
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 07 · Sobressalentes            ★ NOVO
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Pasta: 07 Sobressalentes | Formato: #.##0
+Itens Cadastrados = COUNTROWS ( tbl_Sobressalentes )
+
+// Pasta: 07 Sobressalentes | Formato: #.##0
+Itens Críticos =
+CALCULATE ( COUNTROWS ( tbl_Sobressalentes ), KEEPFILTERS ( tbl_Sobressalentes[Situação] = "Crítico" ) )
+
+// Pasta: 07 Sobressalentes | Formato: 0,0%
+Cobertura Média = AVERAGE ( tbl_Sobressalentes[Cobertura] )
+
+// Pasta: 07 Sobressalentes | Formato: #.##0
+// Enquanto isto for igual a [Itens Cadastrados], o painel de alertas do mockup
+// não tem base para existir — nenhum item está ligado a equipamento.
+Itens Sem Vínculo =
+CALCULATE ( COUNTROWS ( tbl_Sobressalentes ), KEEPFILTERS ( tbl_Sobressalentes[Vinculado a Equipamento] = FALSE ) )
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 99 · Estados vazios
+// ─────────────────────────────────────────────────────────────────────────────
+// Em vez de um "0" que mente, um texto que informa. Usar como título dinâmico
+// ou como valor de um cartão sobreposto quando a medida principal for vazia.
+
+// Pasta: 99 Auxiliares
+Aviso OMs =
+IF (
+    ISBLANK ( [Total OMs] ),
+    "Sem notas de manutenção registradas na base",
+    BLANK ()
+)
+
+// Pasta: 99 Auxiliares
+Aviso Sobressalentes =
+IF (
+    [Itens Sem Vínculo] = [Itens Cadastrados],
+    "Cobertura pendente — preencher Qtd. Atual, Estoque Mín. e Compatível com",
+    BLANK ()
+)

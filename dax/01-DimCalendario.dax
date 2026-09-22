@@ -1,0 +1,55 @@
+// ═════════════════════════════════════════════════════════════════════════════
+// TABELA CALCULADA: DimCalendario          (Modelagem ▸ Nova Tabela)
+// ═════════════════════════════════════════════════════════════════════════════
+// Substitui a DimCalendario atual, que tem UMA coluna (Date), nenhum
+// relacionamento e não está marcada como tabela de datas — ou seja, hoje não
+// serve para nada, enquanto 9 tabelas de data automáticas ocultas fazem o
+// trabalho dela mal.
+//
+// DEPOIS DE CRIAR:
+//   1. Modelagem ▸ Marcar como tabela de datas  ▸  coluna [Data]
+//   2. Arquivo ▸ Opções ▸ Carregar Dados ▸ DESMARCAR "Data/hora automática"
+//      (remove DateTableTemplate_* e os 8 LocalDateTable_*)
+//   3. Relacionar (todos M:1, direção única, um ATIVO por fato):
+//        tbl_Calibracao[DataVencimento] → DimCalendario[Data]      ← ativo
+//        tbl_Intervencoes[Data]         → DimCalendario[Data]      ← ativo
+//        Tbl_Paradas[Data]              → DimCalendario[Data]      ← ativo
+//        tbl_Inspecoes[Data]            → DimCalendario[Data]      ← ativo
+//        tbl_Notas[Abertura]            → DimCalendario[Data]      ← ativo
+//        tbl_Calibracao[UltimaCalibData]→ DimCalendario[Data]      ← INATIVO
+//        tbl_Notas[Atendimento]         → DimCalendario[Data]      ← INATIVO
+//      Os inativos são acionados com USERELATIONSHIP quando necessário.
+//   4. Ordenar as colunas de texto pelas numéricas:
+//        [Mês] por [Mês Número] · [Dia Semana] por [Dia Semana Número]
+//        [Ano Mês Nome] por [Ano Mês]
+
+DimCalendario =
+VAR _Inicio = DATE ( 2024, 1, 1 )
+VAR _Fim    = DATE ( 2030, 12, 31 )
+VAR _Hoje   = TODAY ()
+VAR _Base   = CALENDAR ( _Inicio, _Fim )
+RETURN
+    ADDCOLUMNS (
+        _Base,
+        "Ano",                YEAR ( [Date] ),
+        "Trimestre",          "T" & FORMAT ( [Date], "Q" ),
+        "Ano Trimestre",      YEAR ( [Date] ) & "-T" & FORMAT ( [Date], "Q" ),
+        "Mês Número",         MONTH ( [Date] ),
+        "Mês",                FORMAT ( [Date], "MMM", "pt-BR" ),
+        "Mês Completo",       FORMAT ( [Date], "MMMM", "pt-BR" ),
+        "Ano Mês",            FORMAT ( [Date], "yyyy-MM" ),
+        "Ano Mês Nome",       FORMAT ( [Date], "MMM/yy", "pt-BR" ),
+        "Dia",                DAY ( [Date] ),
+        "Dia Semana Número",  WEEKDAY ( [Date], 2 ),
+        "Dia Semana",         FORMAT ( [Date], "ddd", "pt-BR" ),
+        // formato "2026-S39", igual ao usado na coluna Semana de tbl_Inspecoes
+        "Ano Semana",         YEAR ( [Date] ) & "-S" & FORMAT ( WEEKNUM ( [Date], 21 ), "00" ),
+        "Semana ISO",         WEEKNUM ( [Date], 21 ),
+        "Tipo de Dia",        IF ( WEEKDAY ( [Date], 2 ) > 5, "Fim de semana", "Dia útil" ),
+        "Ano Offset",         YEAR ( [Date] ) - YEAR ( _Hoje ),
+        "Mês Offset",         ( YEAR ( [Date] ) - YEAR ( _Hoje ) ) * 12 + MONTH ( [Date] ) - MONTH ( _Hoje ),
+        "Data Passada",       [Date] <= _Hoje,
+        "Mês Atual",          EOMONTH ( [Date], 0 ) = EOMONTH ( _Hoje, 0 )
+    )
+
+// Renomear a coluna [Date] para [Data] depois de criada.
