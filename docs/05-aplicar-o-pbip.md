@@ -1,6 +1,6 @@
 # Como aplicar o modelo corrigido (.pbip)
 
-O que está em `pbip/SemanticModel/` substitui a pasta
+O que está em `Gestão equioamentos power pbip/…SemanticModel/` substitui a pasta
 `Gestão equioamentos power pbip.SemanticModel` do seu projeto.
 
 ---
