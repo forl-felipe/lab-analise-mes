@@ -1,0 +1,23 @@
+{
+  "name": "Samarco · Mínimo",
+  "dataColors": ["#1F6FB2","#EB6834","#1BAF7A","#EDA100","#E87BA4","#008300","#4A3AA7","#E34948"],
+  "good": "#1F6FB2",
+  "neutral": "#EDA100",
+  "bad": "#D03B3B",
+  "maximum": "#0D366B",
+  "center": "#86B6EF",
+  "minimum": "#CDE2FB",
+  "foreground": "#0B0B0B",
+  "foregroundNeutralSecondary": "#52514E",
+  "foregroundNeutralTertiary": "#898781",
+  "background": "#FFFFFF",
+  "backgroundLight": "#F5F6F8",
+  "backgroundNeutral": "#E1E0D9",
+  "tableAccent": "#002643",
+  "textClasses": {
+    "callout": { "fontSize": 30, "fontFace": "Segoe UI Semibold", "color": "#002643" },
+    "title":   { "fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#002643" },
+    "header":  { "fontSize": 11, "fontFace": "Segoe UI Semibold", "color": "#002643" },
+    "label":   { "fontSize": 10, "fontFace": "Segoe UI",          "color": "#52514E" }
+  }
+}

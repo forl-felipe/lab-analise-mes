@@ -1,0 +1,84 @@
+table _Medidas_Inspecoes
+	lineageTag: c2cb9c6b-10ab-4a02-91fa-468872c3ea04
+
+	measure 'Inspecoes Realizadas' =
+			
+			DISTINCTCOUNT ( tbl_Inspecoes[ID_Inspecao] )
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: 86812336-1006-5e3d-951e-7d7271ce87c4
+
+	measure 'Equipamentos Inspecionados' =
+			
+			DISTINCTCOUNT ( tbl_Inspecoes[Equip_Tag] )
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: d1b60261-0ac9-5732-9b87-cfdb225282be
+
+	measure 'Qtd Inspecoes por Criticidade' =
+			
+			-- Mantida porque está vinculada a um visual da página INSPEÇÕES.
+			-- É idêntica a [Inspecoes Realizadas]; ao repontar o visual, pode ser excluída.
+			[Inspecoes Realizadas]
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: eccdb059-469f-5fe8-bf2a-ca8aafc5cdd6
+
+	measure 'Nao Conformidades' =
+			
+			-- Agora soma número de verdade: Qtd_NC era texto ('0','2','4').
+			SUM ( tbl_Inspecoes[Qtd_NC] )
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: 2f17bbeb-9050-5406-b24f-293c555d3cb1
+
+	measure 'Equipamentos com Desvio' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( tbl_Inspecoes[Equip_Tag] ),
+			    KEEPFILTERS ( tbl_Inspecoes[Resultado_Inspecao] = "Nao Conforme" )
+			)
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: daaf4147-a90c-5dba-8858-b58b7923cd68
+
+	measure '% Conformidade Inspecoes' =
+			
+			VAR _Conformes =
+			    CALCULATE (
+			        DISTINCTCOUNT ( tbl_Inspecoes[ID_Inspecao] ),
+			        KEEPFILTERS ( tbl_Inspecoes[Resultado_Inspecao] = "Conforme" )
+			    )
+			RETURN
+			    DIVIDE ( _Conformes, [Inspecoes Realizadas] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 06 Inspeções
+		lineageTag: ae1b2f5d-165f-517b-9a7f-f3d47acffb0c
+
+	measure 'Meta Semanal' =
+			
+			SUM ( tbl_Meta_Inspecoes[Meta_Semanal] )
+		formatString: #,0
+		displayFolder: 06 Inspeções
+		lineageTag: caf29973-e792-5e9e-9cf2-b42f06d68113
+
+	measure 'Cumprimento Meta' =
+			
+			DIVIDE ( [Inspecoes Realizadas], [Meta Semanal] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 06 Inspeções
+		lineageTag: 58bc7505-ab91-520b-a82a-d3a18195fc0d
+
+	column Value
+		isHidden
+		formatString: 0
+		lineageTag: 8c1d4e2a-6f93-4b17-9d05-3a7e51c8b204
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Medidas_Inspecoes = calculated
+		mode: import
+		source = {1}

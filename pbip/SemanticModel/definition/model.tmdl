@@ -29,5 +29,6 @@ ref table DePara_Inspecao_Equipamento
 ref table DimCalendario
 ref table DimTecnicos
 ref table _Medidas
+ref table _Medidas_Inspecoes
 
 ref cultureInfo pt-BR
