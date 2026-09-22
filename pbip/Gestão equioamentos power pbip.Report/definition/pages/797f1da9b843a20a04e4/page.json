@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
   "name": "797f1da9b843a20a04e4",
-  "displayName": "MANUTENÇÃO",
+  "displayName": "INTERVENÇÕES",
   "displayOption": "FitToPage",
   "height": 1080,
   "width": 1920

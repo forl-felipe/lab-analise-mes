@@ -1,0 +1,207 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "1565dc48f699c9527396",
+  "position": {
+    "x": 248,
+    "y": 640,
+    "z": 500,
+    "width": 1648,
+    "height": 392,
+    "tabOrder": 500
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "OM"
+                }
+              },
+              "queryRef": "tbl_Notas.OM",
+              "nativeQueryRef": "OM"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Disciplina"
+                }
+              },
+              "queryRef": "tbl_Notas.Disciplina",
+              "nativeQueryRef": "Disciplina"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Atividade"
+                }
+              },
+              "queryRef": "tbl_Notas.Atividade",
+              "nativeQueryRef": "Atividade"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Tag"
+                }
+              },
+              "queryRef": "tbl_Notas.Tag",
+              "nativeQueryRef": "Tag"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Área"
+                }
+              },
+              "queryRef": "tbl_Notas.Área",
+              "nativeQueryRef": "Área"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Status"
+                }
+              },
+              "queryRef": "tbl_Notas.Status",
+              "nativeQueryRef": "Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Situação"
+                }
+              },
+              "queryRef": "tbl_Notas.Situação",
+              "nativeQueryRef": "Situação"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Abertura"
+                }
+              },
+              "queryRef": "tbl_Notas.Abertura",
+              "nativeQueryRef": "Abertura"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Atendimento"
+                }
+              },
+              "queryRef": "tbl_Notas.Atendimento",
+              "nativeQueryRef": "Atendimento"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "LeadTimeDias"
+                }
+              },
+              "queryRef": "tbl_Notas.LeadTimeDias",
+              "nativeQueryRef": "LeadTimeDias"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Notas"
+                    }
+                  },
+                  "Property": "Empresa"
+                }
+              },
+              "queryRef": "tbl_Notas.Empresa",
+              "nativeQueryRef": "Empresa"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'NOTAS DE MANUTENÇÃO'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "'12'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

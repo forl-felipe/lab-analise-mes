@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "e206f78fff3792827900",
+  "position": {
+    "x": 1576,
+    "y": 254,
+    "z": 300,
+    "width": 320,
+    "height": 100,
+    "tabOrder": 300
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Inspecoes com ID Inválido"
+                }
+              },
+              "queryRef": "_Medidas.Inspecoes com ID Inválido",
+              "nativeQueryRef": "Inspecoes com ID Inválido"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

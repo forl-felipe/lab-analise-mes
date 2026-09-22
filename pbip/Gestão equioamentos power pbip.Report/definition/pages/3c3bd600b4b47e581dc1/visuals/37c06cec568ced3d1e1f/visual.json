@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "37c06cec568ced3d1e1f",
+  "position": {
+    "x": 580,
+    "y": 142,
+    "z": 300,
+    "width": 320,
+    "height": 100,
+    "tabOrder": 300
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "OMs Abertas"
+                }
+              },
+              "queryRef": "_Medidas.OMs Abertas",
+              "nativeQueryRef": "OMs Abertas"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

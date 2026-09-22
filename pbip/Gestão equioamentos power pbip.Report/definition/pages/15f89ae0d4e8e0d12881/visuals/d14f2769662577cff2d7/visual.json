@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "d14f2769662577cff2d7",
+  "position": {
+    "x": 248,
+    "y": 606,
+    "z": 90,
+    "width": 1648,
+    "height": 26,
+    "tabOrder": 90
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "⚠ Cobertura e situação são calculadas a partir de Qtd. Atual e Estoque Mín. Enquanto essas colunas não forem preenchidas na planilha, todos os itens aparecem como \"Adequado\".",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#B8860B",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

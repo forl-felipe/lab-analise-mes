@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "ffd1900daf45e638bb17",
+  "position": {
+    "x": 801,
+    "y": 142,
+    "z": 300,
+    "width": 541,
+    "height": 100,
+    "tabOrder": 300
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Paradas Registradas"
+                }
+              },
+              "queryRef": "_Medidas.Paradas Registradas",
+              "nativeQueryRef": "Paradas Registradas"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

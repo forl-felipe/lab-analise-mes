@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "39defc8dba53f22edaa8",
+  "position": {
+    "x": 248,
+    "y": 606,
+    "z": 90,
+    "width": 1648,
+    "height": 26,
+    "tabOrder": 90
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "A aba \"Notas Manutenção\" da planilha está sem registros. Os indicadores desta página ficam vazios até que as OMs sejam lançadas — vazio significa \"sem informação\", não \"nenhuma OM aberta\".",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#898781",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

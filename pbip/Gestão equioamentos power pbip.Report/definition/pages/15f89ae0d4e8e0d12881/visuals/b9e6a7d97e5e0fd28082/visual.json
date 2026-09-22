@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "b9e6a7d97e5e0fd28082",
+  "position": {
+    "x": 1493,
+    "y": 142,
+    "z": 300,
+    "width": 403,
+    "height": 100,
+    "tabOrder": 300
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Itens Sem Vínculo"
+                }
+              },
+              "queryRef": "_Medidas.Itens Sem Vínculo",
+              "nativeQueryRef": "Itens Sem Vínculo"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

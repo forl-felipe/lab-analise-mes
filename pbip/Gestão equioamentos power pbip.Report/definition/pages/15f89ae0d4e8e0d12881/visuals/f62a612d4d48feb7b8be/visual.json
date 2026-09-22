@@ -1,0 +1,193 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "f62a612d4d48feb7b8be",
+  "position": {
+    "x": 248,
+    "y": 640,
+    "z": 500,
+    "width": 1648,
+    "height": 392,
+    "tabOrder": 500
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Código"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Código",
+              "nativeQueryRef": "Código"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Descrição"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Descrição",
+              "nativeQueryRef": "Descrição"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Categoria"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Categoria",
+              "nativeQueryRef": "Categoria"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Qtd. Atual"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Qtd. Atual",
+              "nativeQueryRef": "Qtd. Atual"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Unidade"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Unidade",
+              "nativeQueryRef": "Unidade"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Estoque Mín."
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Estoque Mín.",
+              "nativeQueryRef": "Estoque Mín."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Cobertura"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Cobertura",
+              "nativeQueryRef": "Cobertura"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Local"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Local",
+              "nativeQueryRef": "Local"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Compatível com"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Compatível com",
+              "nativeQueryRef": "Compatível com"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Sobressalentes"
+                    }
+                  },
+                  "Property": "Situação"
+                }
+              },
+              "queryRef": "tbl_Sobressalentes.Situação",
+              "nativeQueryRef": "Situação"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ESTOQUE DE SOBRESSALENTES'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "'12'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
