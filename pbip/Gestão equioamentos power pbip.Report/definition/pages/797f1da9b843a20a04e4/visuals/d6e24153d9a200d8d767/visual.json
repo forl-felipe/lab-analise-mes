@@ -3,69 +3,15 @@
   "name": "d6e24153d9a200d8d767",
   "position": {
     "x": 12,
-    "y": 112,
+    "y": 108,
     "z": 50,
-    "height": 248,
     "width": 200,
-    "tabOrder": 8000
+    "height": 256,
+    "tabOrder": 50
   },
   "visual": {
     "visualType": "pageNavigator",
-    "drillFilterOtherVisuals": true,
-    "objects": {
-      "grid": [
-        {
-          "properties": {
-            "orientation": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Vertical'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "layout": [
-        {
-          "properties": {
-            "orientation": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Vertical'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "pageNavigatorLayout": [
-        {
-          "properties": {
-            "orientation": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Vertical'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "text": [
-        {
-          "properties": {
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "'10'"
-                }
-              }
-            }
-          }
-        }
-      ]
-    }
+    "drillFilterOtherVisuals": true
   },
   "howCreated": "InsertVisualButton"
 }
