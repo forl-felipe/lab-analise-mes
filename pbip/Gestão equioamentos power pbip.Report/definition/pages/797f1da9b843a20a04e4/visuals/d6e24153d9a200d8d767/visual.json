@@ -3,9 +3,9 @@
   "name": "d6e24153d9a200d8d767",
   "position": {
     "x": 12,
-    "y": 116,
+    "y": 112,
     "z": 50,
-    "height": 240,
+    "height": 248,
     "width": 200,
     "tabOrder": 8000
   },
@@ -20,6 +20,45 @@
               "expr": {
                 "Literal": {
                   "Value": "'Vertical'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "layout": [
+        {
+          "properties": {
+            "orientation": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Vertical'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "pageNavigatorLayout": [
+        {
+          "properties": {
+            "orientation": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Vertical'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "text": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "'10'"
                 }
               }
             }

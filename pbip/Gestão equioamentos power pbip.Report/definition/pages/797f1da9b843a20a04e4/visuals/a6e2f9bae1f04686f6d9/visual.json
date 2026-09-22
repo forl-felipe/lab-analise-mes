@@ -3,10 +3,10 @@
   "name": "a6e2f9bae1f04686f6d9",
   "position": {
     "x": 12,
-    "y": 692,
+    "y": 716,
     "z": 200,
     "width": 200,
-    "height": 132,
+    "height": 148,
     "tabOrder": 200
   },
   "visual": {
@@ -35,13 +35,18 @@
       }
     },
     "objects": {
+      "general": [
+        {
+          "properties": {}
+        }
+      ],
       "selection": [
         {
           "properties": {
-            "selectAllCheckboxEnabled": {
+            "strictSingleSelect": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             },
@@ -51,11 +56,19 @@
                   "Value": "false"
                 }
               }
+            },
+            "selectAllCheckboxEnabled": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
             }
           }
         }
       ]
     },
+    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "background": [
         {
@@ -72,7 +85,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#ffffff'"
+                      "Value": "'#FFFFFF'"
                     }
                   }
                 }
@@ -104,11 +117,21 @@
                   "Value": "'9'"
                 }
               }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#002643'"
+                    }
+                  }
+                }
+              }
             }
           }
         }
       ]
-    },
-    "drillFilterOtherVisuals": true
+    }
   }
 }
