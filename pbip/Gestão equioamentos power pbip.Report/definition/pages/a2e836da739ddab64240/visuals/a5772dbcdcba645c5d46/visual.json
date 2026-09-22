@@ -2,15 +2,30 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "a5772dbcdcba645c5d46",
   "position": {
-    "x": 1320,
+    "x": 12,
     "y": 116,
-    "z": 12001,
-    "height": 50,
-    "width": 600
+    "z": 50,
+    "height": 240,
+    "width": 200
   },
   "visual": {
     "visualType": "pageNavigator",
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "orientation": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Vertical'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   },
   "howCreated": "InsertVisualButton"
 }

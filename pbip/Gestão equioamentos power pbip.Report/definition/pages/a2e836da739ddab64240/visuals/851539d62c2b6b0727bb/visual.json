@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "851539d62c2b6b0727bb",
   "position": {
-    "x": 0,
+    "x": 224,
     "y": 0,
-    "z": 0,
-    "height": 176,
-    "width": 1920,
+    "z": 5,
+    "height": 88,
+    "width": 1696,
     "tabOrder": 0
   },
   "visual": {
@@ -21,10 +21,10 @@
                   {
                     "value": "GESTÃO DE INSPEÇÕES",
                     "textStyle": {
-                      "fontWeight": "bold",
+                      "fontSize": "18pt",
+                      "color": "#ffffff",
                       "fontFamily": "Segoe UI",
-                      "fontSize": "40pt",
-                      "color": "#ffffff"
+                      "fontWeight": "bold"
                     }
                   }
                 ]
@@ -32,34 +32,12 @@
               {
                 "textRuns": [
                   {
-                    "value": ""
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": "Controle Operacional e Conformidade dos Equipamentos",
+                    "value": "Controle operacional e conformidade dos equipamentos",
                     "textStyle": {
-                      "fontWeight": "bold",
-                      "fontFamily": "Segoe UI",
-                      "fontSize": "28pt",
-                      "color": "#ffffff"
+                      "fontSize": "10pt",
+                      "color": "#D6DEE6",
+                      "fontFamily": "Segoe UI"
                     }
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": ""
-                  }
-                ]
-              },
-              {
-                "textRuns": [
-                  {
-                    "value": ""
                   }
                 ]
               }
