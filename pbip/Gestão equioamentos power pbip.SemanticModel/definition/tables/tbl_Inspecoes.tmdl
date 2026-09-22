@@ -444,12 +444,25 @@ table tbl_Inspecoes
 				    // a versão anterior não tinha esta etapa: 195 linhas em branco entravam no
 				    // modelo e apareciam como linhas vazias na tabela do relatório
 				    SemVazias =
+				        let
+				            // U+00A0 (espaço não separável) chega do SharePoint em célula "vazia".
+				            // Sem esta limpeza ele conta como conteúdo: a linha entra no modelo e o
+				            // valor vira uma categoria em branco no gráfico.
+				            Branco = { " ", "#(00A0)", "#(tab)", "#(cr)", "#(lf)" },
+				            Limpo =
+				                Table.TransformColumns(
+				                    Bruto, {},
+				                    ( v ) => if v is text
+				                            then ( let t = Text.Trim( v, Branco ) in if t = "" then null else t )
+				                            else v
+				                )
+				        in
 				        Table.SelectRows(
-				            Bruto,
+				            Limpo,
 				            each List.AnyTrue(
 				                List.Transform(
-				                    Table.ColumnNames( Bruto ),
-				                    (c) => let v = Record.Field( _, c ) in v <> null and Text.Trim( Text.From( v ) ) <> ""
+				                    Table.ColumnNames( Limpo ),
+				                    (c) => Record.Field( _, c ) <> null
 				                )
 				            )
 				        ),
