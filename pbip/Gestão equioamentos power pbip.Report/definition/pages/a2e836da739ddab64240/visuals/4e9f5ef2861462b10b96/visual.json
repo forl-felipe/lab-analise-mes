@@ -1,0 +1,123 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "4e9f5ef2861462b10b96",
+  "position": {
+    "x": 1284,
+    "y": 268,
+    "z": 11000,
+    "height": 300,
+    "width": 624,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Medicoes_Operacionais"
+                    }
+                  },
+                  "Property": "Equipamento"
+                }
+              },
+              "queryRef": "tbl_Medicoes_Operacionais.Equipamento",
+              "nativeQueryRef": "Equipamento",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Medicoes_Operacionais"
+                    }
+                  },
+                  "Property": "Velocidade_Calculada"
+                }
+              },
+              "queryRef": "tbl_Medicoes_Operacionais.Velocidade_Calculada",
+              "nativeQueryRef": "Velocidade_Calculada",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "tbl_Medicoes_Operacionais"
+                        }
+                      },
+                      "Property": "Velocidade_Calculada"
+                    }
+                  },
+                  "Function": 5
+                }
+              },
+              "queryRef": "CountNonNull(tbl_Medicoes_Operacionais.Velocidade_Calculada)",
+              "nativeQueryRef": "Contagem de Velocidade_Calculada"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "tbl_Medicoes_Operacionais"
+                  }
+                },
+                "Property": "Equipamento"
+              }
+            },
+            "direction": "Ascending"
+          },
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "tbl_Medicoes_Operacionais"
+                  }
+                },
+                "Property": "Velocidade_Calculada"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Performance dos Cortadores PQ'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

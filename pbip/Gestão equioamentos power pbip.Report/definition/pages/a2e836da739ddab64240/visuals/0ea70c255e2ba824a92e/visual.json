@@ -1,0 +1,136 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "0ea70c255e2ba824a92e",
+  "position": {
+    "x": 12,
+    "y": 842,
+    "z": 10000,
+    "height": 226,
+    "width": 1896,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Data"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Data",
+              "nativeQueryRef": "Data"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Turno"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Turno",
+              "nativeQueryRef": "Turno"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Responsavel"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Responsavel",
+              "nativeQueryRef": "Responsavel"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Equipamento"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Equipamento",
+              "nativeQueryRef": "Equipamento"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Resultado_Inspecao"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Resultado_Inspecao",
+              "nativeQueryRef": "Resultado_Inspecao"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Qtd_NC"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Qtd_NC",
+              "nativeQueryRef": "Qtd_NC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Criticidade"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Criticidade",
+              "nativeQueryRef": "Criticidade"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Observacoes"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Observacoes",
+              "nativeQueryRef": "Observacoes"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

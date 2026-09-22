@@ -1,0 +1,75 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "f3e27e763e0c2b00ec09",
+  "position": {
+    "x": 12,
+    "y": 268,
+    "z": 7000,
+    "height": 300,
+    "width": 624,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DimTecnicos"
+                    }
+                  },
+                  "Property": "Responsavel"
+                }
+              },
+              "queryRef": "DimTecnicos.Responsavel",
+              "nativeQueryRef": "Responsavel",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas_Inspecoes"
+                    }
+                  },
+                  "Property": "Inspecoes Realizadas"
+                }
+              },
+              "queryRef": "_Medidas_Inspecoes.Inspecoes Realizadas",
+              "nativeQueryRef": "Inspecoes Realizadas"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Medidas_Inspecoes"
+                  }
+                },
+                "Property": "Inspecoes Realizadas"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

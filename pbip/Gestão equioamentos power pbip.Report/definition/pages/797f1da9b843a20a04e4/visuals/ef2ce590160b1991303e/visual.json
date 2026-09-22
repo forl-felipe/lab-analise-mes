@@ -1,0 +1,94 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "ef2ce590160b1991303e",
+  "position": {
+    "x": 966,
+    "y": 660,
+    "z": 7000,
+    "height": 408,
+    "width": 942,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Intervencoes"
+                    }
+                  },
+                  "Property": "Data"
+                }
+              },
+              "queryRef": "tbl_Intervencoes.Data",
+              "nativeQueryRef": "Data"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Intervencoes"
+                    }
+                  },
+                  "Property": "Disciplina"
+                }
+              },
+              "queryRef": "tbl_Intervencoes.Disciplina",
+              "nativeQueryRef": "Disciplina"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Intervencoes"
+                    }
+                  },
+                  "Property": "Equipamento (auto)"
+                }
+              },
+              "queryRef": "tbl_Intervencoes.Equipamento (auto)",
+              "nativeQueryRef": "Equipamento (auto)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Intervencoes"
+                    }
+                  },
+                  "Property": "Técnico"
+                }
+              },
+              "queryRef": "tbl_Intervencoes.Técnico",
+              "nativeQueryRef": "Técnico"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Intervencoes"
+                    }
+                  },
+                  "Property": "Descrição da Ocorrência"
+                }
+              },
+              "queryRef": "tbl_Intervencoes.Descrição da Ocorrência",
+              "nativeQueryRef": "Descrição da Ocorrência"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

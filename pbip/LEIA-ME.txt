@@ -1,40 +1,41 @@
-A pasta ao lado JÁ ESTÁ COM O NOME CORRETO.
+AS DUAS PASTAS AO LADO JÁ ESTÃO COM O NOME CORRETO.
 
-    Gestão equioamentos power pbip.SemanticModel
+    Gestão equioamentos power pbip.SemanticModel   (modelo - já instalado)
+    Gestão equioamentos power pbip.Report          (relatório - Fase 2A)
 
-COMO INSTALAR
--------------
+INSTALANDO A PASTA .Report
+--------------------------
 1. Feche o Power BI Desktop.
 
-2. Na pasta do projeto (onde está o .pbip), renomeie a pasta atual do
-   modelo acrescentando ".ANTIGA" no fim. Faça isso ANTES de colar a nova,
-   para não haver duas pastas com nome parecido.
+2. Na pasta 01, renomeie a pasta atual acrescentando ".ANTIGA" no fim:
+       Gestão equioamentos power pbip.Report.ANTIGA
 
-3. Copie a pasta "Gestão equioamentos power pbip.SemanticModel" daqui
-   (Ctrl+C) e cole na pasta do projeto (Ctrl+V).
+3. Copie daqui a pasta "Gestão equioamentos power pbip.Report" e cole
+   na pasta 01. NÃO RENOMEIE - o nome já está correto.
 
-   NÃO RENOMEIE NADA. O nome já está correto.
+   Ao colar, clique antes na ÁREA VAZIA da janela da pasta 01. Não entre
+   em nenhuma outra pasta.
 
-4. Cuidado ao colar: clique UMA vez na pasta do projeto na barra lateral,
-   ou na área vazia da janela. Não entre dentro de nenhuma outra pasta
-   antes de colar - foi isso que deu errado nas tentativas anteriores.
+4. Confira pela barra de endereço. Cole isto e dê Enter:
+       C:\Users\00125723\Downloads\01\Gestão equioamentos power pbip.Report
 
-COMO CONFERIR
--------------
-A pasta do projeto deve ficar com estes três itens (mais o .ANTIGA):
+   Tem que aparecer:
+       .platform
+       definition.pbir
+       definition\
+       StaticResources\
 
-    Gestão equioamentos power pbip.pbip            (arquivo)
-    Gestão equioamentos power pbip.Report          (pasta)
-    Gestão equioamentos power pbip.SemanticModel   (pasta)
-
-E ao abrir a pasta .SemanticModel, a PRIMEIRA TELA tem que mostrar:
-
-    .platform
-    definition.pbism       <- é este que o Power BI procura
-    diagramLayout.json
-    definition\            (pasta)
-
-Se aparecer "docs", "pbip", "tema" ou "README", a pasta colada foi a
-errada - volte ao passo 3.
+   Se aparecer "docs", "pbip" ou "README", foi a pasta errada.
 
 5. Duplo clique no .pbip.
+
+O QUE MUDOU
+-----------
+- Zero sobreposições de visual (eram 5, de até 31px)
+- Cabeçalho de 176px e navegação em x=1320 nas quatro páginas
+- Grade de 12px de margem e 12px de espaçamento
+- Ocupação da tela subiu de 35-64% para 73-78%
+- CALIBRAÇÕES: removidos os cards "Calibracoes Em Dia" e "% Conformidade",
+  que o filtro de página obrigava a ficar em zero
+- INSPEÇÕES: o gráfico de Criticidade agora usa [Inspecoes Realizadas]
+- Tema completo no lugar do mínimo (bordas, sombras, cabeçalhos formatados)

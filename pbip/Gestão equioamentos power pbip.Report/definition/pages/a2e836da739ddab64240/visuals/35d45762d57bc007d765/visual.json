@@ -1,0 +1,75 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "35d45762d57bc007d765",
+  "position": {
+    "x": 12,
+    "y": 580,
+    "z": 8000,
+    "height": 250,
+    "width": 942,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Inspecoes"
+                    }
+                  },
+                  "Property": "Turno"
+                }
+              },
+              "queryRef": "tbl_Inspecoes.Turno",
+              "nativeQueryRef": "Turno",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas_Inspecoes"
+                    }
+                  },
+                  "Property": "Equipamentos Inspecionados"
+                }
+              },
+              "queryRef": "_Medidas_Inspecoes.Equipamentos Inspecionados",
+              "nativeQueryRef": "Equipamentos Inspecionados"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Medidas_Inspecoes"
+                  }
+                },
+                "Property": "Equipamentos Inspecionados"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
