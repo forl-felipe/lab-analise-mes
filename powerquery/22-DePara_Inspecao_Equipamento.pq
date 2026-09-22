@@ -8,16 +8,18 @@
 // São só 5 tags — por isso um de-para manual resolve, e é mais barato que
 // qualquer outra alternativa.
 //
-// ⚠ AÇÃO NECESSÁRIA: preencher a coluna TagEquipamento.
-//    · Os 2 cortadores têm candidatos no mestre, mas o número não fecha:
-//      a inspeção diz "PQ 01" e o cadastro só tem PQ 03 e PQ 04.
-//    · Os 3 últimos NÃO EXISTEM no cadastro de equipamentos. Cross Belt,
-//      Bomba de Polpa e Divisor Rotativo precisam ser cadastrados primeiro —
-//      o mestre de 34 só contém cortadores e correias.
+// STATUS: respondido pelo responsável em 22/09/2026.
+//   · Os dois cortadores são PQ 03 e PQ 04 — mapeados abaixo.
+//   · Cross Belt, Bomba de Polpa e Divisor Rotativo ENTRAM no cadastro mestre.
+//     Enquanto não forem cadastrados em tbl_Equipamentos, o de-para os mantém
+//     com TagEquipamento vazio e a coluna [Resolvido] = FALSE — o painel mostra
+//     quantos faltam em vez de fingir que estão ligados.
 //
-// AÇÃO DE FUNDO: a lista suspensa de equipamento no formulário de inspeção
-// precisa ser alimentada pelo cadastro mestre. Sem isso, este de-para cresce
-// a cada equipamento novo e volta a dessincronizar.
+// ⚠ CONFIRMAR uma leitura: "os cortadores são PQ3 e PQ4" foi lido como
+//    AM-CT-01 (primário)  -> PQ 03
+//    AM-CT-03 (secundário) -> PQ 04
+//   Se a intenção era os dois na MESMA usina, trocar U04-07TP018 por
+//   U03-07CR005 (Cortador Secundário PQ 03). É uma célula.
 
 let
     Origem = #table(
@@ -28,11 +30,11 @@ let
             Confianca        = text
         ],
         {
-            { "AM-CT-01", "Cortador Primario PQ 01",      "",  "Candidatos: U03-07CR002 (PQ 03) ou U04-07CR001 (PQ 04) — CONFIRMAR" },
-            { "AM-CT-03", "Cortador Secundario PQ 01",    "",  "Candidatos: U03-07CR005 (PQ 03) ou U04-07TP018 (PQ 04) — CONFIRMAR" },
-            { "AM-CB-01", "Amostrador Cross Belt 01",     "",  "AUSENTE no cadastro mestre — cadastrar equipamento" },
-            { "AM-BP-01", "Bomba de Polpa Amostragem 01", "",  "AUSENTE no cadastro mestre — cadastrar equipamento" },
-            { "AM-DR-01", "Divisor Rotativo 01",          "",  "AUSENTE no cadastro mestre — cadastrar equipamento" }
+            { "AM-CT-01", "Cortador Primario PQ 01",      "U03-07CR002", "Cortador Primário PQ 03 — confirmar leitura" },
+            { "AM-CT-03", "Cortador Secundario PQ 01",    "U04-07TP018", "Cortador Secundário PQ 04 — confirmar leitura" },
+            { "AM-CB-01", "Amostrador Cross Belt 01",     "",            "A cadastrar em tbl_Equipamentos" },
+            { "AM-BP-01", "Bomba de Polpa Amostragem 01", "",            "A cadastrar em tbl_Equipamentos" },
+            { "AM-DR-01", "Divisor Rotativo 01",          "",            "A cadastrar em tbl_Equipamentos" }
         }
     ),
 

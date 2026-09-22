@@ -89,22 +89,43 @@ let
 
     // faixa de criticidade — agora com guarda de nulo (o if antigo produzia
     // 22 valores em branco porque  null < 0  não é false em M, é null)
+    //
+    // ⚠ OS EMOJIS SÃO MANTIDOS DE PROPÓSITO. A tabela da página CALIBRAÇÕES tem
+    //   um filtro de visual fixo em  CriticidadeCalibracao IN
+    //   ('🔴 Vencido', '🟠 Atenção', '🟡 Crítico').  Trocar os rótulos deixaria
+    //   essa tabela VAZIA sem nenhuma mensagem de erro.
+    //   O emoji também cumpre a função de ícone: a cor nunca fica sozinha.
     Criticidade = Table.AddColumn(
         OrdemStatus, "CriticidadeCalibracao",
         each
-            if [DiasParaVencer] = null                then "Sem Data"
-            else if [DiasParaVencer] < -180           then "Vencido há +180d"
-            else if [DiasParaVencer] < 0              then "Vencido"
-            else if [DiasParaVencer] <= DiasCritico   then "Crítico"
-            else if [DiasParaVencer] <= DiasAlerta    then "Atenção"
-            else "OK",
+            if [DiasParaVencer] = null              then "⚪ Sem Data"
+            else if [DiasParaVencer] < 0            then "🔴 Vencido"
+            else if [DiasParaVencer] <= DiasCritico then "🟡 Crítico"
+            else if [DiasParaVencer] <= 90          then "🟠 Atenção"
+            else "🟢 OK",
+        type text
+    ),
+
+    // faixa detalhada em coluna SEPARADA, para não alterar o comportamento do
+    // filtro acima. É aqui que mora o corte dos vencidos há mais de 180 dias.
+    FaixaVencimento = Table.AddColumn(
+        Criticidade, "Faixa de Vencimento",
+        each
+            if [DiasParaVencer] = null              then "Sem data"
+            else if [DiasParaVencer] < -180         then "Vencido há +180 dias"
+            else if [DiasParaVencer] < -30          then "Vencido há 31 a 180 dias"
+            else if [DiasParaVencer] < 0            then "Vencido há até 30 dias"
+            else if [DiasParaVencer] <= DiasCritico then "Vence em até 15 dias"
+            else if [DiasParaVencer] <= DiasAlerta  then "Vence em 16 a 30 dias"
+            else if [DiasParaVencer] <= 90          then "Vence em 31 a 90 dias"
+            else "Vence em mais de 90 dias",
         type text
     ),
 
     // ── status METROLÓGICO (o que o painel atual ignora por completo) ───────
     // origem: OK = 137 · N/OK = 47 · E/C = 23 · NOK = 1 (erro de digitação)
     StatusMetro = Table.AddColumn(
-        Criticidade, "Status Metrologico",
+        FaixaVencimento, "Status Metrologico",
         each
             let Bruto = if [Status Calibração] = null then "" else Text.Upper( Text.Remove( Text.Trim( [Status Calibração] ), { "/", " ", "-" } ) )
             in  if Bruto = "OK"    then "Aprovado"

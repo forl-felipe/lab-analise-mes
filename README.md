@@ -12,9 +12,13 @@ dax/         tabelas calculadas e o conjunto completo de medidas
 tema/        tema JSON (Exibir ▸ Temas ▸ Procurar temas)
 ```
 
-**Comece por** [`docs/02-decisoes-arquitetura.md`](docs/02-decisoes-arquitetura.md)
-— as 10 decisões e a evidência de cada uma.
-Depois [`docs/03-plano-implementacao.md`](docs/03-plano-implementacao.md).
+**Para aplicar no Power BI, comece por**
+[`docs/04-guia-passo-a-passo.md`](docs/04-guia-passo-a-passo.md) — onde clicar,
+em 5 sessões, com as armadilhas mapeadas.
+
+Para entender *por quê*: [`docs/01-diagnostico.md`](docs/01-diagnostico.md) (o que
+está errado hoje, medido) e [`docs/02-decisoes-arquitetura.md`](docs/02-decisoes-arquitetura.md)
+(as 10 decisões e a evidência de cada uma).
 
 ## Os três achados que mudam o projeto
 
