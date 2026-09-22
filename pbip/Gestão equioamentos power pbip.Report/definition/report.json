@@ -185,48 +185,93 @@
           "type": "Image"
         },
         {
-          "name": "nav-calib.png",
-          "path": "nav-calib.png",
+          "name": "menu-calib-off.png",
+          "path": "menu-calib-off.png",
           "type": "Image"
         },
         {
-          "name": "nav-equip.png",
-          "path": "nav-equip.png",
+          "name": "menu-calib-on.png",
+          "path": "menu-calib-on.png",
           "type": "Image"
         },
         {
-          "name": "nav-insp.png",
-          "path": "nav-insp.png",
+          "name": "menu-equip-off.png",
+          "path": "menu-equip-off.png",
           "type": "Image"
         },
         {
-          "name": "nav-inter.png",
-          "path": "nav-inter.png",
+          "name": "menu-equip-on.png",
+          "path": "menu-equip-on.png",
           "type": "Image"
         },
         {
-          "name": "nav-notas.png",
-          "path": "nav-notas.png",
+          "name": "menu-insp-off.png",
+          "path": "menu-insp-off.png",
           "type": "Image"
         },
         {
-          "name": "nav-paradas.png",
-          "path": "nav-paradas.png",
+          "name": "menu-insp-on.png",
+          "path": "menu-insp-on.png",
           "type": "Image"
         },
         {
-          "name": "nav-relat.png",
-          "path": "nav-relat.png",
+          "name": "menu-inter-off.png",
+          "path": "menu-inter-off.png",
           "type": "Image"
         },
         {
-          "name": "nav-sobre.png",
-          "path": "nav-sobre.png",
+          "name": "menu-inter-on.png",
+          "path": "menu-inter-on.png",
           "type": "Image"
         },
         {
-          "name": "nav-visao.png",
-          "path": "nav-visao.png",
+          "name": "menu-notas-off.png",
+          "path": "menu-notas-off.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-notas-on.png",
+          "path": "menu-notas-on.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-paradas-off.png",
+          "path": "menu-paradas-off.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-paradas-on.png",
+          "path": "menu-paradas-on.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-relat-off.png",
+          "path": "menu-relat-off.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-relat-on.png",
+          "path": "menu-relat-on.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-sobre-off.png",
+          "path": "menu-sobre-off.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-sobre-on.png",
+          "path": "menu-sobre-on.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-visao-off.png",
+          "path": "menu-visao-off.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-visao-on.png",
+          "path": "menu-visao-on.png",
           "type": "Image"
         }
       ]

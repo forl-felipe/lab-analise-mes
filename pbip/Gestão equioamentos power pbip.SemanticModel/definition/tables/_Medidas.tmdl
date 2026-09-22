@@ -283,33 +283,34 @@ table _Medidas
 
 	measure 'Total OMs' =
 			
-			COUNTROWS ( tbl_Notas )
+			COUNTROWS ( tbl_Notas ) + 0
 		formatString: #,0
 		displayFolder: 05 Manutenção
 		lineageTag: 75c81814-8bfa-5c81-8105-e44dc6645bea
 
 	measure 'OMs Abertas' =
 			
-			-- "Aberta" não existe no domínio de tbl_Listas. É a soma dos dois estados
-			-- que ainda demandam ação. Sem o "+ 0" antigo: sem dado, a medida fica VAZIA.
+			-- "Aberta" não existe no domínio de tbl_Listas: são os dois estados que ainda
+			-- demandam ação. O "+ 0" faz o cartão mostrar 0 em vez de "--" enquanto a aba
+			-- "Notas Manutenção" da planilha estiver vazia (ver página NOTAS / OMs).
 			CALCULATE (
 			    COUNTROWS ( tbl_Notas ),
 			    KEEPFILTERS ( tbl_Notas[Situação] IN { "Em andamento", "Aguardando peças" } )
-			)
+			) + 0
 		formatString: #,0
 		displayFolder: 05 Manutenção
 		lineageTag: d2f676c6-0617-50bc-ab07-d6d8432c3a76
 
 	measure 'OMs Concluídas' =
 			
-			CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Concluída" ) )
+			CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Concluída" ) ) + 0
 		formatString: #,0
 		displayFolder: 05 Manutenção
 		lineageTag: 086bcd64-ec08-5cd9-a4c0-e3d70eeb383e
 
 	measure 'OMs Em Andamento' =
 			
-			CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Em andamento" ) )
+			CALCULATE ( COUNTROWS ( tbl_Notas ), KEEPFILTERS ( tbl_Notas[Situação] = "Em andamento" ) ) + 0
 		formatString: #,0
 		displayFolder: 05 Manutenção
 		lineageTag: 839b9291-a7b1-5c37-9f37-edc19d091601

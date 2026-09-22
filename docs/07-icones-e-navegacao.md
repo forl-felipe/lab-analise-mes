@@ -57,3 +57,52 @@ O passo 2 não é opcional: a correção que elimina os `--` dos segmentadores
 está no Power Query (a de-para de inspeções passou a descartar as 3 linhas
 sem `TagKey`). Sem atualizar, os dados antigos continuam em memória e os
 `--` continuam aparecendo.
+
+---
+
+## Correção da 1ª versão (menu branco)
+
+Na primeira versão os 9 botões apareceram como **pastilhas brancas vazias**
+na barra lateral. A causa estava no meu próprio arquivo de tema: em
+`visualStyles` eu tinha a regra coringa
+
+```json
+"*": { "*": { "background": [{ "show": true, "color": "#FFFFFF" }],
+              "border":     [{ "show": true, "radius": 8 }],
+              "dropShadow": [{ "show": true }] } }
+```
+
+Essa regra é o que dá aos cartões de KPI o visual de cartão branco com
+sombra — e ela vale para **todo** visual, botões e imagens inclusive. Em
+cima da barra azul-marinho isso virou uma pastilha branca por botão, e o
+rótulo branco e o ícone branco ficaram invisíveis dentro dela.
+
+Duas correções:
+
+1. **No tema**, `actionButton`, `image`, `shape` e `textbox` passaram a ter
+   `background`, `border` e `dropShadow` desligados. Só `cardVisual` e os
+   gráficos continuam com o visual de cartão.
+2. **No relatório**, cada item do menu virou uma imagem PNG única de
+   204×36 px que já traz o fundo, o ícone e o texto desenhados. Por cima
+   dela fica um botão transparente que só carrega a ação de navegação.
+
+A segunda mudança é o que garante o resultado: o desenho do menu não
+depende mais de nenhuma propriedade de formatação do Power BI — só de a
+imagem carregar (o que os ícones dos cartões já provaram que funciona) e
+de a navegação do botão funcionar (o que o seu botão de exemplo provou).
+
+São 18 imagens: cada um dos 9 itens em dois estados, `-on` (fundo azul
+`#1F6FB2`, página atual) e `-off` (fundo transparente, deixa passar o
+azul-marinho da barra).
+
+## Indicadores de OM
+
+`Total OMs`, `OMs Abertas`, `OMs Em Andamento` e `OMs Concluídas` passaram
+a terminar em `+ 0`, para mostrarem **0** em vez de `--`.
+
+Atenção ao que esse 0 significa hoje: a aba **"Notas Manutenção" da
+planilha está vazia** — só o cabeçalho, nenhuma linha. Então o 0 é
+literalmente "nenhum registro carregado", não "nenhuma OM aberta". A
+página NOTAS / OMs traz esse aviso escrito na tela. Assim que a aba for
+preenchida, os quatro indicadores passam a contar de verdade sem nenhuma
+mudança no modelo.
