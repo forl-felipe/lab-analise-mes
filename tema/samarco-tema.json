@@ -1,48 +1,48 @@
 {
   "name": "Samarco · Gestão de Equipamentos",
   "dataColors": [
-    "#1F6FB2",
-    "#EB6834",
-    "#1BAF7A",
-    "#EDA100",
-    "#E87BA4",
-    "#008300",
-    "#4A3AA7",
-    "#E34948"
+    "#1B6FB0",
+    "#E0620F",
+    "#36A9C9",
+    "#C99400",
+    "#8A4B9E",
+    "#1B8F5E",
+    "#00335A",
+    "#8E96A0"
   ],
-  "good": "#1F6FB2",
-  "neutral": "#EDA100",
-  "bad": "#D03B3B",
-  "maximum": "#0D366B",
-  "center": "#86B6EF",
-  "minimum": "#CDE2FB",
-  "foreground": "#0B0B0B",
-  "foregroundNeutralSecondary": "#52514E",
-  "foregroundNeutralTertiary": "#898781",
+  "good": "#1B8F5E",
+  "neutral": "#C99400",
+  "bad": "#C0361B",
+  "maximum": "#00335A",
+  "center": "#5FA8D8",
+  "minimum": "#D5E8F4",
+  "foreground": "#1D2B36",
+  "foregroundNeutralSecondary": "#42596B",
+  "foregroundNeutralTertiary": "#61889B",
   "background": "#FFFFFF",
-  "backgroundLight": "#F5F6F8",
-  "backgroundNeutral": "#E1E0D9",
-  "tableAccent": "#002643",
+  "backgroundLight": "#F3F5F7",
+  "backgroundNeutral": "#DDE3E8",
+  "tableAccent": "#00335A",
   "textClasses": {
     "callout": {
       "fontSize": 30,
       "fontFace": "Segoe UI Semibold",
-      "color": "#002643"
+      "color": "#00335A"
     },
     "title": {
       "fontSize": 12,
       "fontFace": "Segoe UI Semibold",
-      "color": "#002643"
+      "color": "#003B6C"
     },
     "header": {
       "fontSize": 11,
       "fontFace": "Segoe UI Semibold",
-      "color": "#002643"
+      "color": "#003B6C"
     },
     "label": {
       "fontSize": 10,
       "fontFace": "Segoe UI",
-      "color": "#52514E"
+      "color": "#42596B"
     }
   },
   "visualStyles": {
@@ -64,7 +64,7 @@
             "show": true,
             "color": {
               "solid": {
-                "color": "#E6E8EB"
+                "color": "#DDE3E8"
               }
             },
             "radius": 8
@@ -99,7 +99,7 @@
             "fontFamily": "Segoe UI Semibold",
             "fontColor": {
               "solid": {
-                "color": "#002643"
+                "color": "#003B6C"
               }
             },
             "background": {

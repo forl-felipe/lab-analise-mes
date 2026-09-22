@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "980e7934fef481bff4eb",
+  "position": {
+    "x": 16,
+    "y": 70,
+    "z": 6210,
+    "width": 192,
+    "height": 22,
+    "tabOrder": 6210
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Gestão de Equipamentos",
+                    "textStyle": {
+                      "fontSize": "10pt",
+                      "color": "#B5BEC4",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

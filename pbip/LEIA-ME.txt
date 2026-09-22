@@ -1,40 +1,69 @@
-AS DUAS PASTAS AO LADO JÁ ESTÃO COM O NOME CORRETO.
+PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v5
+=====================================================
 
-    Gestão equioamentos power pbip.SemanticModel   (modelo)
-    Gestão equioamentos power pbip.Report          (relatório - 9 páginas)
+ESTA PASTA É O PROJETO INTEIRO.
+Ela já traz o arquivo .pbip e as duas pastas com os nomes corretos:
 
-INSTALAÇÃO
-----------
+    Gestão equioamentos power pbip.pbip              (abre o projeto)
+    Gestão equioamentos power pbip.SemanticModel     (modelo de dados)
+    Gestão equioamentos power pbip.Report            (relatório, 9 páginas)
+
+
+INSTALAÇÃO  (leia o passo 2 com atenção)
+----------------------------------------
 1. Feche o Power BI Desktop.
-2. Na pasta do projeto, renomeie AS DUAS pastas atuais acrescentando
-   ".ANTIGA" no fim do nome.
-3. Copie as duas pastas daqui e cole na pasta do projeto.
-   NÃO RENOMEIE - os nomes já estão corretos.
-   Ao colar, clique antes na ÁREA VAZIA da janela. Não entre em nenhuma
-   outra pasta.
-4. Duplo clique no .pbip.
-5. Clique em ATUALIZAR. Isso é obrigatório: sem atualizar, as páginas
-   novas ficam vazias e os slicers continuam mostrando "--".
+
+2. APAGUE a pasta antiga do projeto INTEIRA - com o .pbip e as duas
+   pastas dentro. Apagar, não renomear e não copiar por cima.
+
+   Este passo não é frescura. Quando se cola a pasta nova por cima da
+   antiga, o Windows substitui os arquivos de mesmo nome mas MANTÉM as
+   pastas que só existiam na versão antiga. O Power BI então desenha as
+   duas versões empilhadas, e foi exatamente isso que deixou o menu
+   lateral branco e sem texto nas versões anteriores.
+
+3. Extraia este zip no lugar da pasta que você apagou.
+
+4. Duplo clique em "Gestão equioamentos power pbip.pbip".
+
+5. Clique em ATUALIZAR (Página Inicial > Atualizar). Obrigatório: sem
+   atualizar, os dados antigos continuam em memória.
+
+6. CONFIRA: o rodapé de cada página termina com "· v5" e a barra
+   lateral mostra o logo da Samarco (não a palavra escrita). Se não
+   mostrar, a pasta instalada não é esta.
+
 
 AS 9 PÁGINAS
 ------------
-   1. VISÃO GERAL      2. EQUIPAMENTOS     3. CALIBRAÇÕES
-   4. INTERVENÇÕES     5. PARADAS          6. SOBRESSALENTES
-   7. NOTAS / OMs      8. INSPEÇÕES        9. RELATÓRIOS
+VISÃO GERAL      8 indicadores + grade 3x3 de painéis, no formato do mockup
+EQUIPAMENTOS     cadastro, grupo operacional, área e categoria
+CALIBRAÇÕES      vencimentos, criticidade e conformidade metrológica
+INTERVENÇÕES     ocorrências, disciplinas e lead time
+PARADAS          horas paradas, ocorrências e disponibilidade
+SOBRESSALENTES   cobertura de estoque e vínculo com equipamento
+NOTAS / OMs      abertura, atendimento e lead time
+INSPEÇÕES        conformidade operacional e cumprimento de meta
+RELATÓRIOS       qualidade do dado e status metrológico
 
-PÁGINAS QUE DEPENDEM DE DADOS QUE AINDA NÃO EXISTEM
----------------------------------------------------
-   NOTAS / OMs     a aba "Notas Manutenção" está vazia (0 linhas)
-   PARADAS         1 registro
-   INTERVENÇÕES    3 registros
-   SOBRESSALENTES  27 itens, mas Qtd. Atual e Estoque Mín. são todos "1",
-                   então a cobertura sai 100% para todos
 
-As páginas estão prontas e se preenchem sozinhas conforme a planilha
-receber os dados.
+CORES
+-----
+Tudo usa a paleta institucional da Samarco (arquivo samarco-cores.css):
+azul profundo #002643 na barra lateral, azul Samarco #00335A no
+cabeçalho, régua amarela #FFC000 abaixo dele, logo oficial em SVG
+rasterizado. As cores dos gráficos são as da paleta ajustadas em
+luminosidade até passarem no teste de contraste e de daltonismo -
+os tons puros do manual não passam quando viram barra ou fatia.
 
-O QUE AINDA FALTA DO MOCKUP
----------------------------
-   - Ícones circulares nos cards de KPI
-   - Barra lateral com botões e ícone em vez da faixa de navegação
-   Os dois dependem de um exemplo criado na interface - ver docs.
+
+PENDÊNCIAS QUE SÃO DA PLANILHA, NÃO DO PAINEL
+---------------------------------------------
+- Coluna "Crítico" está com "Sim" nas 34 linhas: por isso
+  Equipamentos Críticos = Total Equipamentos.
+- Aba "Notas Manutenção" está vazia (só cabeçalho): por isso os
+  indicadores de OM mostram 0 e os painéis de OM ficam vazios.
+- Sobressalentes: "Qtd. Atual" e "Estoque Mín." estão em 1 nas 27
+  linhas, o que achata a cobertura.
+
+A lista completa está em docs/03-plano-implementacao.md.
