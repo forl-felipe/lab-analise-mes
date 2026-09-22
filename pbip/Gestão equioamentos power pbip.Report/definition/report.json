@@ -65,9 +65,169 @@
       "type": "RegisteredResources",
       "items": [
         {
-          "name": "Samarco___M_nimo9816840981265066.json",
-          "path": "Samarco___M_nimo9816840981265066.json",
+          "name": "SamarcoGestaoEquipamentos2209.json",
+          "path": "SamarcoGestaoEquipamentos2209.json",
           "type": "CustomTheme"
+        },
+        {
+          "name": "card-anda.png",
+          "path": "card-anda.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-avencer.png",
+          "path": "card-avencer.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-base.png",
+          "path": "card-base.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-calend.png",
+          "path": "card-calend.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-cobertura.png",
+          "path": "card-cobertura.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-conf.png",
+          "path": "card-conf.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-critico.png",
+          "path": "card-critico.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-disp.png",
+          "path": "card-disp.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-elo.png",
+          "path": "card-elo.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-emdia.png",
+          "path": "card-emdia.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-equip.png",
+          "path": "card-equip.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-erro.png",
+          "path": "card-erro.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-estoque.png",
+          "path": "card-estoque.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-horas.png",
+          "path": "card-horas.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-insp.png",
+          "path": "card-insp.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-interv.png",
+          "path": "card-interv.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-lead.png",
+          "path": "card-lead.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-meta.png",
+          "path": "card-meta.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-ok.png",
+          "path": "card-ok.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-oms.png",
+          "path": "card-oms.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-parada.png",
+          "path": "card-parada.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-severa.png",
+          "path": "card-severa.png",
+          "type": "Image"
+        },
+        {
+          "name": "card-vencida.png",
+          "path": "card-vencida.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-calib.png",
+          "path": "nav-calib.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-equip.png",
+          "path": "nav-equip.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-insp.png",
+          "path": "nav-insp.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-inter.png",
+          "path": "nav-inter.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-notas.png",
+          "path": "nav-notas.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-paradas.png",
+          "path": "nav-paradas.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-relat.png",
+          "path": "nav-relat.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-sobre.png",
+          "path": "nav-sobre.png",
+          "type": "Image"
+        },
+        {
+          "name": "nav-visao.png",
+          "path": "nav-visao.png",
+          "type": "Image"
         }
       ]
     }
