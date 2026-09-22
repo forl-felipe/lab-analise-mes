@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "c860b7e6365bb2bbabef",
+  "position": {
+    "x": 12,
+    "y": 864,
+    "z": 7503,
+    "width": 200,
+    "height": 110,
+    "tabOrder": 7503
+  },
+  "visual": {
+    "visualType": "listSlicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Equipamentos"
+                    }
+                  },
+                  "Property": "Status Operacional"
+                }
+              },
+              "queryRef": "tbl_Equipamentos.Status Operacional",
+              "nativeQueryRef": "Status Operacional",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

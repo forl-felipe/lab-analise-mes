@@ -106,3 +106,66 @@ literalmente "nenhum registro carregado", não "nenhuma OM aberta". A
 página NOTAS / OMs traz esse aviso escrito na tela. Assim que a aba for
 preenchida, os quatro indicadores passam a contar de verdade sem nenhuma
 mudança no modelo.
+
+---
+
+## Versão 4 — o menu branco e a VISÃO GERAL do mockup
+
+### O que estava acontecendo de verdade
+
+Medindo os pixels dos prints (e não só olhando), ficou claro que:
+
+- o **ícone** do menu aparecia, no tamanho e na posição certos;
+- o **texto** ao lado não aparecia — nem um pixel claro, nem com contraste
+  forçado ao máximo;
+- a cor da pastilha era **uniforme nas 9 linhas** da mesma página, e mudava
+  de página para página (9 azuis numa, 7 brancas + 2 azuis noutra, 9 brancas
+  na terceira).
+
+Ícone e texto estão **no mesmo arquivo PNG**. Se o ícone aparece, o texto
+tem de aparecer. Como não aparecia, o que estava sendo desenhado não era a
+pílula nova — era o ícone solto de 20×20 px da versão anterior, com os
+botões novos (sem preenchimento definido, portanto com a cor padrão do
+tema) desenhados por cima das pílulas.
+
+Ou seja: **a pasta instalada tinha os visuais da versão antiga e os da nova
+ao mesmo tempo.** Quando se copia a pasta nova por cima sem apagar a
+antiga, o Windows substitui os arquivos de mesmo nome mas **mantém** as
+pastas de visuais que só existiam na versão antiga. O Power BI então
+desenha as duas gerações empilhadas.
+
+### As três defesas desta versão
+
+1. **O botão de navegação desceu para baixo da pílula** (z 6900 contra
+   7000). Ele não tem mais como encobrir o desenho, tenha ou não
+   preenchimento. Os dois — pílula e botão — carregam a ação de navegação.
+2. **A moldura subiu no eixo Z** (menu 7000, filtros 7500, barra lateral
+   6000). Mesmo que sobrem visuais de uma versão antiga na pasta, eles
+   ficam por baixo e o menu continua legível.
+3. **Carimbo de versão no rodapé.** Todas as páginas terminam com
+   `· v4`. Se o rodapé não mostrar `v4`, a pasta instalada não é esta.
+
+### VISÃO GERAL reconstruída
+
+Agora segue a grade do mockup:
+
+- **8 indicadores numa faixa só**, na ordem do mockup: Total Equipamentos,
+  Equipamentos Críticos, Calibrações Em Dia, Calibrações A Vencer,
+  Calibrações Vencidas, OMs Abertas, Horas Paradas, Total Intervenções.
+- **9 painéis numa grade 3×3**, que é o que estava faltando:
+
+  | | coluna 1 | coluna 2 | coluna 3 |
+  |---|---|---|---|
+  | **linha 1** | Disponibilidade por Grupo Operacional | Status das Calibrações | Próximas Calibrações a Vencer |
+  | **linha 2** | Status das OMs | Intervenções por Disciplina | Horas Paradas por Equipamento |
+  | **linha 3** | Notas Abertas por Área | Inspeções · Conformidade | Alertas de Sobressalentes |
+
+- **4 filtros** na barra lateral, como no mockup: Laboratório, Grupo
+  Operacional, Área e **Status Operacional** (este é novo).
+
+Duas diferenças conscientes em relação ao mockup: "Inspeções ·
+Conformidade" é um anel em vez de um velocímetro, e "Notas Abertas por
+Área" e "Horas Paradas por Equipamento" são tabelas montadas a partir de
+tabelas que já funcionam no arquivo. Preferi reaproveitar visuais já
+provados a introduzir um tipo de visual novo que eu não teria como testar
+aqui.

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "f7f545b86fe8b1088c7d",
+  "position": {
+    "x": 12,
+    "y": 748,
+    "z": 7502,
+    "width": 200,
+    "height": 110,
+    "tabOrder": 7502
+  },
+  "visual": {
+    "visualType": "listSlicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Equipamentos"
+                    }
+                  },
+                  "Property": "Área"
+                }
+              },
+              "queryRef": "tbl_Equipamentos.Área",
+              "nativeQueryRef": "Área",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -95,11 +95,6 @@
           "type": "Image"
         },
         {
-          "name": "card-conf.png",
-          "path": "card-conf.png",
-          "type": "Image"
-        },
-        {
           "name": "card-critico.png",
           "path": "card-critico.png",
           "type": "Image"
