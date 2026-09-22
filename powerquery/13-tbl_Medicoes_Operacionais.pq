@@ -34,7 +34,15 @@ let
             if List.Contains( Table.ColumnNames( tabela ), coluna )
             then Table.TransformColumns(
                     tabela,
-                    {{ coluna, each try Number.FromText( Text.Replace( Text.Trim( Text.From( _ ) ), ",", "." ) ) otherwise null, type nullable number }}
+                    // Number.FromText usa a cultura do modelo (pt-BR), onde "." e separador
+                    // de MILHAR. Trocar virgula por ponto sem dizer a cultura fazia 0,471
+                    // virar 471 e 0,47100000000000003 virar 4,71E+16.
+                    {{ coluna,
+                      each try ( if _ is number
+                                 then Number.From( _ )
+                                 else Number.FromText( Text.Replace( Text.Trim( Text.From( _ ) ), ",", "." ), "en-US" ) )
+                           otherwise null,
+                      type nullable number }}
                  )
             else tabela
     ),

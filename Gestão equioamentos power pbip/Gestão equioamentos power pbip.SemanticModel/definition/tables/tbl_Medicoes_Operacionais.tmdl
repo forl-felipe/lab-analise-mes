@@ -230,7 +230,15 @@ table tbl_Medicoes_Operacionais
 				        ( tab, col ) =>
 				            if List.Contains( Table.ColumnNames( tab ), col )
 				            then Table.TransformColumns( tab,
-				                    {{ col, each try Number.FromText( Text.Replace( Text.Trim( Text.From( _ ) ), ",", "." ) ) otherwise null, type nullable number }} )
+				                    {{ col,
+				                      // Number.FromText usa a cultura do modelo (pt-BR), onde "." é separador de
+				                      // MILHAR. Trocar a vírgula por ponto e não dizer a cultura fazia 0,471 virar
+				                      // 471 e 0,47100000000000003 virar 4,71E+16. Daí o eixo em "6E+16".
+				                      each try ( if _ is number
+				                                 then Number.From( _ )
+				                                 else Number.FromText( Text.Replace( Text.Trim( Text.From( _ ) ), ",", "." ), "en-US" ) )
+				                           otherwise null,
+				                      type nullable number }} )
 				            else tab
 				    ),
 				
