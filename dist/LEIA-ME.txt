@@ -1,0 +1,46 @@
+MODELO-extrair-na-pasta-01.zip
+==============================
+
+Este ZIP já contém a pasta com o NOME CORRETO lá dentro.
+Não copie, não renomeie. Apenas extraia.
+
+COMO USAR
+---------
+1. Feche o Power BI Desktop.
+
+2. Na pasta do projeto (onde está o arquivo .pbip), RENOMEIE a pasta
+   atual do modelo acrescentando ".ANTIGA" no fim do nome.
+   Ela precisa sair do caminho, mas guarde-a.
+
+3. Clique com o botão direito neste ZIP -> "Extrair tudo..."
+
+4. No campo de destino, apague o que estiver escrito e coloque o caminho
+   da pasta do projeto:
+
+       C:\Users\00125723\Downloads\01
+
+   ATENÇÃO: termine em "01". O Windows costuma acrescentar o nome do ZIP
+   no fim do caminho - apague essa parte.
+
+5. Extrair.
+
+O Windows cria sozinho a pasta com o nome exato, com acento e tudo.
+
+CONFERINDO
+----------
+A pasta 01 deve ficar assim:
+
+  Gestão equioamentos power pbip.pbip            (arquivo)
+  Gestão equioamentos power pbip.Report          (pasta)
+  Gestão equioamentos power pbip.SemanticModel   (pasta)
+
+E ao abrir a pasta .SemanticModel, o primeiro nível tem que mostrar:
+
+  .platform
+  definition.pbism      <- é este que o Power BI procura
+  diagramLayout.json
+  definition\           (pasta)
+
+Se aparecer "docs", "pbip" ou "README", a extração foi no lugar errado.
+
+6. Duplo clique no .pbip.
