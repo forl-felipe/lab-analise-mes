@@ -15,7 +15,7 @@ laboratórios LCP, LCE e LDP.
 3. **Apague** a pasta antiga do projeto inteira e ponha esta no lugar.
    Apagar, não copiar por cima: ver `Painel Samarco/LEIA-ME.txt`.
 4. Duplo clique no `.pbip` e clique em **Atualizar**.
-5. Confira: rodapé com `· v11` e o logo da Samarco na barra lateral.
+5. Confira: rodapé com `· v12` e o logo da Samarco na barra lateral.
 
 ## Onde fica cada coisa
 

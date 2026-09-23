@@ -518,7 +518,7 @@ table tbl_Inspecoes
 				    IdValido = Table.AddColumn( ComTagKey, "ID Válido",
 				        each [ID_Inspecao] <> null and not Text.Contains( Text.Lower( [ID_Inspecao] ), "yyyy" ), type logical )
 				    DaPlanilha = Table.AddColumn( IdValido, "Origem", each "Planilha", type text ),
-
+				
 				    // ═══ Microsoft Forms ══════════════════════════════════════════════════════
 				    // A planilha de respostas nomeia cada coluna com o TEXTO da pergunta e
 				    // acrescenta sufixo numerico quando duas perguntas tem o mesmo enunciado
@@ -532,7 +532,7 @@ table tbl_Inspecoes
 				            [ RelativePath = "Inspeção de Amostradores.xlsx" ] ),
 				        null, true ),
 				    BrutoForms = FonteForms{[Item = "tbl_forms", Kind = "Table"]}[Data],
-
+				
 				    BrancoF = { " ", "#(00A0)", "#(tab)", "#(cr)", "#(lf)" },
 				    TextoF = ( v as any ) as nullable text =>
 				        let t = if v = null then null else Text.Trim( Text.From( v ), BrancoF )
@@ -541,7 +541,7 @@ table tbl_Inspecoes
 				        let t = TextoF( v )
 				        in  if t = null then null
 				            else try Number.FromText( Text.Replace( t, ",", "." ), "en-US" ) otherwise null,
-
+				
 				    AchataF = ( n as text ) as text =>
 				        Text.Lower( Text.Remove( n, { " ", "#(00A0)", ".", "?", "(", ")", ",", ":", "-", "–", "/", "=", "·" } ) ),
 				    ColsF = Table.ColumnNames( BrutoForms ),
@@ -551,7 +551,7 @@ table tbl_Inspecoes
 				    ExataF = ( nome as text ) as nullable text =>
 				        let l = List.Select( ColsF, each AchataF( _ ) = nome )
 				        in  if List.Count( l ) = 0 then null else List.Last( l ),
-
+				
 				    cId     = ExataF( "id" ),
 				    cFim    = ExataF( "horadeconclusão" ),
 				    cTurno  = ExataF( "turno" ),
@@ -568,13 +568,13 @@ table tbl_Inspecoes
 				                                   or Text.Contains( AchataF( _ ), "divisorrotativo" ) ),
 				    colsObs   = ContemF( "observações" ),
 				    colsReq   = ContemF( "encontroualguma" ),
-
+				
 				    CampoF = ( r as record, c as nullable text ) as any =>
 				        if c = null then null else Record.FieldOrDefault( r, c, null ),
 				    JuntaF = ( r as record, cols as list ) as nullable text =>
 				        let v = List.Select( List.Transform( cols, ( c ) => TextoF( CampoF( r, c ) ) ), each _ <> null )
 				        in  if List.Count( v ) = 0 then null else Text.Combine( v, " | " ),
-
+				
 				    LinhasF = Table.SelectRows( BrutoForms, each CampoF( _, cFim ) <> null ),
 				    RegistrosF = List.Transform( Table.ToRecords( LinhasF ), ( r ) =>
 				        let
@@ -622,7 +622,7 @@ table tbl_Inspecoes
 				        Qtd_NC = Int64.Type, Resultado_Inspecao = nullable text, Requer_Acao = nullable text,
 				        Criticidade = nullable text, Observacoes = nullable text, Foto = nullable text,
 				        #"TagKey Inspecao" = nullable text, #"ID Válido" = logical, Origem = text ],
-
+				
 				    DoForms = Table.FromRecords(
 				        List.Transform( RegistrosF, ( x ) =>
 				            [ ID_Inspecao      = x[ID_Inspecao],
@@ -650,7 +650,7 @@ table tbl_Inspecoes
 				              #"ID Válido"     = true,
 				              Origem           = "Forms" ] ),
 				        TipoInsp ),
-
+				
 				    Final = Table.Combine( { DaPlanilha, DoForms } )
 				in
 				    Final

@@ -132,3 +132,43 @@ foi escrita para aguentar acréscimos e pequenas variações de espaço, mas
 se você reescrever uma pergunta inteira, o padrão pode deixar de casar.
 Pode mexer nas opções de resposta à vontade; me avise antes de reescrever
 enunciado.
+
+---
+
+## Adendo v12 — linha vazia truncando o M
+
+A v11 não abriu. O Power BI acusou:
+
+```
+Erro de mecanismo M: 'Esperava-se o token ','.'
+```
+
+Causa: ao injetar o bloco do Forms nas partições, eu gerei **linhas
+totalmente vazias** entre os passos do M. No TMDL, o valor de uma
+propriedade multi-linha é delimitado por **indentação**, e uma linha
+totalmente vazia **encerra o bloco**. O M foi cortado logo depois de
+
+```
+DaPlanilha = Table.AddColumn( IdValido, "Origem", each "Planilha", type text ),
+```
+
+— uma vírgula sem nada depois. Daí a mensagem.
+
+As linhas em branco do arquivo original não eram vazias: traziam os
+quatro tabuleiros de indentação. A correção foi essa, e só ela: dar o
+recuo às linhas em branco de dentro do M, **mantendo vazia** a linha que
+fecha o bloco antes do `annotation`.
+
+### A verificação que passou a existir
+
+Um erro desses não devia chegar até você. O projeto ganhou um validador
+que, para cada partição `= m`:
+
+- extrai o bloco do M do jeito que o TMDL o delimita;
+- recusa linha totalmente vazia dentro dele;
+- exige que o bloco contenha `in` e não termine em branco;
+- confere o balanceamento de `( )`, `[ ]` e `{ }`, ignorando o que está
+  dentro de string e de comentário.
+
+Rodando nas 14 partições M do modelo: **todas fechadas e balanceadas**.
+Se a v11 tivesse passado por ele, teria sido barrada aqui.

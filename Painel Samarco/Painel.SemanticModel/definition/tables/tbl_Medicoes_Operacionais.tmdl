@@ -253,7 +253,7 @@ table tbl_Medicoes_Operacionais
 				
 				    ComTagKey = Table.AddColumn( ParaNumero, "TagKey Inspecao", each fxTag( [Equip_Tag] ), type nullable text )
 				    DaPlanilha = Table.AddColumn( ComTagKey, "Origem", each "Planilha", type text ),
-
+				
 				    // ═══ Microsoft Forms ══════════════════════════════════════════════════════
 				    // A planilha de respostas nomeia cada coluna com o TEXTO da pergunta e
 				    // acrescenta sufixo numerico quando duas perguntas tem o mesmo enunciado
@@ -267,7 +267,7 @@ table tbl_Medicoes_Operacionais
 				            [ RelativePath = "Inspeção de Amostradores.xlsx" ] ),
 				        null, true ),
 				    BrutoForms = FonteForms{[Item = "tbl_forms", Kind = "Table"]}[Data],
-
+				
 				    BrancoF = { " ", "#(00A0)", "#(tab)", "#(cr)", "#(lf)" },
 				    TextoF = ( v as any ) as nullable text =>
 				        let t = if v = null then null else Text.Trim( Text.From( v ), BrancoF )
@@ -276,7 +276,7 @@ table tbl_Medicoes_Operacionais
 				        let t = TextoF( v )
 				        in  if t = null then null
 				            else try Number.FromText( Text.Replace( t, ",", "." ), "en-US" ) otherwise null,
-
+				
 				    AchataF = ( n as text ) as text =>
 				        Text.Lower( Text.Remove( n, { " ", "#(00A0)", ".", "?", "(", ")", ",", ":", "-", "–", "/", "=", "·" } ) ),
 				    ColsF = Table.ColumnNames( BrutoForms ),
@@ -286,7 +286,7 @@ table tbl_Medicoes_Operacionais
 				    ExataF = ( nome as text ) as nullable text =>
 				        let l = List.Select( ColsF, each AchataF( _ ) = nome )
 				        in  if List.Count( l ) = 0 then null else List.Last( l ),
-
+				
 				    cId     = ExataF( "id" ),
 				    cFim    = ExataF( "horadeconclusão" ),
 				    cTurno  = ExataF( "turno" ),
@@ -303,13 +303,13 @@ table tbl_Medicoes_Operacionais
 				                                   or Text.Contains( AchataF( _ ), "divisorrotativo" ) ),
 				    colsObs   = ContemF( "observações" ),
 				    colsReq   = ContemF( "encontroualguma" ),
-
+				
 				    CampoF = ( r as record, c as nullable text ) as any =>
 				        if c = null then null else Record.FieldOrDefault( r, c, null ),
 				    JuntaF = ( r as record, cols as list ) as nullable text =>
 				        let v = List.Select( List.Transform( cols, ( c ) => TextoF( CampoF( r, c ) ) ), each _ <> null )
 				        in  if List.Count( v ) = 0 then null else Text.Combine( v, " | " ),
-
+				
 				    LinhasF = Table.SelectRows( BrutoForms, each CampoF( _, cFim ) <> null ),
 				    RegistrosF = List.Transform( Table.ToRecords( LinhasF ), ( r ) =>
 				        let
@@ -358,10 +358,10 @@ table tbl_Medicoes_Operacionais
 				        Velocidade_Calculada = nullable number, Velocidade_Uniforme = nullable text,
 				        Resultado_Medicao = nullable text,
 				        #"TagKey Inspecao" = nullable text, Origem = text ],
-
+				
 				    Pega = ( l as list, i as number ) as nullable number =>
 				        if List.Count( l ) > i then l{i} else null,
-
+				
 				    DoForms = Table.FromRecords(
 				        List.Transform( List.Select( RegistrosF, each List.Count( _[Tempos] ) > 0 ), ( x ) =>
 				            [ ID_Inspecao = x[ID_Inspecao], Data = x[Data],
@@ -380,7 +380,7 @@ table tbl_Medicoes_Operacionais
 				              #"TagKey Inspecao" = fxTag( x[Tag] ),
 				              Origem = "Forms" ] ),
 				        TipoMed ),
-
+				
 				    Final = Table.Combine( { DaPlanilha, DoForms } )
 				in
 				    Final
