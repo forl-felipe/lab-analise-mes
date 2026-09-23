@@ -526,12 +526,14 @@ table tbl_Inspecoes
 				    // nao separavel. Por isso NADA aqui referencia nome exato de coluna: elas
 				    // sao achadas por padrao sobre o nome normalizado. Assim, mexer no
 				    // formulario nao quebra a consulta em silencio.
+				    // URL inteira do arquivo, na mesma forma da planilha antiga (que ja autentica).
+				    // Com pasta + RelativePath o Power BI testava a credencial contra a PASTA e recusava.
 				    FonteForms = Excel.Workbook(
-				        Web.Contents(
-				            "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/",
-				            [ RelativePath = "Inspeção de Amostradores.xlsx" ] ),
+				        Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Inspe%C3%A7%C3%A3o%20de%20Amostradores.xlsx" ),
 				        null, true ),
-				    BrutoForms = FonteForms{[Item = "tbl_forms", Kind = "Table"]}[Data],
+				    // o arquivo de respostas tem uma tabela so: pega a primeira, qualquer que seja o nome
+				    // (tbl_forms, tbl_inspecoes... renomear no SharePoint nao quebra mais a consulta)
+				    BrutoForms = Table.SelectRows( FonteForms, each [Kind] = "Table" ){0}[Data],
 				
 				    BrancoF = { " ", "#(00A0)", "#(tab)", "#(cr)", "#(lf)" },
 				    TextoF = ( v as any ) as nullable text =>

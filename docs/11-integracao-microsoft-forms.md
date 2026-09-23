@@ -234,3 +234,39 @@ mais simples e já provada neste modelo:
 
 O resultado é o mesmo, mas todas as construções usadas agora já existiam
 e funcionavam em outra tabela deste modelo. Menos superfície para errar.
+
+---
+
+## Adendo v14 — autenticação recusada com a conta certa
+
+Com o modelo abrindo, o Power BI pediu credencial para a planilha do Forms
+e recusou mesmo com **Conta organizacional** logada.
+
+A diferença estava na forma do endereço. A planilha antiga, que sempre
+autenticou, aponta para o **arquivo**:
+
+```m
+Web.Contents( "https://.../laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" )
+```
+
+A do Forms, que eu escrevi, apontava para a **pasta** e pendurava o nome
+do arquivo à parte:
+
+```m
+Web.Contents( "https://.../laboratorios/ZTESTE/", [ RelativePath = "Inspeção de Amostradores.xlsx" ] )
+```
+
+Ao clicar em Conectar, o Power BI valida a credencial contra o endereço
+base da fonte, que ali era uma pasta. Pasta não é arquivo, o teste falha,
+e ele reporta "não foi possível autenticar".
+
+A v14 usa exatamente a forma da planilha antiga: URL inteira do arquivo.
+De novo a mesma lição: construção que já funciona neste modelo vale mais
+que construção recomendada em teoria.
+
+### De carona: renomear a tabela não quebra mais
+
+A consulta procurava a tabela pelo nome `tbl_forms`. Agora ela pega **a
+primeira tabela do arquivo**, qualquer que seja o nome. O arquivo de
+respostas do Forms tem uma tabela só, então isso é seguro, e renomear a
+tabela no SharePoint deixa de ser um risco.
