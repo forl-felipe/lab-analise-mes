@@ -251,7 +251,7 @@ table tbl_Medicoes_Operacionais
 				            else tab
 				    ),
 				
-				    ComTagKey = Table.AddColumn( ParaNumero, "TagKey Inspecao", each fxTag( [Equip_Tag] ), type nullable text )
+				    ComTagKey = Table.AddColumn( ParaNumero, "TagKey Inspecao", each fxTag( [Equip_Tag] ), type nullable text ),
 				    DaPlanilha = Table.AddColumn( ComTagKey, "Origem", each "Planilha", type text ),
 				
 				    // ═══ Microsoft Forms ══════════════════════════════════════════════════════
@@ -349,37 +349,37 @@ table tbl_Medicoes_Operacionais
 				              RequerAcao = JuntaF( r, colsReq ),
 				              Foto = TextoF( CampoF( r, cFoto ) ),
 				              Checks = checks ] ),
-				    TipoMed = type table [
-				        ID_Inspecao = nullable text, Data = nullable date,
-				        Equip_Tag = nullable text, Equipamento = nullable text,
-				        Comprimento_Cortador = nullable number, Distancia_Percurso = nullable number,
-				        Tempo_1 = nullable number, Tempo_2 = nullable number, Tempo_3 = nullable number,
-				        Tempo_4 = nullable number, Tempo_5 = nullable number, Tempo_Medio = nullable number,
-				        Velocidade_Calculada = nullable number, Velocidade_Uniforme = nullable text,
-				        Resultado_Medicao = nullable text,
-				        #"TagKey Inspecao" = nullable text, Origem = text ],
-				
 				    Pega = ( l as list, i as number ) as nullable number =>
 				        if List.Count( l ) > i then l{i} else null,
 				
-				    DoForms = Table.FromRecords(
-				        List.Transform( List.Select( RegistrosF, each List.Count( _[Tempos] ) > 0 ), ( x ) =>
-				            [ ID_Inspecao = x[ID_Inspecao], Data = x[Data],
-				              Equip_Tag = x[Tag], Equipamento = x[Equipamento],
-				              Comprimento_Cortador = null,
-				              // o Forms grava a distancia em CENTIMETROS; aqui ela vai em MILIMETROS,
-				              // que e a unidade da coluna na planilha (2400 mm = 2,40 m)
-				              Distancia_Percurso = if x[DistanciaCm] = null then null else x[DistanciaCm] * 10,
-				              Tempo_1 = Pega( x[Tempos], 0 ), Tempo_2 = Pega( x[Tempos], 1 ),
-				              Tempo_3 = Pega( x[Tempos], 2 ), Tempo_4 = Pega( x[Tempos], 3 ),
-				              Tempo_5 = Pega( x[Tempos], 4 ),
-				              Tempo_Medio = if x[TempoMedio] = null then null else Number.Round( x[TempoMedio], 3 ),
-				              Velocidade_Calculada = x[Velocidade],
-				              Velocidade_Uniforme = null,
-				              Resultado_Medicao = if x[QtdNC] = 0 then "Conforme" else "Nao Conforme",
-				              #"TagKey Inspecao" = fxTag( x[Tag] ),
-				              Origem = "Forms" ] ),
-				        TipoMed ),
+				    // #table com lista de nomes e lista de linhas: a forma mais simples de
+				    // montar tabela em M, sem declaracao de tipo embutida
+				    DoForms =
+				        Table.TransformColumnTypes(
+				            #table(
+				                { "ID_Inspecao", "Data", "Equip_Tag", "Equipamento", "Comprimento_Cortador", "Distancia_Percurso", "Tempo_1", "Tempo_2", "Tempo_3", "Tempo_4", "Tempo_5", "Tempo_Medio", "Velocidade_Calculada", "Velocidade_Uniforme", "Resultado_Medicao", "TagKey Inspecao", "Origem" },
+				                List.Transform( List.Select( RegistrosF, each List.Count( _[Tempos] ) > 0 ), ( x ) =>
+				                    { x[ID_Inspecao],
+				                      x[Data],
+				                      x[Tag],
+				                      x[Equipamento],
+				                      null,
+				                      if x[DistanciaCm] = null then null else x[DistanciaCm] * 10,
+				                      Pega( x[Tempos], 0 ),
+				                      Pega( x[Tempos], 1 ),
+				                      Pega( x[Tempos], 2 ),
+				                      Pega( x[Tempos], 3 ),
+				                      Pega( x[Tempos], 4 ),
+				                      if x[TempoMedio] = null then null else Number.Round( x[TempoMedio], 3 ),
+				                      x[Velocidade],
+				                      null,
+				                      if x[QtdNC] = 0 then "Conforme" else "Nao Conforme",
+				                      fxTag( x[Tag] ),
+				                      "Forms"
+				                    } )
+				            ),
+				            { { "Data", type date }, { "Distancia_Percurso", type number }, { "Tempo_1", type number }, { "Tempo_2", type number }, { "Tempo_3", type number }, { "Tempo_4", type number }, { "Tempo_5", type number }, { "Tempo_Medio", type number }, { "Velocidade_Calculada", type number } }
+				        ),
 				
 				    Final = Table.Combine( { DaPlanilha, DoForms } )
 				in

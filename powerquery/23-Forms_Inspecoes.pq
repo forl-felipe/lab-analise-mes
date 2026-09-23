@@ -1,14 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // BLOCO: leitura da planilha de respostas do Microsoft Forms
 // ─────────────────────────────────────────────────────────────────────────────
-// Este bloco vive DENTRO das partições de tbl_Inspecoes e de
-// tbl_Medicoes_Operacionais (cada partição do modelo é autocontida). Está
-// reproduzido aqui só para leitura.
+// Vive DENTRO das partições de tbl_Inspecoes e tbl_Medicoes_Operacionais (cada
+// partição do modelo é autocontida). Reproduzido aqui só para leitura.
 //
-// Uma submissão do formulário carrega DOIS fatos diferentes:
-//   - a inspeção  (checklist)  -> tbl_Inspecoes
-//   - a medição   (tempos)     -> tbl_Medicoes_Operacionais
-// Por isso o mesmo bloco alimenta as duas tabelas, com projeções diferentes.
+// Uma submissão carrega DOIS fatos:
+//   a inspeção (checklist) -> tbl_Inspecoes
+//   a medição  (tempos)    -> tbl_Medicoes_Operacionais
+// O mesmo bloco alimenta as duas, com projeções diferentes no fim.
 
 // ═══ Microsoft Forms ══════════════════════════════════════════════════════
     // A planilha de respostas nomeia cada coluna com o TEXTO da pergunta e
@@ -105,39 +104,33 @@
               RequerAcao = JuntaF( r, colsReq ),
               Foto = TextoF( CampoF( r, cFoto ) ),
               Checks = checks ] ),
-    TipoInsp = type table [
-        ID_Inspecao = nullable text, Carimbo_DataHora = nullable text, Data = nullable date,
-        Semana = nullable text, Mes = nullable text, Ano = nullable text,
-        Turno = nullable text, Responsavel = nullable text,
-        Equip_Tag = nullable text, Equipamento = nullable text,
-        Qtd_NC = Int64.Type, Resultado_Inspecao = nullable text, Requer_Acao = nullable text,
-        Criticidade = nullable text, Observacoes = nullable text, Foto = nullable text,
-        #"TagKey Inspecao" = nullable text, #"ID Válido" = logical, Origem = text ],
-
-    DoForms = Table.FromRecords(
-        List.Transform( RegistrosF, ( x ) =>
-            [ ID_Inspecao      = x[ID_Inspecao],
-              Carimbo_DataHora = if x[Carimbo] = null then null else DateTime.ToText( x[Carimbo], "dd/MM/yyyy HH:mm" ),
-              Data             = x[Data],
-              Semana           = if x[Data] = null then null
-                                 else Text.From( Date.Year( x[Data] ) ) & "-S"
-                                      & Text.PadStart( Text.From( Date.WeekOfYear( x[Data], Day.Monday ) ), 2, "0" ),
-              Mes              = if x[Data] = null then null else Text.From( Date.Month( x[Data] ) ),
-              Ano              = if x[Data] = null then null else Text.From( Date.Year( x[Data] ) ),
-              Turno            = x[Turno],
-              Responsavel      = x[Responsavel],
-              Equip_Tag        = x[Tag],
-              Equipamento      = x[Equipamento],
-              Qtd_NC           = x[QtdNC],
-              // o resumo "Encontrou alguma Nao Conformidade?" ja chegou contradizendo
-              // os itens marcados; o resultado vem da CONTAGEM dos itens, nao da resposta
-              Resultado_Inspecao = if List.Count( x[Checks] ) = 0 then null
-                                   else if x[QtdNC] = 0 then "Conforme" else "Nao Conforme",
-              Requer_Acao      = x[RequerAcao],
-              Criticidade      = x[Criticidade],
-              Observacoes      = x[Observacoes],
-              Foto             = x[Foto],
-              #"TagKey Inspecao" = fxTag( x[Tag] ),
-              #"ID Válido"     = true,
-              Origem           = "Forms" ] ),
-        TipoInsp ),
+    // #table com lista de nomes e lista de linhas: a forma mais simples de
+    // montar tabela em M, sem declaracao de tipo embutida
+    DoForms =
+        Table.TransformColumnTypes(
+            #table(
+                { "ID_Inspecao", "Carimbo_DataHora", "Data", "Semana", "Mes", "Ano", "Turno", "Responsavel", "Equip_Tag", "Equipamento", "Qtd_NC", "Resultado_Inspecao", "Requer_Acao", "Criticidade", "Observacoes", "Foto", "TagKey Inspecao", "ID Válido", "Origem" },
+                List.Transform( RegistrosF, ( x ) =>
+                    { x[ID_Inspecao],
+                      if x[Carimbo] = null then null else DateTime.ToText( x[Carimbo], "dd/MM/yyyy HH:mm" ),
+                      x[Data],
+                      if x[Data] = null then null else Text.From( Date.Year( x[Data] ) ) & "-S" & Text.PadStart( Text.From( Date.WeekOfYear( x[Data], Day.Monday ) ), 2, "0" ),
+                      if x[Data] = null then null else Text.From( Date.Month( x[Data] ) ),
+                      if x[Data] = null then null else Text.From( Date.Year( x[Data] ) ),
+                      x[Turno],
+                      x[Responsavel],
+                      x[Tag],
+                      x[Equipamento],
+                      x[QtdNC],
+                      if List.Count( x[Checks] ) = 0 then null else if x[QtdNC] = 0 then "Conforme" else "Nao Conforme",
+                      x[RequerAcao],
+                      x[Criticidade],
+                      x[Observacoes],
+                      x[Foto],
+                      fxTag( x[Tag] ),
+                      true,
+                      "Forms"
+                    } )
+            ),
+            { { "Data", type date }, { "Qtd_NC", Int64.Type }, { "ID Válido", type logical } }
+        ),

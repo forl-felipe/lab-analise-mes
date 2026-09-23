@@ -172,3 +172,65 @@ que, para cada partição `= m`:
 
 Rodando nas 14 partições M do modelo: **todas fechadas e balanceadas**.
 Se a v11 tivesse passado por ele, teria sido barrada aqui.
+
+---
+
+## Adendo v13 — a vírgula que faltava
+
+A v12 deu o mesmo erro da v11. A linha vazia era real, mas não era a causa
+— e a mensagem do Power BI estava dizendo o problema com todas as letras:
+
+```
+Erro de mecanismo M: 'Esperava-se o token ','.'
+```
+
+O último passo original de cada consulta não tinha vírgula no fim, porque
+era o último antes do `in`:
+
+```m
+ComTagKey = Table.AddColumn( ParaNumero, "TagKey Inspecao", ... )   ← sem vírgula
+in
+    ComTagKey
+```
+
+Ao encaixar o bloco do Forms depois dele, eu acrescentei um passo novo e
+**não pus a vírgula que o passo anterior passou a precisar**:
+
+```m
+ComTagKey = Table.AddColumn( ParaNumero, "TagKey Inspecao", ... )   ← continuava sem
+DaPlanilha = Table.AddColumn( ComTagKey, "Origem", ... ),
+```
+
+Dois caracteres, nos dois arquivos. Era isso.
+
+### Por que demorou a aparecer
+
+Meu validador conferia o balanceamento de parênteses e colchetes — e
+estava tudo balanceado. Vírgula faltando entre passos de um `let` não é um
+problema de balanceamento, então passou batido. E a checagem de
+truncamento era fraca: ela aceitava qualquer linha `in`, inclusive os
+`in` internos de um `let` aninhado, então não percebeu que o bloco tinha
+sido cortado.
+
+O validador agora tem três verificações no lugar de uma:
+
+1. **vírgula entre passos** — para cada `Nome =` no nível do `let`, a
+   última linha com conteúdo antes dele tem de terminar em vírgula;
+2. **`in` de topo** — não vale qualquer `in`, tem de ser o do nível zero,
+   e tem de haver algo depois dele;
+3. **balanceamento** de `( )`, `[ ]` e `{ }`, ignorando string e comentário.
+
+Testei reintroduzindo o bug de propósito: o validador aponta o arquivo, a
+linha e o trecho.
+
+### O que mais mudou
+
+Aproveitei para trocar a montagem das duas tabelas do Forms por uma forma
+mais simples e já provada neste modelo:
+
+| Antes | Agora |
+|---|---|
+| `type table [ ... nullable text ... ]` + `Table.FromRecords` | `#table( { nomes }, { linhas } )` + `Table.TransformColumnTypes` |
+
+O resultado é o mesmo, mas todas as construções usadas agora já existiam
+e funcionavam em outra tabela deste modelo. Menos superfície para errar.
