@@ -15,7 +15,7 @@ laboratórios LCP, LCE e LDP.
 3. **Apague** a pasta antiga do projeto inteira e ponha esta no lugar.
    Apagar, não copiar por cima: ver `Painel Samarco/LEIA-ME.txt`.
 4. Duplo clique no `.pbip` e clique em **Atualizar**.
-5. Confira: rodapé com `· v10` e o logo da Samarco na barra lateral.
+5. Confira: rodapé com `· v11` e o logo da Samarco na barra lateral.
 
 ## Onde fica cada coisa
 
@@ -39,6 +39,7 @@ laboratórios LCP, LCE e LDP.
 | `docs/07-icones-e-navegacao.md` | menu lateral, ícones e o que quebrou no caminho |
 | `docs/08-identidade-visual.md` | paleta Samarco e por que as cores de gráfico são ajustadas |
 | `docs/09-publicar-atualizar-e-o-turno-D.md` | turno D, publicação, compartilhamento e atualização agendada |
+| `docs/11-integracao-microsoft-forms.md` | como o formulário do Forms alimenta o painel |
 
 ## Pendências que são da planilha, não do painel
 
