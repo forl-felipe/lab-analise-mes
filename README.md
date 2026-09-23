@@ -8,19 +8,20 @@ laboratórios LCP, LCE e LDP.
 
 1. Baixe o repositório inteiro:
    **https://github.com/forl-felipe/lab-analise-mes/archive/refs/heads/claude/funny-dirac-ic9mx0.zip**
-2. Extraia. Dentro vai haver uma pasta chamada
-   **`Gestão equioamentos power pbip`** — é o projeto inteiro, com o
+2. Extraia com o botão direito no .zip → "Extrair tudo…", destino `C:\PBI`.
+   Dentro vai haver uma pasta chamada
+   **`Painel Samarco`** — é o projeto inteiro, com o
    `.pbip` e as duas subpastas já com os nomes certos.
 3. **Apague** a pasta antiga do projeto inteira e ponha esta no lugar.
-   Apagar, não copiar por cima: ver `Gestão equioamentos power pbip/LEIA-ME.txt`.
+   Apagar, não copiar por cima: ver `Painel Samarco/LEIA-ME.txt`.
 4. Duplo clique no `.pbip` e clique em **Atualizar**.
-5. Confira: rodapé com `· v8` e o logo da Samarco na barra lateral.
+5. Confira: rodapé com `· v9` e o logo da Samarco na barra lateral.
 
 ## Onde fica cada coisa
 
 | Pasta | Conteúdo |
 |---|---|
-| `Gestão equioamentos power pbip/` | **o projeto pronto para instalar** |
+| `Painel Samarco/` | **o projeto pronto para instalar** |
 | `docs/` | diagnóstico, decisões de arquitetura, guias e respostas |
 | `powerquery/` | as 22 consultas M, comentadas, para leitura |
 | `dax/` | calendário, dimensão de técnicos e as 59 medidas |

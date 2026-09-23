@@ -145,3 +145,55 @@ Vale lembrar de uma distinção que confunde: a planilha tem uma coluna
 (aprovado, reprovado, em calibração) — não diz se a calibração está
 vencida. São duas perguntas diferentes, e por isso são duas colunas
 diferentes no modelo: `Status Metrologico` e `StatusAtual`.
+
+---
+
+## Adendo v9 — por que as páginas abriam em branco
+
+Não era o download, nem a cópia, nem o Power BI. Era o **limite de 260
+caracteres de caminho do Windows**, e a conta fecha no caractere:
+
+| | |
+|---|---|
+| `C:\Users\<usuário>\Downloads\` | 28 |
+| pasta criada pelo "Extrair tudo" | 42 |
+| pasta que vem dentro do zip | 42 |
+| `Gestão equioamentos power pbip\` | 31 |
+| `Gestão equioamentos power pbip.Report\` | 38 |
+| `definition\pages\` | 17 |
+| id da página | 21 |
+| `visuals\` | 8 |
+| id do visual | 21 |
+| `visual.json` | 11 |
+| **total** | **259** |
+
+O limite útil do Windows é **259 caracteres**. O `page.json` fica em 228 e
+passa; o `visual.json` fica em 259 e não passa. Por isso as 9 páginas
+apareciam e **todas** ficavam vazias, de forma uniforme — o corte não era
+por página, era por profundidade.
+
+O Explorer não avisa quando isso acontece. Ele extrai o que cabe e
+termina sem erro. O sintoma que denunciou foi a contagem: 57 arquivos na
+pasta do relatório contra os 487 esperados. Os 430 que faltavam eram
+exatamente os do nível mais fundo.
+
+**A correção foi encurtar os nomes**, que são a única parte do caminho
+sob meu controle:
+
+| Antes | Depois | Economia |
+|---|---|---|
+| `Gestão equioamentos power pbip` | `Painel Samarco` | 16 |
+| `Gestão equioamentos power pbip.Report` | `Painel.Report` | 24 |
+| `Gestão equioamentos power pbip.SemanticModel` | `Painel.SemanticModel` | 24 |
+
+São 49 caracteres a menos por caminho. O pior caso passa de 259 para
+**219**, com 40 de folga.
+
+Os dois arquivos que amarram esses nomes foram atualizados junto:
+`Painel.pbip` aponta para `Painel.Report`, e
+`Painel.Report/definition.pbir` aponta para `../Painel.SemanticModel`.
+O nome exibido dentro do Power BI, que fica em `.platform`, não mudou.
+
+Lição para a próxima entrega: nome de pasta bonito custa caracteres, e
+caractere de caminho é um recurso escasso no Windows quando a estrutura
+tem seis níveis e um arquivo por visual.

@@ -1,0 +1,74 @@
+PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v9
+=====================================================
+
+POR QUE OS NOMES ENCURTARAM
+---------------------------
+Até a v8 as pastas se chamavam "Gestão equioamentos power pbip" e
+"Gestão equioamentos power pbip.Report". Somados ao nome da pasta que o
+Windows cria ao extrair o zip, o caminho de cada arquivo de visual
+chegava a 259 caracteres - exatamente o limite do Windows.
+
+O resultado era silencioso e enganoso: os arquivos das páginas (228
+caracteres) eram extraídos, e os 430 arquivos dos visuais (259) não. O
+Power BI abria com as 9 páginas listadas e todas em branco.
+
+Os nomes agora são "Painel Samarco", "Painel.Report" e
+"Painel.SemanticModel". Isso tira 49 caracteres de cada caminho e deixa
+40 de folga mesmo no pior caso.
+
+O nome que aparece dentro do Power BI continua o mesmo.
+
+
+INSTALAÇÃO
+----------
+1. Feche o Power BI Desktop.
+
+2. Clique com o botão direito NO ARQUIVO .zip (não abra o zip com dois
+   cliques) e escolha "Extrair tudo...".
+
+3. Em destino, apague o que estiver lá e digite:  C:\PBI
+
+4. Entre em C:\PBI e procure a pasta "Painel Samarco".
+
+5. CONFIRA ANTES DE ABRIR: botão direito em "Painel.Report" >
+   Propriedades. Tem que dizer 487 arquivos, 445 pastas.
+   Se disser 57 arquivos, os visuais não vieram - me avise.
+
+6. Duplo clique em "Painel.pbip".
+
+7. Clique em ATUALIZAR (Página Inicial > Atualizar).
+
+8. O rodapé de cada página termina com "· v9" e a barra lateral mostra o
+   logo da Samarco.
+
+
+O QUE CONTÉM
+------------
+    Painel.pbip              abre o projeto
+    Painel.Report            relatório, 9 páginas, 420 visuais
+    Painel.SemanticModel     modelo, 18 tabelas, 59 medidas
+
+
+AS 9 PÁGINAS
+------------
+VISÃO GERAL      8 indicadores + grade 3x3 de painéis
+EQUIPAMENTOS     cadastro, grupo operacional e tipo
+CALIBRAÇÕES      última calibração, vencimento e situação
+INTERVENÇÕES     ocorrências, disciplinas e lead time
+PARADAS          horas paradas, ocorrências e disponibilidade
+SOBRESSALENTES   cobertura de estoque e vínculo com equipamento
+NOTAS / OMs      abertura, atendimento e lead time
+INSPEÇÕES        conformidade operacional e cumprimento de meta
+RELATÓRIOS       qualidade do dado e status metrológico
+
+
+PENDÊNCIAS QUE SÃO DA PLANILHA, NÃO DO PAINEL
+---------------------------------------------
+- Coluna "Crítico" com "Sim" nas 34 linhas: Equipamentos Críticos = Total.
+- Aba "Notas Manutenção" vazia: indicadores de OM em 0.
+- Turno e Responsavel preenchidos em 5 de 200 linhas de inspeção;
+  "Turno D" não existe na aba Listas.
+- Balança 71: vencimento gravado 2 anos após a última calibração.
+- Peneira Circular 200#: última calibração em 15/07/2027, data futura.
+
+Lista completa em docs/03-plano-implementacao.md.
