@@ -26,6 +26,7 @@ ref table tbl_Medicoes_Operacionais
 ref table tbl_Sobressalentes
 ref table DimLaboratorio
 ref table DePara_Inspecao_Equipamento
+ref table Atualizacao
 ref table DimCalendario
 ref table DimTecnicos
 ref table _Medidas

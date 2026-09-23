@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "tbl_Calibracao.Equipamento",
-              "nativeQueryRef": "Equipamento"
+              "nativeQueryRef": "Equipamento",
+              "displayName": "Equipamento"
             },
             {
               "field": {
@@ -41,7 +42,23 @@
                 }
               },
               "queryRef": "tbl_Calibracao.Laboratorio",
-              "nativeQueryRef": "Laboratorio"
+              "nativeQueryRef": "Laboratorio",
+              "displayName": "Laboratório"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Calibracao"
+                    }
+                  },
+                  "Property": "UltimaCalibData"
+                }
+              },
+              "queryRef": "tbl_Calibracao.UltimaCalibData",
+              "nativeQueryRef": "UltimaCalibData",
+              "displayName": "Última Calibração"
             },
             {
               "field": {
@@ -55,7 +72,8 @@
                 }
               },
               "queryRef": "tbl_Calibracao.DataVencimento",
-              "nativeQueryRef": "DataVencimento"
+              "nativeQueryRef": "DataVencimento",
+              "displayName": "Vencimento"
             },
             {
               "field": {
@@ -69,30 +87,63 @@
                 }
               },
               "queryRef": "tbl_Calibracao.CriticidadeCalibracao",
-              "nativeQueryRef": "CriticidadeCalibracao"
+              "nativeQueryRef": "CriticidadeCalibracao",
+              "displayName": "Situação"
             }
           ]
         }
-      },
-      "sortDefinition": {
-        "sort": [
-          {
-            "field": {
-              "Column": {
-                "Expression": {
-                  "SourceRef": {
-                    "Entity": "tbl_Calibracao"
-                  }
-                },
-                "Property": "DataVencimento"
-              }
-            },
-            "direction": "Descending"
-          }
-        ]
       }
     },
-    "drillFilterOtherVisuals": true
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Última calibração, vencimento e situação'"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "15D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   },
   "filterConfig": {
     "filters": [

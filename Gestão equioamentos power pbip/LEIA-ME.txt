@@ -1,4 +1,4 @@
-PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v7
+PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v8
 =====================================================
 
 ESTA PASTA É O PROJETO INTEIRO.
@@ -29,7 +29,7 @@ INSTALAÇÃO  (leia o passo 2 com atenção)
 5. Clique em ATUALIZAR (Página Inicial > Atualizar). Obrigatório: sem
    atualizar, os dados antigos continuam em memória.
 
-6. CONFIRA: o rodapé de cada página termina com "· v7" e a barra
+6. CONFIRA: o rodapé de cada página termina com "· v8" e a barra
    lateral mostra o logo da Samarco (não a palavra escrita). Se não
    mostrar, a pasta instalada não é esta.
 

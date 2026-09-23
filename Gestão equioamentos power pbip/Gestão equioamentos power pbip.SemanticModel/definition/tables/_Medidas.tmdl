@@ -13,7 +13,10 @@ table _Medidas
 
 	measure 'Última Atualização' =
 			
-			FORMAT ( UTCNOW () - TIME ( 3, 0, 0 ), "dd/MM/yyyy HH:mm" )
+			-- UTCNOW() é recalculado a cada renderização: mostrava a hora de AGORA,
+			-- não a da última carga. Atualizacao[Carimbo] é gravado na atualização.
+			VAR c = MAX ( Atualizacao[Carimbo] )
+			RETURN IF ( ISBLANK ( c ), "sem atualização", FORMAT ( c, "dd/MM/yyyy HH:mm" ) )
 		displayFolder: 00 Cabeçalho
 		lineageTag: ccf53384-e999-5c21-afc1-4027fe4494e1
 

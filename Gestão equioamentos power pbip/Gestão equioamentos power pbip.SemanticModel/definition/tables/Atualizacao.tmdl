@@ -1,0 +1,27 @@
+table Atualizacao
+	lineageTag: b7e16cbc-eea3-c54c-c76c-ab2ad732fe22
+
+	/// Carimbo gravado no momento da ATUALIZAÇÃO dos dados. Diferente de
+	/// NOW()/UTCNOW(), que o DAX recalcula toda vez que a tela é desenhada e
+	/// por isso mostra a hora de agora, não a da última carga.
+	column Carimbo
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: 7973b216-0955-4ee8-d971-65f2ec0a4b98
+		summarizeBy: none
+		sourceColumn: Carimbo
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Atualizacao = m
+		mode: import
+		source =
+				let
+				    // avaliado UMA vez, quando a atualização roda, e gravado no modelo
+				    Agora = DateTime.From( DateTimeZone.SwitchZone( DateTimeZone.UtcNow(), -3 ) ),
+				    Origem = #table( type table [ Carimbo = datetime ], { { Agora } } )
+				in
+				    Origem
+
+	annotation PBI_ResultType = Table
+

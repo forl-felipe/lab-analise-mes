@@ -23,11 +23,11 @@
                       "Entity": "tbl_Equipamentos"
                     }
                   },
-                  "Property": "Área"
+                  "Property": "Tipo"
                 }
               },
-              "queryRef": "tbl_Equipamentos.Área",
-              "nativeQueryRef": "Área",
+              "queryRef": "tbl_Equipamentos.Tipo",
+              "nativeQueryRef": "Tipo",
               "active": true
             }
           ]
@@ -56,24 +56,44 @@
       "title": [
         {
           "properties": {
-            "show": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Equipamentos por Tipo'"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            },
+            "bold": {
               "expr": {
                 "Literal": {
                   "Value": "true"
                 }
               }
             },
-            "text": {
-              "expr": {
-                "Literal": {
-                  "Value": "'EQUIPAMENTOS POR ÁREA'"
-                }
-              }
-            },
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "'12'"
+                  "Value": "15D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
