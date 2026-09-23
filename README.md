@@ -23,10 +23,11 @@ laboratórios LCP, LCE e LDP.
 |---|---|
 | `Painel Samarco/` | **o projeto pronto para instalar** |
 | `docs/` | diagnóstico, decisões de arquitetura, guias e respostas |
-| `powerquery/` | as 22 consultas M, comentadas, para leitura |
+| `powerquery/` | as consultas M, comentadas, para leitura |
 | `dax/` | calendário, dimensão de técnicos e as 59 medidas |
 | `tema/` | tema do Power BI e a paleta institucional (`samarco-cores.css`) |
 | `entrega/` | o zip só do projeto, se preferir baixar assim |
+| `afericoes/` | planilha de calibração dos operadores com as abas ocultas `BD_Afericoes` e `BD_Limites` |
 
 ## Documentação
 
@@ -40,6 +41,7 @@ laboratórios LCP, LCE e LDP.
 | `docs/08-identidade-visual.md` | paleta Samarco e por que as cores de gráfico são ajustadas |
 | `docs/09-publicar-atualizar-e-o-turno-D.md` | turno D, publicação, compartilhamento e atualização agendada |
 | `docs/11-integracao-microsoft-forms.md` | como o formulário do Forms alimenta o painel |
+| `docs/12-afericoes.md` | aferições e comparativos: a aba oculta, as regras e o plano da página |
 
 ## Pendências que são da planilha, não do painel
 
