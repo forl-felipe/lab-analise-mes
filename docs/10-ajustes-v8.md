@@ -197,3 +197,40 @@ O nome exibido dentro do Power BI, que fica em `.platform`, não mudou.
 Lição para a próxima entrega: nome de pasta bonito custa caracteres, e
 caractere de caminho é um recurso escasso no Windows quando a estrutura
 tem seis níveis e um arquivo por visual.
+
+---
+
+## Adendo v10 — o `$schema` do `.pbip` estava errado
+
+Depois de resolvido o caminho longo, o Power BI passou a abrir o arquivo
+e recusou com uma mensagem precisa:
+
+```
+Expected '$schema' property in '...\Painel.pbip' to follow patterns:
+^https://developer.microsoft.com/json-schemas/fabric/pbip/pbipProperties/1.[0-9]+.[0-9]+/schema.json$
+```
+
+O `.pbip` foi o único arquivo deste projeto que **eu escrevi do zero**, na
+v5, quando passei a entregar a pasta do projeto inteira. Escrevi:
+
+```
+.../json-schemas/fabric/item/pbipProperties/1.0.0/schema.json
+                         ^^^^
+```
+
+quando o correto é:
+
+```
+.../json-schemas/fabric/pbip/pbipProperties/1.0.0/schema.json
+                         ^^^^
+```
+
+Uma palavra. Todos os outros arquivos de controle vieram do `.pbip`
+original exportado pelo Power BI na máquina do Felipe, e por isso estavam
+certos desde o começo — o erro estava exatamente no único que eu inventei
+de memória.
+
+O validador do projeto agora confere o `$schema` dos quatro arquivos de
+controle (`.pbip`, `definition.pbir`, `report.json`, `pages.json`) contra
+os padrões que o Power BI exige, para que esse tipo de erro não passe de
+novo.

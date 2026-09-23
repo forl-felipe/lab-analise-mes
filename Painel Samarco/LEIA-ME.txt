@@ -1,4 +1,4 @@
-PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v9
+PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v10
 =====================================================
 
 POR QUE OS NOMES ENCURTARAM
@@ -38,7 +38,7 @@ INSTALAÇÃO
 
 7. Clique em ATUALIZAR (Página Inicial > Atualizar).
 
-8. O rodapé de cada página termina com "· v9" e a barra lateral mostra o
+8. O rodapé de cada página termina com "· v10" e a barra lateral mostra o
    logo da Samarco.
 
 
