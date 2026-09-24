@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "5a0496e09551d7f6a71f",
   "position": {
-    "x": 703,
-    "y": 180,
+    "x": 705,
+    "y": 188,
     "z": 1100,
-    "width": 205,
-    "height": 34,
-    "tabOrder": 1170
+    "width": 195,
+    "height": 40,
+    "tabOrder": 1180
   },
   "visual": {
     "visualType": "textbox",
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "CALIBRAÇÃO EM DIA",
+                    "value": "CALIBRAÇÃO",
                     "textStyle": {
                       "fontSize": "11pt",
                       "color": "#00335A",

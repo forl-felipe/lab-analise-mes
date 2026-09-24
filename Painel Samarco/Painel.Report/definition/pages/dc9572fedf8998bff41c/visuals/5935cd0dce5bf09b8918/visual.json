@@ -3,7 +3,7 @@
   "name": "5935cd0dce5bf09b8918",
   "position": {
     "x": 248,
-    "y": 1044,
+    "y": 1404,
     "z": 20,
     "width": 1648,
     "height": 24,
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Dados provenientes do SharePoint  ·  Base_PowerBI_Gestao_Equipamentos.xlsx   ·   v15",
+                    "value": "Dados provenientes do SharePoint  ·  Base_PowerBI_Gestao_Equipamentos.xlsx   ·   v16",
                     "textStyle": {
                       "fontSize": "8pt",
                       "color": "#898781",

@@ -1,4 +1,35 @@
-# 13 — v15: painel gerencial, Equipamentos & Paradas e Aferições
+# 13 — v15/v16: painel gerencial, Equipamentos & Paradas e Aferições
+
+## v16: correções a partir dos prints da v15 e o mockup na íntegra
+
+| Na v15 | Causa | Na v16 |
+|---|---|---|
+| Botões do menu apareciam como retângulos azuis vazios | O botão de navegação ficava por cima da pílula, com o preenchimento padrão | A própria pílula (imagem) navega; não há botão por cima |
+| Pilares sem situação, meta e barra; "Período" e "Última atualização" cortados | Caixas baixas demais para o tamanho do texto: o Power BI esconde o que não cabe | Caixas redimensionadas; cabeçalho com "Período: …" e "Atualizado em …" em texto |
+| "Pontos que pedem decisão" e "Resumo do mês" vazios | Tabelas só com medidas, sem coluna de linha | Coluna Tema (pontos) e # (resumo) |
+| Linha em branco em "Saúde por grupo" e linhas "Total" | Instrumentos sem grupo; totais ligados | Grupo vazio filtrado; totais desligados |
+| Disponibilidade por semana negativa (−482%) | Horas paradas lançadas num dia maior que a capacidade da semana | Disponibilidade limitada a 0% |
+| Faltavam itens do mockup | — | Mapa ensaio × dia, carta de controle abrindo no Blaine, placar por laboratório, barras de meta |
+
+As 4 páginas reconstruídas (Visão Geral, Equipamentos & Paradas, Aferições,
+Aferições · Detalhe) passaram a ter **1920 × 1440** e abrem **ajustadas à
+largura**. Com isso a página rola na vertical e o texto fica maior. As
+demais continuam em 1920 × 1080.
+
+### Mapa de aferições (ensaio × dia)
+
+| Símbolo | Significado |
+|---|---|
+| ✔ azul | conforme |
+| ✖ laranja | houve não conformidade |
+| ○ ocre | estava na rotina e não foi feito (conta até ontem) |
+| em branco | sem rotina naquele dia |
+
+### Carta de controle
+
+Sem nada escolhido na lateral, a carta abre no **Blaine Manual (66PB08)**.
+Para trocar, escolha na lateral o ensaio, o equipamento e o parâmetro.
+
 
 Construído a partir do mockup aprovado (rodada 2) e dos ajustes pedidos.
 

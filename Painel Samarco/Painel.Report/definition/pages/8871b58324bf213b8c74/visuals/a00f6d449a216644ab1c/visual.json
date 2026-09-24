@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "a00f6d449a216644ab1c",
+  "position": {
+    "x": 1503,
+    "y": 110,
+    "z": 1100,
+    "width": 389,
+    "height": 34,
+    "tabOrder": 1210
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "EQUIPAMENTOS REINCIDENTES",
+                    "textStyle": {
+                      "fontSize": "10pt",
+                      "color": "#00335A",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

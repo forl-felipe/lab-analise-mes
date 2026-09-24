@@ -3,11 +3,11 @@
   "name": "6dc9e73aae1d310f413a",
   "position": {
     "x": 244,
-    "y": 266,
+    "y": 306,
     "z": 1000,
-    "width": 900,
+    "width": 1000,
     "height": 380,
-    "tabOrder": 1200
+    "tabOrder": 1240
   },
   "visual": {
     "visualType": "tableEx",
@@ -149,7 +149,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "11D"
+                  "Value": "12D"
                 }
               }
             }
@@ -192,7 +192,20 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "11D"
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
@@ -205,7 +218,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "200D"
+                  "Value": "230D"
                 }
               }
             }
@@ -219,7 +232,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "110D"
+                  "Value": "120D"
                 }
               }
             }
@@ -233,7 +246,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "95D"
+                  "Value": "110D"
                 }
               }
             }
@@ -247,7 +260,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "80D"
+                  "Value": "90D"
                 }
               }
             }
@@ -261,7 +274,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "170D"
+                  "Value": "190D"
                 }
               }
             }
@@ -275,7 +288,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "55D"
+                  "Value": "70D"
                 }
               }
             }
@@ -289,7 +302,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "80D"
+                  "Value": "90D"
                 }
               }
             }
@@ -366,7 +379,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Clique num ensaio para filtrar a página; o detalhe (carta de controle) está no sub-botão ao lado'"
+                  "Value": "'Ordenado pela ordem das abas; clique num ensaio para filtrar a página'"
                 }
               }
             },

@@ -3,11 +3,11 @@
   "name": "22928843b357d734ebfd",
   "position": {
     "x": 244,
-    "y": 658,
+    "y": 1050,
     "z": 1000,
     "width": 1656,
-    "height": 372,
-    "tabOrder": 1220
+    "height": 334,
+    "tabOrder": 1270
   },
   "visual": {
     "visualType": "tableEx",
@@ -199,13 +199,26 @@
           }
         }
       ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
       "columnWidth": [
         {
           "properties": {
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "230D"
+                  "Value": "240D"
                 }
               }
             }
@@ -219,7 +232,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "190D"
+                  "Value": "200D"
                 }
               }
             }
@@ -233,7 +246,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "420D"
+                  "Value": "440D"
                 }
               }
             }
@@ -247,7 +260,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "95D"
+                  "Value": "100D"
                 }
               }
             }
@@ -261,7 +274,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "280D"
+                  "Value": "300D"
                 }
               }
             }
@@ -275,7 +288,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "140D"
+                  "Value": "150D"
                 }
               }
             }
@@ -289,7 +302,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "110D"
+                  "Value": "120D"
                 }
               }
             }

@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "73818aa6258f8e22f504",
   "position": {
-    "x": 252,
-    "y": 146,
+    "x": 254,
+    "y": 162,
     "z": 1000,
-    "width": 1640,
-    "height": 392,
+    "width": 1636,
+    "height": 514,
     "tabOrder": 1090
   },
   "visual": {
@@ -46,8 +46,8 @@
                 }
               },
               "queryRef": "_Painel.Carta · Valor",
-              "nativeQueryRef": "Valor",
-              "displayName": "Valor"
+              "nativeQueryRef": "Valor medido",
+              "displayName": "Valor medido"
             },
             {
               "field": {
@@ -145,7 +145,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#00335A'"
+                      "Value": "'#E0620F'"
                     }
                   }
                 }
@@ -163,7 +163,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#00335A'"
+                      "Value": "'#E0620F'"
                     }
                   }
                 }
@@ -210,6 +210,89 @@
                 }
               }
             }
+          }
+        }
+      ],
+      "lineStyles": [
+        {
+          "properties": {
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "lineStyle": {
+              "expr": {
+                "Literal": {
+                  "Value": "'dashed'"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Carta · Lim. Inferior"
+          }
+        },
+        {
+          "properties": {
+            "lineStyle": {
+              "expr": {
+                "Literal": {
+                  "Value": "'dashed'"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Carta · Lim. Superior"
+          }
+        },
+        {
+          "properties": {
+            "lineStyle": {
+              "expr": {
+                "Literal": {
+                  "Value": "'dashed'"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Carta · Nominal"
           }
         }
       ]

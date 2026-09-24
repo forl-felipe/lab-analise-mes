@@ -3,10 +3,10 @@
   "name": "cd6e1c4da48afd6b4abf",
   "position": {
     "x": 244,
-    "y": 608,
+    "y": 642,
     "z": 1000,
-    "width": 800,
-    "height": 422,
+    "width": 1060,
+    "height": 400,
     "tabOrder": 1460
   },
   "visual": {
@@ -72,8 +72,8 @@
                 }
               },
               "queryRef": "_Painel.Disponibilidade do Grupo",
-              "nativeQueryRef": "Disponib.",
-              "displayName": "Disponib."
+              "nativeQueryRef": "Disponibilidade",
+              "displayName": "Disponibilidade"
             },
             {
               "field": {
@@ -199,13 +199,26 @@
           }
         }
       ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
       "columnWidth": [
         {
           "properties": {
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "170D"
+                  "Value": "190D"
                 }
               }
             }
@@ -219,7 +232,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "95D"
+                  "Value": "110D"
                 }
               }
             }
@@ -233,7 +246,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "50D"
+                  "Value": "55D"
                 }
               }
             }
@@ -247,7 +260,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "75D"
+                  "Value": "105D"
                 }
               }
             }
@@ -261,7 +274,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "90D"
+                  "Value": "115D"
                 }
               }
             }
@@ -275,7 +288,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "90D"
+                  "Value": "115D"
                 }
               }
             }
@@ -289,7 +302,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "190D"
+                  "Value": "330D"
                 }
               }
             }
@@ -366,7 +379,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Cada grupo mostra só o que se aplica a ele: disponibilidade para amostragem, calibração e aferição para laboratório'"
+                  "Value": "'Cada grupo mostra só o que se aplica a ele: disponibilidade para amostragem; calibração e aferição para laboratório'"
                 }
               }
             },

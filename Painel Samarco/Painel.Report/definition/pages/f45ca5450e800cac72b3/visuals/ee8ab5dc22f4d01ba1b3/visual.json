@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "ee8ab5dc22f4d01ba1b3",
   "position": {
-    "x": 1537,
-    "y": 180,
+    "x": 1539,
+    "y": 188,
     "z": 1100,
-    "width": 205,
-    "height": 34,
-    "tabOrder": 1370
+    "width": 195,
+    "height": 40,
+    "tabOrder": 1380
   },
   "visual": {
     "visualType": "textbox",
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "INSPEÇÕES DE AMOSTRADORES",
+                    "value": "INSPEÇÕES",
                     "textStyle": {
                       "fontSize": "11pt",
                       "color": "#00335A",

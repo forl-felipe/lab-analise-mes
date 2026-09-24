@@ -3,14 +3,14 @@
   "name": "b733320ebb99241772b6",
   "position": {
     "x": 685,
-    "y": 208,
+    "y": 258,
     "z": 1100,
     "width": 357,
-    "height": 24,
-    "tabOrder": 1130
+    "height": 30,
+    "tabOrder": 1150
   },
   "visual": {
-    "visualType": "hundredPercentStackedBarChart",
+    "visualType": "clusteredBarChart",
     "query": {
       "queryState": {
         "Y": {
@@ -28,20 +28,6 @@
               },
               "queryRef": "_Painel.Barra Aderência",
               "nativeQueryRef": "Barra Aderência"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Painel"
-                    }
-                  },
-                  "Property": "Barra Aderência Resto"
-                }
-              },
-              "queryRef": "_Painel.Barra Aderência Resto",
-              "nativeQueryRef": "Barra Aderência Resto"
             }
           ]
         }
@@ -75,6 +61,20 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            },
+            "start": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "end": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
                 }
               }
             }
@@ -114,8 +114,13 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Literal": {
-                      "Value": "'#1B6FB0'"
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Painel"
+                        }
+                      },
+                      "Property": "Cor Aderência"
                     }
                   }
                 }
@@ -123,25 +128,13 @@
             }
           },
           "selector": {
-            "metadata": "_Painel.Barra Aderência"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#E6EBF0'"
-                    }
-                  }
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
                 }
               }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.Barra Aderência Resto"
+            ]
           }
         }
       ]
@@ -179,7 +172,25 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#EEF2F6'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
                 }
               }
             }

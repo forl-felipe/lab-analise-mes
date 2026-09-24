@@ -4,10 +4,10 @@
   "position": {
     "x": 34,
     "y": 300,
-    "z": 7000,
+    "z": 7100,
     "width": 180,
     "height": 28,
-    "tabOrder": 1100
+    "tabOrder": 1060
   },
   "visual": {
     "visualType": "image",
@@ -54,6 +54,33 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualLink": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "type": {
+              "expr": {
+                "Literal": {
+                  "Value": "'PageNavigation'"
+                }
+              }
+            },
+            "navigationSection": {
+              "expr": {
+                "Literal": {
+                  "Value": "'51d0a41d85fe8a6a0250'"
                 }
               }
             }

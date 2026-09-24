@@ -3,14 +3,14 @@
   "name": "01f2e3060ceb3e1a63f6",
   "position": {
     "x": 1519,
-    "y": 314,
+    "y": 364,
     "z": 1100,
     "width": 357,
-    "height": 26,
+    "height": 34,
     "tabOrder": 1420
   },
   "visual": {
-    "visualType": "hundredPercentStackedBarChart",
+    "visualType": "clusteredBarChart",
     "query": {
       "queryState": {
         "Y": {
@@ -28,20 +28,6 @@
               },
               "queryRef": "_Painel.Barra Inspeções",
               "nativeQueryRef": "Barra Inspeções"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Painel"
-                    }
-                  },
-                  "Property": "Barra Inspeções Resto"
-                }
-              },
-              "queryRef": "_Painel.Barra Inspeções Resto",
-              "nativeQueryRef": "Barra Inspeções Resto"
             }
           ]
         }
@@ -75,6 +61,20 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            },
+            "start": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "end": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
                 }
               }
             }
@@ -114,8 +114,13 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Literal": {
-                      "Value": "'#1B6FB0'"
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Painel"
+                        }
+                      },
+                      "Property": "Cor Inspeções"
                     }
                   }
                 }
@@ -123,25 +128,13 @@
             }
           },
           "selector": {
-            "metadata": "_Painel.Barra Inspeções"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#E6EBF0'"
-                    }
-                  }
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
                 }
               }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.Barra Inspeções Resto"
+            ]
           }
         }
       ]
@@ -179,7 +172,25 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#EEF2F6'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
                 }
               }
             }

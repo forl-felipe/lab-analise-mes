@@ -18,6 +18,14 @@ table tbl_Pontos
 
 		annotation SummarizationSetBy = Automatic
 
+	column Tema
+		dataType: string
+		lineageTag: afae04dd-3ec6-532c-a07a-228262f77a74
+		summarizeBy: none
+		sourceColumn: Tema
+
+		annotation SummarizationSetBy = Automatic
+
 	partition tbl_Pontos = m
 		mode: import
 		source =
@@ -25,8 +33,11 @@ table tbl_Pontos
 				    // Linhas fixas da lista "Pontos que pedem decisão" (Visão Geral).
 				    // Cada linha só aparece quando a medida [Ponto Ativo] = 1.
 				    Origem = #table(
-				        type table [ Chave = text, Ordem = Int64.Type ],
-				        { { "CAL", 1 }, { "AF1", 2 }, { "AF2", 3 }, { "INS", 4 }, { "PAR", 5 }, { "DISP", 6 } }
+				        type table [ Chave = text, Ordem = Int64.Type, Tema = text ],
+				        {
+				            { "CAL", 1, "Calibração" }, { "AF1", 2, "Aferição · 1º ensaio" }, { "AF2", 3, "Aferição · 2º ensaio" },
+				            { "INS", 4, "Inspeções" }, { "PAR", 5, "Paradas" }, { "DISP", 6, "Disponibilidade" }
+				        }
 				    )
 				in
 				    Origem

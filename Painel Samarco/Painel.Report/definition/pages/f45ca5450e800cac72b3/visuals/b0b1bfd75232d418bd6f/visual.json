@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "b0b1bfd75232d418bd6f",
   "position": {
-    "x": 1056,
-    "y": 608,
+    "x": 244,
+    "y": 1054,
     "z": 1000,
-    "width": 844,
-    "height": 422,
-    "tabOrder": 1470
+    "width": 1656,
+    "height": 330,
+    "tabOrder": 1480
   },
   "visual": {
     "visualType": "tableEx",
@@ -29,6 +29,21 @@
               "queryRef": "_Painel.Ponto Nº",
               "nativeQueryRef": "Nº",
               "displayName": "Nº"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Pontos"
+                    }
+                  },
+                  "Property": "Tema"
+                }
+              },
+              "queryRef": "tbl_Pontos.Tema",
+              "nativeQueryRef": "Tema",
+              "displayName": "Tema"
             },
             {
               "field": {
@@ -119,7 +134,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "11D"
+                  "Value": "12D"
                 }
               }
             }
@@ -162,7 +177,20 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "11D"
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
@@ -175,7 +203,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "30D"
+                  "Value": "40D"
                 }
               }
             }
@@ -189,7 +217,21 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "85D"
+                  "Value": "170D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "tbl_Pontos.Tema"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "110D"
                 }
               }
             }
@@ -203,7 +245,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "190D"
+                  "Value": "360D"
                 }
               }
             }
@@ -217,7 +259,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "245D"
+                  "Value": "460D"
                 }
               }
             }
@@ -231,7 +273,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "250D"
+                  "Value": "470D"
                 }
               }
             }

@@ -6,8 +6,8 @@
     "y": 104,
     "z": 1000,
     "width": 405,
-    "height": 150,
-    "tabOrder": 1140
+    "height": 190,
+    "tabOrder": 1160
   },
   "visual": {
     "visualType": "textbox",
@@ -19,12 +19,11 @@
               {
                 "textRuns": [
                   {
-                    "value": "NÃO CONFORMIDADES",
+                    "value": " ",
                     "textStyle": {
-                      "fontSize": "10pt",
-                      "color": "#00335A",
-                      "fontFamily": "Segoe UI",
-                      "fontWeight": "bold"
+                      "fontSize": "8pt",
+                      "color": "#FFFFFF",
+                      "fontFamily": "Segoe UI"
                     }
                   }
                 ]

@@ -48,7 +48,9 @@ table _Painel
 
 	measure 'Disponibilidade no Mês' =
 			
-			CALCULATE ( [% Disponibilidade], KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			VAR _v = CALCULATE ( [% Disponibilidade], KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			RETURN
+			    IF ( ISBLANK ( _v ), BLANK (), MAX ( _v, 0 ) )
 		formatString: 0.0%;-0.0%;0.0%
 		displayFolder: 11 Disponibilidade e paradas
 		lineageTag: c9c9f74f-36f7-587f-954d-aca7abe87115
@@ -93,7 +95,7 @@ table _Painel
 			VAR _dias = CALCULATE ( COUNTROWS ( DimCalendario ), KEEPFILTERS ( DimCalendario[Data Passada] = TRUE () ) )
 			VAR _cap = [Total Equipamentos] * _dias * 24
 			RETURN
-			    IF ( _cap > 0, DIVIDE ( _cap - [Horas Paradas], _cap ) )
+			    IF ( _cap > 0, MAX ( DIVIDE ( _cap - [Horas Paradas], _cap ), 0 ) )
 		formatString: 0.0%;-0.0%;0.0%
 		displayFolder: 11 Disponibilidade e paradas
 		lineageTag: c395b331-7086-5ce4-a9fd-9cd828047307
@@ -727,86 +729,190 @@ table _Painel
 
 	measure 'Carta · Valor' =
 			
+			VAR _livre =
+			    NOT ISFILTERED ( tbl_Afericoes[Equipamento] ) && NOT ISFILTERED ( tbl_Afericoes[Parâmetro] )
+			        && NOT ISFILTERED ( DimEnsaio[Ensaio Curto] ) && NOT ISFILTERED ( DimEnsaio[Ensaio] )
 			VAR _ok =
 			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
 			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
-			VAR _temLimite = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
-			VAR _v = IF (
+			VAR _tl = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _v =
+			    IF (
+			        _ok, IF (
 			    ISCROSSFILTERED ( DimCalendario ),
-			    IF ( _temLimite, AVERAGE ( tbl_Afericoes[Valor] ), AVERAGE ( tbl_Afericoes[Diferença] ) ),
-			    CALCULATE ( IF ( _temLimite, AVERAGE ( tbl_Afericoes[Valor] ), AVERAGE ( tbl_Afericoes[Diferença] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
-			)
+			    IF ( _tl, AVERAGE ( tbl_Afericoes[Valor] ), AVERAGE ( tbl_Afericoes[Diferença] ) ),
+			    CALCULATE ( IF ( _tl, AVERAGE ( tbl_Afericoes[Valor] ), AVERAGE ( tbl_Afericoes[Diferença] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			),
+			        IF ( _livre, CALCULATE ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    AVERAGE ( tbl_Afericoes[Valor] ),
+			    CALCULATE ( AVERAGE ( tbl_Afericoes[Valor] ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			), tbl_Afericoes[Parâmetro] = "Blaine Manual" ) )
+			    )
 			RETURN
-			    IF ( _ok, _v )
+			    _v
 		formatString: #,0.00
 		displayFolder: 13 Aferições
 		lineageTag: 1613a275-a863-52e5-b03a-cc62491a1450
 
 	measure 'Carta · Lim. Inferior' =
 			
+			VAR _livre =
+			    NOT ISFILTERED ( tbl_Afericoes[Equipamento] ) && NOT ISFILTERED ( tbl_Afericoes[Parâmetro] )
+			        && NOT ISFILTERED ( DimEnsaio[Ensaio Curto] ) && NOT ISFILTERED ( DimEnsaio[Ensaio] )
 			VAR _ok =
 			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
 			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
-			VAR _temLimite = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
-			VAR _li = IF (
+			VAR _tl = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _v =
+			    IF (
+			        _ok, IF (
 			    ISCROSSFILTERED ( DimCalendario ),
-			    IF ( _temLimite, MIN ( tbl_Afericoes[Lim. Inferior] ), - MIN ( tbl_Afericoes[Tolerância] ) ),
-			    CALCULATE ( IF ( _temLimite, MIN ( tbl_Afericoes[Lim. Inferior] ), - MIN ( tbl_Afericoes[Tolerância] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
-			)
+			    IF ( _tl, MIN ( tbl_Afericoes[Lim. Inferior] ), - MIN ( tbl_Afericoes[Tolerância] ) ),
+			    CALCULATE ( IF ( _tl, MIN ( tbl_Afericoes[Lim. Inferior] ), - MIN ( tbl_Afericoes[Tolerância] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			),
+			        IF ( _livre, CALCULATE ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    MIN ( tbl_Afericoes[Lim. Inferior] ),
+			    CALCULATE ( MIN ( tbl_Afericoes[Lim. Inferior] ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			), tbl_Afericoes[Parâmetro] = "Blaine Manual" ) )
+			    )
 			RETURN
-			    IF ( _ok && NOT ISBLANK ( [Carta · Valor] ), _li )
+			    IF ( NOT ISBLANK ( [Carta · Valor] ), _v )
 		formatString: #,0.00
 		displayFolder: 13 Aferições
 		lineageTag: 75321152-9bee-5962-b6e4-be090c51a311
 
 	measure 'Carta · Lim. Superior' =
 			
+			VAR _livre =
+			    NOT ISFILTERED ( tbl_Afericoes[Equipamento] ) && NOT ISFILTERED ( tbl_Afericoes[Parâmetro] )
+			        && NOT ISFILTERED ( DimEnsaio[Ensaio Curto] ) && NOT ISFILTERED ( DimEnsaio[Ensaio] )
 			VAR _ok =
 			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
 			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
-			VAR _temLimite = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
-			VAR _ls = IF (
+			VAR _tl = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _v =
+			    IF (
+			        _ok, IF (
 			    ISCROSSFILTERED ( DimCalendario ),
-			    IF ( _temLimite, MAX ( tbl_Afericoes[Lim. Superior] ), MAX ( tbl_Afericoes[Tolerância] ) ),
-			    CALCULATE ( IF ( _temLimite, MAX ( tbl_Afericoes[Lim. Superior] ), MAX ( tbl_Afericoes[Tolerância] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
-			)
+			    IF ( _tl, MAX ( tbl_Afericoes[Lim. Superior] ), MAX ( tbl_Afericoes[Tolerância] ) ),
+			    CALCULATE ( IF ( _tl, MAX ( tbl_Afericoes[Lim. Superior] ), MAX ( tbl_Afericoes[Tolerância] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			),
+			        IF ( _livre, CALCULATE ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    MAX ( tbl_Afericoes[Lim. Superior] ),
+			    CALCULATE ( MAX ( tbl_Afericoes[Lim. Superior] ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			), tbl_Afericoes[Parâmetro] = "Blaine Manual" ) )
+			    )
 			RETURN
-			    IF ( _ok && NOT ISBLANK ( [Carta · Valor] ), _ls )
+			    IF ( NOT ISBLANK ( [Carta · Valor] ), _v )
 		formatString: #,0.00
 		displayFolder: 13 Aferições
 		lineageTag: 0343c089-c3b4-541c-b0a4-05ebdde176a6
 
 	measure 'Carta · Nominal' =
 			
+			VAR _livre =
+			    NOT ISFILTERED ( tbl_Afericoes[Equipamento] ) && NOT ISFILTERED ( tbl_Afericoes[Parâmetro] )
+			        && NOT ISFILTERED ( DimEnsaio[Ensaio Curto] ) && NOT ISFILTERED ( DimEnsaio[Ensaio] )
 			VAR _ok =
 			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
 			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
-			VAR _temLimite = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
-			VAR _n = IF (
+			VAR _tl = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _v =
+			    IF (
+			        _ok, IF (
 			    ISCROSSFILTERED ( DimCalendario ),
-			    IF ( _temLimite, AVERAGE ( tbl_Afericoes[Referência] ), 0 ),
-			    CALCULATE ( IF ( _temLimite, AVERAGE ( tbl_Afericoes[Referência] ), 0 ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
-			)
+			    IF ( _tl, AVERAGE ( tbl_Afericoes[Referência] ), 0 ),
+			    CALCULATE ( IF ( _tl, AVERAGE ( tbl_Afericoes[Referência] ), 0 ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			),
+			        IF ( _livre, CALCULATE ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    AVERAGE ( tbl_Afericoes[Referência] ),
+			    CALCULATE ( AVERAGE ( tbl_Afericoes[Referência] ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			), tbl_Afericoes[Parâmetro] = "Blaine Manual" ) )
+			    )
 			RETURN
-			    IF ( _ok && NOT ISBLANK ( [Carta · Valor] ), _n )
+			    IF ( NOT ISBLANK ( [Carta · Valor] ), _v )
 		formatString: #,0.00
 		displayFolder: 13 Aferições
 		lineageTag: a408acd4-ddc6-5704-b627-caffb33a740e
 
 	measure 'Carta · Título' =
 			
-			VAR _eq = CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) )
-			VAR _pa = CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) )
+			VAR _livre =
+			    NOT ISFILTERED ( tbl_Afericoes[Equipamento] ) && NOT ISFILTERED ( tbl_Afericoes[Parâmetro] )
+			        && NOT ISFILTERED ( DimEnsaio[Ensaio Curto] ) && NOT ISFILTERED ( DimEnsaio[Ensaio] )
+			VAR _ok =
+			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
 			VAR _tl = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _eqB = CALCULATE ( MAX ( tbl_Afericoes[Equipamento] ), tbl_Afericoes[Parâmetro] = "Blaine Manual" )
 			RETURN
-			    IF (
-			        _eq = 1 && _pa = 1,
-			        "Carta de controle · " & SELECTEDVALUE ( tbl_Afericoes[Equipamento] ) & " · " & SELECTEDVALUE ( tbl_Afericoes[Parâmetro] )
-			            & IF ( _tl, "  (valor × limites)", "  (diferença × ± tolerância)" ),
+			    SWITCH (
+			        TRUE (),
+			        _ok,
+			            "Carta de controle · " & SELECTEDVALUE ( tbl_Afericoes[Equipamento] ) & " · " & SELECTEDVALUE ( tbl_Afericoes[Parâmetro] )
+			                & IF ( _tl, "   (valor × limites)", "   (diferença × ± tolerância)" ),
+			        _livre,
+			            "Carta de controle · Blaine Manual · " & _eqB & "   (padrão; escolha outro ensaio e equipamento na lateral)",
 			        "Carta de controle · escolha UM equipamento e UM parâmetro na lateral"
 			    )
 		displayFolder: 13 Aferições
 		lineageTag: f30e7b5c-e6c3-585b-a315-0c01452a4153
+
+	measure 'Mapa · Nível' =
+			
+			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
+			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
+			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
+			
+			VAR _aval = CALCULATE ( [_Afer Avaliadas], KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
+			VAR _nc = CALCULATE ( [_Afer NC], KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
+			VAR _d = CALCULATE ( MAX ( DimCalendario[Data] ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
+			VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
+			VAR _prog =
+			    NOT ISBLANK ( _d ) && HASONEVALUE ( DimCalendario[Dia] ) && _d < TODAY ()
+			        && SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE () && SELECTEDVALUE ( DimEnsaio[Semanal] ) = FALSE ()
+			        && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
+			RETURN
+			    IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
+			        IF ( _nc > 0, 3, IF ( _aval > 0, 1, IF ( _prog, 2 ) ) ) )
+		formatString: 0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: f5a44686-e45e-540e-91e8-a45ce0ee34b2
+
+	measure Mapa =
+			
+			SWITCH ( [Mapa · Nível], 1, "✔", 2, "○", 3, "✖" )
+		displayFolder: 13 Aferições
+		lineageTag: 9d9c63b9-82f4-5afa-a13a-a6aef3992df0
+
+	measure 'Mapa · Fundo' =
+			
+			SWITCH ( [Mapa · Nível], 1, "#1B6FB0", 2, "#FFF4D6", 3, "#E0620F", "#FFFFFF" )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 0d1e5be2-39c6-54f9-8608-b09f82ccccfa
+
+	measure 'Mapa · Fonte' =
+			
+			SWITCH ( [Mapa · Nível], 1, "#FFFFFF", 2, "#9A7000", 3, "#FFFFFF", "#FFFFFF" )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: f2e3d514-0dc6-5e63-a29e-5a79cb296163
+
+	measure 'Cor Aderência' =
+			
+			VAR _v = [Aderência à Rotina]
+			VAR _m = [Meta Aderência à Rotina]
+			RETURN
+			    IF ( ISBLANK ( _v ), "#8C98A2", IF ( _v >= _m, "#1B6FB0", IF ( _v >= _m * 0.9, "#C99400", "#E0620F" ) ) )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 521696ad-3282-551b-af85-20e24085b52c
 
 	measure 'Inspeções no Mês' =
 			
@@ -881,7 +987,7 @@ table _Painel
 
 	measure 'Barra Inspeções' =
 			
-			MIN ( DIVIDE ( [Inspeções no Mês], [Meta Inspeções no Mês] ), 1 ) + 0
+			MIN ( DIVIDE ( [Inspeções no Mês], [Inspeções Esperadas até Hoje] ), 1 ) + 0
 		formatString: 0%
 		isHidden
 		displayFolder: 14 Inspeções (gerencial)
@@ -1117,7 +1223,11 @@ table _Painel
 
 	measure 'Grupo Aparece' =
 			
-			IF ( NOT ISBLANK ( [Disponibilidade do Grupo] ) || NOT ISBLANK ( [Calibração do Grupo] ) || NOT ISBLANK ( [Aferição do Grupo] ), 1, 0 )
+			IF (
+			    NOT ISBLANK ( SELECTEDVALUE ( tbl_Grupos[Grupo Operacional] ) )
+			        && ( NOT ISBLANK ( [Disponibilidade do Grupo] ) || NOT ISBLANK ( [Calibração do Grupo] ) || NOT ISBLANK ( [Aferição do Grupo] ) ),
+			    1, 0
+			)
 		formatString: 0
 		isHidden
 		displayFolder: 16 Saúde por grupo
@@ -1219,6 +1329,54 @@ table _Painel
 			    )
 		displayFolder: 13 Aferições
 		lineageTag: b957fcfe-ebea-506c-82fd-f18f4110f650
+
+	measure 'Cabeçalho · Período' =
+			
+			"Período:  " & [Mês de Referência]
+		displayFolder: 17 Cabeçalho e laboratório
+		lineageTag: f0a12b52-2a85-5478-9914-83201fb18532
+
+	measure 'Cabeçalho · Atualização' =
+			
+			"Atualizado em  " & [Última Atualização]
+		displayFolder: 17 Cabeçalho e laboratório
+		lineageTag: 81cb062c-9747-5f7a-812d-ddaea248bc97
+
+	measure 'Nível Laboratório' =
+			
+			VAR _d = [Disponibilidade no Mês]
+			VAR _md = [Param Meta Disponibilidade]
+			VAR _c = [% Calibrações em Dia]
+			VAR _mc = [Meta Calibração em Dia]
+			VAR _nd = IF ( ISBLANK ( _d ), BLANK (), IF ( _d >= _md, 1, IF ( _d >= _md * 0.9, 2, 3 ) ) )
+			VAR _nc = IF ( ISBLANK ( _c ), BLANK (), IF ( _c >= _mc, 1, IF ( _c >= _mc * 0.9, 2, 3 ) ) )
+			RETURN
+			    MAX ( _nd, _nc )
+		formatString: 0
+		isHidden
+		displayFolder: 17 Cabeçalho e laboratório
+		lineageTag: f43329e3-4df6-56d8-aeec-cc81b7d2a5f5
+
+	measure 'Situação Laboratório' =
+			
+			SWITCH ( [Nível Laboratório], 1, "● Na meta", 2, "▲ Atenção", 3, "◆ Crítico", "○ Sem dados" )
+		displayFolder: 17 Cabeçalho e laboratório
+		lineageTag: ab58feea-79a2-57e7-be0b-04c8df343172
+
+	measure 'Cor Situação Laboratório' =
+			
+			SWITCH ( [Nível Laboratório], 1, "#1B6FB0", 2, "#C99400", 3, "#E0620F", "#8C98A2" )
+		isHidden
+		displayFolder: 17 Cabeçalho e laboratório
+		lineageTag: 61fabadc-90a6-58a4-8e7c-537dbc9c8c08
+
+	measure 'Laboratório Aparece' =
+			
+			IF ( [Total Instrumentos] > 0 || [Total Equipamentos] > 0, 1, 0 )
+		formatString: 0
+		isHidden
+		displayFolder: 17 Cabeçalho e laboratório
+		lineageTag: 1869d3ed-2725-563e-85c9-f1436679a039
 
 	column Value
 		isHidden

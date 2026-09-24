@@ -3,14 +3,14 @@
   "name": "d27c92eb1441ff0d6796",
   "position": {
     "x": 1102,
-    "y": 314,
+    "y": 364,
     "z": 1100,
     "width": 357,
-    "height": 26,
+    "height": 34,
     "tabOrder": 1320
   },
   "visual": {
-    "visualType": "hundredPercentStackedBarChart",
+    "visualType": "clusteredBarChart",
     "query": {
       "queryState": {
         "Y": {
@@ -28,20 +28,6 @@
               },
               "queryRef": "_Painel.Barra Aferições",
               "nativeQueryRef": "Barra Aferições"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Painel"
-                    }
-                  },
-                  "Property": "Barra Aferições Resto"
-                }
-              },
-              "queryRef": "_Painel.Barra Aferições Resto",
-              "nativeQueryRef": "Barra Aferições Resto"
             }
           ]
         }
@@ -75,6 +61,20 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
+                }
+              }
+            },
+            "start": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "end": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
                 }
               }
             }
@@ -114,8 +114,13 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Literal": {
-                      "Value": "'#1B6FB0'"
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Painel"
+                        }
+                      },
+                      "Property": "Cor Aferições"
                     }
                   }
                 }
@@ -123,25 +128,13 @@
             }
           },
           "selector": {
-            "metadata": "_Painel.Barra Aferições"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#E6EBF0'"
-                    }
-                  }
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
                 }
               }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.Barra Aferições Resto"
+            ]
           }
         }
       ]
@@ -179,7 +172,25 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#EEF2F6'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
                 }
               }
             }

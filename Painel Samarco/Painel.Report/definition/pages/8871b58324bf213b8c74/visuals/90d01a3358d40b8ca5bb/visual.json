@@ -6,7 +6,7 @@
     "y": 104,
     "z": 1000,
     "width": 405,
-    "height": 150,
+    "height": 190,
     "tabOrder": 1060
   },
   "visual": {
@@ -19,12 +19,11 @@
               {
                 "textRuns": [
                   {
-                    "value": "CONFORMIDADE",
+                    "value": " ",
                     "textStyle": {
-                      "fontSize": "10pt",
-                      "color": "#00335A",
-                      "fontFamily": "Segoe UI",
-                      "fontWeight": "bold"
+                      "fontSize": "8pt",
+                      "color": "#FFFFFF",
+                      "fontFamily": "Segoe UI"
                     }
                   }
                 ]

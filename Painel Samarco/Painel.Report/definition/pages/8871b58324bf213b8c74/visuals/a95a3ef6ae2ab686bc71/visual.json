@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "a95a3ef6ae2ab686bc71",
   "position": {
-    "x": 1156,
-    "y": 266,
+    "x": 1256,
+    "y": 306,
     "z": 1000,
-    "width": 744,
+    "width": 644,
     "height": 380,
-    "tabOrder": 1210
+    "tabOrder": 1250
   },
   "visual": {
     "visualType": "tableEx",
@@ -15,6 +15,21 @@
       "queryState": {
         "Values": {
           "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Linhas"
+                    }
+                  },
+                  "Property": "Linha"
+                }
+              },
+              "queryRef": "tbl_Linhas.Linha",
+              "nativeQueryRef": "#",
+              "displayName": "#"
+            },
             {
               "field": {
                 "Measure": {
@@ -27,8 +42,8 @@
                 }
               },
               "queryRef": "_Painel.Resumo Aferições",
-              "nativeQueryRef": " ",
-              "displayName": " "
+              "nativeQueryRef": "O que o mês mostra",
+              "displayName": "O que o mês mostra"
             }
           ]
         }
@@ -69,32 +84,23 @@
       "columnHeaders": [
         {
           "properties": {
-            "fontColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#FFFFFF'"
-                    }
-                  }
-                }
-              }
-            },
-            "backColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#FFFFFF'"
-                    }
-                  }
-                }
-              }
-            },
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "1D"
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
@@ -107,7 +113,21 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "700D"
+                  "Value": "30D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "tbl_Linhas.Linha"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "560D"
                 }
               }
             }
@@ -132,7 +152,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'RESUMO DO MÊS'"
+                  "Value": "'RESUMO AUTOMÁTICO DO MÊS'"
                 }
               }
             },

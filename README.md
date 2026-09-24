@@ -15,7 +15,7 @@ laboratórios LCP, LCE e LDP.
 3. **Apague** a pasta antiga do projeto inteira e ponha esta no lugar.
    Apagar, não copiar por cima: ver `Painel Samarco/LEIA-ME.txt`.
 4. Duplo clique no `.pbip` e clique em **Atualizar**.
-5. Confira: rodapé com `· v15` e o logo da Samarco na barra lateral.
+5. Confira: rodapé com `· v16` e o logo da Samarco na barra lateral.
 6. Aferições: cole o link da pasta do SharePoint na consulta `tbl_Afericoes`
    (passo a passo em `docs/13-v15-painel-gerencial.md`).
 
@@ -44,7 +44,7 @@ laboratórios LCP, LCE e LDP.
 | `docs/09-publicar-atualizar-e-o-turno-D.md` | turno D, publicação, compartilhamento e atualização agendada |
 | `docs/11-integracao-microsoft-forms.md` | como o formulário do Forms alimenta o painel |
 | `docs/12-afericoes.md` | aferições e comparativos: a aba oculta, as regras e as decisões |
-| `docs/13-v15-painel-gerencial.md` | v15: Visão Geral gerencial, Equipamentos & Paradas, Aferições, metas e fontes |
+| `docs/13-v15-painel-gerencial.md` | v15/v16: Visão Geral gerencial, Equipamentos & Paradas, Aferições, metas e fontes |
 
 ## Pendências que são da planilha, não do painel
 

@@ -3,10 +3,10 @@
   "name": "a5818cd15f0b84f49dd1",
   "position": {
     "x": 244,
-    "y": 556,
+    "y": 696,
     "z": 1000,
-    "width": 700,
-    "height": 474,
+    "width": 780,
+    "height": 688,
     "tabOrder": 1100
   },
   "visual": {
@@ -230,7 +230,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Último registro de cada comparativo · acima de 100% = fora da tolerância'"
+                  "Value": "'Último registro de cada comparativo · azul < 80% · ocre 80–100% · laranja = fora da tolerância'"
                 }
               }
             },

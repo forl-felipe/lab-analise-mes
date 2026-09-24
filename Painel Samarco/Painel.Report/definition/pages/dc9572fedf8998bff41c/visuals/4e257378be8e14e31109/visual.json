@@ -3,10 +3,10 @@
   "name": "4e257378be8e14e31109",
   "position": {
     "x": 244,
-    "y": 562,
+    "y": 658,
     "z": 1000,
     "width": 1656,
-    "height": 200,
+    "height": 290,
     "tabOrder": 1200
   },
   "visual": {
@@ -147,7 +147,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'PARADAS NO MÊS · HORAS POR DIA'"
+                  "Value": "'LINHA DO TEMPO DAS PARADAS · HORAS POR DIA'"
                 }
               }
             },
@@ -199,7 +199,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Cada coluna é um dia; a cor separa paradas resolvidas das que seguem em aberto'"
+                  "Value": "'Cada coluna é um dia do mês; a cor separa paradas resolvidas das que seguem em aberto'"
                 }
               }
             },
