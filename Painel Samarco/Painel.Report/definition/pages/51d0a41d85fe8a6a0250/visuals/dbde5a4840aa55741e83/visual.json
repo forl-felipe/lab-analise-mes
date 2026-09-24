@@ -19,12 +19,11 @@
               {
                 "textRuns": [
                   {
-                    "value": "AFERIÇÕES · DETALHE POR ENSAIO",
+                    "value": " ",
                     "textStyle": {
-                      "fontSize": "20pt",
+                      "fontSize": "6pt",
                       "color": "#00335A",
-                      "fontFamily": "Segoe UI",
-                      "fontWeight": "bold"
+                      "fontFamily": "Segoe UI"
                     }
                   }
                 ]
@@ -32,10 +31,10 @@
               {
                 "textRuns": [
                   {
-                    "value": "Carta de controle, comparativos e registros do ensaio escolhido na lateral",
+                    "value": "AFERIÇÕES · DETALHE POR ENSAIO",
                     "textStyle": {
-                      "fontSize": "10pt",
-                      "color": "#5B6B78",
+                      "fontSize": "20pt",
+                      "color": "#FFFFFF",
                       "fontFamily": "Segoe UI"
                     }
                   }
@@ -63,7 +62,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#FFFFFF'"
+                      "Value": "'#00335A'"
                     }
                   }
                 }

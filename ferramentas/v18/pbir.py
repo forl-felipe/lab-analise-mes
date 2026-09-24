@@ -292,15 +292,15 @@ def matriz(pg, seed, pos, titulo, linhas_, colunas_, valor, fundo_m, fonte_m, su
                                   "Values": {"projections": [proj(fv, " ")]}}},
          "objects": {
              "subTotals": [{"properties": {"rowSubtotals": B(False), "columnSubtotals": B(False)}}],
-             "values": [{"properties": {"fontSize": D(15)}},
+             "values": [{"properties": {"fontSize": D(20)}},
                         {"properties": {"backColor": CORM(fundo_m), "fontColor": CORM(fonte_m)},
                          "selector": {"data": [{"dataViewWildcard": {"matchingOption": 1}}], "metadata": qref(fv)}}],
-             "columnHeaders": [{"properties": {"fontSize": D(12), "autoSizeColumnWidth": B(False), "alignment": S("Center")}}],
-             "rowHeaders": [{"properties": {"fontSize": D(12)}}],
+             "columnHeaders": [{"properties": {"fontSize": D(13), "autoSizeColumnWidth": B(False), "alignment": S("Center")}}],
+             "rowHeaders": [{"properties": {"fontSize": D(14)}}],
              "columnWidth": [{"properties": {"value": D(largura_col)}, "selector": {"metadata": qref(fv)}}],
              "grid": [{"properties": {"gridVertical": B(True), "gridVerticalColor": COR("#FFFFFF"), "gridVerticalWeight": D(2),
                                       "gridHorizontal": B(True), "gridHorizontalColor": COR("#FFFFFF"), "gridHorizontalWeight": D(2),
-                                      "rowPadding": D(9)}}]},
+                                      "rowPadding": D(16)}}]},
          "visualContainerObjects": vc(titulo, subtitulo=subtitulo),
          "drillFilterOtherVisuals": True}
     return pg.grava(seed, pos, v, filtros=filtros)

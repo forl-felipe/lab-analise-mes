@@ -60,11 +60,26 @@ registro está **Conforme** ou **Não conforme**.
 
 ## 3. Mapa de aferições (ensaio × dia): de onde vem cada marca
 
+(v18: a marca de "não feito" passou a respeitar o **prazo**, e as não
+conformidades saíram do mapa.)
+
 | Marca | Regra | De onde vem |
 |---|---|---|
-| **✔ azul (feito)** | existe **pelo menos um registro** daquele ensaio naquela data | coluna **Data** que o operador preenche em cada aba (Tambor A6:A34, Alpine A7:A21, Blaine A6:A71, Umidade A5:A18, Compressão B6:B23, Peneiradores AC de cada bloco, Granulometria e Tamb 5×15 no campo Data de cada bloco), levada para a `BD_Afericoes` |
-| **✖ laranja (não feito)** | o dia **estava na rotina**, **já passou** (até ontem) e **não há nenhum registro** do ensaio naquela data | rotina da tabela **DimEnsaio** do painel (abaixo) |
-| **em branco** | o dia não estava na rotina e não houve registro | — |
+| **✔ azul** | existe **pelo menos um registro** daquele ensaio naquela data | coluna **Data** que o operador preenche em cada aba (Tambor A6:A34, Alpine A7:A21, Blaine A6:A71, Umidade A5:A18, Compressão B6:B23, Peneiradores AC de cada bloco, Granulometria e Tamb 5×15 no campo Data de cada bloco), levada para a `BD_Afericoes` |
+| **✖ laranja** | era dia da rotina, o **prazo acabou** e **não houve registro** dentro do prazo | rotina da tabela **DimEnsaio** do painel (abaixo) |
+| **em branco** | não era dia da rotina, **ou** o ensaio foi feito dentro do prazo em outro dia, **ou** o prazo ainda está correndo | — |
+
+**Prazo.** Vai da data da rotina até a véspera da **próxima** data da
+rotina. Exemplos:
+
+- **Tambor, toda segunda.** A segunda 07/09 tem prazo até domingo 13/09.
+  Feito na quarta 09/09: o dia 07 fica em branco e o dia 09 fica ✔. Sem
+  registro até 13/09: o dia 07 recebe ✖ a partir de 14/09.
+- **Peneiradores, ter/qui/sáb.** A terça tem prazo até quarta. A quinta
+  tem prazo até sexta. O sábado tem prazo até segunda.
+- **Blaine, todos os dias.** O prazo é o próprio dia.
+- **Granulometria, 1 por semana.** A marca fica na segunda da semana e o
+  prazo é a semana inteira.
 
 A rotina foi tirada do cabeçalho de cada aba da planilha:
 
@@ -75,24 +90,25 @@ A rotina foi tirada do cabeçalho de cada aba da planilha:
 | Compressão | toda segunda | 1 |
 | Tamb 5 × 15 kg | toda segunda | 1 |
 | Alpine | seg, qua e sáb | 1, 3, 6 |
-| Blaine | início de cada turno (todos os dias) | 1 a 7 |
-| Granulometria | 1 por semana | não marca ✖ por dia |
-| Umidade e Fisher | sem rotina definida | não marca ✖ |
+| Blaine | todos os dias | 1 a 7 |
+| Granulometria | 1 por semana | 1 (semana inteira de prazo) |
+| Umidade e Fisher | sem rotina definida | nunca recebem ✖ |
 
 **Limites da regra, para reportar com segurança:**
 
-- **O ✔ significa que o ensaio foi registrado no dia, não que passou.** Se
-  passou ou falhou está na tabela "Não conformidades por equipamento".
+- **O ✔ significa que o ensaio foi registrado no dia, não que passou.**
+  Se passou ou falhou está na página "Detalhe por ensaio" (Resultados por
+  equipamento e Registros).
 - **Blaine: basta um turno com registro para o dia ficar ✔.** A contagem
-  exata por turno está na coluna "Rotina" da tabela Situação por ensaio.
-- **Ensaio feito mas não lançado aparece como ✖.** O painel só enxerga o
-  que está na planilha.
+  por turno está na coluna "Rotina" da tabela Situação por ensaio.
+- **Ensaio feito mas não lançado aparece como ✖** depois do prazo. O
+  painel só enxerga o que está na planilha.
 - **Data digitada errada:** o registro vai para o dia errado no mapa.
 
 **Como corrigir:**
 
 - **Um ✖ indevido:** lance a data na aba da planilha e salve. Na próxima
-  atualização vira ✔.
+  atualização some.
 - **Uma rotina:** Power BI Desktop > Transformar dados > **DimEnsaio** >
   Editor Avançado > coluna "Dias Semana". Exemplo: `"1,3,6"` = seg, qua e
   sáb.
@@ -101,7 +117,7 @@ A rotina foi tirada do cabeçalho de cada aba da planilha:
 
 | Número | Fonte |
 |---|---|
-| Calibração em dia, vencidas, a vencer | Base, aba Calibração (coluna Próximo Vencimento, contada a partir do dia da atualização) |
+| Calibração em dia, vencidas, a vencer | Base, aba Calibração (coluna Próximo Vencimento, contada a partir do dia da atualização). O **LDP não é mais monitorado** (v18): fica fora mesmo que alguma linha LDP volte à planilha |
 | Disponibilidade e horas paradas | Base, aba Paradas (horas somadas no mês da data da parada) × nº de equipamentos × horas do mês |
 | Inspeções | Base, aba de inspeções + planilha do Microsoft Forms |
 | Aferições | pasta do SharePoint "Calibração Integrada mensal", aba oculta BD_Afericoes de cada planilha mensal |

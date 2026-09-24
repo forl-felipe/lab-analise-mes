@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "22928843b357d734ebfd",
+  "name": "86bb57b2c54362a942d5",
   "position": {
     "x": 244,
-    "y": 1050,
+    "y": 696,
     "z": 1000,
-    "width": 1656,
-    "height": 334,
-    "tabOrder": 1270
+    "width": 780,
+    "height": 688,
+    "tabOrder": 1100
   },
   "visual": {
     "visualType": "tableEx",
@@ -32,18 +32,18 @@
             },
             {
               "field": {
-                "Measure": {
+                "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "_Painel"
+                      "Entity": "tbl_Afericoes"
                     }
                   },
-                  "Property": "Ensaio da NC"
+                  "Property": "Parâmetro"
                 }
               },
-              "queryRef": "_Painel.Ensaio da NC",
-              "nativeQueryRef": "Ensaio",
-              "displayName": "Ensaio"
+              "queryRef": "tbl_Afericoes.Parâmetro",
+              "nativeQueryRef": "Parâmetro",
+              "displayName": "Parâmetro"
             },
             {
               "field": {
@@ -53,12 +53,12 @@
                       "Entity": "_Painel"
                     }
                   },
-                  "Property": "O que Falhou"
+                  "Property": "Última Aferição"
                 }
               },
-              "queryRef": "_Painel.O que Falhou",
-              "nativeQueryRef": "O que falhou",
-              "displayName": "O que falhou"
+              "queryRef": "_Painel.Última Aferição",
+              "nativeQueryRef": "Última",
+              "displayName": "Última"
             },
             {
               "field": {
@@ -68,12 +68,12 @@
                       "Entity": "_Painel"
                     }
                   },
-                  "Property": "NC Aferição"
+                  "Property": "Último Valor"
                 }
               },
-              "queryRef": "_Painel.NC Aferição",
-              "nativeQueryRef": "Ocorrências",
-              "displayName": "Ocorrências"
+              "queryRef": "_Painel.Último Valor",
+              "nativeQueryRef": "Último valor",
+              "displayName": "Último valor"
             },
             {
               "field": {
@@ -83,12 +83,12 @@
                       "Entity": "_Painel"
                     }
                   },
-                  "Property": "Datas das NC"
+                  "Property": "Média do Período"
                 }
               },
-              "queryRef": "_Painel.Datas das NC",
-              "nativeQueryRef": "Datas",
-              "displayName": "Datas"
+              "queryRef": "_Painel.Média do Período",
+              "nativeQueryRef": "Média",
+              "displayName": "Média"
             },
             {
               "field": {
@@ -98,12 +98,12 @@
                       "Entity": "_Painel"
                     }
                   },
-                  "Property": "Calibração Externa"
+                  "Property": "Faixa Aceita"
                 }
               },
-              "queryRef": "_Painel.Calibração Externa",
-              "nativeQueryRef": "Calibração externa",
-              "displayName": "Calibração externa"
+              "queryRef": "_Painel.Faixa Aceita",
+              "nativeQueryRef": "Faixa aceita",
+              "displayName": "Faixa aceita"
             },
             {
               "field": {
@@ -113,12 +113,27 @@
                       "Entity": "_Painel"
                     }
                   },
-                  "Property": "Gravidade da NC"
+                  "Property": "Último Resultado"
                 }
               },
-              "queryRef": "_Painel.Gravidade da NC",
-              "nativeQueryRef": "Gravidade",
-              "displayName": "Gravidade"
+              "queryRef": "_Painel.Último Resultado",
+              "nativeQueryRef": "Último resultado",
+              "displayName": "Último resultado"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Painel"
+                    }
+                  },
+                  "Property": "Registros no Período"
+                }
+              },
+              "queryRef": "_Painel.Registros no Período",
+              "nativeQueryRef": "Nº",
+              "displayName": "Nº"
             }
           ]
         }
@@ -127,16 +142,16 @@
         "sort": [
           {
             "field": {
-              "Measure": {
+              "Column": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "_Painel"
+                    "Entity": "tbl_Afericoes"
                   }
                 },
-                "Property": "NC Aferição"
+                "Property": "Equipamento"
               }
             },
-            "direction": "Descending"
+            "direction": "Ascending"
           }
         ],
         "isDefaultSort": false
@@ -167,7 +182,7 @@
                           "Entity": "_Painel"
                         }
                       },
-                      "Property": "Cor Gravidade da NC"
+                      "Property": "Cor Último Resultado"
                     }
                   }
                 }
@@ -182,7 +197,7 @@
                 }
               }
             ],
-            "metadata": "_Painel.Gravidade da NC"
+            "metadata": "_Painel.Último Resultado"
           }
         }
       ],
@@ -218,7 +233,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "240D"
+                  "Value": "150D"
                 }
               }
             }
@@ -232,69 +247,13 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "200D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.Ensaio da NC"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "440D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.O que Falhou"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "100D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.NC Aferição"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "300D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.Datas das NC"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
                   "Value": "150D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "_Painel.Calibração Externa"
+            "metadata": "tbl_Afericoes.Parâmetro"
           }
         },
         {
@@ -302,13 +261,83 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "120D"
+                  "Value": "55D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "_Painel.Gravidade da NC"
+            "metadata": "_Painel.Última Aferição"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "75D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Último Valor"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "65D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Média do Período"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "105D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Faixa Aceita"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Último Resultado"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "35D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Registros no Período"
           }
         }
       ]
@@ -327,7 +356,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'NÃO CONFORMIDADES POR EQUIPAMENTO'"
+                  "Value": "'RESULTADOS POR EQUIPAMENTO'"
                 }
               }
             },
@@ -379,7 +408,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Reincidências somadas: um equipamento por linha, do mais ao menos recorrente'"
+                  "Value": "'Última aferição, último valor e média do período de cada equipamento'"
                 }
               }
             },
@@ -423,7 +452,7 @@
   "filterConfig": {
     "filters": [
       {
-        "name": "05be6df89ce2fea854cb",
+        "name": "8dff7c58b908215948f8",
         "field": {
           "Measure": {
             "Expression": {
@@ -431,7 +460,7 @@
                 "Entity": "_Painel"
               }
             },
-            "Property": "NC Aferição"
+            "Property": "Linha no Período"
           }
         },
         "type": "Advanced",
@@ -448,7 +477,7 @@
             {
               "Condition": {
                 "Comparison": {
-                  "ComparisonKind": 1,
+                  "ComparisonKind": 0,
                   "Left": {
                     "Measure": {
                       "Expression": {
@@ -456,14 +485,74 @@
                           "Source": "m"
                         }
                       },
-                      "Property": "NC Aferição"
+                      "Property": "Linha no Período"
                     }
                   },
                   "Right": {
                     "Literal": {
-                      "Value": "0L"
+                      "Value": "1L"
                     }
                   }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "f5f23c8074e5a3f6243e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "tbl_Afericoes"
+              }
+            },
+            "Property": "Tipo"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "t",
+              "Entity": "tbl_Afericoes",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "t"
+                          }
+                        },
+                        "Property": "Tipo"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Calibração'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Comparativo'"
+                        }
+                      }
+                    ]
+                  ]
                 }
               }
             }

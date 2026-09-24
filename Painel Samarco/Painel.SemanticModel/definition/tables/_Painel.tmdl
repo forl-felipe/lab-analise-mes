@@ -871,13 +871,31 @@ table _Painel
 			VAR _feito = CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
 			VAR _d = CALCULATE ( MAX ( DimCalendario[Data] ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
 			VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
-			VAR _prog =
-			    NOT ISBLANK ( _d ) && HASONEVALUE ( DimCalendario[Dia] ) && _d < TODAY ()
-			        && SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE () && SELECTEDVALUE ( DimEnsaio[Semanal] ) = FALSE ()
+			VAR _naRotina =
+			    NOT ISBLANK ( _d ) && HASONEVALUE ( DimCalendario[Dia] )
+			        && SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE ()
 			        && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
+			-- prazo: da data da rotina até a véspera da PRÓXIMA data da rotina
+			-- (ex.: tambor na segunda 07/09 feito na quarta 09/09 = dentro do prazo)
+			VAR _prox =
+			    IF (
+			        _naRotina,
+			        CALCULATE (
+			            MIN ( DimCalendario[Data] ),
+			            ALL ( DimCalendario ),
+			            DimCalendario[Data] > _d,
+			            CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+			        )
+			    )
+			VAR _prazoVencido = _naRotina && _prox <= TODAY ()
+			VAR _feitoNoPrazo =
+			    IF (
+			        _prazoVencido,
+			        CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), DimCalendario[Data] >= _d, DimCalendario[Data] < _prox )
+			    )
 			RETURN
 			    IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
-			        IF ( _feito > 0, 1, IF ( _prog, 2 ) ) )
+			        IF ( _feito > 0, 1, IF ( _prazoVencido && COALESCE ( _feitoNoPrazo, 0 ) = 0, 2 ) ) )
 		formatString: 0
 		isHidden
 		displayFolder: 13 Aferições
@@ -902,6 +920,104 @@ table _Painel
 		isHidden
 		displayFolder: 13 Aferições
 		lineageTag: f2e3d514-0dc6-5e63-a29e-5a79cb296163
+
+	measure 'Última Aferição' =
+			
+			VAR _d = IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    MAX ( tbl_Afericoes[Data] ),
+			    CALCULATE ( MAX ( tbl_Afericoes[Data] ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+			RETURN
+			    IF ( NOT ISBLANK ( _d ), FORMAT ( _d, "dd/MM" ) )
+		displayFolder: 13 Aferições
+		lineageTag: 4ef5851c-344c-56bf-9f18-2733c81a01b6
+
+	measure 'Último Valor' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE (
+			        VAR _d = MAX ( tbl_Afericoes[Data] )
+			        RETURN CALCULATE ( AVERAGE ( tbl_Afericoes[Valor] ), tbl_Afericoes[Data] = _d )
+			    ),
+			    CALCULATE ( CALCULATE (
+			        VAR _d = MAX ( tbl_Afericoes[Data] )
+			        RETURN CALCULATE ( AVERAGE ( tbl_Afericoes[Valor] ), tbl_Afericoes[Data] = _d )
+			    ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		formatString: #,0.00
+		displayFolder: 13 Aferições
+		lineageTag: 9a0f80a6-396b-54b3-aab6-c101e978d58e
+
+	measure 'Média do Período' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    AVERAGE ( tbl_Afericoes[Valor] ),
+			    CALCULATE ( AVERAGE ( tbl_Afericoes[Valor] ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		formatString: #,0.00
+		displayFolder: 13 Aferições
+		lineageTag: 8cebf024-f180-505a-a9ff-6d0d92887b0d
+
+	measure 'Referência Média' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    AVERAGE ( tbl_Afericoes[Referência] ),
+			    CALCULATE ( AVERAGE ( tbl_Afericoes[Referência] ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		formatString: #,0.00
+		displayFolder: 13 Aferições
+		lineageTag: ad06e161-8857-5334-af43-8102971762c4
+
+	measure 'Faixa Aceita' =
+			
+			VAR _li = MIN ( tbl_Afericoes[Lim. Inferior] )
+			VAR _ls = MAX ( tbl_Afericoes[Lim. Superior] )
+			VAR _t = MAX ( tbl_Afericoes[Tolerância] )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _li ), FORMAT ( _li, "#,0.0#" ) & " a " & FORMAT ( _ls, "#,0.0#" ),
+			        IF ( NOT ISBLANK ( _t ), "± " & FORMAT ( _t, "#,0.0#" ) & " da referência" )
+			    )
+		displayFolder: 13 Aferições
+		lineageTag: 775569fd-40ba-5071-8428-d05670ba70ff
+
+	measure 'Último Resultado' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE (
+			        VAR _d = MAX ( tbl_Afericoes[Data] )
+			        RETURN CALCULATE ( MAX ( tbl_Afericoes[Resultado] ), tbl_Afericoes[Data] = _d )
+			    ),
+			    CALCULATE ( CALCULATE (
+			        VAR _d = MAX ( tbl_Afericoes[Data] )
+			        RETURN CALCULATE ( MAX ( tbl_Afericoes[Resultado] ), tbl_Afericoes[Data] = _d )
+			    ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		displayFolder: 13 Aferições
+		lineageTag: fa7636b6-9846-55c1-947c-0bd5cf808ca4
+
+	measure 'Cor Último Resultado' =
+			
+			SWITCH ( [Último Resultado], "Não conforme", "#E0620F", "Conforme", "#1B6FB0", "#5B6B78" )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 6f8fb22d-0fcb-54d7-b55b-2ad9b63528c2
+
+	measure 'Registros no Período' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    COUNTROWS ( tbl_Afericoes ),
+			    CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 94c3985d-05c3-53fa-bc56-094b4b587bc7
 
 	measure 'Mapa · Dias Não Feitos' =
 			
@@ -1140,15 +1256,22 @@ table _Painel
 			        "PAR",
 			            VAR _ab =
 			                CALCULATETABLE (
-			                    ADDCOLUMNS ( VALUES ( Tbl_Paradas[Equipamento (auto)] ), "@n", CALCULATE ( COUNTROWS ( Tbl_Paradas ) ) ),
+			                    ADDCOLUMNS (
+			                        VALUES ( Tbl_Paradas[Equip. (Tag)] ),
+			                        "@n", CALCULATE ( COUNTROWS ( Tbl_Paradas ) ),
+			                        "@nome",
+			                            VAR _t = Tbl_Paradas[Equip. (Tag)]
+			                            VAR _e = CALCULATE ( MAX ( Tbl_Paradas[Equipamento (auto)] ) )
+			                            RETURN IF ( ISBLANK ( _e ) || _e = "", _t, _e & " (" & _t & ")" )
+			                    ),
 			                    KEEPFILTERS ( NOT ( Tbl_Paradas[Situação] IN { "Resolvido", "Resolvida", "Concluído", "Concluída" } ) ),
 			                    KEEPFILTERS ( NOT ISBLANK ( Tbl_Paradas[Situação] ) )
 			                )
 			            VAR _neq = COUNTROWS ( _ab )
 			            RETURN
 			                _neq & IF ( _neq = 1, " equipamento: ", " equipamentos: " )
-			                    & CONCATENATEX ( TOPN ( 4, _ab, [@n], DESC, Tbl_Paradas[Equipamento (auto)], ASC ),
-			                                     Tbl_Paradas[Equipamento (auto)] & IF ( [@n] > 1, " (" & [@n] & ")", "" ), "; ", [@n], DESC )
+			                    & CONCATENATEX ( TOPN ( 4, _ab, [@n], DESC, Tbl_Paradas[Equip. (Tag)], ASC ),
+			                                     [@nome] & IF ( [@n] > 1, " · " & [@n] & " paradas", "" ), "; ", [@n], DESC )
 			                    & IF ( _neq > 4, "; e mais " & ( _neq - 4 ), "" ) & ".",
 			        "DISP", FORMAT ( [Disponibilidade no Mês], "0.0%" ) & " no mês × meta " & FORMAT ( [Param Meta Disponibilidade], "0%" ) & "."
 			    )

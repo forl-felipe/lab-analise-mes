@@ -294,16 +294,55 @@ add("Mapa · Nível", PERIODO.replace("VAR _fim = MIN ( _fimMes, TODAY () - 1 )"
 VAR _feito = CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
 VAR _d = CALCULATE ( MAX ( DimCalendario[Data] ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
 VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
-VAR _prog =
-    NOT ISBLANK ( _d ) && HASONEVALUE ( DimCalendario[Dia] ) && _d < TODAY ()
-        && SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE () && SELECTEDVALUE ( DimEnsaio[Semanal] ) = FALSE ()
+VAR _naRotina =
+    NOT ISBLANK ( _d ) && HASONEVALUE ( DimCalendario[Dia] )
+        && SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE ()
         && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
+-- prazo: da data da rotina até a véspera da PRÓXIMA data da rotina
+-- (ex.: tambor na segunda 07/09 feito na quarta 09/09 = dentro do prazo)
+VAR _prox =
+    IF (
+        _naRotina,
+        CALCULATE (
+            MIN ( DimCalendario[Data] ),
+            ALL ( DimCalendario ),
+            DimCalendario[Data] > _d,
+            CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+        )
+    )
+VAR _prazoVencido = _naRotina && _prox <= TODAY ()
+VAR _feitoNoPrazo =
+    IF (
+        _prazoVencido,
+        CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), DimCalendario[Data] >= _d, DimCalendario[Data] < _prox )
+    )
 RETURN
     IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
-        IF ( _feito > 0, 1, IF ( _prog, 2 ) ) )""", "0", A, True)
+        IF ( _feito > 0, 1, IF ( _prazoVencido && COALESCE ( _feitoNoPrazo, 0 ) = 0, 2 ) ) )""", "0", A, True)
 add("Mapa", """SWITCH ( [Mapa · Nível], 1, "✔", 2, "✖" )""", None, A)
 add("Mapa · Fundo", """SWITCH ( [Mapa · Nível], 1, "#1B6FB0", 2, "#E0620F", "#FFFFFF" )""", None, A, True)
 add("Mapa · Fonte", """SWITCH ( [Mapa · Nível], 1, "#FFFFFF", 2, "#FFFFFF", "#FFFFFF" )""", None, A, True)
+add("Última Aferição", "VAR _d = " + PER("MAX ( tbl_Afericoes[Data] )") + '\nRETURN\n    IF ( NOT ISBLANK ( _d ), FORMAT ( _d, "dd/MM" ) )', None, A)
+add("Último Valor", PER("""CALCULATE (
+        VAR _d = MAX ( tbl_Afericoes[Data] )
+        RETURN CALCULATE ( AVERAGE ( tbl_Afericoes[Valor] ), tbl_Afericoes[Data] = _d )
+    )"""), "#,0.00", A)
+add("Média do Período", PER("AVERAGE ( tbl_Afericoes[Valor] )"), "#,0.00", A)
+add("Referência Média", PER("AVERAGE ( tbl_Afericoes[Referência] )"), "#,0.00", A)
+add("Faixa Aceita", """VAR _li = MIN ( tbl_Afericoes[Lim. Inferior] )
+VAR _ls = MAX ( tbl_Afericoes[Lim. Superior] )
+VAR _t = MAX ( tbl_Afericoes[Tolerância] )
+RETURN
+    IF (
+        NOT ISBLANK ( _li ), FORMAT ( _li, "#,0.0#" ) & " a " & FORMAT ( _ls, "#,0.0#" ),
+        IF ( NOT ISBLANK ( _t ), "± " & FORMAT ( _t, "#,0.0#" ) & " da referência" )
+    )""", None, A)
+add("Último Resultado", PER("""CALCULATE (
+        VAR _d = MAX ( tbl_Afericoes[Data] )
+        RETURN CALCULATE ( MAX ( tbl_Afericoes[Resultado] ), tbl_Afericoes[Data] = _d )
+    )"""), None, A)
+add("Cor Último Resultado", """SWITCH ( [Último Resultado], "Não conforme", "#E0620F", "Conforme", "#1B6FB0", "#5B6B78" )""", None, A, True)
+add("Registros no Período", PER("COUNTROWS ( tbl_Afericoes )"), "#,0", A)
 add("Mapa · Dias Não Feitos", """VAR _dias = SUMX ( VALUES ( DimCalendario[Dia] ), IF ( [Mapa · Nível] = 2, 1 ) )
 RETURN
     COALESCE ( _dias, 0 )""", "0", A)
@@ -420,15 +459,22 @@ RETURN
         "PAR",
             VAR _ab =
                 CALCULATETABLE (
-                    ADDCOLUMNS ( VALUES ( Tbl_Paradas[Equipamento (auto)] ), "@n", CALCULATE ( COUNTROWS ( Tbl_Paradas ) ) ),
+                    ADDCOLUMNS (
+                        VALUES ( Tbl_Paradas[Equip. (Tag)] ),
+                        "@n", CALCULATE ( COUNTROWS ( Tbl_Paradas ) ),
+                        "@nome",
+                            VAR _t = Tbl_Paradas[Equip. (Tag)]
+                            VAR _e = CALCULATE ( MAX ( Tbl_Paradas[Equipamento (auto)] ) )
+                            RETURN IF ( ISBLANK ( _e ) || _e = "", _t, _e & " (" & _t & ")" )
+                    ),
                     KEEPFILTERS ( NOT ( Tbl_Paradas[Situação] IN { "Resolvido", "Resolvida", "Concluído", "Concluída" } ) ),
                     KEEPFILTERS ( NOT ISBLANK ( Tbl_Paradas[Situação] ) )
                 )
             VAR _neq = COUNTROWS ( _ab )
             RETURN
                 _neq & IF ( _neq = 1, " equipamento: ", " equipamentos: " )
-                    & CONCATENATEX ( TOPN ( 4, _ab, [@n], DESC, Tbl_Paradas[Equipamento (auto)], ASC ),
-                                     Tbl_Paradas[Equipamento (auto)] & IF ( [@n] > 1, " (" & [@n] & ")", "" ), "; ", [@n], DESC )
+                    & CONCATENATEX ( TOPN ( 4, _ab, [@n], DESC, Tbl_Paradas[Equip. (Tag)], ASC ),
+                                     [@nome] & IF ( [@n] > 1, " · " & [@n] & " paradas", "" ), "; ", [@n], DESC )
                     & IF ( _neq > 4, "; e mais " & ( _neq - 4 ), "" ) & ".",
         "DISP", FORMAT ( [Disponibilidade no Mês], "0.0%" ) & " no mês × meta " & FORMAT ( [Param Meta Disponibilidade], "0%" ) & "."
     )""", None, V)

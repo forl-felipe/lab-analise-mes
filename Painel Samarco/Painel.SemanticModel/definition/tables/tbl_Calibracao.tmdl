@@ -447,9 +447,12 @@ table tbl_Calibracao
 				                 else if Text.StartsWith( k, "66AG" ) then "Peneiradores Alpine"
 				                 else if Text.StartsWith( k, "66PS" ) then "Prensas de Compressão"
 				                 else if Text.StartsWith( k, "66AN" ) then "Analisadores de Umidade"
-				                 else null, type nullable text )
+				                 else null, type nullable text ),
+				
+				    // v18: o LDP deixou de ser monitorado neste painel
+				    SemLDP = Table.SelectRows( Grupo, each [Laboratorio] <> "LDP" )
 				in
-				    Grupo
+				    SemLDP
 
 	annotation PBI_NavigationStepName = Navegação
 

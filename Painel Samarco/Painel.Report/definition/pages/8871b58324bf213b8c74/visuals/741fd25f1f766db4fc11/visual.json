@@ -6,7 +6,7 @@
     "y": 698,
     "z": 1000,
     "width": 1656,
-    "height": 346,
+    "height": 686,
     "tabOrder": 1260
   },
   "visual": {
@@ -99,7 +99,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "15D"
+                  "Value": "20D"
                 }
               }
             }
@@ -158,7 +158,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "12D"
+                  "Value": "13D"
                 }
               }
             },
@@ -185,7 +185,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "12D"
+                  "Value": "14D"
                 }
               }
             }
@@ -264,7 +264,7 @@
             "rowPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "9D"
+                  "Value": "16D"
                 }
               }
             }
@@ -338,7 +338,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'✔ azul = feito (há registro na planilha do dia)   ·   ✖ laranja = estava na rotina e não foi feito (conta até ontem)   ·   em branco = sem rotina no dia'"
+                  "Value": "'✔ azul = aferição registrada no dia   ·   ✖ laranja = dia da rotina sem registro até a próxima data da rotina (prazo vencido)   ·   em branco = sem rotina, ou feito dentro do prazo em outro dia'"
                 }
               }
             },

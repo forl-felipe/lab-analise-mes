@@ -32,7 +32,7 @@ table DimLaboratorio
 				
 				let
 				    // A ÚNICA dimensão realmente compartilhada entre os dois domínios.
-				    //              LCP   LCE   LDP
+				    //              LCP   LCE   (LDP deixou de ser monitorado na v18)
 				    //   Equipamentos 26     8     —
 				    //   Calibração  119    57    32
 				    // ⚠ AJUSTAR: os nomes por extenso abaixo são marcadores.
@@ -41,7 +41,6 @@ table DimLaboratorio
 				        {
 				            { "LCP", "LCP — ajustar nome oficial", 1 },
 				            { "LCE", "LCE — ajustar nome oficial", 2 },
-				            { "LDP", "LDP — ajustar nome oficial", 3 },
 				            { "N/A", "Não informado",              9 }
 				        }
 				    )

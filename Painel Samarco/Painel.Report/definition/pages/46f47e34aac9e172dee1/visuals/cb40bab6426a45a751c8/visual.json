@@ -23,6 +23,21 @@
                       "Entity": "tbl_Calibracao"
                     }
                   },
+                  "Property": "Tag"
+                }
+              },
+              "queryRef": "tbl_Calibracao.Tag",
+              "nativeQueryRef": "TAG",
+              "displayName": "TAG"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Calibracao"
+                    }
+                  },
                   "Property": "Equipamento"
                 }
               },

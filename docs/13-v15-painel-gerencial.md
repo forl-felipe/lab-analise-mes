@@ -1,5 +1,45 @@
 # 13 — v15/v16: painel gerencial, Equipamentos & Paradas e Aferições
 
+## v18: ajustes finais
+
+**Laboratórios**
+
+- Sai o **LDP**: da dimensão de laboratórios e da calibração. O filtro no
+  modelo garante que ele não volte mesmo que apareça de novo na planilha.
+
+**Todas as páginas**
+
+- Abrem **ajustadas à largura**. Antes umas ajustavam à altura e pareciam
+  menores no serviço.
+- Cabeçalho azul-marinho com o título em branco.
+- Saiu o subtítulo "Gestão de Equipamentos" sob o logo e saiu a frase sob
+  o título.
+
+**Visão Geral**
+
+- Saiu a faixa com a frase do mês, e as frentes subiram.
+- Os pontos de parada em aberto mostram o nome do equipamento; quando a
+  coluna automática vem vazia, mostram a TAG.
+
+**Calibrações**
+
+- A tabela "Última calibração, vencimento e situação" ganhou a coluna
+  **TAG**.
+
+**Aferições**
+
+- Saiu a tabela de não conformidades por equipamento, e o **mapa** ocupa a
+  metade de baixo.
+- O **✖ do mapa só aparece quando o prazo venceu**: ensaio feito dentro do
+  prazo em outro dia não gera ✖. As regras estão em
+  `docs/14-metas-e-origem-dos-numeros.md`.
+
+**Aferições · Detalhe**
+
+- O gráfico "diferença ÷ tolerância" deu lugar à tabela **Resultados por
+  equipamento**: última aferição, último valor, média do período, faixa
+  aceita, último resultado e nº de registros.
+
 ## v16: correções a partir dos prints da v15 e o mockup na íntegra
 
 | Na v15 | Causa | Na v16 |

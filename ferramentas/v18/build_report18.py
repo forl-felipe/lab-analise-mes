@@ -30,12 +30,19 @@ for f, v in visuais(VISAO):
              ("textbox", 224, 0): "cabecalho", ("textbox", 224, 88): "faixa",
              ("textbox", 16, 492): "filtros", ("textbox", 16, 1040): "powerbi", ("textbox", 248, 1044): "rodape"}.get((t, x, y))
     if chave: MOLDURA[chave] = v
-assert len(MOLDURA) == 8, sorted(MOLDURA)
+MOLDURA.pop("subtitulo", None)
+assert {"lateral", "logo", "cabecalho", "faixa", "filtros", "powerbi", "rodape"} <= set(MOLDURA), sorted(MOLDURA)
 
-def texto_cab(v, titulo, sub):
+def texto_cab(v, titulo=None, sub=None):
+    """v18: cabeçalho azul-marinho com o título em branco e sem a frase de subtítulo"""
     ps = v["visual"]["objects"]["general"][0]["properties"]["paragraphs"]
-    ps[0]["textRuns"][0]["value"] = titulo; ps[1]["textRuns"][0]["value"] = sub
-    ps[0]["textRuns"][0]["textStyle"]["fontSize"] = "20pt"
+    if titulo: ps[0]["textRuns"][0]["value"] = titulo
+    ps[0]["textRuns"][0]["textStyle"].update({"fontSize": "20pt", "color": "#FFFFFF"})
+    del ps[1:]
+    ps.insert(0, {"textRuns": [{"value": " ", "textStyle": {"fontSize": "6pt", "color": "#00335A", "fontFamily": "Segoe UI"}}]})
+    v["visual"].setdefault("visualContainerObjects", {})["background"] = [{"properties": {
+        "show": {"expr": {"Literal": {"Value": "true"}}},
+        "color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#00335A'"}}}}}}}]
 
 def limpar(pid):
     shutil.rmtree("%s/%s/visuals" % (P, pid), ignore_errors=True); os.makedirs("%s/%s/visuals" % (P, pid))
@@ -61,8 +68,8 @@ X0, LARG = 244, 1656
 
 def cabecalho_cartoes(pg, periodo=True):
     if periodo:
-        cartao(pg, "cab-periodo", (1150, 20, 360, 52, 400), "Cabeçalho · Período", tam=12, cor=NAVY)
-    cartao(pg, "cab-atualizacao", (1520, 20, 380, 52, 400), "Cabeçalho · Atualização", tam=11, cor=SUAVE, fonte="Segoe UI")
+        cartao(pg, "cab-periodo", (1150, 20, 360, 52, 400), "Cabeçalho · Período", tam=12, cor="#FFFFFF")
+    cartao(pg, "cab-atualizacao", (1520, 20, 380, 52, 400), "Cabeçalho · Atualização", tam=11, cor="#D6DEE6", fonte="Segoe UI")
 
 # ── menu: pílula (imagem) por cima, com o link; sem botão por cima ───────
 MENU = [("visao", VISAO), ("equip", EQUIP), ("calib", CALIB), ("afer", AFER),
@@ -95,6 +102,21 @@ for pid in (CALIB, INTER, INSP, NOTAS, SOBRE):
     limpar_menu_e_cabecalho(pid)
     menu(pid)
     cabecalho_cartoes(Pagina("%s/%s" % (P, pid)), periodo=False)
+    for f, v in visuais(pid):
+        x, y, w, h = pos(v); t = v["visual"]["visualType"]
+        if t == "textbox" and (x, y) == (224, 0): texto_cab(v); gravar(f, v)
+        elif t == "textbox" and (x, y) == (16, 70): shutil.rmtree(os.path.dirname(f))
+    # todas as páginas com o mesmo ajuste: largura da tela (antes umas ajustavam à altura)
+    pj = ler("%s/%s/page.json" % (P, pid)); pj["displayOption"] = "FitToWidth"; gravar("%s/%s/page.json" % (P, pid), pj)
+
+# CALIBRAÇÕES: TAG na tabela "Última calibração, vencimento e situação"
+for f, v in visuais(CALIB):
+    if v["visual"]["visualType"] != "tableEx": continue
+    pr = v["visual"]["query"]["queryState"]["Values"]["projections"]
+    props = [p["field"].get("Column", {}).get("Property") for p in pr]
+    if "Equipamento" in props and "Tag" not in props and any("Vencimento" in (p.get("displayName") or p["nativeQueryRef"]) or p["field"].get("Column", {}).get("Property") == "DataVencimento" for p in pr):
+        pr.insert(0, proj(COL("Tag", "tbl_Calibracao"), "TAG"))
+        gravar(f, v); print("TAG incluída em", v["name"])
 
 MES0 = [f_em("mes0", "DimCalendario", "Mês Offset", ["0L"])]
 
@@ -108,8 +130,6 @@ pg = Pagina("%s/%s" % (P, VISAO))
 cabecalho_cartoes(pg)
 fatiador(pg, "slc-lab", (12, 516, 200, 150), COL("Laboratorio", "DimLaboratorio"))
 
-textbox(pg, "banner-fundo", (X0, 104, LARG, 64, 900), [[(" ", 8, "#FFFFFF", False)]], fundo=NAVY)
-cartao(pg, "banner", (X0 + 20, 106, LARG - 40, 60, 910), "Resumo Geral", tam=15, cor="#FFFFFF")
 
 PILARES = [
     ("disp", "DISPONIBILIDADE", "Disponibilidade no Mês", "Situação Disponibilidade", "Cor Disponibilidade",
@@ -121,7 +141,7 @@ PILARES = [
     ("insp", "INSPEÇÕES", "Inspeções no Mês", "Situação Inspeções", "Cor Inspeções",
      "Inspeções · Meta", "Barra Inspeções", "Inspeções · Fatos", "REALIZADO × ESPERADO ATÉ HOJE", "card-insp.png"),
 ]
-YP, HP, WP, GP = 180, 450, 405, 12
+YP, HP, WP, GP = 108, 450, 405, 12
 for i, (k, tit, valor, sit, cor, meta, barra, fatos, ttl, ic) in enumerate(PILARES):
     x = X0 + i * (WP + GP)
     textbox(pg, "pilar-%s" % k, (x, YP, WP, HP, 1000), [[(" ", 8, "#FFFFFF", False)]], fundo="#FFFFFF", borda="#D6DEE6", sombra=True)
@@ -226,7 +246,7 @@ tabela(pg, "tab-equip", (X0, 960, LARG, ALT - 56 - 960, 1000), "EQUIPAMENTOS",
 # AFERIÇÕES · RESUMO DO MÊS
 # =============================================================================
 TA = "tbl_Afericoes"
-ROD_AF = "Aferições: planilhas mensais CALIBRAÇÃO (aba oculta BD_Afericoes) na pasta do SharePoint  ·  Base_PowerBI_Gestao_Equipamentos.xlsx   ·   v17"
+ROD_AF = "Aferições: planilhas mensais CALIBRAÇÃO (aba oculta BD_Afericoes) na pasta do SharePoint  ·  Base_PowerBI_Gestao_Equipamentos.xlsx   ·   v18"
 def lateral_afer(pg, extra):
     fatiador(pg, "slc-mes", (12, 532, 200, 150), COL("Ano Mês Nome", "DimCalendario"),
              filtros=[f_entre("mes-12", "DimCalendario", "Mês Offset", "-12L", "0L")])
@@ -267,17 +287,9 @@ tabela(pg, "resumo", (X0 + 1012, 306, LARG - 1012, 380, 1000), "RESUMO AUTOMÁTI
        [(COL("Linha", "tbl_Linhas"), "#"), (MEAS("Resumo Aferições"), "O que o mês mostra")],
        larguras={0: 30, 1: 560}, subtitulo="Texto gerado pelo painel a cada atualização",
        ordem=(COL("Linha", "tbl_Linhas"), "Ascending"), fonte=12)
-matriz(pg, "mapa", (X0, 698, LARG, 346, 1000), "MAPA DE AFERIÇÕES · ENSAIO × DIA",
+matriz(pg, "mapa", (X0, 698, LARG, ALT - 56 - 698, 1000), "MAPA DE AFERIÇÕES · ENSAIO × DIA",
        COL("Ensaio Curto", "DimEnsaio"), COL("Dia", "DimCalendario"), MEAS("Mapa"), "Mapa · Fundo", "Mapa · Fonte",
-       subtitulo="✔ azul = feito (há registro na planilha do dia)   ·   ✖ laranja = estava na rotina e não foi feito (conta até ontem)   ·   em branco = sem rotina no dia", largura_col=46)
-tabela(pg, "nc-equip", (X0, 1050, LARG, ALT - 56 - 1050, 1000), "NÃO CONFORMIDADES POR EQUIPAMENTO",
-       [(COL("Equipamento", TA), "Equipamento"), (MEAS("Ensaio da NC"), "Ensaio"), (MEAS("O que Falhou"), "O que falhou"),
-        (MEAS("NC Aferição"), "Ocorrências"), (MEAS("Datas das NC"), "Datas"), (MEAS("Calibração Externa"), "Calibração externa"),
-        (MEAS("Gravidade da NC"), "Gravidade")],
-       cores={6: "Cor Gravidade da NC"}, larguras={0: 240, 1: 200, 2: 440, 3: 100, 4: 300, 5: 150, 6: 120},
-       filtros=[f_maior_medida("nc>0", "NC Aferição", "0L")],
-       subtitulo="Reincidências somadas: um equipamento por linha, do mais ao menos recorrente",
-       ordem=(MEAS("NC Aferição"), "Descending"), fonte=11)
+       subtitulo="✔ azul = aferição registrada no dia   ·   ✖ laranja = dia da rotina sem registro até a próxima data da rotina (prazo vencido)   ·   em branco = sem rotina, ou feito dentro do prazo em outro dia", largura_col=46)
 
 # =============================================================================
 # AFERIÇÕES · DETALHE POR ENSAIO
@@ -295,12 +307,15 @@ linhas(pg, "carta", (X0 + 10, 162, LARG - 20, 514, 1000), None, COL("Data", TA),
        [(MEAS("Carta · Valor"), "Valor medido"), (MEAS("Carta · Lim. Inferior"), "Limite inferior"),
         (MEAS("Carta · Lim. Superior"), "Limite superior"), (MEAS("Carta · Nominal"), "Nominal / zero")],
        [AZUL, LARANJA, LARANJA, CINZA])
-colunas(pg, "comparativos", (X0, 696, 780, ALT - 56 - 696, 1000), "COMPARATIVOS · DIFERENÇA ÷ TOLERÂNCIA",
-        COL("Comparativo", TA), [(MEAS("% da Tolerância (último)"), "% da tolerância")],
-        tipo="clusteredBarChart", cor_medida="Cor % da Tolerância",
-        subtitulo="Último registro de cada comparativo · azul < 80% · ocre 80–100% · laranja = fora da tolerância",
-        filtros=[f_em("tipo-comp", TA, "Tipo", ["'Comparativo'"])],
-        ordem=(MEAS("% da Tolerância (último)"), "Descending"))
+tabela(pg, "resultados", (X0, 696, 780, ALT - 56 - 696, 1000), "RESULTADOS POR EQUIPAMENTO",
+       [(COL("Equipamento", TA), "Equipamento"), (COL("Parâmetro", TA), "Parâmetro"),
+        (MEAS("Última Aferição"), "Última"), (MEAS("Último Valor"), "Último valor"),
+        (MEAS("Média do Período"), "Média"), (MEAS("Faixa Aceita"), "Faixa aceita"),
+        (MEAS("Último Resultado"), "Último resultado"), (MEAS("Registros no Período"), "Nº")],
+       cores={6: "Cor Último Resultado"}, larguras={0: 150, 1: 150, 2: 55, 3: 75, 4: 65, 5: 105, 6: 95, 7: 35},
+       filtros=[f_igual_medida("res-periodo", "Linha no Período"), f_em("res-tipo", TA, "Tipo", ["'Calibração'", "'Comparativo'"])],
+       subtitulo="Última aferição, último valor e média do período de cada equipamento",
+       ordem=(COL("Equipamento", TA), "Ascending"), fonte=11)
 tabela(pg, "registros", (X0 + 792, 696, LARG - 792, ALT - 56 - 696, 1000), "REGISTROS DO PERÍODO",
        [(COL("Data", TA), "Data"), (COL("Equipamento", TA), "Equipamento"), (COL("Parâmetro", TA), "Parâmetro"),
         (COL("Valor", TA), "Valor"), (COL("Referência", TA), "Referência"), (COL("Diferença", TA), "Diferença"),
@@ -314,5 +329,5 @@ for pid in (CALIB, INTER, INSP, NOTAS, SOBRE, VISAO, EQUIP):
     for f, v in visuais(pid):
         if v["visual"]["visualType"] == "textbox":
             s = json.dumps(v, ensure_ascii=False)
-            if "v15" in s or "v16" in s: gravar(f, json.loads(s.replace("v15", "v17").replace("v16", "v17")))
-print("v17 montada")
+            if "v15" in s or "v16" in s or "v17" in s: gravar(f, json.loads(s.replace("v15", "v18").replace("v16", "v18").replace("v17", "v18")))
+print("v18 montada")

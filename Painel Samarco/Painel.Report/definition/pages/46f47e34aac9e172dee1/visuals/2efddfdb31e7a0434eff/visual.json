@@ -19,12 +19,11 @@
               {
                 "textRuns": [
                   {
-                    "value": "GESTÃO DE CALIBRAÇÕES",
+                    "value": " ",
                     "textStyle": {
-                      "fontSize": "18pt",
+                      "fontSize": "6pt",
                       "color": "#00335A",
-                      "fontFamily": "Segoe UI",
-                      "fontWeight": "bold"
+                      "fontFamily": "Segoe UI"
                     }
                   }
                 ]
@@ -32,10 +31,10 @@
               {
                 "textRuns": [
                   {
-                    "value": "Controle de vencimentos e conformidade metrológica",
+                    "value": " ",
                     "textStyle": {
-                      "fontSize": "10pt",
-                      "color": "#5B6B78",
+                      "fontSize": "20pt",
+                      "color": "#FFFFFF",
                       "fontFamily": "Segoe UI"
                     }
                   }
@@ -63,7 +62,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#FFFFFF'"
+                      "Value": "'#00335A'"
                     }
                   }
                 }
