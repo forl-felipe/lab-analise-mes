@@ -284,7 +284,7 @@ def sem_total(visual_json_path):
     o["visual"].setdefault("objects", {})["total"] = [{"properties": {"totals": B(False)}}]
     json.dump(o, open(visual_json_path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 
-def matriz(pg, seed, pos, titulo, linhas_, colunas_, valor, fundo_m, fonte_m, subtitulo=None, filtros=None):
+def matriz(pg, seed, pos, titulo, linhas_, colunas_, valor, fundo_m, fonte_m, subtitulo=None, filtros=None, largura_col=44):
     fv = valor
     v = {"visualType": "pivotTable",
          "query": {"queryState": {"Rows": {"projections": [proj(linhas_, ativo=True)]},
@@ -292,14 +292,15 @@ def matriz(pg, seed, pos, titulo, linhas_, colunas_, valor, fundo_m, fonte_m, su
                                   "Values": {"projections": [proj(fv, " ")]}}},
          "objects": {
              "subTotals": [{"properties": {"rowSubtotals": B(False), "columnSubtotals": B(False)}}],
-             "values": [{"properties": {"fontSize": D(12)}},
+             "values": [{"properties": {"fontSize": D(15)}},
                         {"properties": {"backColor": CORM(fundo_m), "fontColor": CORM(fonte_m)},
                          "selector": {"data": [{"dataViewWildcard": {"matchingOption": 1}}], "metadata": qref(fv)}}],
-             "columnHeaders": [{"properties": {"fontSize": D(10)}}],
-             "rowHeaders": [{"properties": {"fontSize": D(11)}}],
+             "columnHeaders": [{"properties": {"fontSize": D(12), "autoSizeColumnWidth": B(False), "alignment": S("Center")}}],
+             "rowHeaders": [{"properties": {"fontSize": D(12)}}],
+             "columnWidth": [{"properties": {"value": D(largura_col)}, "selector": {"metadata": qref(fv)}}],
              "grid": [{"properties": {"gridVertical": B(True), "gridVerticalColor": COR("#FFFFFF"), "gridVerticalWeight": D(2),
                                       "gridHorizontal": B(True), "gridHorizontalColor": COR("#FFFFFF"), "gridHorizontalWeight": D(2),
-                                      "rowPadding": D(6)}}]},
+                                      "rowPadding": D(9)}}]},
          "visualContainerObjects": vc(titulo, subtitulo=subtitulo),
          "drillFilterOtherVisuals": True}
     return pg.grava(seed, pos, v, filtros=filtros)

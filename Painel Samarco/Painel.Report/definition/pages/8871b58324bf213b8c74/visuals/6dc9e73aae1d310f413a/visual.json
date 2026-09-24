@@ -87,8 +87,23 @@
                 }
               },
               "queryRef": "DimEnsaio.Frequência",
-              "nativeQueryRef": "Frequência",
-              "displayName": "Frequência"
+              "nativeQueryRef": "Rotina (frequência)",
+              "displayName": "Rotina (frequência)"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Painel"
+                    }
+                  },
+                  "Property": "Mapa · Dias Não Feitos"
+                }
+              },
+              "queryRef": "_Painel.Mapa · Dias Não Feitos",
+              "nativeQueryRef": "Não feitos",
+              "displayName": "Não feitos"
             },
             {
               "field": {
@@ -218,7 +233,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "230D"
+                  "Value": "210D"
                 }
               }
             }
@@ -232,7 +247,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "120D"
+                  "Value": "110D"
                 }
               }
             }
@@ -246,7 +261,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "110D"
+                  "Value": "100D"
                 }
               }
             }
@@ -260,7 +275,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "90D"
+                  "Value": "80D"
                 }
               }
             }
@@ -274,7 +289,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "190D"
+                  "Value": "180D"
                 }
               }
             }
@@ -288,7 +303,21 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "70D"
+                  "Value": "90D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Mapa · Dias Não Feitos"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "60D"
                 }
               }
             }
@@ -302,7 +331,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "90D"
+                  "Value": "80D"
                 }
               }
             }

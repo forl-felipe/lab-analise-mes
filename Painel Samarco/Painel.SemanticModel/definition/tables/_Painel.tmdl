@@ -868,8 +868,7 @@ table _Painel
 			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
 			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
 			
-			VAR _aval = CALCULATE ( [_Afer Avaliadas], KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
-			VAR _nc = CALCULATE ( [_Afer NC], KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
+			VAR _feito = CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
 			VAR _d = CALCULATE ( MAX ( DimCalendario[Data] ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
 			VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
 			VAR _prog =
@@ -878,7 +877,7 @@ table _Painel
 			        && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
 			RETURN
 			    IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
-			        IF ( _nc > 0, 3, IF ( _aval > 0, 1, IF ( _prog, 2 ) ) ) )
+			        IF ( _feito > 0, 1, IF ( _prog, 2 ) ) )
 		formatString: 0
 		isHidden
 		displayFolder: 13 Aferições
@@ -886,23 +885,32 @@ table _Painel
 
 	measure Mapa =
 			
-			SWITCH ( [Mapa · Nível], 1, "✔", 2, "○", 3, "✖" )
+			SWITCH ( [Mapa · Nível], 1, "✔", 2, "✖" )
 		displayFolder: 13 Aferições
 		lineageTag: 9d9c63b9-82f4-5afa-a13a-a6aef3992df0
 
 	measure 'Mapa · Fundo' =
 			
-			SWITCH ( [Mapa · Nível], 1, "#1B6FB0", 2, "#FFF4D6", 3, "#E0620F", "#FFFFFF" )
+			SWITCH ( [Mapa · Nível], 1, "#1B6FB0", 2, "#E0620F", "#FFFFFF" )
 		isHidden
 		displayFolder: 13 Aferições
 		lineageTag: 0d1e5be2-39c6-54f9-8608-b09f82ccccfa
 
 	measure 'Mapa · Fonte' =
 			
-			SWITCH ( [Mapa · Nível], 1, "#FFFFFF", 2, "#9A7000", 3, "#FFFFFF", "#FFFFFF" )
+			SWITCH ( [Mapa · Nível], 1, "#FFFFFF", 2, "#FFFFFF", "#FFFFFF" )
 		isHidden
 		displayFolder: 13 Aferições
 		lineageTag: f2e3d514-0dc6-5e63-a29e-5a79cb296163
+
+	measure 'Mapa · Dias Não Feitos' =
+			
+			VAR _dias = SUMX ( VALUES ( DimCalendario[Dia] ), IF ( [Mapa · Nível] = 2, 1 ) )
+			RETURN
+			    COALESCE ( _dias, 0 )
+		formatString: 0
+		displayFolder: 13 Aferições
+		lineageTag: e8f8adc8-77f7-5171-8600-560683cc5af8
 
 	measure 'Cor Aderência' =
 			
@@ -1129,10 +1137,19 @@ table _Painel
 			        "AF1", _ncE & " não conformidades no mês: " & CONCATENATEX ( _re, tbl_Afericoes[Equipamento] & " " & [@nc] & "×", ", ", [@nc], DESC ) & ".",
 			        "AF2", _ncE & " não conformidades no mês: " & CONCATENATEX ( _re, tbl_Afericoes[Equipamento] & " " & [@nc] & "×", ", ", [@nc], DESC ) & ".",
 			        "INS", [Inspeções no Mês] & " de " & [Meta Inspeções no Mês] & " no mês; faltam " & _falta & " em " & _uteis & " dias úteis até " & FORMAT ( EOMONTH ( TODAY (), 0 ), "dd/MM" ) & ".",
-			        "PAR", CONCATENATEX (
-			                   FILTER ( Tbl_Paradas, NOT ( Tbl_Paradas[Situação] IN { "Resolvido", "Resolvida", "Concluído", "Concluída" } ) && NOT ISBLANK ( Tbl_Paradas[Situação] ) ),
-			                   Tbl_Paradas[Equipamento (auto)] & " — " & Tbl_Paradas[Situação] & " desde " & FORMAT ( Tbl_Paradas[Data], "dd/MM" ), "; ", Tbl_Paradas[Data], ASC
-			               ) & ".",
+			        "PAR",
+			            VAR _ab =
+			                CALCULATETABLE (
+			                    ADDCOLUMNS ( VALUES ( Tbl_Paradas[Equipamento (auto)] ), "@n", CALCULATE ( COUNTROWS ( Tbl_Paradas ) ) ),
+			                    KEEPFILTERS ( NOT ( Tbl_Paradas[Situação] IN { "Resolvido", "Resolvida", "Concluído", "Concluída" } ) ),
+			                    KEEPFILTERS ( NOT ISBLANK ( Tbl_Paradas[Situação] ) )
+			                )
+			            VAR _neq = COUNTROWS ( _ab )
+			            RETURN
+			                _neq & IF ( _neq = 1, " equipamento: ", " equipamentos: " )
+			                    & CONCATENATEX ( TOPN ( 4, _ab, [@n], DESC, Tbl_Paradas[Equipamento (auto)], ASC ),
+			                                     Tbl_Paradas[Equipamento (auto)] & IF ( [@n] > 1, " (" & [@n] & ")", "" ), "; ", [@n], DESC )
+			                    & IF ( _neq > 4, "; e mais " & ( _neq - 4 ), "" ) & ".",
 			        "DISP", FORMAT ( [Disponibilidade no Mês], "0.0%" ) & " no mês × meta " & FORMAT ( [Param Meta Disponibilidade], "0%" ) & "."
 			    )
 		displayFolder: 15 Visão Geral
@@ -1377,6 +1394,56 @@ table _Painel
 		isHidden
 		displayFolder: 17 Cabeçalho e laboratório
 		lineageTag: 1869d3ed-2725-563e-85c9-f1436679a039
+
+	measure 'Barra Texto Disponibilidade' =
+			
+			VAR _p = COALESCE ( [Barra Disponibilidade], 0 )
+			VAR _n = ROUND ( _p * 24, 0 )
+			RETURN
+			    REPT ( "█", _n ) & REPT ( "░", 24 - _n )
+		isHidden
+		displayFolder: 18 Barras
+		lineageTag: e2c7a6b3-f021-54d3-b704-393207409eb4
+
+	measure 'Barra Texto Calibração' =
+			
+			VAR _p = COALESCE ( [Barra Calibração], 0 )
+			VAR _n = ROUND ( _p * 24, 0 )
+			RETURN
+			    REPT ( "█", _n ) & REPT ( "░", 24 - _n )
+		isHidden
+		displayFolder: 18 Barras
+		lineageTag: c4ef023f-e260-5ee7-9617-c8c41abee058
+
+	measure 'Barra Texto Aferições' =
+			
+			VAR _p = COALESCE ( [Barra Aferições], 0 )
+			VAR _n = ROUND ( _p * 24, 0 )
+			RETURN
+			    REPT ( "█", _n ) & REPT ( "░", 24 - _n )
+		isHidden
+		displayFolder: 18 Barras
+		lineageTag: d49e0596-8a9f-50d6-ae49-1c4607542b1b
+
+	measure 'Barra Texto Inspeções' =
+			
+			VAR _p = COALESCE ( [Barra Inspeções], 0 )
+			VAR _n = ROUND ( _p * 24, 0 )
+			RETURN
+			    REPT ( "█", _n ) & REPT ( "░", 24 - _n )
+		isHidden
+		displayFolder: 18 Barras
+		lineageTag: fc13fd9d-b0cc-5923-956b-b4eb2b69c639
+
+	measure 'Barra Texto Aderência' =
+			
+			VAR _p = COALESCE ( [Barra Aderência], 0 )
+			VAR _n = ROUND ( _p * 24, 0 )
+			RETURN
+			    REPT ( "█", _n ) & REPT ( "░", 24 - _n )
+		isHidden
+		displayFolder: 18 Barras
+		lineageTag: 8ea2d700-3c3f-55c0-b1a3-8d81b392003a
 
 	column Value
 		isHidden

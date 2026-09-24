@@ -130,8 +130,8 @@ for i, (k, tit, valor, sit, cor, meta, barra, fatos, ttl, ic) in enumerate(PILAR
     cartao(pg, "pilar-sit-%s" % k, (x + WP - 166, YP + 6, 160, 46, 1100), sit, tam=11, cor_medida=cor)
     cartao(pg, "pilar-val-%s" % k, (x + 10, YP + 52, WP - 20, 88, 1100), valor, tam=38, cor=NAVY)
     cartao(pg, "pilar-meta-%s" % k, (x + 10, YP + 140, WP - 20, 42, 1100), meta, tam=10, cor=SUAVE, fonte="Segoe UI")
-    medidor(pg, "pilar-barra-%s" % k, (x + 24, YP + 184, WP - 48, 34, 1100), barra, cor)
-    cartao(pg, "pilar-fatos-%s" % k, (x + 10, YP + 222, WP - 20, 52, 1100), fatos, tam=10, cor=TINTA, fonte="Segoe UI")
+    cartao(pg, "pilar-barra-%s" % k, (x + 10, YP + 184, WP - 20, 38, 1100), barra.replace("Barra ", "Barra Texto "), tam=12, cor_medida=cor, fonte="Segoe UI", quebra=False)
+    cartao(pg, "pilar-fatos-%s" % k, (x + 10, YP + 224, WP - 20, 50, 1100), fatos, tam=10, cor=TINTA, fonte="Segoe UI")
     textbox(pg, "pilar-linha-%s" % k, (x + 16, YP + 280, WP - 32, 2, 1100), [[(" ", 1, "#E6EBF0", False)]], fundo="#E6EBF0")
     cz = (x + 10, YP + 286, WP - 20, HP - 294, 1100)
     if k == "disp":
@@ -226,7 +226,7 @@ tabela(pg, "tab-equip", (X0, 960, LARG, ALT - 56 - 960, 1000), "EQUIPAMENTOS",
 # AFERIÇÕES · RESUMO DO MÊS
 # =============================================================================
 TA = "tbl_Afericoes"
-ROD_AF = "Aferições: planilhas mensais CALIBRAÇÃO (aba oculta BD_Afericoes) na pasta do SharePoint  ·  Base_PowerBI_Gestao_Equipamentos.xlsx   ·   v16"
+ROD_AF = "Aferições: planilhas mensais CALIBRAÇÃO (aba oculta BD_Afericoes) na pasta do SharePoint  ·  Base_PowerBI_Gestao_Equipamentos.xlsx   ·   v17"
 def lateral_afer(pg, extra):
     fatiador(pg, "slc-mes", (12, 532, 200, 150), COL("Ano Mês Nome", "DimCalendario"),
              filtros=[f_entre("mes-12", "DimCalendario", "Mês Offset", "-12L", "0L")])
@@ -240,7 +240,7 @@ def mini(pg, k, x, w, titulo, valor, meta=None, barra=None, cor=None, fatos=None
     textbox(pg, "mini-tit-%s" % k, (x + 8, y0 + 6, w - 16, 34, 1100), [[(titulo, 10, NAVY, True)]])
     cartao(pg, "mini-val-%s" % k, (x + 10, y0 + 40, w - 20, 72, 1100), valor, tam=30, cor=NAVY)
     if meta: cartao(pg, "mini-meta-%s" % k, (x + 10, y0 + 112, w - 20, 40, 1100), meta, tam=10, cor=SUAVE, fonte="Segoe UI")
-    if barra: medidor(pg, "mini-barra-%s" % k, (x + 24, y0 + 154, w - 48, 30, 1100), barra, cor)
+    if barra: cartao(pg, "mini-barra-%s" % k, (x + 10, y0 + 154, w - 20, 34, 1100), barra.replace("Barra ", "Barra Texto "), tam=11, cor_medida=cor, fonte="Segoe UI", quebra=False)
     if fatos: cartao(pg, "mini-fatos-%s" % k, (x + 10, y0 + 112, w - 20, 70, 1100), fatos, tam=10, cor=TINTA, fonte="Segoe UI")
 
 limpar(AFER); pagina_alta(AFER)
@@ -257,8 +257,9 @@ mini(pg, "reinc", round(X0 + 3 * (W4 + 12)), round(W4), "EQUIPAMENTOS REINCIDENT
 tabela(pg, "ensaios", (X0, 306, 1000, 380, 1000), "SITUAÇÃO POR ENSAIO",
        [(COL("Ensaio", "DimEnsaio"), "Ensaio"), (MEAS("Situação Ensaio"), "Situação"),
         (MEAS("% Aferições Conformes"), "Conformes"), (MEAS("Aderência à Rotina"), "Rotina"),
-        (COL("Frequência", "DimEnsaio"), "Frequência"), (MEAS("NC Aferição"), "NC"), (MEAS("Último Registro"), "Último")],
-       cores={1: "Cor Situação Ensaio"}, larguras={0: 230, 1: 120, 2: 110, 3: 90, 4: 190, 5: 70, 6: 90},
+        (COL("Frequência", "DimEnsaio"), "Rotina (frequência)"), (MEAS("Mapa · Dias Não Feitos"), "Não feitos"),
+        (MEAS("NC Aferição"), "NC"), (MEAS("Último Registro"), "Último")],
+       cores={1: "Cor Situação Ensaio"}, larguras={0: 210, 1: 110, 2: 100, 3: 80, 4: 180, 5: 90, 6: 60, 7: 80},
        filtros=[f_igual_medida("ens-aparece", "Ensaio Aparece")],
        subtitulo="Ordenado pela ordem das abas; clique num ensaio para filtrar a página",
        ordem=(COL("Ensaio", "DimEnsaio"), "Ascending"), fonte=12)
@@ -266,9 +267,9 @@ tabela(pg, "resumo", (X0 + 1012, 306, LARG - 1012, 380, 1000), "RESUMO AUTOMÁTI
        [(COL("Linha", "tbl_Linhas"), "#"), (MEAS("Resumo Aferições"), "O que o mês mostra")],
        larguras={0: 30, 1: 560}, subtitulo="Texto gerado pelo painel a cada atualização",
        ordem=(COL("Linha", "tbl_Linhas"), "Ascending"), fonte=12)
-matriz(pg, "mapa", (X0, 698, LARG, 340, 1000), "MAPA DE AFERIÇÕES · ENSAIO × DIA",
+matriz(pg, "mapa", (X0, 698, LARG, 346, 1000), "MAPA DE AFERIÇÕES · ENSAIO × DIA",
        COL("Ensaio Curto", "DimEnsaio"), COL("Dia", "DimCalendario"), MEAS("Mapa"), "Mapa · Fundo", "Mapa · Fonte",
-       subtitulo="✔ conforme  ·  ✖ com não conformidade  ·  ○ estava programado e não foi feito  ·  em branco: sem rotina no dia")
+       subtitulo="✔ azul = feito (há registro na planilha do dia)   ·   ✖ laranja = estava na rotina e não foi feito (conta até ontem)   ·   em branco = sem rotina no dia", largura_col=46)
 tabela(pg, "nc-equip", (X0, 1050, LARG, ALT - 56 - 1050, 1000), "NÃO CONFORMIDADES POR EQUIPAMENTO",
        [(COL("Equipamento", TA), "Equipamento"), (MEAS("Ensaio da NC"), "Ensaio"), (MEAS("O que Falhou"), "O que falhou"),
         (MEAS("NC Aferição"), "Ocorrências"), (MEAS("Datas das NC"), "Datas"), (MEAS("Calibração Externa"), "Calibração externa"),
@@ -313,5 +314,5 @@ for pid in (CALIB, INTER, INSP, NOTAS, SOBRE, VISAO, EQUIP):
     for f, v in visuais(pid):
         if v["visual"]["visualType"] == "textbox":
             s = json.dumps(v, ensure_ascii=False)
-            if "· v15" in s or "·   v15" in s: gravar(f, json.loads(s.replace("v15", "v16")))
-print("v16 montada")
+            if "v15" in s or "v16" in s: gravar(f, json.loads(s.replace("v15", "v17").replace("v16", "v17")))
+print("v17 montada")

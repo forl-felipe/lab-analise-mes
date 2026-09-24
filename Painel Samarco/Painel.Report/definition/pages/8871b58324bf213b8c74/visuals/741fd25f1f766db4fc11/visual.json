@@ -6,7 +6,7 @@
     "y": 698,
     "z": 1000,
     "width": 1656,
-    "height": 340,
+    "height": 346,
     "tabOrder": 1260
   },
   "visual": {
@@ -99,7 +99,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "12D"
+                  "Value": "15D"
                 }
               }
             }
@@ -158,7 +158,21 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "10D"
+                  "Value": "12D"
+                }
+              }
+            },
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Center'"
                 }
               }
             }
@@ -171,10 +185,26 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "11D"
+                  "Value": "12D"
                 }
               }
             }
+          }
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "46D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Mapa"
           }
         }
       ],
@@ -234,7 +264,7 @@
             "rowPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "6D"
+                  "Value": "9D"
                 }
               }
             }
@@ -308,7 +338,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'✔ conforme  ·  ✖ com não conformidade  ·  ○ estava programado e não foi feito  ·  em branco: sem rotina no dia'"
+                  "Value": "'✔ azul = feito (há registro na planilha do dia)   ·   ✖ laranja = estava na rotina e não foi feito (conta até ontem)   ·   em branco = sem rotina no dia'"
                 }
               }
             },

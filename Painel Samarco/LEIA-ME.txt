@@ -1,4 +1,4 @@
-PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v16
+PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v17
 =====================================================
 
 POR QUE OS NOMES ENCURTARAM
@@ -38,7 +38,7 @@ INSTALAÇÃO
 
 7. Clique em ATUALIZAR (Página Inicial > Atualizar).
 
-8. O rodapé de cada página termina com "· v16" e a barra lateral mostra o
+8. O rodapé de cada página termina com "· v17" e a barra lateral mostra o
    logo da Samarco.
 
 9. AFERIÇÕES: a pasta do SharePoint já está configurada. Na primeira
@@ -53,7 +53,7 @@ O QUE CONTÉM
 ------------
     Painel.pbip              abre o projeto
     Painel.Report            relatório, 9 páginas, 350 visuais
-    Painel.SemanticModel     modelo, 24 tabelas, 179 medidas
+    Painel.SemanticModel     modelo, 24 tabelas, 185 medidas
 
 
 AS 9 PÁGINAS

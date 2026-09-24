@@ -288,9 +288,10 @@ RETURN
     )""", None, A)
 
 # mapa ensaio × dia (matriz): 1 conforme · 2 programado sem registro · 3 com não conformidade
+# mapa ensaio × dia: 1 = feito (há registro na BD_Afericoes naquele dia)
+#                    2 = estava na rotina (DimEnsaio) até ontem e não há registro
 add("Mapa · Nível", PERIODO.replace("VAR _fim = MIN ( _fimMes, TODAY () - 1 )", "") + """
-VAR _aval = CALCULATE ( [_Afer Avaliadas], KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
-VAR _nc = CALCULATE ( [_Afer NC], KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
+VAR _feito = CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
 VAR _d = CALCULATE ( MAX ( DimCalendario[Data] ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
 VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
 VAR _prog =
@@ -299,10 +300,13 @@ VAR _prog =
         && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
 RETURN
     IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
-        IF ( _nc > 0, 3, IF ( _aval > 0, 1, IF ( _prog, 2 ) ) ) )""", "0", A, True)
-add("Mapa", """SWITCH ( [Mapa · Nível], 1, "✔", 2, "○", 3, "✖" )""", None, A)
-add("Mapa · Fundo", """SWITCH ( [Mapa · Nível], 1, "#1B6FB0", 2, "#FFF4D6", 3, "#E0620F", "#FFFFFF" )""", None, A, True)
-add("Mapa · Fonte", """SWITCH ( [Mapa · Nível], 1, "#FFFFFF", 2, "#9A7000", 3, "#FFFFFF", "#FFFFFF" )""", None, A, True)
+        IF ( _feito > 0, 1, IF ( _prog, 2 ) ) )""", "0", A, True)
+add("Mapa", """SWITCH ( [Mapa · Nível], 1, "✔", 2, "✖" )""", None, A)
+add("Mapa · Fundo", """SWITCH ( [Mapa · Nível], 1, "#1B6FB0", 2, "#E0620F", "#FFFFFF" )""", None, A, True)
+add("Mapa · Fonte", """SWITCH ( [Mapa · Nível], 1, "#FFFFFF", 2, "#FFFFFF", "#FFFFFF" )""", None, A, True)
+add("Mapa · Dias Não Feitos", """VAR _dias = SUMX ( VALUES ( DimCalendario[Dia] ), IF ( [Mapa · Nível] = 2, 1 ) )
+RETURN
+    COALESCE ( _dias, 0 )""", "0", A)
 add("Cor Aderência", """VAR _v = [Aderência à Rotina]
 VAR _m = [Meta Aderência à Rotina]
 RETURN
@@ -413,10 +417,19 @@ RETURN
         "AF1", _ncE & " não conformidades no mês: " & CONCATENATEX ( _re, tbl_Afericoes[Equipamento] & " " & [@nc] & "×", ", ", [@nc], DESC ) & ".",
         "AF2", _ncE & " não conformidades no mês: " & CONCATENATEX ( _re, tbl_Afericoes[Equipamento] & " " & [@nc] & "×", ", ", [@nc], DESC ) & ".",
         "INS", [Inspeções no Mês] & " de " & [Meta Inspeções no Mês] & " no mês; faltam " & _falta & " em " & _uteis & " dias úteis até " & FORMAT ( EOMONTH ( TODAY (), 0 ), "dd/MM" ) & ".",
-        "PAR", CONCATENATEX (
-                   FILTER ( Tbl_Paradas, NOT ( Tbl_Paradas[Situação] IN { "Resolvido", "Resolvida", "Concluído", "Concluída" } ) && NOT ISBLANK ( Tbl_Paradas[Situação] ) ),
-                   Tbl_Paradas[Equipamento (auto)] & " — " & Tbl_Paradas[Situação] & " desde " & FORMAT ( Tbl_Paradas[Data], "dd/MM" ), "; ", Tbl_Paradas[Data], ASC
-               ) & ".",
+        "PAR",
+            VAR _ab =
+                CALCULATETABLE (
+                    ADDCOLUMNS ( VALUES ( Tbl_Paradas[Equipamento (auto)] ), "@n", CALCULATE ( COUNTROWS ( Tbl_Paradas ) ) ),
+                    KEEPFILTERS ( NOT ( Tbl_Paradas[Situação] IN { "Resolvido", "Resolvida", "Concluído", "Concluída" } ) ),
+                    KEEPFILTERS ( NOT ISBLANK ( Tbl_Paradas[Situação] ) )
+                )
+            VAR _neq = COUNTROWS ( _ab )
+            RETURN
+                _neq & IF ( _neq = 1, " equipamento: ", " equipamentos: " )
+                    & CONCATENATEX ( TOPN ( 4, _ab, [@n], DESC, Tbl_Paradas[Equipamento (auto)], ASC ),
+                                     Tbl_Paradas[Equipamento (auto)] & IF ( [@n] > 1, " (" & [@n] & ")", "" ), "; ", [@n], DESC )
+                    & IF ( _neq > 4, "; e mais " & ( _neq - 4 ), "" ) & ".",
         "DISP", FORMAT ( [Disponibilidade no Mês], "0.0%" ) & " no mês × meta " & FORMAT ( [Param Meta Disponibilidade], "0%" ) & "."
     )""", None, V)
 add("Ponto Ação", """VAR _k = SELECTEDVALUE ( tbl_Pontos[Chave] )
@@ -552,3 +565,12 @@ RETURN
 add("Situação Laboratório", nivel_txt("[Nível Laboratório]"), None, H)
 add("Cor Situação Laboratório", nivel_cor("[Nível Laboratório]"), None, H, True)
 add("Laboratório Aparece", "IF ( [Total Instrumentos] > 0 || [Total Equipamentos] > 0, 1, 0 )", "0", H, True)
+
+# barra de progresso em texto (a barra em gráfico não aparecia: ficava um retângulo branco)
+def barra_txt(nome, base):
+    add(nome, """VAR _p = COALESCE ( [%s], 0 )
+VAR _n = ROUND ( _p * 24, 0 )
+RETURN
+    REPT ( "█", _n ) & REPT ( "░", 24 - _n )""" % base, None, "18 Barras", True)
+for b in ("Disponibilidade", "Calibração", "Aferições", "Inspeções", "Aderência"):
+    barra_txt("Barra Texto " + b, "Barra " + b)
