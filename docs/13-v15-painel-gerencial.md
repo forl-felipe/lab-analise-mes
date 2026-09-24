@@ -94,30 +94,47 @@ Sem o mapa diário, como você pediu.
 |---|---|---|
 | `Base_PowerBI_Gestao_Equipamentos.xlsx` | equipamentos, calibração, paradas, intervenções, notas, sobressalentes, configuração | já funcionando |
 | `Inspeção de Amostradores.xlsx` (Microsoft Forms) | inspeções, junto com a aba da Base | já funcionando |
-| **Pasta das planilhas mensais `CALIBRAÇÃO MM - MÊS.xlsm`** | aferições e comparativos | **falta o link da pasta** |
+| **Pasta das planilhas mensais `CALIBRAÇÃO MM - MÊS.xlsm`** | aferições e comparativos | **já configurada** |
 
-### Ligar as aferições: uma vez só
+### Aferições: como a pasta é lida
 
-1. Coloque na pasta do SharePoint a planilha com as abas ocultas
-   (`afericoes/CALIBRAÇÃO 09 - SETEMBRO.xlsm`). Veja o aviso sobre setembro
-   logo abaixo.
-2. Power BI Desktop > **Transformar dados** > consulta **tbl_Afericoes** >
-   **Editor Avançado**.
-3. Na linha `PastaLink = "COLE_AQUI_O_LINK_DA_PASTA",` cole o endereço da
-   pasta, entre as aspas. Serve o endereço do navegador com a pasta aberta ou
-   o "Copiar link" da pasta.
-4. Concluído > **Fechar e aplicar**.
-5. Se pedir credencial, escolha:
-   - **Conta organizacional**;
-   - nível do site (`https://smineracao.sharepoint.com/sites/…`);
-   - privacidade **Organizacional**.
+O painel lê a pasta "Calibração Integrada mensal" e entra em cada pasta
+"Calibração mensal AAAA" de 2026 em diante:
 
-Enquanto o link não for colado:
+    automacao / laboratorios / Laboratório de Controle da Produção - Ubu /
+    Resultados rotina / Laboratorio Fisico Ubu / Calibração Integrada  -LCP Ubu /
+    Calibração Integrada mensal / Calibração mensal 2026 / CALIBRAÇÃO 09 - SETEMBRO (1).xlsm
 
-- a consulta devolve uma tabela vazia;
-- o painel atualiza normalmente;
-- as páginas de Aferições mostram "Sem aferições no período";
-- a frente Aferições da Visão Geral aparece como "○ Sem dados".
+- Cada planilha `.xlsm` dessas pastas é lida.
+- O ano novo (pasta "Calibração mensal 2027") entra sozinho.
+- Só entram as planilhas que têm a aba oculta `BD_Afericoes`. A dos
+  operadores, antes da troca, é ignorada sem erro.
+- O mesmo lançamento em duas planilhas (por exemplo, "SETEMBRO" e
+  "SETEMBRO (1)") entra uma vez só.
+- O endereço é fixo, como o serviço do Power BI exige para agendar a
+  atualização.
+
+**Primeira atualização.** O Power BI pede credencial para
+`https://smineracao.sharepoint.com/sites/automacao`. Escolha **Conta
+organizacional**, entre com a conta Samarco e defina a privacidade
+**Organizacional**.
+
+**Se a página Aferições disser "Pasta não encontrada".** Isso significa que
+"laboratorios" é um subsite, e não uma biblioteca do site "automacao". Daqui
+não dá para saber qual dos dois é. A correção é em uma linha, nas duas
+consultas `tbl_Afericoes` e `tbl_Afericoes_Status` (Transformar dados >
+Editor Avançado):
+
+1. Troque o Site para `"https://smineracao.sharepoint.com/sites/automacao/laboratorios"`.
+2. Tire `"laboratorios",` do início do Caminho.
+
+**Para os dados aparecerem**, a planilha da pasta precisa ser a versão com
+as abas ocultas (`afericoes/CALIBRAÇÃO 09 - SETEMBRO.xlsm` deste
+repositório). Enquanto for a versão antiga:
+
+- a página Aferições mostra "Pasta lida: N planilhas .xlsm, 0 com a aba
+  oculta BD_Afericoes";
+- o restante do painel funciona normalmente.
 
 **Setembro.** A planilha que você mandou é uma cópia de 23/09. Os
 operadores continuam lançando na original.
@@ -183,8 +200,8 @@ DimEnsaio.
 - Os 425 JSON do relatório são válidos. Os visuais novos foram conferidos
   contra o esquema público do PBIR (microsoft/json-schemas).
 - Todas as colunas e medidas que as páginas usam existem no modelo.
-- As 108 medidas novas têm referências e parênteses conferidos por script.
-- O M das 18 partições está íntegro. As vírgulas entre passos continuam
+- As 109 medidas novas têm referências e parênteses conferidos por script.
+- O M das 19 partições está íntegro. As vírgulas entre passos continuam
   checadas: foi a causa do erro da v12/v13.
 - A navegação chega às 9 páginas. Os recursos estão registrados.
 - O maior caminho de arquivo tem 133 caracteres (limite 259).

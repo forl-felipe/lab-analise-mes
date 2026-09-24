@@ -41,17 +41,19 @@ INSTALAÇÃO
 8. O rodapé de cada página termina com "· v15" e a barra lateral mostra o
    logo da Samarco.
 
-9. AFERIÇÕES: para ligar, cole o link da pasta do SharePoint na consulta
-   tbl_Afericoes (Transformar dados > tbl_Afericoes > Editor Avançado,
-   linha PastaLink). Passo a passo em docs/13-v15-painel-gerencial.md.
-   Sem o link, o painel funciona e as páginas de Aferições ficam vazias.
+9. AFERIÇÕES: a pasta do SharePoint já está configurada. Na primeira
+   atualização, escolha Conta organizacional para
+   https://smineracao.sharepoint.com/sites/automacao. Os dados aparecem
+   quando a planilha da pasta for a versão com a aba oculta BD_Afericoes.
+   Se a página Aferições disser "Pasta não encontrada", veja
+   docs/13-v15-painel-gerencial.md (é uma troca de uma linha).
 
 
 O QUE CONTÉM
 ------------
     Painel.pbip              abre o projeto
     Painel.Report            relatório, 9 páginas, 415 visuais
-    Painel.SemanticModel     modelo, 23 tabelas, 167 medidas
+    Painel.SemanticModel     modelo, 24 tabelas, 168 medidas
 
 
 AS 9 PÁGINAS

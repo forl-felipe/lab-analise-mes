@@ -221,55 +221,62 @@ table tbl_Afericoes
 		source =
 				let
 				    // ════════════════════════════════════════════════════════════════════════
-				    // ►► COLE AQUI o link da PASTA do SharePoint onde ficam os arquivos mensais
-				    //    "CALIBRAÇÃO MM - MÊS.xlsm" (o endereço do navegador com a pasta aberta,
-				    //    ou o link "Copiar link" da pasta). Enquanto estiver com o texto abaixo,
-				    //    as páginas de Aferições ficam vazias e o resto do painel funciona.
+				    // Planilhas mensais de calibração/aferição no SharePoint:
+				    //   automacao / laboratorios / Laboratório de Controle da Produção - Ubu /
+				    //   Resultados rotina / Laboratorio Fisico Ubu / Calibração Integrada  -LCP Ubu /
+				    //   Calibração Integrada mensal / Calibração mensal AAAA / CALIBRAÇÃO MM - MÊS.xlsm
+				    //
+				    // Endereço FIXO (o serviço do Power BI só agenda atualização com endereço fixo).
+				    // São lidas todas as pastas "Calibração mensal AAAA" a partir de AnoInicial:
+				    // o ano novo entra sozinho. Atenção ao espaço DUPLO em "Integrada  -LCP".
+				    //
+				    // Se a consulta tbl_Afericoes_Status disser "Pasta não encontrada",
+				    // "laboratorios" é um subsite e não uma biblioteca. Nesse caso:
+				    //   Site    = "https://smineracao.sharepoint.com/sites/automacao/laboratorios"
+				    //   Caminho = a mesma lista SEM o primeiro item "laboratorios"
+				    // (trocar nas DUAS consultas: tbl_Afericoes e tbl_Afericoes_Status)
 				    // ════════════════════════════════════════════════════════════════════════
-				    PastaLink = "COLE_AQUI_O_LINK_DA_PASTA",
+				    Site = "https://smineracao.sharepoint.com/sites/automacao",
+				    Caminho = { "laboratorios", "Laboratório de Controle da Produção - Ubu", "Resultados rotina",
+				                "Laboratorio Fisico Ubu", "Calibração Integrada  -LCP Ubu", "Calibração Integrada mensal" },
+				    AnoInicial = 2026,
+				
+				    // navega pasta a pasta (lista só o caminho, não o site inteiro)
+				    Mensal = try List.Accumulate( Caminho, SharePoint.Contents( Site, [ ApiVersion = 15 ] ),
+				                 ( t, n ) => t{[Name = n]}[Content] ) otherwise null,
+				    PastasAno =
+				        if Mensal = null then null
+				        else Table.SelectRows( Mensal, each
+				                 Value.Is( [Content], type table )
+				                 and Text.StartsWith( Text.Lower( Text.Trim( [Name] ) ), "calibração mensal" )
+				                 and ( try Number.From( Text.End( Text.Trim( [Name] ), 4 ) ) >= AnoInicial otherwise false ) ),
+				    ListaArquivos =
+				        if PastasAno = null then {}
+				        else List.Combine( List.Transform( PastasAno[Content], each
+				                 Table.ToRecords( Table.SelectColumns(
+				                     Table.SelectRows( _, each
+				                         not Value.Is( [Content], type table )
+				                         and Text.EndsWith( Text.Lower( [Name] ), ".xlsm" )
+				                         and not Text.StartsWith( [Name], "~$" ) ),
+				                     { "Name", "Content" } ) ) ) ),
+				    Arquivos = Table.FromRecords( ListaArquivos, { "Name", "Content" } ),
 				
 				    Colunas = { "Ensaio", "Tipo", "Data", "Equipamento", "Parâmetro", "Unidade", "Valor",
 				                "Referência", "Diferença", "Lim. Inferior", "Lim. Superior", "Tolerância",
 				                "Resultado", "Responsável", "Letra", "Observação", "Origem" },
 				    Numericas = { "Data", "Valor", "Referência", "Diferença", "Lim. Inferior", "Lim. Superior", "Tolerância" },
 				
-				    Configurado = Text.StartsWith( Text.Lower( Text.Trim( PastaLink ) ), "https://" ),
-				
-				    // link do navegador ou de compartilhamento: tira "?..." e o prefixo "/:f:/r"
-				    SemQuery = let t = Text.Trim( PastaLink ) in if Text.Contains( t, "?" ) then Text.BeforeDelimiter( t, "?" ) else t,
-				    Limpo    = Text.Replace( Text.Replace( SemQuery, "/:f:/r/", "/" ), "/:f:/s/", "/" ),
-				    Partes   = Text.Split( Limpo, "/" ),
-				    // https: | "" | servidor | sites | <site>  ->  as 5 primeiras partes formam o site
-				    Site     = Text.Combine( List.FirstN( Partes, 5 ), "/" ),
-				    // compara sempre no formato codificado (%20, %C3%A7...), em minúsculas
-				    Codificar = ( t as text ) as text =>
-				        Text.Lower( Text.Combine( List.Transform( Text.Split( t, "/" ),
-				            each if Text.Contains( _, ":" ) or Text.Contains( _, "%" ) then _ else Uri.EscapeDataString( _ ) ), "/" ) ),
-				    Alvo     = Codificar( Limpo ),
-				
-				    Lido =
-				        if not Configurado then null
-				        else
-				            let
-				                Arquivos  = SharePoint.Files( Site, [ ApiVersion = 15 ] ),
-				                DaPasta   = Table.SelectRows( Arquivos, each
-				                                Text.StartsWith( Codificar( [Folder Path] ), Alvo )
-				                                and Text.EndsWith( Text.Lower( [Name] ), ".xlsm" )
-				                                and not Text.StartsWith( [Name], "~$" ) ),
-				                // arquivo sem a tabela (mês antigo, cópia de trabalho) é ignorado, não quebra
-				                ComDados  = Table.AddColumn( DaPasta, "Dados", each
-				                                let
-				                                    wb = try Excel.Workbook( [Content], null, true ) otherwise null,
-				                                    t  = if wb = null then null
-				                                         else Table.SelectRows( wb, each [Kind] = "Table" and [Name] = "tbl_Afericoes" )
-				                                in
-				                                    if t = null or Table.IsEmpty( t ) then null else t{0}[Data] ),
-				                Validos   = Table.SelectRows( ComDados, each [Dados] <> null ),
-				                Enxuto    = Table.SelectColumns( Validos, { "Name", "Dados" } ),
-				                Renomeado = Table.RenameColumns( Enxuto, { { "Name", "Arquivo" } } ),
-				                Expandido = Table.ExpandTableColumn( Renomeado, "Dados", Colunas )
-				            in
-				                Expandido,
+				    // arquivo sem a aba oculta (o dos operadores antes da troca, cópia antiga) é ignorado
+				    ComDados  = Table.AddColumn( Arquivos, "Dados", each
+				                    let
+				                        wb = try Excel.Workbook( [Content], null, true ) otherwise null,
+				                        t  = if wb = null then null
+				                             else Table.SelectRows( wb, each [Kind] = "Table" and [Name] = "tbl_Afericoes" )
+				                    in
+				                        if t = null or Table.IsEmpty( t ) then null else t{0}[Data] ),
+				    Validos   = Table.SelectRows( ComDados, each [Dados] <> null ),
+				    Renomeado = Table.RenameColumns( Table.SelectColumns( Validos, { "Name", "Dados" } ), { { "Name", "Arquivo" } } ),
+				    Lido      = if Table.IsEmpty( Renomeado ) then null else Table.ExpandTableColumn( Renomeado, "Dados", Colunas ),
 				
 				    Vazio = #table( List.Combine( { { "Arquivo" }, Colunas } ), {} ),
 				    Base  = if Lido = null then Vazio else Lido,

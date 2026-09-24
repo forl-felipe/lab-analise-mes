@@ -1174,6 +1174,21 @@ table _Painel
 		displayFolder: 16 Saúde por grupo
 		lineageTag: bc64370d-2ebd-5a1a-b439-dacbd4a37877
 
+	measure 'Fonte Aferições' =
+			
+			VAR _st = MAX ( tbl_Afericoes_Status[Status] )
+			VAR _pl = MAX ( tbl_Afericoes_Status[Planilhas na Pasta] ) + 0
+			VAR _com = COALESCE ( COUNTROWS ( ALL ( tbl_Afericoes[Arquivo] ) ), 0 )
+			RETURN
+			    IF (
+			        _st <> "ok", _st,
+			        "Pasta lida: " & _pl & IF ( _pl = 1, " planilha .xlsm, ", " planilhas .xlsm, " ) & _com
+			            & " com a aba oculta BD_Afericoes."
+			            & IF ( _com < _pl, " As demais ainda são a versão antiga (sem a aba oculta) e são ignoradas.", "" )
+			    )
+		displayFolder: 13 Aferições
+		lineageTag: ba1291b1-182d-5fa2-87fb-9517889c3e35
+
 	measure 'Resumo Aferições' =
 			
 			VAR _l = SELECTEDVALUE ( tbl_Linhas[Linha] )
@@ -1190,7 +1205,7 @@ table _Painel
 			RETURN
 			    IF (
 			        ISBLANK ( _av ),
-			        IF ( _l = 1, "Sem aferições no período. Se a pasta do SharePoint ainda não foi configurada, veja o LEIA-ME (passo Aferições)." ),
+			        SWITCH ( _l, 1, "Sem aferições no período.", 2, [Fonte Aferições] ),
 			        SWITCH (
 			            _l,
 			            1, FORMAT ( [% Aferições Conformes], "0.0%" ) & " dos " & FORMAT ( _av, "#,0" ) & " registros de " & LOWER ( [Mês de Referência] ) & " estão conformes (meta " & FORMAT ( [Meta Aferições Conformes], "0%" ) & ").",
