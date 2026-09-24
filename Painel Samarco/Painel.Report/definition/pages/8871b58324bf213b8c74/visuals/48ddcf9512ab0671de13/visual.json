@@ -27,8 +27,9 @@
                 }
               },
               "queryRef": "tbl_MapaLinhas.Linha",
-              "nativeQueryRef": "Linha",
-              "active": true
+              "nativeQueryRef": "Ensaio",
+              "active": true,
+              "displayName": "Ensaio"
             }
           ]
         },
@@ -99,7 +100,14 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "15D"
+                  "Value": "12D"
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
@@ -158,21 +166,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "13D"
-                }
-              }
-            },
-            "autoSizeColumnWidth": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "alignment": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Center'"
+                  "Value": "12D"
                 }
               }
             },
@@ -197,6 +191,27 @@
                   }
                 }
               }
+            },
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Center'"
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
             }
           }
         }
@@ -207,7 +222,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "14D"
+                  "Value": "13D"
                 }
               }
             },
@@ -219,6 +234,13 @@
                       "Value": "'#1D2B36'"
                     }
                   }
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
@@ -238,6 +260,20 @@
           },
           "selector": {
             "metadata": "_Painel.Mapa"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "170D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "tbl_MapaLinhas.Linha"
           }
         }
       ],
@@ -297,7 +333,7 @@
             "rowPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "14D"
+                  "Value": "12D"
                 }
               }
             }

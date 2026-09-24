@@ -1,5 +1,16 @@
 # 13 — v15/v16: painel gerencial, Equipamentos & Paradas e Aferições
 
+## v19.1: acerto de dimensionamento do mapa
+
+Não mexe em medidas nem em fórmulas.
+
+- **Mapa:**
+  - o texto não quebra mais de linha. Antes, "qua", "dom" e "hoje" quebravam em duas linhas, desalinhavam as alturas das linhas e escondiam os nomes dos ensaios;
+  - a coluna dos ensaios tem largura fixa, e o cabeçalho dela passou a se chamar "Ensaio".
+- **Legenda:**
+  - agora é uma caixa de texto só, com os 6 itens na mesma linha. Na v19 eram 12 caixinhas, e o amarelo e o azul-claro não apareciam;
+  - ganhou uma linha que explica o amarelo e o ✖.
+
 ## v19: mapa de aferições pela regra do dia certo
 
 Aprovado a partir do mockup `entrega/Mockup-Mapa-Dia-Certo.png`. Só a

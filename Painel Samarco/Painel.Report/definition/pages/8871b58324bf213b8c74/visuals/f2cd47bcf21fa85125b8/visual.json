@@ -1,0 +1,234 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "f2cd47bcf21fa85125b8",
+  "position": {
+    "x": 244,
+    "y": 1328,
+    "z": 1000,
+    "width": 1656,
+    "height": 72,
+    "tabOrder": 1010
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "fontSize": "20pt",
+                      "color": "#1B6FB0",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Feito no dia certo        ",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "color": "#1D2B36",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "fontSize": "20pt",
+                      "color": "#F3CF5B",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Feito com atraso        ",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "color": "#1D2B36",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "fontSize": "20pt",
+                      "color": "#A9CBEA",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Feito fora do dia programado        ",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "color": "#1D2B36",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "fontSize": "20pt",
+                      "color": "#E0620F",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Não feito        ",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "color": "#1D2B36",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "○ ",
+                    "textStyle": {
+                      "fontSize": "20pt",
+                      "color": "#8C98A2",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Programado        ",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "color": "#1D2B36",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "■ ",
+                    "textStyle": {
+                      "fontSize": "20pt",
+                      "color": "#F2B48C",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Incompleto (Blaine: 1 dos 2 turnos)        ",
+                    "textStyle": {
+                      "fontSize": "12pt",
+                      "color": "#1D2B36",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Amarelo: ",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "color": "#8A6A00",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "feito depois do dia certo, antes da próxima data da rotina (o dia em que foi feito fica azul-claro).     ",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "color": "#5B6B78",
+                      "fontFamily": "Segoe UI"
+                    }
+                  },
+                  {
+                    "value": "Laranja ✖: ",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "color": "#E0620F",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "passou o dia certo e não há registro até a próxima data.",
+                    "textStyle": {
+                      "fontSize": "11pt",
+                      "color": "#5B6B78",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#D6DEE6'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
