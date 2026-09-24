@@ -1,0 +1,22 @@
+table tbl_Linhas
+	lineageTag: 1dae5584-363b-57be-8d0c-1355f80b451f
+
+	column Linha
+		dataType: int64
+		formatString: 0
+		lineageTag: 7a1540e4-434b-5658-9771-f802f78db4c2
+		summarizeBy: none
+		sourceColumn: Linha
+
+		annotation SummarizationSetBy = Automatic
+
+	partition tbl_Linhas = m
+		mode: import
+		source =
+				let
+				    // Linhas do "Resumo do mês" da página de Aferições (texto gerado por medida).
+				    Origem = #table( type table [ Linha = Int64.Type ], { { 1 }, { 2 }, { 3 }, { 4 } } )
+				in
+				    Origem
+
+	annotation PBI_ResultType = Table

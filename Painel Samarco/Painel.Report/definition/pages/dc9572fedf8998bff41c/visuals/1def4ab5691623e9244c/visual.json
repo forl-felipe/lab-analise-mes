@@ -1,0 +1,414 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "1def4ab5691623e9244c",
+  "position": {
+    "x": 244,
+    "y": 774,
+    "z": 1000,
+    "width": 1656,
+    "height": 256,
+    "tabOrder": 1210
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Equipamentos"
+                    }
+                  },
+                  "Property": "Tag"
+                }
+              },
+              "queryRef": "tbl_Equipamentos.Tag",
+              "nativeQueryRef": "Tag",
+              "displayName": "Tag"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Equipamentos"
+                    }
+                  },
+                  "Property": "Equipamento"
+                }
+              },
+              "queryRef": "tbl_Equipamentos.Equipamento",
+              "nativeQueryRef": "Equipamento",
+              "displayName": "Equipamento"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Equipamentos"
+                    }
+                  },
+                  "Property": "Grupo Operacional"
+                }
+              },
+              "queryRef": "tbl_Equipamentos.Grupo Operacional",
+              "nativeQueryRef": "Grupo",
+              "displayName": "Grupo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Equipamentos"
+                    }
+                  },
+                  "Property": "Status Operacional"
+                }
+              },
+              "queryRef": "tbl_Equipamentos.Status Operacional",
+              "nativeQueryRef": "Status",
+              "displayName": "Status"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Painel"
+                    }
+                  },
+                  "Property": "Disponibilidade no Mês"
+                }
+              },
+              "queryRef": "_Painel.Disponibilidade no Mês",
+              "nativeQueryRef": "Disponib. no mês",
+              "displayName": "Disponib. no mês"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Painel"
+                    }
+                  },
+                  "Property": "Horas Paradas no Mês"
+                }
+              },
+              "queryRef": "_Painel.Horas Paradas no Mês",
+              "nativeQueryRef": "Horas paradas no mês",
+              "displayName": "Horas paradas no mês"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Painel"
+                    }
+                  },
+                  "Property": "Última Parada"
+                }
+              },
+              "queryRef": "_Painel.Última Parada",
+              "nativeQueryRef": "Última parada",
+              "displayName": "Última parada"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Painel"
+                    }
+                  },
+                  "Property": "Situação da Última Parada"
+                }
+              },
+              "queryRef": "_Painel.Situação da Última Parada",
+              "nativeQueryRef": "Situação",
+              "displayName": "Situação"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Painel"
+                  }
+                },
+                "Property": "Horas Paradas no Mês"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        },
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Painel"
+                        }
+                      },
+                      "Property": "Cor Situação da Parada"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "_Painel.Situação da Última Parada"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "130D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "tbl_Equipamentos.Tag"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "300D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "tbl_Equipamentos.Equipamento"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "190D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "tbl_Equipamentos.Grupo Operacional"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "120D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "tbl_Equipamentos.Status Operacional"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "120D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Disponibilidade no Mês"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "150D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Horas Paradas no Mês"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "330D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Última Parada"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "180D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Painel.Situação da Última Parada"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'EQUIPAMENTOS'"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "13D"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#00335A'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
   "name": "dc9572fedf8998bff41c",
-  "displayName": "EQUIPAMENTOS",
+  "displayName": "EQUIPAMENTOS & PARADAS",
   "displayOption": "FitToPage",
   "height": 1080,
   "width": 1920

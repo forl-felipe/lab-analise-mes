@@ -1,0 +1,102 @@
+table DimEnsaio
+	lineageTag: 60462962-1a39-522a-a78e-3e7b8fbb93db
+
+	column Ensaio
+		dataType: string
+		lineageTag: 7b8e1530-4ae4-52b6-881d-fd6c95f843ea
+		summarizeBy: none
+		sourceColumn: Ensaio
+		sortByColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ensaio Curto'
+		dataType: string
+		lineageTag: be14415c-254f-5537-b121-69457f8daa4c
+		summarizeBy: none
+		sourceColumn: Ensaio Curto
+		sortByColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordem
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 36cbc945-1bf5-5f89-8d7b-9bc8c6d532ed
+		summarizeBy: none
+		sourceColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	column Frequência
+		dataType: string
+		lineageTag: ffbc62df-7111-58f6-9e1c-97cddaefb59c
+		summarizeBy: none
+		sourceColumn: Frequência
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tem Rotina'
+		dataType: boolean
+		isHidden
+		lineageTag: 28b6067d-7a37-58b0-8482-d5e31eeaa1fb
+		summarizeBy: none
+		sourceColumn: Tem Rotina
+
+		annotation SummarizationSetBy = Automatic
+
+	column Semanal
+		dataType: boolean
+		isHidden
+		lineageTag: 51740355-8d09-5860-a6e4-2612a7ffbb40
+		summarizeBy: none
+		sourceColumn: Semanal
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dias Semana'
+		dataType: string
+		isHidden
+		lineageTag: eff6b5fe-cb65-5dc0-a1ef-1d9f8f16985b
+		summarizeBy: none
+		sourceColumn: Dias Semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Por Dia'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 780933d6-ff9b-52a8-aa2e-8f5b815678e9
+		summarizeBy: none
+		sourceColumn: Por Dia
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimEnsaio = m
+		mode: import
+		source =
+				let
+				    // Ensaios da planilha de calibração e a rotina de cada um (tirada do cabeçalho
+				    // de cada aba). Dias Semana: 1 = segunda ... 7 = domingo.
+				    // Por Dia = sessões por dia programado (Blaine: uma por turno).
+				    Origem = #table(
+				        type table [ Ensaio = text, #"Ensaio Curto" = text, Ordem = Int64.Type, #"Frequência" = text,
+				                     #"Tem Rotina" = logical, Semanal = logical, #"Dias Semana" = text, #"Por Dia" = Int64.Type ],
+				        {
+				            { "Tambor de Abrasão",        "Tambor de abrasão", 1, "toda segunda",          true,  false, "1",     1 },
+				            { "Verificação Peneiradores", "Peneiradores",      2, "ter, qui e sáb",        true,  false, "2,4,6", 1 },
+				            { "Umidade",                  "Umidade",           3, "sem rotina definida",   false, false, "",      0 },
+				            { "Compressão",               "Compressão",        4, "toda segunda",          true,  false, "1",     1 },
+				            { "Blaine",                   "Blaine",            5, "início de cada turno",  true,  false, "1,2,3,4,5,6,7", 2 },
+				            { "Gran. Fina Alpine",        "Alpine",            6, "seg, qua e sáb",        true,  false, "1,3,6", 1 },
+				            { "Granulometria",            "Granulometria",     7, "1 por semana",          true,  true,  "",      1 },
+				            { "Tamb 5 kg x 15 kg",        "Tamb 5 × 15 kg",    8, "toda segunda",          true,  false, "1",     1 },
+				            { "Comparativo Fisher",       "Fisher",            9, "sem rotina definida",   false, false, "",      0 }
+				        }
+				    )
+				in
+				    Origem
+
+	annotation PBI_ResultType = Table

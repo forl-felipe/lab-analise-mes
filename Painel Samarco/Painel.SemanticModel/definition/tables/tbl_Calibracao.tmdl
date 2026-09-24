@@ -227,6 +227,14 @@ table tbl_Calibracao
 		sourceColumn: Tipo Instrumento
 
 		annotation SummarizationSetBy = Automatic
+	column 'Grupo Operacional'
+		dataType: string
+		lineageTag: 05f33a7f-284f-5c19-96de-dd2e18416537
+		summarizeBy: none
+		sourceColumn: Grupo Operacional
+
+		annotation SummarizationSetBy = Automatic
+
 	partition tbl_Calibracao = m
 		mode: import
 		source =
@@ -430,9 +438,18 @@ table tbl_Calibracao
 				
 				    // 6 linhas sem laboratório viram "N/A" para casar com DimLaboratorio
 				    Lab = Table.TransformColumns( Tipo,
-				        {{ "Laboratorio", each if _ = null or Text.Trim( Text.From( _ ) ) = "" then "N/A" else Text.Upper( Text.Trim( Text.From( _ ) ) ), type text }} )
+				        {{ "Laboratorio", each if _ = null or Text.Trim( Text.From( _ ) ) = "" then "N/A" else Text.Upper( Text.Trim( Text.From( _ ) ) ), type text }} ),
+				
+				    // v15: família de instrumento de laboratório (liga a calibração à saúde por grupo)
+				    Grupo = Table.AddColumn( Lab, "Grupo Operacional",
+				        each let k = if [TagKey] = null then "" else [TagKey]
+				             in  if      Text.StartsWith( k, "66TA" ) then "Tambores de Abrasão"
+				                 else if Text.StartsWith( k, "66AG" ) then "Peneiradores Alpine"
+				                 else if Text.StartsWith( k, "66PS" ) then "Prensas de Compressão"
+				                 else if Text.StartsWith( k, "66AN" ) then "Analisadores de Umidade"
+				                 else null, type nullable text )
 				in
-				    Lab
+				    Grupo
 
 	annotation PBI_NavigationStepName = Navegação
 

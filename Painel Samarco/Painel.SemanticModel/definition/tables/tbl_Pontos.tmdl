@@ -1,0 +1,34 @@
+table tbl_Pontos
+	lineageTag: cd705c8f-f683-5e95-b32a-7ff967976590
+
+	column Chave
+		dataType: string
+		lineageTag: 75acaf0a-a08e-5079-b562-d54272926597
+		summarizeBy: none
+		sourceColumn: Chave
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordem
+		dataType: int64
+		formatString: 0
+		lineageTag: dab24940-6f2f-5307-9bb8-17ad20c58928
+		summarizeBy: none
+		sourceColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	partition tbl_Pontos = m
+		mode: import
+		source =
+				let
+				    // Linhas fixas da lista "Pontos que pedem decisão" (Visão Geral).
+				    // Cada linha só aparece quando a medida [Ponto Ativo] = 1.
+				    Origem = #table(
+				        type table [ Chave = text, Ordem = Int64.Type ],
+				        { { "CAL", 1 }, { "AF1", 2 }, { "AF2", 3 }, { "INS", 4 }, { "PAR", 5 }, { "DISP", 6 } }
+				    )
+				in
+				    Origem
+
+	annotation PBI_ResultType = Table

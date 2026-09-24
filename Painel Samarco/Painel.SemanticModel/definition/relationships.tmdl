@@ -71,3 +71,19 @@ relationship 678b4946-95f0-5c67-bc65-a84ca09ce71b
 relationship da486851-7656-57ea-8cca-8a6e3496333c
 	fromColumn: DePara_Inspecao_Equipamento.TagKey
 	toColumn: tbl_Equipamentos.TagKey
+
+relationship 494010b4-9018-5183-91dc-c0a36d5e8e36
+	fromColumn: tbl_Afericoes.Data
+	toColumn: DimCalendario.Data
+
+relationship 638ae06e-a3c4-504f-b266-3e3c7258e22e
+	fromColumn: tbl_Afericoes.Ensaio
+	toColumn: DimEnsaio.Ensaio
+
+relationship 3cec1472-98d8-5bfe-bbca-79ffe44715e7
+	fromColumn: tbl_Afericoes.'Grupo Operacional'
+	toColumn: tbl_Grupos.'Grupo Operacional'
+
+relationship 6d9a4c08-64fe-5e5c-a094-8e36006a2115
+	fromColumn: tbl_Calibracao.'Grupo Operacional'
+	toColumn: tbl_Grupos.'Grupo Operacional'

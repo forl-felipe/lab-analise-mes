@@ -1,4 +1,4 @@
-PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v14
+PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v15
 =====================================================
 
 POR QUE OS NOMES ENCURTARAM
@@ -31,35 +31,41 @@ INSTALAÇÃO
 4. Entre em C:\PBI e procure a pasta "Painel Samarco".
 
 5. CONFIRA ANTES DE ABRIR: botão direito em "Painel.Report" >
-   Propriedades. Tem que dizer 487 arquivos, 445 pastas.
+   Propriedades. Tem que dizer 484 arquivos, 439 pastas.
    Se disser 57 arquivos, os visuais não vieram - me avise.
 
 6. Duplo clique em "Painel.pbip".
 
 7. Clique em ATUALIZAR (Página Inicial > Atualizar).
 
-8. O rodapé de cada página termina com "· v14" e a barra lateral mostra o
+8. O rodapé de cada página termina com "· v15" e a barra lateral mostra o
    logo da Samarco.
+
+9. AFERIÇÕES: para ligar, cole o link da pasta do SharePoint na consulta
+   tbl_Afericoes (Transformar dados > tbl_Afericoes > Editor Avançado,
+   linha PastaLink). Passo a passo em docs/13-v15-painel-gerencial.md.
+   Sem o link, o painel funciona e as páginas de Aferições ficam vazias.
 
 
 O QUE CONTÉM
 ------------
     Painel.pbip              abre o projeto
-    Painel.Report            relatório, 9 páginas, 420 visuais
-    Painel.SemanticModel     modelo, 18 tabelas, 59 medidas
+    Painel.Report            relatório, 9 páginas, 415 visuais
+    Painel.SemanticModel     modelo, 23 tabelas, 167 medidas
 
 
 AS 9 PÁGINAS
 ------------
-VISÃO GERAL      8 indicadores + grade 3x3 de painéis
-EQUIPAMENTOS     cadastro, grupo operacional e tipo
-CALIBRAÇÕES      última calibração, vencimento e situação
-INTERVENÇÕES     ocorrências, disciplinas e lead time
-PARADAS          horas paradas, ocorrências e disponibilidade
-SOBRESSALENTES   cobertura de estoque e vínculo com equipamento
-NOTAS / OMs      abertura, atendimento e lead time
-INSPEÇÕES        conformidade operacional e cumprimento de meta
-RELATÓRIOS       qualidade do dado e status metrológico
+VISÃO GERAL              frase do mês, 4 frentes com meta, saúde por grupo
+                         e pontos que pedem decisão
+EQUIPAMENTOS & PARADAS   disponibilidade, horas paradas e equipamentos
+CALIBRAÇÕES              última calibração, vencimento e situação
+AFERIÇÕES                resumo do mês (sub-botão 1)
+AFERIÇÕES · DETALHE      carta de controle e comparativos (sub-botão 2)
+INTERVENÇÕES             ocorrências, disciplinas e lead time
+INSPEÇÕES                conformidade operacional e cumprimento de meta
+NOTAS / OMs              abertura, atendimento e lead time
+SOBRESSALENTES           cobertura de estoque e vínculo com equipamento
 
 
 PENDÊNCIAS QUE SÃO DA PLANILHA, NÃO DO PAINEL

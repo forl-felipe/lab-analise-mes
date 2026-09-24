@@ -22,7 +22,7 @@
                     "value": "INTERVENÇÕES DE MANUTENÇÃO",
                     "textStyle": {
                       "fontSize": "18pt",
-                      "color": "#ffffff",
+                      "color": "#00335A",
                       "fontFamily": "Segoe UI",
                       "fontWeight": "bold"
                     }
@@ -35,7 +35,7 @@
                     "value": "Ocorrências, disciplinas e ações executadas",
                     "textStyle": {
                       "fontSize": "10pt",
-                      "color": "#D6DEE6",
+                      "color": "#5B6B78",
                       "fontFamily": "Segoe UI"
                     }
                   }
@@ -63,7 +63,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#00335A'"
+                      "Value": "'#FFFFFF'"
                     }
                   }
                 }

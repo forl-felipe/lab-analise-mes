@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "93add0d3a01ae504a7c2",
+  "position": {
+    "x": 248,
+    "y": 1044,
+    "z": 20,
+    "width": 1648,
+    "height": 24,
+    "tabOrder": 20
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Aferições: planilha mensal CALIBRAÇÃO (aba oculta BD_Afericoes) na pasta do SharePoint  ·  Base_PowerBI_Gestao_Equipamentos.xlsx   ·   v15",
+                    "textStyle": {
+                      "fontSize": "8pt",
+                      "color": "#898781",
+                      "fontFamily": "Segoe UI"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

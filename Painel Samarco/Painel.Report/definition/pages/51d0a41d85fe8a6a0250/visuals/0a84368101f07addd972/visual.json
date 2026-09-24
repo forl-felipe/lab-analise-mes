@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "0a84368101f07addd972",
+  "position": {
+    "x": 12,
+    "y": 966,
+    "z": 7505,
+    "width": 200,
+    "height": 60,
+    "tabOrder": 1060
+  },
+  "visual": {
+    "visualType": "listSlicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "tbl_Afericoes"
+                    }
+                  },
+                  "Property": "Parâmetro"
+                }
+              },
+              "queryRef": "tbl_Afericoes.Parâmetro",
+              "nativeQueryRef": "Parâmetro",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

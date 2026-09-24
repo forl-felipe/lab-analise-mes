@@ -1,0 +1,1220 @@
+table _Painel
+	lineageTag: 94f90df7-6199-5c78-9c33-e0536b278ddc
+
+	measure 'Mês de Referência' =
+			
+			VAR _d = IF ( ISFILTERED ( DimCalendario[Ano Mês Nome] ), MAX ( DimCalendario[Data] ), TODAY () )
+			VAR _t = FORMAT ( _d, "MMMM yyyy", "pt-BR" )
+			RETURN
+			    UPPER ( LEFT ( _t, 1 ) ) & MID ( _t, 2, 100 )
+		displayFolder: 10 Período e metas
+		lineageTag: c8967b12-8d2c-571a-a0a5-d307ce625fdf
+
+	measure 'Meta Calibração em Dia' =
+			
+			VAR _v = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Meta Calibração em Dia (%)" )
+			RETURN
+			    IF ( ISBLANK ( _v ) || _v = "", 0.9, DIVIDE ( VALUE ( _v ), 100 ) )
+		formatString: 0%
+		displayFolder: 10 Período e metas
+		lineageTag: 70d38547-6cd4-598a-bc2a-7444db868df6
+
+	measure 'Meta Aferições Conformes' =
+			
+			VAR _v = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Meta Aferições Conformes (%)" )
+			RETURN
+			    IF ( ISBLANK ( _v ) || _v = "", 0.95, DIVIDE ( VALUE ( _v ), 100 ) )
+		formatString: 0%
+		displayFolder: 10 Período e metas
+		lineageTag: 43134554-de7e-5769-a62e-e508f5dbf238
+
+	measure 'Meta Aderência à Rotina' =
+			
+			VAR _v = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Meta Aderência Rotina (%)" )
+			RETURN
+			    IF ( ISBLANK ( _v ) || _v = "", 0.9, DIVIDE ( VALUE ( _v ), 100 ) )
+		formatString: 0%
+		displayFolder: 10 Período e metas
+		lineageTag: 2a2b4c57-15ec-54c6-903e-ab67d772816d
+
+	measure 'Meta Inspeções no Mês' =
+			
+			VAR _v = LOOKUPVALUE ( tbl_Config[Valor], tbl_Config[Parâmetro], "Meta Inspeções/Mês" )
+			RETURN
+			    IF ( ISBLANK ( _v ) || _v = "", 100, VALUE ( _v ) )
+		formatString: #,0
+		displayFolder: 10 Período e metas
+		lineageTag: fc88a33d-94cb-58b3-9a09-0fe7a368e0b0
+
+	measure 'Disponibilidade no Mês' =
+			
+			CALCULATE ( [% Disponibilidade], KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: c9c9f74f-36f7-587f-954d-aca7abe87115
+
+	measure 'Horas Paradas no Mês' =
+			
+			CALCULATE ( [Horas Paradas], KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+		formatString: #,0.0
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 1b81ccc2-cdc3-5e80-8a2b-cb5fb483adfd
+
+	measure 'Horas Paradas (mês)' =
+			
+			COALESCE ( [Horas Paradas no Mês], 0 )
+		formatString: #,0.0
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 9db6b865-031a-5e7b-b22d-a6653ba7c53d
+
+	measure 'Paradas no Mês' =
+			
+			COALESCE ( CALCULATE ( COUNTROWS ( Tbl_Paradas ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) ), 0 )
+		formatString: #,0
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 9dcbf345-b7b0-5f02-a859-ccf7e552535e
+
+	measure 'Paradas em Aberto' =
+			
+			COALESCE (
+			    CALCULATE (
+			        COUNTROWS ( Tbl_Paradas ),
+			        KEEPFILTERS ( NOT ( Tbl_Paradas[Situação] IN { "Resolvido", "Resolvida", "Concluído", "Concluída" } ) ),
+			        KEEPFILTERS ( NOT ISBLANK ( Tbl_Paradas[Situação] ) )
+			    ),
+			    0
+			)
+		formatString: #,0
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 385ecab8-c949-56e5-a133-c2013b96679d
+
+	measure 'Disponibilidade Semana' =
+			
+			VAR _dias = CALCULATE ( COUNTROWS ( DimCalendario ), KEEPFILTERS ( DimCalendario[Data Passada] = TRUE () ) )
+			VAR _cap = [Total Equipamentos] * _dias * 24
+			RETURN
+			    IF ( _cap > 0, DIVIDE ( _cap - [Horas Paradas], _cap ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: c395b331-7086-5ce4-a9fd-9cd828047307
+
+	measure 'Nível Disponibilidade' =
+			
+			VAR _v = [Disponibilidade no Mês]
+			VAR _m = [Param Meta Disponibilidade]
+			VAR _r = DIVIDE ( _v, _m )
+			RETURN
+			    IF ( ISBLANK ( _v ) || ISBLANK ( _m ), BLANK (), IF ( _r >= 1, 1, IF ( _r >= 0.9, 2, 3 ) ) )
+		formatString: 0
+		isHidden
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: ba4235f8-757c-5349-b3cd-96d1a914ad4a
+
+	measure 'Situação Disponibilidade' =
+			
+			SWITCH ( [Nível Disponibilidade], 1, "● Na meta", 2, "▲ Atenção", 3, "◆ Crítico", "○ Sem dados" )
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 6df79153-d2cb-5e16-bece-6578a34df389
+
+	measure 'Cor Disponibilidade' =
+			
+			SWITCH ( [Nível Disponibilidade], 1, "#1B6FB0", 2, "#C99400", 3, "#E0620F", "#8C98A2" )
+		isHidden
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 3f170088-c249-5e75-bfa7-c31ec897923f
+
+	measure 'Disponibilidade · Meta' =
+			
+			VAR _n = [Nível Disponibilidade]
+			RETURN
+			    "meta " & FORMAT ( [Param Meta Disponibilidade], "0%" ) & " · "
+			        & SWITCH ( _n, 1, "na meta", 2, "um pouco abaixo da meta", 3, "abaixo da meta", "sem dados no mês" )
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 15a83911-684e-57d4-9fa8-2e2eba5f6641
+
+	measure 'Disponibilidade · Fatos' =
+			
+			VAR _a = [Paradas em Aberto]
+			RETURN
+			    FORMAT ( [Horas Paradas (mês)], "#,0.0" ) & " h paradas no mês  ·  " & _a
+			        & IF ( _a = 1, " parada em aberto", " paradas em aberto" )
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 59d06d3e-96f0-5eb4-9b30-a3c2ef18e998
+
+	measure 'Barra Disponibilidade' =
+			
+			MIN ( COALESCE ( [Disponibilidade no Mês], 0 ), 1 )
+		formatString: 0%
+		isHidden
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 273e553f-693a-5428-a69b-50334d3000a3
+
+	measure 'Barra Disponibilidade Resto' =
+			
+			1 - [Barra Disponibilidade]
+		formatString: 0%
+		isHidden
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 546e5687-6475-5e2c-9c30-d3c8d3649cb5
+
+	measure 'Cor Barra Disponibilidade Grupo' =
+			
+			VAR _m = COALESCE ( MAX ( tbl_Grupos[Meta Disponibilidade] ), [Param Meta Disponibilidade] )
+			VAR _v = [Disponibilidade no Mês]
+			RETURN
+			    IF ( ISBLANK ( _v ), "#8C98A2", IF ( _v >= _m, "#1B6FB0", IF ( _v >= _m * 0.9, "#C99400", "#E0620F" ) ) )
+		isHidden
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 11e80690-3bab-54d2-a027-f16b3e009451
+
+	measure 'Cor Horas Paradas' =
+			
+			IF ( [Paradas em Aberto] > 0, "#E0620F", "#1B6FB0" )
+		isHidden
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 8f81ac67-7e4a-5146-bcca-f83ad75dd70b
+
+	measure 'Última Parada' =
+			
+			VAR _d = CALCULATE ( MAX ( Tbl_Paradas[Data] ) )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _d ),
+			        FORMAT ( _d, "dd/MM" ) & " · " & CALCULATE ( MAX ( Tbl_Paradas[Ocorrência] ), Tbl_Paradas[Data] = _d )
+			    )
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 42535c25-9814-54d7-ac05-a8ef4b16c2ea
+
+	measure 'Situação da Última Parada' =
+			
+			VAR _d = CALCULATE ( MAX ( Tbl_Paradas[Data] ) )
+			RETURN
+			    IF ( NOT ISBLANK ( _d ), CALCULATE ( MAX ( Tbl_Paradas[Situação] ), Tbl_Paradas[Data] = _d ) )
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: df2401ad-b45f-531f-8e0d-f6119cc14ead
+
+	measure 'Cor Situação da Parada' =
+			
+			VAR _s = [Situação da Última Parada]
+			RETURN
+			    IF ( ISBLANK ( _s ) || _s IN { "Resolvido", "Resolvida", "Concluído", "Concluída" }, "#1D2B36", "#E0620F" )
+		isHidden
+		displayFolder: 11 Disponibilidade e paradas
+		lineageTag: 3f62a3ab-f09d-5835-804c-7144578460fa
+
+	measure '% Calibrações em Dia' =
+			
+			DIVIDE ( [Calibracoes Em Dia] + 0, [Total Instrumentos] )
+		formatString: 0%
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: dc3131c0-2bd2-5a08-897e-39088ca77de9
+
+	measure 'Nível Calibração' =
+			
+			VAR _v = [% Calibrações em Dia]
+			VAR _m = [Meta Calibração em Dia]
+			VAR _r = DIVIDE ( _v, _m )
+			RETURN
+			    IF ( ISBLANK ( _v ) || ISBLANK ( _m ), BLANK (), IF ( _r >= 1, 1, IF ( _r >= 0.9, 2, 3 ) ) )
+		formatString: 0
+		isHidden
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: 3d8418fe-cd55-5031-b800-fa8cefa46389
+
+	measure 'Situação Calibração' =
+			
+			SWITCH ( [Nível Calibração], 1, "● Na meta", 2, "▲ Atenção", 3, "◆ Crítico", "○ Sem dados" )
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: 70d9dba6-6d3b-53f6-9978-9da10d5aa60f
+
+	measure 'Cor Calibração' =
+			
+			SWITCH ( [Nível Calibração], 1, "#1B6FB0", 2, "#C99400", 3, "#E0620F", "#8C98A2" )
+		isHidden
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: b21e6d85-8d99-50a6-9794-49a9205586ff
+
+	measure 'Calibração · Meta' =
+			
+			"meta " & FORMAT ( [Meta Calibração em Dia], "0%" ) & " · "
+			    & FORMAT ( [Calibracoes Em Dia] + 0, "#,0" ) & " de " & FORMAT ( [Total Instrumentos] + 0, "#,0" ) & " instrumentos em dia"
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: 1bf47bf8-f527-568a-9e32-4775c7c9cf05
+
+	measure 'Calibração · Fatos' =
+			
+			VAR _v = [Calibracoes Vencidas] + 0
+			RETURN
+			    FORMAT ( _v, "#,0" ) & " vencidas (" & FORMAT ( DIVIDE ( _v, [Total Instrumentos] ), "0%" ) & " do cadastro)  ·  "
+			        & FORMAT ( [Calibracoes Sem Data] + 0, "#,0" ) & " sem data de vencimento"
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: 1b1f1e90-d598-5cdb-a999-0098a609d6f2
+
+	measure 'Vencem em até 30 dias' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] >= 0 && tbl_Calibracao[DiasParaVencer] <= 30 ) ) + 0
+		formatString: #,0
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: 7785ab13-dec0-502e-9035-ed8d9d901704
+
+	measure 'Vencem em 31 a 60 dias' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] >= 31 && tbl_Calibracao[DiasParaVencer] <= 60 ) ) + 0
+		formatString: #,0
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: ede1c5ec-ed50-5448-acc5-450fc19f4e5e
+
+	measure 'Vencem em 61 a 90 dias' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Calibracao ), KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] >= 61 && tbl_Calibracao[DiasParaVencer] <= 90 ) ) + 0
+		formatString: #,0
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: 935fc50d-9a85-57a2-87c0-eb32097fc016
+
+	measure 'Barra Calibração' =
+			
+			MIN ( COALESCE ( [% Calibrações em Dia], 0 ), 1 )
+		formatString: 0%
+		isHidden
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: a17a0ef0-ae44-5ab5-a809-6ec0311b3117
+
+	measure 'Barra Calibração Resto' =
+			
+			1 - [Barra Calibração]
+		formatString: 0%
+		isHidden
+		displayFolder: 12 Calibração (gerencial)
+		lineageTag: 1e74cd39-d89f-547e-90b9-7fa6d2f2dcdc
+
+	measure '_Afer Avaliadas' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( tbl_Afericoes[Resultado] IN { "Conforme", "Não conforme" } ) )
+		formatString: #,0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: e11f1b07-38a0-50ce-9843-371952541763
+
+	measure '_Afer Conformes' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Conforme" ) )
+		formatString: #,0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: f678981b-6b0e-5001-bc7e-28c2897583ea
+
+	measure '_Afer NC' =
+			
+			CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) )
+		formatString: #,0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: a763b6d7-7408-56d0-b122-60970c8b018c
+
+	measure 'Aferições Avaliadas' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    [_Afer Avaliadas],
+			    CALCULATE ( [_Afer Avaliadas], KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: d92b957b-8985-5556-a7d6-4990a9f6d544
+
+	measure 'Aferições Conformes' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    [_Afer Conformes],
+			    CALCULATE ( [_Afer Conformes], KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: e0fe4bc6-4313-5e84-ba15-67bf70d571bc
+
+	measure 'NC Aferição' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    [_Afer NC],
+			    CALCULATE ( [_Afer NC], KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: beed7016-091b-5372-ad53-b67afc27528e
+
+	measure 'NC Aferição (cartão)' =
+			
+			COALESCE ( [NC Aferição], 0 )
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 9d68cd83-0e84-59ce-b844-36896b074d5c
+
+	measure '% Aferições Conformes' =
+			
+			DIVIDE ( [Aferições Conformes] + 0, [Aferições Avaliadas] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 13 Aferições
+		lineageTag: 162a4129-ed0c-57ee-91e1-8b533bfb0007
+
+	measure 'Linha no Período' =
+			
+			IF ( NOT ISBLANK ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    COUNTROWS ( tbl_Afericoes ),
+			    CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			) ), 1 )
+		formatString: 0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 7ee565ae-cd79-529e-a78f-f8cebab35ec7
+
+	measure 'Equipamentos com NC' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) ),
+			    CALCULATE ( CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			) + 0
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: a435b9af-02c2-5a64-88c2-c6dc450bdd99
+
+	measure Reincidentes =
+			
+			COUNTROWS ( FILTER ( VALUES ( tbl_Afericoes[Equipamento] ), [NC Aferição] >= 2 ) ) + 0
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 52bfa350-6879-5b0b-a6eb-45c92c99285a
+
+	measure 'Reincidentes · Lista' =
+			
+			VAR _t = FILTER ( ADDCOLUMNS ( VALUES ( tbl_Afericoes[Equipamento] ), "@nc", [NC Aferição] ), [@nc] >= 2 )
+			RETURN
+			    IF (
+			        COUNTROWS ( _t ) > 0,
+			        CONCATENATEX ( TOPN ( 4, _t, [@nc], DESC, tbl_Afericoes[Equipamento], ASC ), tbl_Afericoes[Equipamento] & " (" & [@nc] & "×)", " · ", [@nc], DESC ),
+			        "nenhum equipamento reincidente"
+			    )
+		displayFolder: 13 Aferições
+		lineageTag: f21d296c-1866-5f08-be79-6a4f6482f4ca
+
+	measure 'Aferições Programadas' =
+			
+			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
+			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
+			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
+			VAR _fim = MIN ( _fimMes, TODAY () - 1 )
+			RETURN
+			    SUMX (
+			        FILTER ( DimEnsaio, DimEnsaio[Tem Rotina] ),
+			        VAR _dias = DimEnsaio[Dias Semana]
+			        VAR _por = DimEnsaio[Por Dia]
+			        VAR _sem = DimEnsaio[Semanal]
+			        RETURN
+			        IF (
+			                _fim < _ini, 0,
+			                IF (
+			                    _sem,
+			                    CALCULATE ( DISTINCTCOUNT ( DimCalendario[Semana Início] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= _fim ),
+			                    _por
+			                        * CALCULATE (
+			                            COUNTROWS ( DimCalendario ),
+			                            ALL ( DimCalendario ),
+			                            DimCalendario[Data] >= _ini,
+			                            DimCalendario[Data] <= _fim,
+			                            CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+			                        )
+			                )
+			            )
+			    )
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 4f9a378f-da64-5a51-a54e-85035ffa368c
+
+	measure 'Aferições Realizadas' =
+			
+			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
+			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
+			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
+			VAR _fim = MIN ( _fimMes, TODAY () - 1 )
+			RETURN
+			    SUMX (
+			        FILTER ( DimEnsaio, DimEnsaio[Tem Rotina] ),
+			        VAR _dias = DimEnsaio[Dias Semana]
+			        VAR _por = DimEnsaio[Por Dia]
+			        VAR _sem = DimEnsaio[Semanal]
+			        VAR _prog = IF (
+			                _fim < _ini, 0,
+			                IF (
+			                    _sem,
+			                    CALCULATE ( DISTINCTCOUNT ( DimCalendario[Semana Início] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= _fim ),
+			                    _por
+			                        * CALCULATE (
+			                            COUNTROWS ( DimCalendario ),
+			                            ALL ( DimCalendario ),
+			                            DimCalendario[Data] >= _ini,
+			                            DimCalendario[Data] <= _fim,
+			                            CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+			                        )
+			                )
+			            )
+			        VAR _feitas =
+			            IF (
+			                _por = 2,
+			                CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Parâmetro] = "Blaine Manual", tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim ),
+			                IF (
+			                    _sem,
+			                    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Semana Início] ), ALL ( DimCalendario ), tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim ),
+			                    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Data] ), ALL ( DimCalendario ), tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim )
+			                )
+			            )
+			        RETURN
+			            MIN ( COALESCE ( _feitas, 0 ), _prog )
+			    )
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 4b387642-3763-5c59-8108-fa5ef1f734a9
+
+	measure 'Aderência à Rotina' =
+			
+			IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (), DIVIDE ( [Aferições Realizadas], [Aferições Programadas] ) )
+		formatString: 0%
+		displayFolder: 13 Aferições
+		lineageTag: e26ce801-87fc-508d-8b37-3a85e24dda15
+
+	measure 'Ensaio Aparece' =
+			
+			IF ( NOT ISEMPTY ( ALL ( tbl_Afericoes ) ) && ( NOT ISBLANK ( [Aferições Avaliadas] ) || [Aferições Programadas] > 0 ), 1, 0 )
+		formatString: 0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: dccbd637-a8d0-5a97-99e6-4f87f4fcd99c
+
+	measure 'Nível Aferições' =
+			
+			VAR _v = [% Aferições Conformes]
+			VAR _m = [Meta Aferições Conformes]
+			RETURN
+			    IF ( ISBLANK ( _v ), BLANK (), IF ( _v >= _m, 1, IF ( _v >= _m - 0.05, 2, 3 ) ) )
+		formatString: 0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: c1af19bf-fb5c-5d7a-a580-db5a9c86db74
+
+	measure 'Situação Aferições' =
+			
+			SWITCH ( [Nível Aferições], 1, "● Na meta", 2, "▲ Atenção", 3, "◆ Crítico", "○ Sem dados" )
+		displayFolder: 13 Aferições
+		lineageTag: 3b3ca9ee-8e94-521d-be73-f77fe40f61e1
+
+	measure 'Cor Aferições' =
+			
+			SWITCH ( [Nível Aferições], 1, "#1B6FB0", 2, "#C99400", 3, "#E0620F", "#8C98A2" )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 297a1e8a-1ffd-536b-8c5e-c8f44f94d65a
+
+	measure 'Aferições · Meta' =
+			
+			"meta " & FORMAT ( [Meta Aferições Conformes], "0%" ) & " · "
+			    & FORMAT ( [Aferições Conformes] + 0, "#,0" ) & " de " & FORMAT ( [Aferições Avaliadas] + 0, "#,0" ) & " registros"
+		displayFolder: 13 Aferições
+		lineageTag: 900cc827-8f80-5d2b-8891-ac776447af7b
+
+	measure 'Aferições · Fatos' =
+			
+			VAR _nc = [NC Aferição (cartão)]
+			RETURN
+			    _nc & IF ( _nc = 1, " não conformidade em ", " não conformidades em " ) & [Equipamentos com NC] & " equip.  ·  rotina "
+			        & IF ( ISBLANK ( [Aderência à Rotina] ), "—", FORMAT ( [Aderência à Rotina], "0%" ) )
+		displayFolder: 13 Aferições
+		lineageTag: 933f7ddb-dfc0-5018-ade2-ecc2d726817f
+
+	measure 'Aderência · Meta' =
+			
+			"meta " & FORMAT ( [Meta Aderência à Rotina], "0%" ) & " · "
+			    & FORMAT ( [Aferições Realizadas] + 0, "#,0" ) & " de " & FORMAT ( [Aferições Programadas] + 0, "#,0" ) & " programadas"
+		displayFolder: 13 Aferições
+		lineageTag: 26e7e919-6f2c-548e-86bb-af84d24249da
+
+	measure 'Barra Aferições' =
+			
+			MIN ( COALESCE ( [% Aferições Conformes], 0 ), 1 )
+		formatString: 0%
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 0671de86-1b51-5489-a085-e996348d43fd
+
+	measure 'Barra Aferições Resto' =
+			
+			1 - [Barra Aferições]
+		formatString: 0%
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 4eda0a3a-d405-5df8-b70c-caee446fb9a8
+
+	measure 'Barra Aderência' =
+			
+			MIN ( COALESCE ( [Aderência à Rotina], 0 ), 1 )
+		formatString: 0%
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 6889adf9-b2d2-5a08-b99d-bf188ea0bd30
+
+	measure 'Barra Aderência Resto' =
+			
+			1 - [Barra Aderência]
+		formatString: 0%
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 7c51c23d-ca73-57ca-b212-43c6bb0581f2
+
+	measure 'Nível Ensaio' =
+			
+			VAR _pc = [% Aferições Conformes]
+			VAR _ad = [Aderência à Rotina]
+			VAR _m = [Meta Aferições Conformes]
+			VAR _ma = [Meta Aderência à Rotina]
+			RETURN
+			    IF (
+			        ISBLANK ( _pc ) && ISBLANK ( _ad ), BLANK (),
+			        IF (
+			            NOT ISBLANK ( _pc ) && _pc < _m - 0.05, 3,
+			            IF ( ( NOT ISBLANK ( _pc ) && _pc < _m ) || ( NOT ISBLANK ( _ad ) && _ad < _ma ), 2, 1 )
+			        )
+			    )
+		formatString: 0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 4a4f4deb-4565-512c-93ec-6e0a025dbc44
+
+	measure 'Situação Ensaio' =
+			
+			SWITCH ( [Nível Ensaio], 1, "● Na meta", 2, "▲ Atenção", 3, "◆ Crítico", "○ Sem dados" )
+		displayFolder: 13 Aferições
+		lineageTag: 94141c6c-904c-5606-bcd5-c3f740b5b31c
+
+	measure 'Cor Situação Ensaio' =
+			
+			SWITCH ( [Nível Ensaio], 1, "#1B6FB0", 2, "#C99400", 3, "#E0620F", "#8C98A2" )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: b6f08968-06e2-5ab6-aa52-19173e35dd5d
+
+	measure 'Último Registro' =
+			
+			VAR _d = IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    MAX ( tbl_Afericoes[Data] ),
+			    CALCULATE ( MAX ( tbl_Afericoes[Data] ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+			RETURN
+			    IF ( NOT ISBLANK ( _d ), FORMAT ( _d, "dd/MM" ) )
+		displayFolder: 13 Aferições
+		lineageTag: 0a0c7370-01f5-5787-be58-d0cedb6bd505
+
+	measure 'NC com Calibração Vencida' =
+			
+			CONCATENATEX (
+			    FILTER (
+			        ADDCOLUMNS ( ALL ( tbl_Afericoes[TagKey] ), "@nc", [NC Aferição] ),
+			        [@nc] > 0
+			            && CALCULATE (
+			                COUNTROWS ( tbl_Calibracao ),
+			                FILTER ( ALL ( tbl_Calibracao[TagKey] ), SUBSTITUTE ( tbl_Calibracao[TagKey], "-", "" ) = tbl_Afericoes[TagKey] ),
+			                KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Vencido" )
+			            ) > 0
+			    ),
+			    tbl_Afericoes[TagKey],
+			    ", ",
+			    tbl_Afericoes[TagKey], ASC
+			)
+		displayFolder: 13 Aferições
+		lineageTag: 417aa2bc-f58c-5ead-817a-ac343541f618
+
+	measure 'Ensaio da NC' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE ( MAX ( tbl_Afericoes[Ensaio] ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) ),
+			    CALCULATE ( CALCULATE ( MAX ( tbl_Afericoes[Ensaio] ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		displayFolder: 13 Aferições
+		lineageTag: 26e7e6da-1c6b-57f5-b4db-d5b4247d3838
+
+	measure 'O que Falhou' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE ( CONCATENATEX ( VALUES ( tbl_Afericoes[Parâmetro] ), tbl_Afericoes[Parâmetro], "; ", tbl_Afericoes[Parâmetro], ASC ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) ),
+			    CALCULATE ( CALCULATE ( CONCATENATEX ( VALUES ( tbl_Afericoes[Parâmetro] ), tbl_Afericoes[Parâmetro], "; ", tbl_Afericoes[Parâmetro], ASC ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		displayFolder: 13 Aferições
+		lineageTag: 9f23fd49-3895-5175-8523-793cc43c78f6
+
+	measure 'Datas das NC' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE ( CONCATENATEX ( VALUES ( tbl_Afericoes[Data] ), FORMAT ( tbl_Afericoes[Data], "dd/MM" ), ", ", tbl_Afericoes[Data], ASC ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) ),
+			    CALCULATE ( CALCULATE ( CONCATENATEX ( VALUES ( tbl_Afericoes[Data] ), FORMAT ( tbl_Afericoes[Data], "dd/MM" ), ", ", tbl_Afericoes[Data], ASC ), KEEPFILTERS ( tbl_Afericoes[Resultado] = "Não conforme" ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		displayFolder: 13 Aferições
+		lineageTag: c4d5dde4-0401-5d22-973c-0a1a029c2943
+
+	measure 'Calibração Externa' =
+			
+			VAR _k = SELECTEDVALUE ( tbl_Afericoes[TagKey] )
+			VAR _st =
+			    CALCULATE (
+			        MIN ( tbl_Calibracao[StatusAtual] ),
+			        FILTER ( ALL ( tbl_Calibracao[TagKey] ), SUBSTITUTE ( tbl_Calibracao[TagKey], "-", "" ) = _k )
+			    )
+			RETURN
+			    IF ( ISBLANK ( _k ), BLANK (), IF ( ISBLANK ( _st ), "sem cadastro", _st ) )
+		displayFolder: 13 Aferições
+		lineageTag: b5e3d93c-4f3a-5a9d-a377-058147a4d5f8
+
+	measure 'Gravidade da NC' =
+			
+			VAR _nc = [NC Aferição]
+			RETURN
+			    IF ( ISBLANK ( _nc ), BLANK (), IF ( _nc >= 3 || [Calibração Externa] = "Vencido", "◆ Crítico", "▲ Atenção" ) )
+		displayFolder: 13 Aferições
+		lineageTag: 06b6f10e-e419-55f5-abbe-b8745863849d
+
+	measure 'Cor Gravidade da NC' =
+			
+			IF ( LEFT ( [Gravidade da NC], 1 ) = "◆", "#E0620F", "#C99400" )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 149ddaa8-b59d-5ef6-b160-8ba02101d5a5
+
+	measure 'Cor Resultado' =
+			
+			SWITCH ( SELECTEDVALUE ( tbl_Afericoes[Resultado] ), "Não conforme", "#E0620F", "Conforme", "#1B6FB0", "#5B6B78" )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: d617d4ce-fc10-58eb-a0f6-254ee20d7143
+
+	measure '% da Tolerância (último)' =
+			
+			IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE (
+			        VAR _d = MAX ( tbl_Afericoes[Data] )
+			        RETURN CALCULATE ( MAX ( tbl_Afericoes[% da Tolerância] ), tbl_Afericoes[Data] = _d )
+			    ),
+			    CALCULATE ( CALCULATE (
+			        VAR _d = MAX ( tbl_Afericoes[Data] )
+			        RETURN CALCULATE ( MAX ( tbl_Afericoes[% da Tolerância] ), tbl_Afericoes[Data] = _d )
+			    ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+		formatString: 0%
+		displayFolder: 13 Aferições
+		lineageTag: 3fcfdb45-24ee-53fd-ad89-e2d8b668507a
+
+	measure 'Cor % da Tolerância' =
+			
+			VAR _p = [% da Tolerância (último)]
+			RETURN
+			    IF ( ISBLANK ( _p ), "#8C98A2", IF ( _p < 0.8, "#1B6FB0", IF ( _p <= 1, "#C99400", "#E0620F" ) ) )
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 5839ef39-1d3d-5d21-af81-9547aad6dc3b
+
+	measure 'Carta · Valor' =
+			
+			VAR _ok =
+			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			VAR _temLimite = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _v = IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    IF ( _temLimite, AVERAGE ( tbl_Afericoes[Valor] ), AVERAGE ( tbl_Afericoes[Diferença] ) ),
+			    CALCULATE ( IF ( _temLimite, AVERAGE ( tbl_Afericoes[Valor] ), AVERAGE ( tbl_Afericoes[Diferença] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+			RETURN
+			    IF ( _ok, _v )
+		formatString: #,0.00
+		displayFolder: 13 Aferições
+		lineageTag: 1613a275-a863-52e5-b03a-cc62491a1450
+
+	measure 'Carta · Lim. Inferior' =
+			
+			VAR _ok =
+			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			VAR _temLimite = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _li = IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    IF ( _temLimite, MIN ( tbl_Afericoes[Lim. Inferior] ), - MIN ( tbl_Afericoes[Tolerância] ) ),
+			    CALCULATE ( IF ( _temLimite, MIN ( tbl_Afericoes[Lim. Inferior] ), - MIN ( tbl_Afericoes[Tolerância] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+			RETURN
+			    IF ( _ok && NOT ISBLANK ( [Carta · Valor] ), _li )
+		formatString: #,0.00
+		displayFolder: 13 Aferições
+		lineageTag: 75321152-9bee-5962-b6e4-be090c51a311
+
+	measure 'Carta · Lim. Superior' =
+			
+			VAR _ok =
+			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			VAR _temLimite = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _ls = IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    IF ( _temLimite, MAX ( tbl_Afericoes[Lim. Superior] ), MAX ( tbl_Afericoes[Tolerância] ) ),
+			    CALCULATE ( IF ( _temLimite, MAX ( tbl_Afericoes[Lim. Superior] ), MAX ( tbl_Afericoes[Tolerância] ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+			RETURN
+			    IF ( _ok && NOT ISBLANK ( [Carta · Valor] ), _ls )
+		formatString: #,0.00
+		displayFolder: 13 Aferições
+		lineageTag: 0343c089-c3b4-541c-b0a4-05ebdde176a6
+
+	measure 'Carta · Nominal' =
+			
+			VAR _ok =
+			    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			        && CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) = 1
+			VAR _temLimite = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			VAR _n = IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    IF ( _temLimite, AVERAGE ( tbl_Afericoes[Referência] ), 0 ),
+			    CALCULATE ( IF ( _temLimite, AVERAGE ( tbl_Afericoes[Referência] ), 0 ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			)
+			RETURN
+			    IF ( _ok && NOT ISBLANK ( [Carta · Valor] ), _n )
+		formatString: #,0.00
+		displayFolder: 13 Aferições
+		lineageTag: a408acd4-ddc6-5704-b627-caffb33a740e
+
+	measure 'Carta · Título' =
+			
+			VAR _eq = CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Equipamento] ), ALLSELECTED ( tbl_Afericoes[Data] ) )
+			VAR _pa = CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Parâmetro] ), ALLSELECTED ( tbl_Afericoes[Data] ) )
+			VAR _tl = NOT ISBLANK ( CALCULATE ( MAX ( tbl_Afericoes[Lim. Inferior] ), ALLSELECTED ( tbl_Afericoes[Data] ) ) )
+			RETURN
+			    IF (
+			        _eq = 1 && _pa = 1,
+			        "Carta de controle · " & SELECTEDVALUE ( tbl_Afericoes[Equipamento] ) & " · " & SELECTEDVALUE ( tbl_Afericoes[Parâmetro] )
+			            & IF ( _tl, "  (valor × limites)", "  (diferença × ± tolerância)" ),
+			        "Carta de controle · escolha UM equipamento e UM parâmetro na lateral"
+			    )
+		displayFolder: 13 Aferições
+		lineageTag: f30e7b5c-e6c3-585b-a315-0c01452a4153
+
+	measure 'Inspeções no Mês' =
+			
+			COALESCE ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    [Inspecoes Realizadas],
+			    CALCULATE ( [Inspecoes Realizadas], KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			), 0 )
+		formatString: #,0
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: 272dfa3b-96a3-587d-a609-988cfcd8913f
+
+	measure 'Inspeções Esperadas até Hoje' =
+			
+			ROUNDUP ( [Meta Inspeções no Mês] * DIVIDE ( DAY ( TODAY () ), DAY ( EOMONTH ( TODAY (), 0 ) ) ), 0 )
+		formatString: #,0
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: 5616bfac-bb4f-5fd4-8017-b8d1bd0c073f
+
+	measure 'Nível Inspeções' =
+			
+			VAR _v = [Inspeções no Mês]
+			VAR _m = [Inspeções Esperadas até Hoje]
+			VAR _r = DIVIDE ( _v, _m )
+			RETURN
+			    IF ( ISBLANK ( _v ) || ISBLANK ( _m ), BLANK (), IF ( _r >= 1, 1, IF ( _r >= 0.9, 2, 3 ) ) )
+		formatString: 0
+		isHidden
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: 51b58fa6-fa02-5bec-a7ed-e4fd2998fab0
+
+	measure 'Situação Inspeções' =
+			
+			SWITCH ( [Nível Inspeções], 1, "● Na meta", 2, "▲ Atenção", 3, "◆ Crítico", "○ Sem dados" )
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: abca6b57-cfe4-5838-8a2b-2aba6f729edf
+
+	measure 'Cor Inspeções' =
+			
+			SWITCH ( [Nível Inspeções], 1, "#1B6FB0", 2, "#C99400", 3, "#E0620F", "#8C98A2" )
+		isHidden
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: e41972a1-54b1-50c6-8a2b-b233cfc10ccd
+
+	measure 'Inspeções · Meta' =
+			
+			"de " & FORMAT ( [Meta Inspeções no Mês], "#,0" ) & " no mês · proporcional até hoje: " & FORMAT ( [Inspeções Esperadas até Hoje], "#,0" )
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: a765b836-60bf-570d-b2de-7b9defd1fadb
+
+	measure 'Inspeções · Fatos' =
+			
+			VAR _pl = COALESCE ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE ( [Inspecoes Realizadas], KEEPFILTERS ( tbl_Inspecoes[Origem] = "Planilha" ) ),
+			    CALCULATE ( CALCULATE ( [Inspecoes Realizadas], KEEPFILTERS ( tbl_Inspecoes[Origem] = "Planilha" ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			), 0 )
+			VAR _fo = COALESCE ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE ( [Inspecoes Realizadas], KEEPFILTERS ( tbl_Inspecoes[Origem] = "Forms" ) ),
+			    CALCULATE ( CALCULATE ( [Inspecoes Realizadas], KEEPFILTERS ( tbl_Inspecoes[Origem] = "Forms" ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			), 0 )
+			VAR _nc = COALESCE ( IF (
+			    ISCROSSFILTERED ( DimCalendario ),
+			    CALCULATE ( [Inspecoes Realizadas], KEEPFILTERS ( tbl_Inspecoes[Resultado_Inspecao] = "Nao Conforme" ) ),
+			    CALCULATE ( CALCULATE ( [Inspecoes Realizadas], KEEPFILTERS ( tbl_Inspecoes[Resultado_Inspecao] = "Nao Conforme" ) ), KEEPFILTERS ( DimCalendario[Mês Atual] = TRUE () ) )
+			), 0 )
+			RETURN
+			    _pl & " pela planilha + " & _fo & " pelo Forms  ·  " & _nc & IF ( _nc = 1, " não conforme", " não conformes" )
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: d3068a13-32df-59ad-8a2d-f27fd02032ea
+
+	measure 'Barra Inspeções' =
+			
+			MIN ( DIVIDE ( [Inspeções no Mês], [Meta Inspeções no Mês] ), 1 ) + 0
+		formatString: 0%
+		isHidden
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: 85f7c024-4123-5d4c-8ca5-0c211694ec49
+
+	measure 'Barra Inspeções Resto' =
+			
+			1 - [Barra Inspeções]
+		formatString: 0%
+		isHidden
+		displayFolder: 14 Inspeções (gerencial)
+		lineageTag: 321ae285-cdc6-5aa1-9e10-0ed7714afe24
+
+	measure 'Resumo Geral' =
+			
+			VAR _t =
+			    {
+			        ( "Disponibilidade", [Nível Disponibilidade] ),
+			        ( "Calibração", [Nível Calibração] ),
+			        ( "Aferições", [Nível Aferições] ),
+			        ( "Inspeções", [Nível Inspeções] )
+			    }
+			VAR _ok = COALESCE ( COUNTROWS ( FILTER ( _t, [Value2] = 1 ) ), 0 )
+			VAR _com = COALESCE ( COUNTROWS ( FILTER ( _t, NOT ISBLANK ( [Value2] ) ) ), 0 )
+			VAR _crit = CONCATENATEX ( FILTER ( _t, [Value2] = 3 ), [Value1], ", " )
+			VAR _aten = CONCATENATEX ( FILTER ( _t, [Value2] = 2 ), [Value1], ", " )
+			VAR _p = [Pontos que Pedem Decisão]
+			RETURN
+			    [Mês de Referência] & ":  " & _ok & " de " & _com & " frentes na meta."
+			        & IF ( _crit <> "", "  Críticas: " & _crit & "." )
+			        & IF ( _aten <> "", "  Em atenção: " & _aten & "." )
+			        & IF ( _p > 0, "  " & _p & IF ( _p = 1, " ponto pede decisão.", " pontos pedem decisão." ) )
+		displayFolder: 15 Visão Geral
+		lineageTag: 89ac9175-7336-53eb-bb47-6822f8c2c93d
+
+	measure '_Ponto Ensaio' =
+			
+			VAR _k = SELECTEDVALUE ( tbl_Pontos[Chave] )
+			VAR _n = IF ( _k = "AF1", 1, IF ( _k = "AF2", 2, 0 ) )
+			VAR _t =
+			    FILTER (
+			        ADDCOLUMNS (
+			            ALL ( DimEnsaio[Ensaio] ),
+			            "@nc", [NC Aferição],
+			            "@re", CALCULATE ( COUNTROWS ( FILTER ( VALUES ( tbl_Afericoes[Equipamento] ), [NC Aferição] >= 2 ) ) )
+			        ),
+			        [@re] > 0
+			    )
+			VAR _top = TOPN ( _n, _t, [@nc], DESC, DimEnsaio[Ensaio], ASC )
+			RETURN
+			    IF ( _n > 0 && COUNTROWS ( _top ) >= _n, CONCATENATEX ( TOPN ( 1, _top, [@nc], ASC, DimEnsaio[Ensaio], DESC ), DimEnsaio[Ensaio] ) )
+		isHidden
+		displayFolder: 15 Visão Geral
+		lineageTag: 6cdf27a3-4849-5ce0-bc48-dff06940be58
+
+	measure 'Ponto Ativo' =
+			
+			VAR _k = SELECTEDVALUE ( tbl_Pontos[Chave] )
+			RETURN
+			    SWITCH (
+			        _k,
+			        "CAL", IF ( [Calibracoes Vencidas] > 0, 1, 0 ),
+			        "AF1", IF ( NOT ISBLANK ( [_Ponto Ensaio] ), 1, 0 ),
+			        "AF2", IF ( NOT ISBLANK ( [_Ponto Ensaio] ), 1, 0 ),
+			        "INS", IF ( [Nível Inspeções] >= 2, 1, 0 ),
+			        "PAR", IF ( [Paradas em Aberto] > 0, 1, 0 ),
+			        "DISP", IF ( [Nível Disponibilidade] >= 2, 1, 0 ),
+			        0
+			    )
+		formatString: 0
+		isHidden
+		displayFolder: 15 Visão Geral
+		lineageTag: b71bcfde-1953-5c55-831a-2b59560b929b
+
+	measure 'Pontos que Pedem Decisão' =
+			
+			COALESCE ( COUNTROWS ( FILTER ( ALL ( tbl_Pontos ), [Ponto Ativo] = 1 ) ), 0 )
+		formatString: 0
+		displayFolder: 15 Visão Geral
+		lineageTag: 060faf20-cf80-5d40-a7a3-ea8dfffc41c6
+
+	measure 'Ponto Nº' =
+			
+			IF (
+			    [Ponto Ativo] = 1,
+			    RANKX ( FILTER ( ALL ( tbl_Pontos ), [Ponto Ativo] = 1 ), CALCULATE ( MIN ( tbl_Pontos[Ordem] ) ), , ASC )
+			)
+		formatString: 0
+		displayFolder: 15 Visão Geral
+		lineageTag: 122576ff-b3f4-58bc-91ef-1e3d8f0e99f7
+
+	measure 'Ponto Título' =
+			
+			VAR _k = SELECTEDVALUE ( tbl_Pontos[Chave] )
+			VAR _e = [_Ponto Ensaio]
+			VAR _re =
+			    CALCULATETABLE (
+			        FILTER ( ADDCOLUMNS ( VALUES ( tbl_Afericoes[Equipamento] ), "@nc", [NC Aferição] ), [@nc] >= 2 ),
+			        DimEnsaio[Ensaio] = _e
+			    )
+			VAR _curto = LOOKUPVALUE ( DimEnsaio[Ensaio Curto], DimEnsaio[Ensaio], _e )
+			RETURN
+			    SWITCH (
+			        _k,
+			        "CAL", FORMAT ( [Calibracoes Vencidas], "#,0" ) & " instrumentos com calibração vencida",
+			        "AF1", _curto & ": " & CONCATENATEX ( _re, tbl_Afericoes[Equipamento], ", ", [@nc], DESC ) & " com falha repetida",
+			        "AF2", _curto & ": " & CONCATENATEX ( _re, tbl_Afericoes[Equipamento], ", ", [@nc], DESC ) & " com falha repetida",
+			        "INS", "Inspeções de amostradores abaixo do ritmo",
+			        "PAR", [Paradas em Aberto] & IF ( [Paradas em Aberto] = 1, " parada em aberto", " paradas em aberto" ),
+			        "DISP", "Disponibilidade abaixo da meta"
+			    )
+		displayFolder: 15 Visão Geral
+		lineageTag: 0c856c17-2dfc-5826-b9b8-69574c7804e2
+
+	measure 'Ponto Detalhe' =
+			
+			VAR _k = SELECTEDVALUE ( tbl_Pontos[Chave] )
+			VAR _e = [_Ponto Ensaio]
+			VAR _re =
+			    CALCULATETABLE (
+			        FILTER ( ADDCOLUMNS ( VALUES ( tbl_Afericoes[Equipamento] ), "@nc", [NC Aferição] ), [@nc] >= 2 ),
+			        DimEnsaio[Ensaio] = _e
+			    )
+			VAR _ncE = CALCULATE ( [NC Aferição], DimEnsaio[Ensaio] = _e )
+			VAR _labs =
+			    CONCATENATEX (
+			        FILTER ( ADDCOLUMNS ( VALUES ( DimLaboratorio[Laboratorio] ), "@v", [Calibracoes Vencidas] ), [@v] > 0 ),
+			        DimLaboratorio[Laboratorio] & " " & [@v], ", ", [@v], DESC
+			    )
+			VAR _uteis =
+			    COUNTROWS (
+			        FILTER ( ALL ( DimCalendario ), DimCalendario[Data] >= TODAY () && DimCalendario[Data] <= EOMONTH ( TODAY (), 0 ) && DimCalendario[Tipo de Dia] = "Dia útil" )
+			    )
+			VAR _falta = MAX ( [Meta Inspeções no Mês] - [Inspeções no Mês], 0 )
+			RETURN
+			    SWITCH (
+			        _k,
+			        "CAL", FORMAT ( DIVIDE ( [Calibracoes Vencidas], [Total Instrumentos] ), "0%" ) & " do cadastro · " & _labs & ".",
+			        "AF1", _ncE & " não conformidades no mês: " & CONCATENATEX ( _re, tbl_Afericoes[Equipamento] & " " & [@nc] & "×", ", ", [@nc], DESC ) & ".",
+			        "AF2", _ncE & " não conformidades no mês: " & CONCATENATEX ( _re, tbl_Afericoes[Equipamento] & " " & [@nc] & "×", ", ", [@nc], DESC ) & ".",
+			        "INS", [Inspeções no Mês] & " de " & [Meta Inspeções no Mês] & " no mês; faltam " & _falta & " em " & _uteis & " dias úteis até " & FORMAT ( EOMONTH ( TODAY (), 0 ), "dd/MM" ) & ".",
+			        "PAR", CONCATENATEX (
+			                   FILTER ( Tbl_Paradas, NOT ( Tbl_Paradas[Situação] IN { "Resolvido", "Resolvida", "Concluído", "Concluída" } ) && NOT ISBLANK ( Tbl_Paradas[Situação] ) ),
+			                   Tbl_Paradas[Equipamento (auto)] & " — " & Tbl_Paradas[Situação] & " desde " & FORMAT ( Tbl_Paradas[Data], "dd/MM" ), "; ", Tbl_Paradas[Data], ASC
+			               ) & ".",
+			        "DISP", FORMAT ( [Disponibilidade no Mês], "0.0%" ) & " no mês × meta " & FORMAT ( [Param Meta Disponibilidade], "0%" ) & "."
+			    )
+		displayFolder: 15 Visão Geral
+		lineageTag: d75131da-c70c-5c50-bea9-2b51e1d08e57
+
+	measure 'Ponto Ação' =
+			
+			VAR _k = SELECTEDVALUE ( tbl_Pontos[Chave] )
+			VAR _e = [_Ponto Ensaio]
+			VAR _cruz = [NC com Calibração Vencida]
+			RETURN
+			    SWITCH (
+			        _k,
+			        "CAL", "Plano de recuperação com a calibradora" & IF ( _cruz <> "", ", começando por " & _cruz & " (também reprovaram na aferição).", ", começando pelos instrumentos críticos." ),
+			        "AF1", SWITCH ( _e,
+			                   "Tambor de Abrasão", "Ajustar a velocidade do tambor e reavaliar os ensaios feitos nele no período.",
+			                   "Verificação Peneiradores", "Substituir ou calibrar as telas reprovadas; conferir a calibração externa.",
+			                   "Umidade", "Repetir o comparativo e verificar o analisador.",
+			                   "Compressão", "Repetir o comparativo e verificar a prensa.",
+			                   "Investigar a causa, corrigir e repetir a aferição." ),
+			        "AF2", SWITCH ( _e,
+			                   "Tambor de Abrasão", "Ajustar a velocidade do tambor e reavaliar os ensaios feitos nele no período.",
+			                   "Verificação Peneiradores", "Substituir ou calibrar as telas reprovadas; conferir a calibração externa.",
+			                   "Umidade", "Repetir o comparativo e verificar o analisador.",
+			                   "Compressão", "Repetir o comparativo e verificar a prensa.",
+			                   "Investigar a causa, corrigir e repetir a aferição." ),
+			        "INS", "Rever a meta ou redistribuir as inspeções por turno.",
+			        "PAR", "Cobrar a peça ou o serviço pendente e registrar a previsão de retorno.",
+			        "DISP", "Atacar as maiores causas de parada do mês (página Equipamentos & Paradas)."
+			    )
+		displayFolder: 15 Visão Geral
+		lineageTag: 09d29314-0cdc-569c-ac84-1578bb8256fb
+
+	measure 'Ponto Gravidade' =
+			
+			VAR _k = SELECTEDVALUE ( tbl_Pontos[Chave] )
+			VAR _e = [_Ponto Ensaio]
+			VAR _max = MAXX ( FILTER ( ADDCOLUMNS ( VALUES ( tbl_Afericoes[Equipamento] ), "@nc", CALCULATE ( [NC Aferição], DimEnsaio[Ensaio] = _e ) ), NOT ISBLANK ( [@nc] ) ), [@nc] )
+			VAR _n =
+			    SWITCH (
+			        _k,
+			        "CAL", IF ( [Nível Calibração] = 3, 3, 2 ),
+			        "AF1", IF ( _max >= 3, 3, 2 ),
+			        "AF2", IF ( _max >= 3, 3, 2 ),
+			        "INS", [Nível Inspeções],
+			        "PAR", 2,
+			        "DISP", [Nível Disponibilidade]
+			    )
+			RETURN
+			    IF ( [Ponto Ativo] = 1, SWITCH ( _n, 1, "● Na meta", 2, "▲ Atenção", 3, "◆ Crítico", "○ Sem dados" ))
+		displayFolder: 15 Visão Geral
+		lineageTag: b1cd585b-e344-53e0-bb6e-7113e4fad6aa
+
+	measure 'Cor Ponto Gravidade' =
+			
+			SWITCH ( LEFT ( [Ponto Gravidade], 1 ), "◆", "#E0620F", "▲", "#C99400", "●", "#1B6FB0", "#8C98A2" )
+		isHidden
+		displayFolder: 15 Visão Geral
+		lineageTag: 9c14a38a-31bd-548a-8870-fc94a462c44c
+
+	measure 'Disponibilidade do Grupo' =
+			
+			IF ( SELECTEDVALUE ( tbl_Grupos[Domínio] ) = "Equipamentos de amostragem", [Disponibilidade no Mês] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 16 Saúde por grupo
+		lineageTag: 30e72ebe-66e4-571a-98f3-89effdbafc71
+
+	measure 'Calibração do Grupo' =
+			
+			IF ( SELECTEDVALUE ( tbl_Grupos[Domínio] ) = "Instrumentos de laboratório", [% Calibrações em Dia] )
+		formatString: 0%
+		displayFolder: 16 Saúde por grupo
+		lineageTag: 391a5629-ac67-5398-a7a4-3d6c564ac6a9
+
+	measure 'Aferição do Grupo' =
+			
+			[% Aferições Conformes]
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 16 Saúde por grupo
+		lineageTag: 637a94ef-5cbb-5a3a-b075-9b14587f6ef3
+
+	measure 'Equip. no Grupo' =
+			
+			MAX ( tbl_Grupos[Nº Equipamentos] )
+		formatString: #,0
+		displayFolder: 16 Saúde por grupo
+		lineageTag: 2f9ab534-26fb-5bdf-8442-5a7088bb1ba3
+
+	measure 'Grupo Aparece' =
+			
+			IF ( NOT ISBLANK ( [Disponibilidade do Grupo] ) || NOT ISBLANK ( [Calibração do Grupo] ) || NOT ISBLANK ( [Aferição do Grupo] ), 1, 0 )
+		formatString: 0
+		isHidden
+		displayFolder: 16 Saúde por grupo
+		lineageTag: cf05bc23-3e67-5d65-91d4-840e6a7aed66
+
+	measure 'Nível do Grupo' =
+			
+			VAR _md = COALESCE ( MAX ( tbl_Grupos[Meta Disponibilidade] ), [Param Meta Disponibilidade] )
+			VAR _d = [Disponibilidade do Grupo]
+			VAR _c = [Calibração do Grupo]
+			VAR _a = [Aferição do Grupo]
+			VAR _mc = [Meta Calibração em Dia]
+			VAR _ma = [Meta Aferições Conformes]
+			VAR _nd = IF ( ISBLANK ( _d ), BLANK (), IF ( _d >= _md, 1, IF ( _d >= _md * 0.9, 2, 3 ) ) )
+			VAR _nc = IF ( ISBLANK ( _c ), BLANK (), IF ( _c >= _mc, 1, IF ( _c >= _mc * 0.9, 2, 3 ) ) )
+			VAR _na = IF ( ISBLANK ( _a ), BLANK (), IF ( _a >= _ma, 1, IF ( _a >= _ma - 0.05, 2, 3 ) ) )
+			RETURN
+			    MAX ( MAX ( _nd, _nc ), _na )
+		formatString: 0
+		isHidden
+		displayFolder: 16 Saúde por grupo
+		lineageTag: 52caed62-7eb4-53d2-866a-d138ecd57ff8
+
+	measure 'Situação do Grupo' =
+			
+			SWITCH ( [Nível do Grupo], 1, "● Na meta", 2, "▲ Atenção", 3, "◆ Crítico", "○ Sem dados" )
+		displayFolder: 16 Saúde por grupo
+		lineageTag: 21076da4-7f65-5642-873d-887e3d3f6e69
+
+	measure 'Cor Situação do Grupo' =
+			
+			SWITCH ( [Nível do Grupo], 1, "#1B6FB0", 2, "#C99400", 3, "#E0620F", "#8C98A2" )
+		isHidden
+		displayFolder: 16 Saúde por grupo
+		lineageTag: 74c52b01-3f32-555b-b8b4-d3e9c01cdcd0
+
+	measure 'Observação do Grupo' =
+			
+			VAR _dom = SELECTEDVALUE ( tbl_Grupos[Domínio] )
+			VAR _ab = [Paradas em Aberto]
+			VAR _hp = [Horas Paradas (mês)]
+			VAR _venc = CALCULATETABLE ( VALUES ( tbl_Calibracao[Tag] ), KEEPFILTERS ( tbl_Calibracao[StatusAtual] = "Vencido" ) )
+			VAR _nv = COUNTROWS ( _venc )
+			VAR _tv = IF ( _nv > 0, IF ( _nv <= 3, CONCATENATEX ( _venc, tbl_Calibracao[Tag], ", " ), _nv & " instrumentos" ) & IF ( _nv = 1, " com calibração vencida", " com calibração vencida" ) )
+			VAR _pior = TOPN ( 1, FILTER ( ADDCOLUMNS ( VALUES ( tbl_Afericoes[Equipamento] ), "@nc", [NC Aferição] ), [@nc] > 0 ), [@nc], DESC, tbl_Afericoes[Equipamento], ASC )
+			VAR _ta = IF ( COUNTROWS ( _pior ) > 0, CONCATENATEX ( _pior, tbl_Afericoes[Equipamento] & ": " & [@nc] & " NC na aferição" ) )
+			RETURN
+			    IF (
+			        _dom = "Equipamentos de amostragem",
+			        IF ( _ab > 0, _ab & IF ( _ab = 1, " parada em aberto", " paradas em aberto" ), IF ( _hp > 0, FORMAT ( _hp, "#,0.0" ) & " h paradas no mês", "sem pendências" ) ),
+			        VAR _txt = _tv & IF ( _tv <> "" && _ta <> "", " · " ) & _ta
+			        RETURN IF ( _txt = "", "sem pendências", _txt )
+			    )
+		displayFolder: 16 Saúde por grupo
+		lineageTag: bc64370d-2ebd-5a1a-b439-dacbd4a37877
+
+	measure 'Resumo Aferições' =
+			
+			VAR _l = SELECTEDVALUE ( tbl_Linhas[Linha] )
+			VAR _av = [Aferições Avaliadas]
+			VAR _nc = [NC Aferição (cartão)]
+			VAR _pior =
+			    TOPN (
+			        1,
+			        FILTER ( ADDCOLUMNS ( FILTER ( ALL ( DimEnsaio ), DimEnsaio[Tem Rotina] ), "@a", [Aderência à Rotina] ), NOT ISBLANK ( [@a] ) && [@a] < 1 ),
+			        [@a], ASC, DimEnsaio[Ordem], ASC
+			    )
+			VAR _tp = IF ( COUNTROWS ( _pior ) > 0, CONCATENATEX ( _pior, DimEnsaio[Ensaio Curto] & " (" & FORMAT ( [@a], "0%" ) & ")" ) )
+			VAR _cruz = [NC com Calibração Vencida]
+			RETURN
+			    IF (
+			        ISBLANK ( _av ),
+			        IF ( _l = 1, "Sem aferições no período. Se a pasta do SharePoint ainda não foi configurada, veja o LEIA-ME (passo Aferições)." ),
+			        SWITCH (
+			            _l,
+			            1, FORMAT ( [% Aferições Conformes], "0.0%" ) & " dos " & FORMAT ( _av, "#,0" ) & " registros de " & LOWER ( [Mês de Referência] ) & " estão conformes (meta " & FORMAT ( [Meta Aferições Conformes], "0%" ) & ").",
+			            2, IF ( _nc = 0, "Nenhuma não conformidade no período.",
+			                   "As " & _nc & " não conformidades vêm de " & [Equipamentos com NC] & " equipamentos. Reincidentes: " & [Reincidentes · Lista] & "." ),
+			            3, "Rotina: " & [Aferições Realizadas] & " de " & [Aferições Programadas] & " aferições programadas (" & FORMAT ( [Aderência à Rotina], "0%" ) & ")"
+			                   & IF ( _tp <> "", "; menor aderência em " & _tp & ".", "." ),
+			            4, IF ( _cruz <> "", "Calibração externa vencida em equipamento com não conformidade: " & _cruz & ".",
+			                   "Nenhum equipamento com não conformidade está com a calibração externa vencida." )
+			        )
+			    )
+		displayFolder: 13 Aferições
+		lineageTag: b957fcfe-ebea-506c-82fd-f18f4110f650
+
+	column Value
+		isHidden
+		formatString: 0
+		lineageTag: cf5266d3-596f-5b5b-984a-fea7839d6b06
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Painel = calculated
+		mode: import
+		source = {1}

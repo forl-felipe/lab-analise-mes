@@ -230,26 +230,6 @@
           "type": "Image"
         },
         {
-          "name": "menu-paradas-off.png",
-          "path": "menu-paradas-off.png",
-          "type": "Image"
-        },
-        {
-          "name": "menu-paradas-on.png",
-          "path": "menu-paradas-on.png",
-          "type": "Image"
-        },
-        {
-          "name": "menu-relat-off.png",
-          "path": "menu-relat-off.png",
-          "type": "Image"
-        },
-        {
-          "name": "menu-relat-on.png",
-          "path": "menu-relat-on.png",
-          "type": "Image"
-        },
-        {
           "name": "menu-sobre-off.png",
           "path": "menu-sobre-off.png",
           "type": "Image"
@@ -272,6 +252,36 @@
         {
           "name": "samarco-logo.png",
           "path": "samarco-logo.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-afer-on.png",
+          "path": "menu-afer-on.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-afer-off.png",
+          "path": "menu-afer-off.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-afer-resumo-on.png",
+          "path": "menu-afer-resumo-on.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-afer-resumo-off.png",
+          "path": "menu-afer-resumo-off.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-afer-detalhe-on.png",
+          "path": "menu-afer-detalhe-on.png",
+          "type": "Image"
+        },
+        {
+          "name": "menu-afer-detalhe-off.png",
+          "path": "menu-afer-detalhe-off.png",
           "type": "Image"
         }
       ]

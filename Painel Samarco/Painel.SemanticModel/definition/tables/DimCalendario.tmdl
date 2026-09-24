@@ -193,6 +193,28 @@ table DimCalendario
 		sourceColumn: [Mês Atual]
 
 		annotation SummarizationSetBy = Automatic
+	column 'Semana Início'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 453d59c7-feea-5edb-9a89-7a10f9ff5039
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Semana Início]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Semana Rótulo'
+		dataType: string
+		lineageTag: 38d42b48-5b2a-51a3-8607-89b198f1f70f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Semana Rótulo]
+		sortByColumn: 'Semana Início'
+
+		annotation SummarizationSetBy = Automatic
+
 	partition DimCalendario = calculated
 		mode: import
 		source =
@@ -219,7 +241,9 @@ table DimCalendario
 				    "Ano Offset",        YEAR ( [Data] ) - YEAR ( _Hoje ),
 				    "Mês Offset",        ( YEAR ( [Data] ) - YEAR ( _Hoje ) ) * 12 + MONTH ( [Data] ) - MONTH ( _Hoje ),
 				    "Data Passada",      [Data] <= _Hoje,
-				    "Mês Atual",         EOMONTH ( [Data], 0 ) = EOMONTH ( _Hoje, 0 )
+				    "Mês Atual",         EOMONTH ( [Data], 0 ) = EOMONTH ( _Hoje, 0 ),
+				    "Semana Início",     [Data] - WEEKDAY ( [Data], 2 ) + 1,
+				    "Semana Rótulo",     "sem. " & FORMAT ( [Data] - WEEKDAY ( [Data], 2 ) + 1, "dd/MM/yy" )
 				)
 
 	annotation PBI_ResultType = Table
