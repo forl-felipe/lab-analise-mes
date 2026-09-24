@@ -162,37 +162,72 @@ RETURN
         CONCATENATEX ( TOPN ( 4, _t, [@nc], DESC, tbl_Afericoes[Equipamento], ASC ), tbl_Afericoes[Equipamento] & " (" & [@nc] & "×)", " · ", [@nc], DESC ),
         "nenhum equipamento reincidente"
     )""", None, A)
-add("Aferições Programadas", PERIODO + """
+# v19 · regra do DIA CERTO. Nível de um ensaio num dia (contexto: 1 data e 1 ensaio):
+#   1 feito no dia certo · 2 feito com atraso (depois do dia certo e antes da próxima data da rotina)
+#   3 não feito · 4 incompleto (Blaine: 1 dos 2 turnos) · 5 registro fora do dia programado
+#   6 programado (hoje ou futuro)
+add("_Mapa Nível Data", """VAR _d = SELECTEDVALUE ( DimCalendario[Data] )
+VAR _hoje = TODAY ()
+VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
+VAR _por = COALESCE ( SELECTEDVALUE ( DimEnsaio[Por Dia] ), 1 )
+VAR _rot = SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE ()
+VAR _primeiro = CALCULATE ( MIN ( tbl_Afericoes[Data] ), REMOVEFILTERS () )
+VAR _inicio = IF ( NOT ISBLANK ( _primeiro ), DATE ( YEAR ( _primeiro ), MONTH ( _primeiro ), 1 ) )
+VAR _sess =
+    IF (
+        _por >= 2,
+        CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Data] = _d, tbl_Afericoes[Parâmetro] = "Blaine Manual" ),
+        IF ( CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Data] = _d ) > 0, 1, 0 )
+    )
+VAR _s = COALESCE ( _sess, 0 )
+VAR _prog = _rot && NOT ISBLANK ( _d ) && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
+-- atraso vale até a véspera da PRÓXIMA data da rotina (e nunca depois de hoje)
+VAR _prox =
+    CALCULATE (
+        MIN ( DimCalendario[Data] ),
+        ALL ( DimCalendario ),
+        DimCalendario[Data] > _d,
+        CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+    )
+VAR _limite = MIN ( COALESCE ( _prox, DATE ( 2100, 1, 1 ) ) - 1, _hoje )
+VAR _depois = CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Data] > _d, tbl_Afericoes[Data] <= _limite )
 RETURN
-    SUMX (
-        FILTER ( DimEnsaio, DimEnsaio[Tem Rotina] ),
-        VAR _dias = DimEnsaio[Dias Semana]
-        VAR _por = DimEnsaio[Por Dia]
-        VAR _sem = DimEnsaio[Semanal]
-        RETURN
-        """ + PROG_LINHA + """
-    )""", "#,0", A)
-add("Aferições Realizadas", PERIODO + """
-RETURN
-    SUMX (
-        FILTER ( DimEnsaio, DimEnsaio[Tem Rotina] ),
-        VAR _dias = DimEnsaio[Dias Semana]
-        VAR _por = DimEnsaio[Por Dia]
-        VAR _sem = DimEnsaio[Semanal]
-        VAR _prog = """ + PROG_LINHA + """
-        VAR _feitas =
+    IF (
+        ISBLANK ( _d ) || ISBLANK ( _inicio ) || _d < _inicio, BLANK (),
+        IF (
+            NOT _prog,
+            IF ( _s > 0 && _d <= _hoje, 5 ),
             IF (
-                _por = 2,
-                CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Parâmetro] = "Blaine Manual", tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim ),
-                IF (
-                    _sem,
-                    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Semana Início] ), ALL ( DimCalendario ), tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim ),
-                    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Data] ), ALL ( DimCalendario ), tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim )
-                )
+                _s >= _por, 1,
+                IF ( _d >= _hoje, 6, IF ( _s > 0, 4, IF ( COALESCE ( _depois, 0 ) > 0, 2, 3 ) ) )
             )
-        RETURN
-            MIN ( COALESCE ( _feitas, 0 ), _prog )
-    )""", "#,0", A)
+        )
+    )""", "0", A, True)
+
+def conta(niveis):
+    return PERIODO + """
+VAR _datas = CALCULATETABLE ( VALUES ( DimCalendario[Data] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= MIN ( _fimMes, TODAY () ) )
+RETURN
+    IF (
+        ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
+        SUMX (
+            FILTER ( VALUES ( DimEnsaio[Ensaio] ), CALCULATE ( SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) ) = TRUE () ),
+            SUMX (
+                _datas,
+                VAR _x = DimCalendario[Data]
+                RETURN
+                    IF ( CALCULATE ( [_Mapa Nível Data], ALL ( DimCalendario ), DimCalendario[Data] = _x ) IN { %s }, 1 )
+            )
+        ) + 0
+    )""" % niveis
+
+add("Rotina · No Dia Certo", conta("1"), "#,0", A)
+add("Rotina · Com Atraso", conta("2, 4"), "#,0", A)
+add("Rotina · Não Feitas", conta("3"), "#,0", A)
+add("Rotina · Programadas", conta("1, 2, 3, 4"), "#,0", A)
+# nomes antigos mantidos (usados em textos e na Visão Geral): agora seguem a regra do dia certo
+add("Aferições Programadas", "[Rotina · Programadas]", "#,0", A)
+add("Aferições Realizadas", "[Rotina · No Dia Certo]", "#,0", A)
 add("Aderência à Rotina", "IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (), DIVIDE ( [Aferições Realizadas], [Aferições Programadas] ) )", "0%", A)
 add("Ensaio Aparece", "IF ( NOT ISEMPTY ( ALL ( tbl_Afericoes ) ) && ( NOT ISBLANK ( [Aferições Avaliadas] ) || [Aferições Programadas] > 0 ), 1, 0 )", "0", A, True)
 add("Nível Aferições", """VAR _v = [% Aferições Conformes]
@@ -208,7 +243,7 @@ RETURN
     _nc & IF ( _nc = 1, " não conformidade em ", " não conformidades em " ) & [Equipamentos com NC] & " equip.  ·  rotina "
         & IF ( ISBLANK ( [Aderência à Rotina] ), "—", FORMAT ( [Aderência à Rotina], "0%" ) )""", None, A)
 add("Aderência · Meta", """"meta " & FORMAT ( [Meta Aderência à Rotina], "0%" ) & " · "
-    & FORMAT ( [Aferições Realizadas] + 0, "#,0" ) & " de " & FORMAT ( [Aferições Programadas] + 0, "#,0" ) & " programadas\"""", None, A)
+    & FORMAT ( [Aferições Realizadas] + 0, "#,0" ) & " de " & FORMAT ( [Aferições Programadas] + 0, "#,0" ) & " no dia certo\"""", None, A)
 add("Barra Aferições", "MIN ( COALESCE ( [% Aferições Conformes], 0 ), 1 )", "0%", A, True)
 add("Barra Aferições Resto", "1 - [Barra Aferições]", "0%", A, True)
 add("Barra Aderência", "MIN ( COALESCE ( [Aderência à Rotina], 0 ), 1 )", "0%", A, True)
@@ -287,41 +322,88 @@ RETURN
         "Carta de controle · escolha UM equipamento e UM parâmetro na lateral"
     )""", None, A)
 
-# mapa ensaio × dia (matriz): 1 conforme · 2 programado sem registro · 3 com não conformidade
-# mapa ensaio × dia: 1 = feito (há registro na BD_Afericoes naquele dia)
-#                    2 = estava na rotina (DimEnsaio) até ontem e não há registro
-add("Mapa · Nível", PERIODO.replace("VAR _fim = MIN ( _fimMes, TODAY () - 1 )", "") + """
-VAR _feito = CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
-VAR _d = CALCULATE ( MAX ( DimCalendario[Data] ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
-VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
-VAR _naRotina =
-    NOT ISBLANK ( _d ) && HASONEVALUE ( DimCalendario[Dia] )
-        && SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE ()
-        && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
--- prazo: da data da rotina até a véspera da PRÓXIMA data da rotina
--- (ex.: tambor na segunda 07/09 feito na quarta 09/09 = dentro do prazo)
-VAR _prox =
-    IF (
-        _naRotina,
-        CALCULATE (
-            MIN ( DimCalendario[Data] ),
-            ALL ( DimCalendario ),
-            DimCalendario[Data] > _d,
-            CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
-        )
-    )
-VAR _prazoVencido = _naRotina && _prox <= TODAY ()
-VAR _feitoNoPrazo =
-    IF (
-        _prazoVencido,
-        CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), DimCalendario[Data] >= _d, DimCalendario[Data] < _prox )
-    )
+# mapa (matriz tbl_MapaLinhas × DimCalendario[Dia]) · v19: regra do dia certo
+# linha 0 = dia da semana (10) ou hoje (11) · demais linhas = _Mapa Nível Data do ensaio (0 = vazio)
+add("_Mapa Data", PERIODO.replace("VAR _fim = MIN ( _fimMes, TODAY () - 1 )", "") + """
+VAR _dia = SELECTEDVALUE ( DimCalendario[Dia] )
 RETURN
-    IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
-        IF ( _feito > 0, 1, IF ( _prazoVencido && COALESCE ( _feitoNoPrazo, 0 ) = 0, 2 ) ) )""", "0", A, True)
-add("Mapa", """SWITCH ( [Mapa · Nível], 1, "✔", 2, "✖" )""", None, A)
-add("Mapa · Fundo", """SWITCH ( [Mapa · Nível], 1, "#1B6FB0", 2, "#E0620F", "#FFFFFF" )""", None, A, True)
-add("Mapa · Fonte", """SWITCH ( [Mapa · Nível], 1, "#FFFFFF", 2, "#FFFFFF", "#FFFFFF" )""", None, A, True)
+    IF (
+        NOT ISBLANK ( _dia ),
+        CALCULATE ( MAX ( DimCalendario[Data] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= _fimMes, DimCalendario[Dia] = _dia )
+    )""", "dd/mm/yyyy", A, True)
+add("Mapa · Nível", """VAR _ordem = SELECTEDVALUE ( tbl_MapaLinhas[Ordem] )
+VAR _ens = SELECTEDVALUE ( tbl_MapaLinhas[Ensaio] )
+VAR _d = [_Mapa Data]
+VAR _visivel = NOT ISBLANK ( _ens ) && CALCULATE ( COUNTROWS ( DimEnsaio ), KEEPFILTERS ( DimEnsaio[Ensaio] = _ens ) ) > 0
+RETURN
+    IF (
+        ISBLANK ( _d ) || ISBLANK ( _ordem ) || ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
+        IF (
+            _ordem = 0, IF ( _d = TODAY (), 11, 10 ),
+            IF (
+                _visivel,
+                COALESCE ( CALCULATE ( [_Mapa Nível Data], ALL ( DimCalendario ), DimCalendario[Data] = _d, DimEnsaio[Ensaio] = _ens ), 0 )
+            )
+        )
+    )""", "0", A, True)
+add("Mapa", """VAR _n = [Mapa · Nível]
+VAR _d = [_Mapa Data]
+RETURN
+    SWITCH (
+        _n,
+        1, "✔",
+        2, " ",
+        3, "✖",
+        4, "½",
+        5, "✔",
+        6, "○",
+        0, " ",
+        10, SWITCH ( WEEKDAY ( _d, 2 ), 1, "seg", 2, "ter", 3, "qua", 4, "qui", 5, "sex", 6, "sáb", 7, "dom" ),
+        11, "hoje"
+    )""", None, A)
+add("Mapa · Fundo", """SWITCH ( [Mapa · Nível],
+    1, "#1B6FB0", 2, "#F3CF5B", 3, "#E0620F", 4, "#F8D9C4", 5, "#DCEAF6", 6, "#FFFFFF", 0, "#F1F4F7",
+    11, "#FFC000", "#FFFFFF" )""", None, A, True)
+add("Mapa · Fonte", """SWITCH ( [Mapa · Nível],
+    1, "#FFFFFF", 2, "#F3CF5B", 3, "#FFFFFF", 4, "#9A3F05", 5, "#1B6FB0", 6, "#8C98A2", 0, "#F1F4F7",
+    10, IF ( WEEKDAY ( [_Mapa Data], 2 ) >= 6, "#9AA8B4", "#5B6B78" ), 11, "#1D2B36", "#5B6B78" )""", None, A, True)
+
+# cola de regras (tabela tbl_MapaLinhas embaixo do mapa)
+add("Regra · Dias Certos", PERIODO.replace("VAR _fim = MIN ( _fimMes, TODAY () - 1 )", "") + """
+VAR _ens = SELECTEDVALUE ( tbl_MapaLinhas[Ensaio] )
+VAR _dias = LOOKUPVALUE ( DimEnsaio[Dias Semana], DimEnsaio[Ensaio], _ens )
+VAR _rot = LOOKUPVALUE ( DimEnsaio[Tem Rotina], DimEnsaio[Ensaio], _ens )
+VAR _t =
+    CALCULATETABLE (
+        VALUES ( DimCalendario[Data] ),
+        ALL ( DimCalendario ),
+        DimCalendario[Data] >= _ini,
+        DimCalendario[Data] <= _fimMes,
+        CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+    )
+VAR _n = COUNTROWS ( _t )
+RETURN
+    IF (
+        ISBLANK ( _ens ) || _ens = "", BLANK (),
+        IF (
+            _rot <> TRUE () || COALESCE ( _n, 0 ) = 0, "sem dia programado",
+            IF ( _n >= 28, "todos os dias do mês", CONCATENATEX ( _t, FORMAT ( DimCalendario[Data], "dd" ), ", ", DimCalendario[Data], ASC ) )
+        )
+    )""", None, A)
+add("Regra · No Dia Certo", """VAR _ens = SELECTEDVALUE ( tbl_MapaLinhas[Ensaio] )
+VAR _p = CALCULATE ( [Rotina · Programadas], KEEPFILTERS ( TREATAS ( { _ens }, DimEnsaio[Ensaio] ) ) )
+VAR _ok = CALCULATE ( [Rotina · No Dia Certo], KEEPFILTERS ( TREATAS ( { _ens }, DimEnsaio[Ensaio] ) ) )
+VAR _at = CALCULATE ( [Rotina · Com Atraso], KEEPFILTERS ( TREATAS ( { _ens }, DimEnsaio[Ensaio] ) ) )
+VAR _nf = CALCULATE ( [Rotina · Não Feitas], KEEPFILTERS ( TREATAS ( { _ens }, DimEnsaio[Ensaio] ) ) )
+RETURN
+    IF (
+        ISBLANK ( _ens ) || _ens = "", BLANK (),
+        IF (
+            COALESCE ( _p, 0 ) = 0, "—",
+            _ok & " de " & _p & "  ·  " & _at & " com atraso  ·  " & _nf & " não feitas"
+        )
+    )""", None, A)
+add("Regra Aparece", "IF ( SELECTEDVALUE ( tbl_MapaLinhas[Ordem] ) > 0, 1, 0 )", "0", A, True)
 add("Última Aferição", "VAR _d = " + PER("MAX ( tbl_Afericoes[Data] )") + '\nRETURN\n    IF ( NOT ISBLANK ( _d ), FORMAT ( _d, "dd/MM" ) )', None, A)
 add("Último Valor", PER("""CALCULATE (
         VAR _d = MAX ( tbl_Afericoes[Data] )
@@ -343,9 +425,7 @@ add("Último Resultado", PER("""CALCULATE (
     )"""), None, A)
 add("Cor Último Resultado", """SWITCH ( [Último Resultado], "Não conforme", "#E0620F", "Conforme", "#1B6FB0", "#5B6B78" )""", None, A, True)
 add("Registros no Período", PER("COUNTROWS ( tbl_Afericoes )"), "#,0", A)
-add("Mapa · Dias Não Feitos", """VAR _dias = SUMX ( VALUES ( DimCalendario[Dia] ), IF ( [Mapa · Nível] = 2, 1 ) )
-RETURN
-    COALESCE ( _dias, 0 )""", "0", A)
+add("Mapa · Dias Não Feitos", "[Rotina · Não Feitas]", "0", A)
 add("Cor Aderência", """VAR _v = [Aderência à Rotina]
 VAR _m = [Meta Aderência à Rotina]
 RETURN
@@ -589,8 +669,9 @@ RETURN
             1, FORMAT ( [% Aferições Conformes], "0.0%" ) & " dos " & FORMAT ( _av, "#,0" ) & " registros de " & LOWER ( [Mês de Referência] ) & " estão conformes (meta " & FORMAT ( [Meta Aferições Conformes], "0%" ) & ").",
             2, IF ( _nc = 0, "Nenhuma não conformidade no período.",
                    "As " & _nc & " não conformidades vêm de " & [Equipamentos com NC] & " equipamentos. Reincidentes: " & [Reincidentes · Lista] & "." ),
-            3, "Rotina: " & [Aferições Realizadas] & " de " & [Aferições Programadas] & " aferições programadas (" & FORMAT ( [Aderência à Rotina], "0%" ) & ")"
-                   & IF ( _tp <> "", "; menor aderência em " & _tp & ".", "." ),
+            3, "Rotina: " & [Aferições Realizadas] & " de " & [Aferições Programadas] & " aferições programadas feitas no dia certo (" & FORMAT ( [Aderência à Rotina], "0%" ) & "); "
+                   & [Rotina · Com Atraso] & " com atraso e " & [Rotina · Não Feitas] & " não feitas"
+                   & IF ( _tp <> "", "; pior pontualidade em " & _tp & ".", "." ),
             4, IF ( _cruz <> "", "Calibração externa vencida em equipamento com não conformidade: " & _cruz & ".",
                    "Nenhum equipamento com não conformidade está com a calibração externa vencida." )
         )

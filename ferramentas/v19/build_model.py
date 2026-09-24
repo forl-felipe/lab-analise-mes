@@ -59,8 +59,15 @@ TE = "DimEnsaio"
 cols = [col(TE, "Ensaio", "string", sort_by="Ordem"), col(TE, "Ensaio Curto", "string", sort_by="Ordem"),
         col(TE, "Ordem", "int64", "0", hidden=True), col(TE, "Frequência", "string"),
         col(TE, "Tem Rotina", "boolean", hidden=True), col(TE, "Semanal", "boolean", hidden=True),
-        col(TE, "Dias Semana", "string", hidden=True), col(TE, "Por Dia", "int64", "0", hidden=True)]
+        col(TE, "Dias Semana", "string", hidden=True), col(TE, "Por Dia", "int64", "0", hidden=True),
+        col(TE, "Regra", "string")]
 write(T + "/DimEnsaio.tmdl", m_table(TE, cols, M("m_dimensaio.m")))
+
+# v19: linhas do mapa (dia da semana + ensaios); sem relacionamento, ligada por TREATAS
+TML = "tbl_MapaLinhas"
+cols = [col(TML, "Ensaio", "string"), col(TML, "Linha", "string", sort_by="Ordem"),
+        col(TML, "Ordem", "int64", "0", hidden=True), col(TML, "Regra", "string")]
+write(T + "/tbl_MapaLinhas.tmdl", m_table(TML, cols, M("m_mapalinhas.m")))
 
 TP = "tbl_Pontos"
 cols = [col(TP, "Chave", "string"), col(TP, "Ordem", "int64", "0"), col(TP, "Tema", "string")]
@@ -144,11 +151,14 @@ write(p, s)
 
 # ── model.tmdl ────────────────────────────────────────────────────────────
 p = ROOT + "/model.tmdl"; s = read(p)
-for t in ["tbl_Afericoes", "tbl_Afericoes_Status", "DimEnsaio", "tbl_Pontos", "tbl_Linhas", "_Painel"]:
+for t in ["tbl_Afericoes", "tbl_Afericoes_Status", "DimEnsaio", "tbl_MapaLinhas", "tbl_Pontos", "tbl_Linhas", "_Painel"]:
     if "ref table %s\n" % t not in s:
         s = s.replace("ref table _Medidas_Inspecoes\n", "ref table _Medidas_Inspecoes\nref table %s\n" % t)
 s = s.replace('"DePara_Inspecao_Equipamento"]', '"DePara_Inspecao_Equipamento","tbl_Afericoes","DimEnsaio","tbl_Pontos","tbl_Linhas"]')
 if '"tbl_Afericoes_Status"' not in s:
     s = s.replace('"tbl_Afericoes","DimEnsaio"', '"tbl_Afericoes","tbl_Afericoes_Status","DimEnsaio"')
+if '"tbl_MapaLinhas"' not in s:
+    s = s.replace('"DimEnsaio","tbl_Pontos"', '"DimEnsaio","tbl_MapaLinhas","tbl_Pontos"')
+    assert '"tbl_MapaLinhas"' in s, "PBI_QueryOrder"
 write(p, s)
 print("modelo v15 aplicado:", len(medidas.M), "medidas")

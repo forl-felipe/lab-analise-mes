@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "741fd25f1f766db4fc11",
+  "name": "48ddcf9512ab0671de13",
   "position": {
     "x": 244,
     "y": 698,
     "z": 1000,
     "width": 1656,
-    "height": 686,
-    "tabOrder": 1260
+    "height": 620,
+    "tabOrder": 1070
   },
   "visual": {
     "visualType": "pivotTable",
@@ -20,14 +20,14 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "DimEnsaio"
+                      "Entity": "tbl_MapaLinhas"
                     }
                   },
-                  "Property": "Ensaio Curto"
+                  "Property": "Linha"
                 }
               },
-              "queryRef": "DimEnsaio.Ensaio Curto",
-              "nativeQueryRef": "Ensaio Curto",
+              "queryRef": "tbl_MapaLinhas.Linha",
+              "nativeQueryRef": "Linha",
               "active": true
             }
           ]
@@ -99,7 +99,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "20D"
+                  "Value": "15D"
                 }
               }
             }
@@ -175,6 +175,28 @@
                   "Value": "'Center'"
                 }
               }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1D2B36'"
+                    }
+                  }
+                }
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -186,6 +208,17 @@
               "expr": {
                 "Literal": {
                   "Value": "14D"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1D2B36'"
+                    }
+                  }
                 }
               }
             }
@@ -232,7 +265,7 @@
             "gridVerticalWeight": {
               "expr": {
                 "Literal": {
-                  "Value": "2D"
+                  "Value": "3D"
                 }
               }
             },
@@ -257,14 +290,14 @@
             "gridHorizontalWeight": {
               "expr": {
                 "Literal": {
-                  "Value": "2D"
+                  "Value": "3D"
                 }
               }
             },
             "rowPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "16D"
+                  "Value": "14D"
                 }
               }
             }
@@ -286,7 +319,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'MAPA DE AFERIÇÕES · ENSAIO × DIA'"
+                  "Value": "'MAPA DE AFERIÇÕES · DIA CERTO'"
                 }
               }
             },
@@ -338,7 +371,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'✔ azul = aferição registrada no dia   ·   ✖ laranja = dia da rotina sem registro até a próxima data da rotina (prazo vencido)   ·   em branco = sem rotina, ou feito dentro do prazo em outro dia'"
+                  "Value": "'Cada coluna é um dia do mês e a marca fica no dia certo de cada ensaio. Clique no nome de um ensaio para ver a regra dele na tabela abaixo.'"
                 }
               }
             },

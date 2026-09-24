@@ -402,79 +402,156 @@ table _Painel
 		displayFolder: 13 Aferições
 		lineageTag: f21d296c-1866-5f08-be79-6a4f6482f4ca
 
-	measure 'Aferições Programadas' =
+	measure '_Mapa Nível Data' =
+			
+			VAR _d = SELECTEDVALUE ( DimCalendario[Data] )
+			VAR _hoje = TODAY ()
+			VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
+			VAR _por = COALESCE ( SELECTEDVALUE ( DimEnsaio[Por Dia] ), 1 )
+			VAR _rot = SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE ()
+			VAR _primeiro = CALCULATE ( MIN ( tbl_Afericoes[Data] ), REMOVEFILTERS () )
+			VAR _inicio = IF ( NOT ISBLANK ( _primeiro ), DATE ( YEAR ( _primeiro ), MONTH ( _primeiro ), 1 ) )
+			VAR _sess =
+			    IF (
+			        _por >= 2,
+			        CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Data] = _d, tbl_Afericoes[Parâmetro] = "Blaine Manual" ),
+			        IF ( CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Data] = _d ) > 0, 1, 0 )
+			    )
+			VAR _s = COALESCE ( _sess, 0 )
+			VAR _prog = _rot && NOT ISBLANK ( _d ) && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
+			-- atraso vale até a véspera da PRÓXIMA data da rotina (e nunca depois de hoje)
+			VAR _prox =
+			    CALCULATE (
+			        MIN ( DimCalendario[Data] ),
+			        ALL ( DimCalendario ),
+			        DimCalendario[Data] > _d,
+			        CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+			    )
+			VAR _limite = MIN ( COALESCE ( _prox, DATE ( 2100, 1, 1 ) ) - 1, _hoje )
+			VAR _depois = CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Data] > _d, tbl_Afericoes[Data] <= _limite )
+			RETURN
+			    IF (
+			        ISBLANK ( _d ) || ISBLANK ( _inicio ) || _d < _inicio, BLANK (),
+			        IF (
+			            NOT _prog,
+			            IF ( _s > 0 && _d <= _hoje, 5 ),
+			            IF (
+			                _s >= _por, 1,
+			                IF ( _d >= _hoje, 6, IF ( _s > 0, 4, IF ( COALESCE ( _depois, 0 ) > 0, 2, 3 ) ) )
+			            )
+			        )
+			    )
+		formatString: 0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 8e03f67a-dcac-521a-af48-c733c88b6be9
+
+	measure 'Rotina · No Dia Certo' =
 			
 			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
 			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
 			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
 			VAR _fim = MIN ( _fimMes, TODAY () - 1 )
+			VAR _datas = CALCULATETABLE ( VALUES ( DimCalendario[Data] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= MIN ( _fimMes, TODAY () ) )
 			RETURN
-			    SUMX (
-			        FILTER ( DimEnsaio, DimEnsaio[Tem Rotina] ),
-			        VAR _dias = DimEnsaio[Dias Semana]
-			        VAR _por = DimEnsaio[Por Dia]
-			        VAR _sem = DimEnsaio[Semanal]
-			        RETURN
-			        IF (
-			                _fim < _ini, 0,
-			                IF (
-			                    _sem,
-			                    CALCULATE ( DISTINCTCOUNT ( DimCalendario[Semana Início] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= _fim ),
-			                    _por
-			                        * CALCULATE (
-			                            COUNTROWS ( DimCalendario ),
-			                            ALL ( DimCalendario ),
-			                            DimCalendario[Data] >= _ini,
-			                            DimCalendario[Data] <= _fim,
-			                            CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
-			                        )
-			                )
+			    IF (
+			        ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
+			        SUMX (
+			            FILTER ( VALUES ( DimEnsaio[Ensaio] ), CALCULATE ( SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) ) = TRUE () ),
+			            SUMX (
+			                _datas,
+			                VAR _x = DimCalendario[Data]
+			                RETURN
+			                    IF ( CALCULATE ( [_Mapa Nível Data], ALL ( DimCalendario ), DimCalendario[Data] = _x ) IN { 1 }, 1 )
 			            )
+			        ) + 0
 			    )
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 70841ac1-ca4c-59d2-bbd0-0da86c437483
+
+	measure 'Rotina · Com Atraso' =
+			
+			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
+			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
+			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
+			VAR _fim = MIN ( _fimMes, TODAY () - 1 )
+			VAR _datas = CALCULATETABLE ( VALUES ( DimCalendario[Data] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= MIN ( _fimMes, TODAY () ) )
+			RETURN
+			    IF (
+			        ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
+			        SUMX (
+			            FILTER ( VALUES ( DimEnsaio[Ensaio] ), CALCULATE ( SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) ) = TRUE () ),
+			            SUMX (
+			                _datas,
+			                VAR _x = DimCalendario[Data]
+			                RETURN
+			                    IF ( CALCULATE ( [_Mapa Nível Data], ALL ( DimCalendario ), DimCalendario[Data] = _x ) IN { 2, 4 }, 1 )
+			            )
+			        ) + 0
+			    )
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 686abb23-0ef5-5a9f-b1e5-2ef6764e9b73
+
+	measure 'Rotina · Não Feitas' =
+			
+			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
+			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
+			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
+			VAR _fim = MIN ( _fimMes, TODAY () - 1 )
+			VAR _datas = CALCULATETABLE ( VALUES ( DimCalendario[Data] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= MIN ( _fimMes, TODAY () ) )
+			RETURN
+			    IF (
+			        ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
+			        SUMX (
+			            FILTER ( VALUES ( DimEnsaio[Ensaio] ), CALCULATE ( SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) ) = TRUE () ),
+			            SUMX (
+			                _datas,
+			                VAR _x = DimCalendario[Data]
+			                RETURN
+			                    IF ( CALCULATE ( [_Mapa Nível Data], ALL ( DimCalendario ), DimCalendario[Data] = _x ) IN { 3 }, 1 )
+			            )
+			        ) + 0
+			    )
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 8378115b-3eb4-55dc-9756-06bfc2d7e494
+
+	measure 'Rotina · Programadas' =
+			
+			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
+			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
+			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
+			VAR _fim = MIN ( _fimMes, TODAY () - 1 )
+			VAR _datas = CALCULATETABLE ( VALUES ( DimCalendario[Data] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= MIN ( _fimMes, TODAY () ) )
+			RETURN
+			    IF (
+			        ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
+			        SUMX (
+			            FILTER ( VALUES ( DimEnsaio[Ensaio] ), CALCULATE ( SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) ) = TRUE () ),
+			            SUMX (
+			                _datas,
+			                VAR _x = DimCalendario[Data]
+			                RETURN
+			                    IF ( CALCULATE ( [_Mapa Nível Data], ALL ( DimCalendario ), DimCalendario[Data] = _x ) IN { 1, 2, 3, 4 }, 1 )
+			            )
+			        ) + 0
+			    )
+		formatString: #,0
+		displayFolder: 13 Aferições
+		lineageTag: 43fbac87-9535-5e10-b1a3-ebb5f8681ea9
+
+	measure 'Aferições Programadas' =
+			
+			[Rotina · Programadas]
 		formatString: #,0
 		displayFolder: 13 Aferições
 		lineageTag: 4f9a378f-da64-5a51-a54e-85035ffa368c
 
 	measure 'Aferições Realizadas' =
 			
-			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
-			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
-			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
-			VAR _fim = MIN ( _fimMes, TODAY () - 1 )
-			RETURN
-			    SUMX (
-			        FILTER ( DimEnsaio, DimEnsaio[Tem Rotina] ),
-			        VAR _dias = DimEnsaio[Dias Semana]
-			        VAR _por = DimEnsaio[Por Dia]
-			        VAR _sem = DimEnsaio[Semanal]
-			        VAR _prog = IF (
-			                _fim < _ini, 0,
-			                IF (
-			                    _sem,
-			                    CALCULATE ( DISTINCTCOUNT ( DimCalendario[Semana Início] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= _fim ),
-			                    _por
-			                        * CALCULATE (
-			                            COUNTROWS ( DimCalendario ),
-			                            ALL ( DimCalendario ),
-			                            DimCalendario[Data] >= _ini,
-			                            DimCalendario[Data] <= _fim,
-			                            CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
-			                        )
-			                )
-			            )
-			        VAR _feitas =
-			            IF (
-			                _por = 2,
-			                CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), tbl_Afericoes[Parâmetro] = "Blaine Manual", tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim ),
-			                IF (
-			                    _sem,
-			                    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Semana Início] ), ALL ( DimCalendario ), tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim ),
-			                    CALCULATE ( DISTINCTCOUNT ( tbl_Afericoes[Data] ), ALL ( DimCalendario ), tbl_Afericoes[Data] >= _ini, tbl_Afericoes[Data] <= _fim )
-			                )
-			            )
-			        RETURN
-			            MIN ( COALESCE ( _feitas, 0 ), _prog )
-			    )
+			[Rotina · No Dia Certo]
 		formatString: #,0
 		displayFolder: 13 Aferições
 		lineageTag: 4b387642-3763-5c59-8108-fa5ef1f734a9
@@ -537,7 +614,7 @@ table _Painel
 	measure 'Aderência · Meta' =
 			
 			"meta " & FORMAT ( [Meta Aderência à Rotina], "0%" ) & " · "
-			    & FORMAT ( [Aferições Realizadas] + 0, "#,0" ) & " de " & FORMAT ( [Aferições Programadas] + 0, "#,0" ) & " programadas"
+			    & FORMAT ( [Aferições Realizadas] + 0, "#,0" ) & " de " & FORMAT ( [Aferições Programadas] + 0, "#,0" ) & " no dia certo"
 		displayFolder: 13 Aferições
 		lineageTag: 26e7e919-6f2c-548e-86bb-af84d24249da
 
@@ -862,40 +939,40 @@ table _Painel
 		displayFolder: 13 Aferições
 		lineageTag: f30e7b5c-e6c3-585b-a315-0c01452a4153
 
-	measure 'Mapa · Nível' =
+	measure '_Mapa Data' =
 			
 			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
 			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
 			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
 			
-			VAR _feito = CALCULATE ( COUNTROWS ( tbl_Afericoes ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
-			VAR _d = CALCULATE ( MAX ( DimCalendario[Data] ), KEEPFILTERS ( DimCalendario[Data] >= _ini && DimCalendario[Data] <= _fimMes ) )
-			VAR _dias = SELECTEDVALUE ( DimEnsaio[Dias Semana] )
-			VAR _naRotina =
-			    NOT ISBLANK ( _d ) && HASONEVALUE ( DimCalendario[Dia] )
-			        && SELECTEDVALUE ( DimEnsaio[Tem Rotina] ) = TRUE ()
-			        && CONTAINSSTRING ( _dias, FORMAT ( WEEKDAY ( _d, 2 ), "0" ) )
-			-- prazo: da data da rotina até a véspera da PRÓXIMA data da rotina
-			-- (ex.: tambor na segunda 07/09 feito na quarta 09/09 = dentro do prazo)
-			VAR _prox =
+			VAR _dia = SELECTEDVALUE ( DimCalendario[Dia] )
+			RETURN
 			    IF (
-			        _naRotina,
-			        CALCULATE (
-			            MIN ( DimCalendario[Data] ),
-			            ALL ( DimCalendario ),
-			            DimCalendario[Data] > _d,
-			            CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+			        NOT ISBLANK ( _dia ),
+			        CALCULATE ( MAX ( DimCalendario[Data] ), ALL ( DimCalendario ), DimCalendario[Data] >= _ini, DimCalendario[Data] <= _fimMes, DimCalendario[Dia] = _dia )
+			    )
+		formatString: dd/mm/yyyy
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 11f8dca6-19e8-5804-ad47-1dd1b3834181
+
+	measure 'Mapa · Nível' =
+			
+			VAR _ordem = SELECTEDVALUE ( tbl_MapaLinhas[Ordem] )
+			VAR _ens = SELECTEDVALUE ( tbl_MapaLinhas[Ensaio] )
+			VAR _d = [_Mapa Data]
+			VAR _visivel = NOT ISBLANK ( _ens ) && CALCULATE ( COUNTROWS ( DimEnsaio ), KEEPFILTERS ( DimEnsaio[Ensaio] = _ens ) ) > 0
+			RETURN
+			    IF (
+			        ISBLANK ( _d ) || ISBLANK ( _ordem ) || ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
+			        IF (
+			            _ordem = 0, IF ( _d = TODAY (), 11, 10 ),
+			            IF (
+			                _visivel,
+			                COALESCE ( CALCULATE ( [_Mapa Nível Data], ALL ( DimCalendario ), DimCalendario[Data] = _d, DimEnsaio[Ensaio] = _ens ), 0 )
+			            )
 			        )
 			    )
-			VAR _prazoVencido = _naRotina && _prox <= TODAY ()
-			VAR _feitoNoPrazo =
-			    IF (
-			        _prazoVencido,
-			        CALCULATE ( COUNTROWS ( tbl_Afericoes ), ALL ( DimCalendario ), DimCalendario[Data] >= _d, DimCalendario[Data] < _prox )
-			    )
-			RETURN
-			    IF ( ISEMPTY ( ALL ( tbl_Afericoes ) ), BLANK (),
-			        IF ( _feito > 0, 1, IF ( _prazoVencido && COALESCE ( _feitoNoPrazo, 0 ) = 0, 2 ) ) )
 		formatString: 0
 		isHidden
 		displayFolder: 13 Aferições
@@ -903,23 +980,96 @@ table _Painel
 
 	measure Mapa =
 			
-			SWITCH ( [Mapa · Nível], 1, "✔", 2, "✖" )
+			VAR _n = [Mapa · Nível]
+			VAR _d = [_Mapa Data]
+			RETURN
+			    SWITCH (
+			        _n,
+			        1, "✔",
+			        2, " ",
+			        3, "✖",
+			        4, "½",
+			        5, "✔",
+			        6, "○",
+			        0, " ",
+			        10, SWITCH ( WEEKDAY ( _d, 2 ), 1, "seg", 2, "ter", 3, "qua", 4, "qui", 5, "sex", 6, "sáb", 7, "dom" ),
+			        11, "hoje"
+			    )
 		displayFolder: 13 Aferições
 		lineageTag: 9d9c63b9-82f4-5afa-a13a-a6aef3992df0
 
 	measure 'Mapa · Fundo' =
 			
-			SWITCH ( [Mapa · Nível], 1, "#1B6FB0", 2, "#E0620F", "#FFFFFF" )
+			SWITCH ( [Mapa · Nível],
+			    1, "#1B6FB0", 2, "#F3CF5B", 3, "#E0620F", 4, "#F8D9C4", 5, "#DCEAF6", 6, "#FFFFFF", 0, "#F1F4F7",
+			    11, "#FFC000", "#FFFFFF" )
 		isHidden
 		displayFolder: 13 Aferições
 		lineageTag: 0d1e5be2-39c6-54f9-8608-b09f82ccccfa
 
 	measure 'Mapa · Fonte' =
 			
-			SWITCH ( [Mapa · Nível], 1, "#FFFFFF", 2, "#FFFFFF", "#FFFFFF" )
+			SWITCH ( [Mapa · Nível],
+			    1, "#FFFFFF", 2, "#F3CF5B", 3, "#FFFFFF", 4, "#9A3F05", 5, "#1B6FB0", 6, "#8C98A2", 0, "#F1F4F7",
+			    10, IF ( WEEKDAY ( [_Mapa Data], 2 ) >= 6, "#9AA8B4", "#5B6B78" ), 11, "#1D2B36", "#5B6B78" )
 		isHidden
 		displayFolder: 13 Aferições
 		lineageTag: f2e3d514-0dc6-5e63-a29e-5a79cb296163
+
+	measure 'Regra · Dias Certos' =
+			
+			VAR _sel = ISFILTERED ( DimCalendario[Ano Mês Nome] )
+			VAR _ini = IF ( _sel, CALCULATE ( MIN ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), DATE ( YEAR ( TODAY () ), MONTH ( TODAY () ), 1 ) )
+			VAR _fimMes = IF ( _sel, CALCULATE ( MAX ( DimCalendario[Data] ), ALLSELECTED ( DimCalendario ) ), EOMONTH ( TODAY (), 0 ) )
+			
+			VAR _ens = SELECTEDVALUE ( tbl_MapaLinhas[Ensaio] )
+			VAR _dias = LOOKUPVALUE ( DimEnsaio[Dias Semana], DimEnsaio[Ensaio], _ens )
+			VAR _rot = LOOKUPVALUE ( DimEnsaio[Tem Rotina], DimEnsaio[Ensaio], _ens )
+			VAR _t =
+			    CALCULATETABLE (
+			        VALUES ( DimCalendario[Data] ),
+			        ALL ( DimCalendario ),
+			        DimCalendario[Data] >= _ini,
+			        DimCalendario[Data] <= _fimMes,
+			        CONTAINSSTRING ( _dias, FORMAT ( DimCalendario[Dia Semana Número], "0" ) )
+			    )
+			VAR _n = COUNTROWS ( _t )
+			RETURN
+			    IF (
+			        ISBLANK ( _ens ) || _ens = "", BLANK (),
+			        IF (
+			            _rot <> TRUE () || COALESCE ( _n, 0 ) = 0, "sem dia programado",
+			            IF ( _n >= 28, "todos os dias do mês", CONCATENATEX ( _t, FORMAT ( DimCalendario[Data], "dd" ), ", ", DimCalendario[Data], ASC ) )
+			        )
+			    )
+		displayFolder: 13 Aferições
+		lineageTag: 8ad17a07-55f5-5e66-9da5-988bd8a29766
+
+	measure 'Regra · No Dia Certo' =
+			
+			VAR _ens = SELECTEDVALUE ( tbl_MapaLinhas[Ensaio] )
+			VAR _p = CALCULATE ( [Rotina · Programadas], KEEPFILTERS ( TREATAS ( { _ens }, DimEnsaio[Ensaio] ) ) )
+			VAR _ok = CALCULATE ( [Rotina · No Dia Certo], KEEPFILTERS ( TREATAS ( { _ens }, DimEnsaio[Ensaio] ) ) )
+			VAR _at = CALCULATE ( [Rotina · Com Atraso], KEEPFILTERS ( TREATAS ( { _ens }, DimEnsaio[Ensaio] ) ) )
+			VAR _nf = CALCULATE ( [Rotina · Não Feitas], KEEPFILTERS ( TREATAS ( { _ens }, DimEnsaio[Ensaio] ) ) )
+			RETURN
+			    IF (
+			        ISBLANK ( _ens ) || _ens = "", BLANK (),
+			        IF (
+			            COALESCE ( _p, 0 ) = 0, "—",
+			            _ok & " de " & _p & "  ·  " & _at & " com atraso  ·  " & _nf & " não feitas"
+			        )
+			    )
+		displayFolder: 13 Aferições
+		lineageTag: f5dac102-5142-51c9-87e9-8f4f3b954a92
+
+	measure 'Regra Aparece' =
+			
+			IF ( SELECTEDVALUE ( tbl_MapaLinhas[Ordem] ) > 0, 1, 0 )
+		formatString: 0
+		isHidden
+		displayFolder: 13 Aferições
+		lineageTag: 0ebba0dc-f779-5727-ba4d-b265007bcb08
 
 	measure 'Última Aferição' =
 			
@@ -1021,9 +1171,7 @@ table _Painel
 
 	measure 'Mapa · Dias Não Feitos' =
 			
-			VAR _dias = SUMX ( VALUES ( DimCalendario[Dia] ), IF ( [Mapa · Nível] = 2, 1 ) )
-			RETURN
-			    COALESCE ( _dias, 0 )
+			[Rotina · Não Feitas]
 		formatString: 0
 		displayFolder: 13 Aferições
 		lineageTag: e8f8adc8-77f7-5171-8600-560683cc5af8
@@ -1461,8 +1609,9 @@ table _Painel
 			            1, FORMAT ( [% Aferições Conformes], "0.0%" ) & " dos " & FORMAT ( _av, "#,0" ) & " registros de " & LOWER ( [Mês de Referência] ) & " estão conformes (meta " & FORMAT ( [Meta Aferições Conformes], "0%" ) & ").",
 			            2, IF ( _nc = 0, "Nenhuma não conformidade no período.",
 			                   "As " & _nc & " não conformidades vêm de " & [Equipamentos com NC] & " equipamentos. Reincidentes: " & [Reincidentes · Lista] & "." ),
-			            3, "Rotina: " & [Aferições Realizadas] & " de " & [Aferições Programadas] & " aferições programadas (" & FORMAT ( [Aderência à Rotina], "0%" ) & ")"
-			                   & IF ( _tp <> "", "; menor aderência em " & _tp & ".", "." ),
+			            3, "Rotina: " & [Aferições Realizadas] & " de " & [Aferições Programadas] & " aferições programadas feitas no dia certo (" & FORMAT ( [Aderência à Rotina], "0%" ) & "); "
+			                   & [Rotina · Com Atraso] & " com atraso e " & [Rotina · Não Feitas] & " não feitas"
+			                   & IF ( _tp <> "", "; pior pontualidade em " & _tp & ".", "." ),
 			            4, IF ( _cruz <> "", "Calibração externa vencida em equipamento com não conformidade: " & _cruz & ".",
 			                   "Nenhum equipamento com não conformidade está com a calibração externa vencida." )
 			        )

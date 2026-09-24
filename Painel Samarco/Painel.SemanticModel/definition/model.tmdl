@@ -9,7 +9,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["tbl_Equipamentos","tbl_Calibracao","Tbl_Paradas","tbl_Intervencoes","tbl_Meta_Inspecoes","tbl_Notas","tbl_Config","tbl_Grupos","tbl_Inspecoes","tbl_Medicoes_Operacionais","tbl_Sobressalentes","DimLaboratorio","DePara_Inspecao_Equipamento","tbl_Afericoes","tbl_Afericoes_Status","DimEnsaio","tbl_Pontos","tbl_Linhas"]
+annotation PBI_QueryOrder = ["tbl_Equipamentos","tbl_Calibracao","Tbl_Paradas","tbl_Intervencoes","tbl_Meta_Inspecoes","tbl_Notas","tbl_Config","tbl_Grupos","tbl_Inspecoes","tbl_Medicoes_Operacionais","tbl_Sobressalentes","DimLaboratorio","DePara_Inspecao_Equipamento","tbl_Afericoes","tbl_Afericoes_Status","DimEnsaio","tbl_MapaLinhas","tbl_Pontos","tbl_Linhas"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
@@ -31,6 +31,7 @@ ref table DimCalendario
 ref table DimTecnicos
 ref table _Medidas
 ref table _Medidas_Inspecoes
+ref table tbl_MapaLinhas
 ref table tbl_Afericoes_Status
 ref table _Painel
 ref table tbl_Linhas

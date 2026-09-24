@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "3d83b3d996e9b69ab8da",
+  "name": "40c36b24281983821a85",
   "position": {
-    "x": 0,
-    "y": 0,
-    "z": 6000,
-    "width": 224,
-    "height": 1900,
-    "tabOrder": 6000
+    "x": 528,
+    "y": 1342,
+    "z": 1000,
+    "width": 44,
+    "height": 44,
+    "tabOrder": 1110
   },
   "visual": {
     "visualType": "textbox",
@@ -21,11 +21,14 @@
                   {
                     "value": " ",
                     "textStyle": {
-                      "fontSize": "8pt",
-                      "color": "#002643"
+                      "fontSize": "14pt",
+                      "color": "#F3CF5B",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
                     }
                   }
-                ]
+                ],
+                "horizontalTextAlignment": "center"
               }
             ]
           }
@@ -49,9 +52,16 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#002643'"
+                      "Value": "'#F3CF5B'"
                     }
                   }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
                 }
               }
             }

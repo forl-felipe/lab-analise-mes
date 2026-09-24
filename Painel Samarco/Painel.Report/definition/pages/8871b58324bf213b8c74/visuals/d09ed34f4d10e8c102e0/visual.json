@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "188ac903296eb70e9cb2",
+  "name": "d09ed34f4d10e8c102e0",
   "position": {
-    "x": 669,
-    "y": 110,
-    "z": 1100,
-    "width": 389,
-    "height": 34,
-    "tabOrder": 1020
+    "x": 1666,
+    "y": 1336,
+    "z": 1000,
+    "width": 214,
+    "height": 58,
+    "tabOrder": 1200
   },
   "visual": {
     "visualType": "textbox",
@@ -19,12 +19,24 @@
               {
                 "textRuns": [
                   {
-                    "value": "ROTINA · FEITAS NO DIA CERTO",
+                    "value": "Incompleto",
                     "textStyle": {
-                      "fontSize": "10pt",
-                      "color": "#00335A",
+                      "fontSize": "11pt",
+                      "color": "#1D2B36",
                       "fontFamily": "Segoe UI",
                       "fontWeight": "bold"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Blaine: só 1 dos 2 turnos",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#5B6B78",
+                      "fontFamily": "Segoe UI"
                     }
                   }
                 ]

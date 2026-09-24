@@ -1,4 +1,4 @@
-PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v18
+PAINEL DE GESTÃO DE EQUIPAMENTOS E CALIBRAÇÕES  ·  v19
 =====================================================
 
 POR QUE OS NOMES ENCURTARAM
@@ -31,14 +31,14 @@ INSTALAÇÃO
 4. Entre em C:\PBI e procure a pasta "Painel Samarco".
 
 5. CONFIRA ANTES DE ABRIR: botão direito em "Painel.Report" >
-   Propriedades. Tem que dizer 407 arquivos, 362 pastas.
+   Propriedades. Tem que dizer 421 arquivos, 376 pastas.
    Se disser 57 arquivos, os visuais não vieram - me avise.
 
 6. Duplo clique em "Painel.pbip".
 
 7. Clique em ATUALIZAR (Página Inicial > Atualizar).
 
-8. O rodapé de cada página termina com "· v18" e a barra lateral mostra o
+8. O rodapé de cada página termina com "· v19" e a barra lateral mostra o
    logo da Samarco.
 
 9. AFERIÇÕES: a pasta do SharePoint já está configurada. Na primeira
@@ -52,17 +52,17 @@ INSTALAÇÃO
 O QUE CONTÉM
 ------------
     Painel.pbip              abre o projeto
-    Painel.Report            relatório, 9 páginas, 338 visuais
-    Painel.SemanticModel     modelo, 24 tabelas, 193 medidas
+    Painel.Report            relatório, 9 páginas, 352 visuais
+    Painel.SemanticModel     modelo, 25 tabelas, 202 medidas
 
 
 AS 9 PÁGINAS
 ------------
-VISÃO GERAL              frase do mês, 4 frentes com meta, saúde por grupo
+VISÃO GERAL              4 frentes com meta, saúde por grupo
                          e pontos que pedem decisão
 EQUIPAMENTOS & PARADAS   disponibilidade, horas paradas e equipamentos
 CALIBRAÇÕES              última calibração, vencimento e situação
-AFERIÇÕES                resumo do mês (sub-botão 1)
+AFERIÇÕES                resumo do mês e mapa do dia certo (sub-botão 1)
 AFERIÇÕES · DETALHE      carta de controle e comparativos (sub-botão 2)
 INTERVENÇÕES             ocorrências, disciplinas e lead time
 INSPEÇÕES                conformidade operacional e cumprimento de meta

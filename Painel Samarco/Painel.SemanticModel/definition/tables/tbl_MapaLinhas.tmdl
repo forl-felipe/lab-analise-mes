@@ -1,0 +1,58 @@
+table tbl_MapaLinhas
+	lineageTag: c58be0ab-5b31-5bd8-b0c5-1900a8d6e8a8
+
+	column Ensaio
+		dataType: string
+		lineageTag: 7203a441-f285-522f-aa6e-5541371c2e03
+		summarizeBy: none
+		sourceColumn: Ensaio
+
+		annotation SummarizationSetBy = Automatic
+
+	column Linha
+		dataType: string
+		lineageTag: 1a56e298-dc2d-5ba9-b43e-9c090be4e447
+		summarizeBy: none
+		sourceColumn: Linha
+		sortByColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordem
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 6b26f461-41a7-5d69-b03c-72143c95da2b
+		summarizeBy: none
+		sourceColumn: Ordem
+
+		annotation SummarizationSetBy = Automatic
+
+	column Regra
+		dataType: string
+		lineageTag: 79749346-f28b-503b-84d6-5e0e57adfb89
+		summarizeBy: none
+		sourceColumn: Regra
+
+		annotation SummarizationSetBy = Automatic
+
+	partition tbl_MapaLinhas = m
+		mode: import
+		source =
+				let
+				    // Linhas do mapa de aferições: a 1ª linha mostra o dia da semana (seg, ter, ... e "hoje");
+				    // as demais são os ensaios de DimEnsaio (mesma ordem e mesma regra).
+				    // Tabela separada de DimEnsaio: clicar num ensaio do mapa filtra só a "cola" de regras.
+				    Ensaios = Table.RenameColumns(
+				                  Table.SelectColumns( DimEnsaio, { "Ensaio", "Ensaio Curto", "Ordem", "Regra" } ),
+				                  { { "Ensaio Curto", "Linha" } } ),
+				    DiaSemana = #table(
+				                    type table [ Ensaio = text, Linha = text, Ordem = Int64.Type, Regra = text ],
+				                    { { "", "", 0, "" } } ),
+				    Linhas = Table.Combine( { DiaSemana, Ensaios } ),
+				    Tipado = Table.TransformColumnTypes( Linhas, { { "Ensaio", type text }, { "Linha", type text },
+				                                                   { "Ordem", Int64.Type }, { "Regra", type text } } )
+				in
+				    Tipado
+
+	annotation PBI_ResultType = Table

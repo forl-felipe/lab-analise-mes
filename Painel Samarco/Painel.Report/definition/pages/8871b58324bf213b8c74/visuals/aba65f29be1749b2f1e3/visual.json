@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "ff238ba19e71fc28ef61",
+  "name": "aba65f29be1749b2f1e3",
   "position": {
-    "x": 661,
-    "y": 104,
+    "x": 1344,
+    "y": 1342,
     "z": 1000,
-    "width": 405,
-    "height": 190,
-    "tabOrder": 1010
+    "width": 44,
+    "height": 44,
+    "tabOrder": 1170
   },
   "visual": {
     "visualType": "textbox",
@@ -19,14 +19,16 @@
               {
                 "textRuns": [
                   {
-                    "value": " ",
+                    "value": "○",
                     "textStyle": {
-                      "fontSize": "8pt",
-                      "color": "#FFFFFF",
-                      "fontFamily": "Segoe UI"
+                      "fontSize": "14pt",
+                      "color": "#8C98A2",
+                      "fontFamily": "Segoe UI",
+                      "fontWeight": "bold"
                     }
                   }
-                ]
+                ],
+                "horizontalTextAlignment": "center"
               }
             ]
           }
@@ -90,20 +92,7 @@
             "radius": {
               "expr": {
                 "Literal": {
-                  "Value": "10D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "dropShadow": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "4D"
                 }
               }
             }

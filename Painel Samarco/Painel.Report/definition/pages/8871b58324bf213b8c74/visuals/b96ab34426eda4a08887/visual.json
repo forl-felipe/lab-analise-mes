@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "6dc9e73aae1d310f413a",
+  "name": "b96ab34426eda4a08887",
   "position": {
     "x": 244,
-    "y": 306,
+    "y": 1412,
     "z": 1000,
-    "width": 1000,
-    "height": 380,
-    "tabOrder": 1060
+    "width": 1656,
+    "height": 432,
+    "tabOrder": 1210
   },
   "visual": {
     "visualType": "tableEx",
@@ -20,30 +20,30 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "DimEnsaio"
+                      "Entity": "tbl_MapaLinhas"
                     }
                   },
-                  "Property": "Ensaio"
+                  "Property": "Linha"
                 }
               },
-              "queryRef": "DimEnsaio.Ensaio",
+              "queryRef": "tbl_MapaLinhas.Linha",
               "nativeQueryRef": "Ensaio",
               "displayName": "Ensaio"
             },
             {
               "field": {
-                "Measure": {
+                "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "_Painel"
+                      "Entity": "tbl_MapaLinhas"
                     }
                   },
-                  "Property": "Situação Ensaio"
+                  "Property": "Regra"
                 }
               },
-              "queryRef": "_Painel.Situação Ensaio",
-              "nativeQueryRef": "Situação",
-              "displayName": "Situação"
+              "queryRef": "tbl_MapaLinhas.Regra",
+              "nativeQueryRef": "Quando deve ser feito",
+              "displayName": "Quando deve ser feito"
             },
             {
               "field": {
@@ -53,12 +53,12 @@
                       "Entity": "_Painel"
                     }
                   },
-                  "Property": "% Aferições Conformes"
+                  "Property": "Regra · Dias Certos"
                 }
               },
-              "queryRef": "_Painel.% Aferições Conformes",
-              "nativeQueryRef": "Conformes",
-              "displayName": "Conformes"
+              "queryRef": "_Painel.Regra · Dias Certos",
+              "nativeQueryRef": "Dias certos no mês",
+              "displayName": "Dias certos no mês"
             },
             {
               "field": {
@@ -68,72 +68,12 @@
                       "Entity": "_Painel"
                     }
                   },
-                  "Property": "Aderência à Rotina"
+                  "Property": "Regra · No Dia Certo"
                 }
               },
-              "queryRef": "_Painel.Aderência à Rotina",
-              "nativeQueryRef": "No dia certo",
-              "displayName": "No dia certo"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Painel"
-                    }
-                  },
-                  "Property": "Rotina · Com Atraso"
-                }
-              },
-              "queryRef": "_Painel.Rotina · Com Atraso",
-              "nativeQueryRef": "Com atraso",
-              "displayName": "Com atraso"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Painel"
-                    }
-                  },
-                  "Property": "Mapa · Dias Não Feitos"
-                }
-              },
-              "queryRef": "_Painel.Mapa · Dias Não Feitos",
-              "nativeQueryRef": "Não feitos",
-              "displayName": "Não feitos"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Painel"
-                    }
-                  },
-                  "Property": "NC Aferição"
-                }
-              },
-              "queryRef": "_Painel.NC Aferição",
-              "nativeQueryRef": "NC",
-              "displayName": "NC"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Painel"
-                    }
-                  },
-                  "Property": "Último Registro"
-                }
-              },
-              "queryRef": "_Painel.Último Registro",
-              "nativeQueryRef": "Último",
-              "displayName": "Último"
+              "queryRef": "_Painel.Regra · No Dia Certo",
+              "nativeQueryRef": "Resultado no mês",
+              "displayName": "Resultado no mês"
             }
           ]
         }
@@ -145,10 +85,10 @@
               "Column": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "DimEnsaio"
+                    "Entity": "tbl_MapaLinhas"
                   }
                 },
-                "Property": "Ensaio"
+                "Property": "Linha"
               }
             },
             "direction": "Ascending"
@@ -168,36 +108,6 @@
                 }
               }
             }
-          }
-        },
-        {
-          "properties": {
-            "fontColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "_Painel"
-                        }
-                      },
-                      "Property": "Cor Situação Ensaio"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "data": [
-              {
-                "dataViewWildcard": {
-                  "matchingOption": 1
-                }
-              }
-            ],
-            "metadata": "_Painel.Situação Ensaio"
           }
         }
       ],
@@ -233,13 +143,13 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "220D"
+                  "Value": "200D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "DimEnsaio.Ensaio"
+            "metadata": "tbl_MapaLinhas.Linha"
           }
         },
         {
@@ -247,13 +157,13 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "120D"
+                  "Value": "520D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "_Painel.Situação Ensaio"
+            "metadata": "tbl_MapaLinhas.Regra"
           }
         },
         {
@@ -261,13 +171,13 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "100D"
+                  "Value": "400D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "_Painel.% Aferições Conformes"
+            "metadata": "_Painel.Regra · Dias Certos"
           }
         },
         {
@@ -275,69 +185,13 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "110D"
+                  "Value": "500D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "_Painel.Aderência à Rotina"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "100D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.Rotina · Com Atraso"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "100D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.Mapa · Dias Não Feitos"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "70D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.NC Aferição"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "90D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Painel.Último Registro"
+            "metadata": "_Painel.Regra · No Dia Certo"
           }
         }
       ]
@@ -356,7 +210,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'SITUAÇÃO POR ENSAIO'"
+                  "Value": "'REGRAS DE CADA ENSAIO · O DIA CERTO'"
                 }
               }
             },
@@ -408,7 +262,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Ordenado pela ordem das abas; clique num ensaio para filtrar a página'"
+                  "Value": "'Feito depois do dia certo conta como atraso (amarelo) até a véspera da próxima data da rotina; depois disso o dia certo fica ✖ não feito.'"
                 }
               }
             },
@@ -452,7 +306,7 @@
   "filterConfig": {
     "filters": [
       {
-        "name": "0b79fcb0f6dc1410eff9",
+        "name": "bb3c2a1fba6147da6191",
         "field": {
           "Measure": {
             "Expression": {
@@ -460,7 +314,7 @@
                 "Entity": "_Painel"
               }
             },
-            "Property": "Ensaio Aparece"
+            "Property": "Regra Aparece"
           }
         },
         "type": "Advanced",
@@ -485,7 +339,7 @@
                           "Source": "m"
                         }
                       },
-                      "Property": "Ensaio Aparece"
+                      "Property": "Regra Aparece"
                     }
                   },
                   "Right": {

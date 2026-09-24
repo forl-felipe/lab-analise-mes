@@ -1,5 +1,45 @@
 # 13 — v15/v16: painel gerencial, Equipamentos & Paradas e Aferições
 
+## v19: mapa de aferições pela regra do dia certo
+
+Aprovado a partir do mockup `entrega/Mockup-Mapa-Dia-Certo.png`. Só a
+página **Aferições** mudou; as demais só trocaram o número da versão.
+
+**Mapa**
+
+- Cada ensaio tem um **dia certo**, e a marca fica na coluna dele:
+  - ✔ azul: feito no dia certo;
+  - **amarelo**: feito com atraso;
+  - ✖ laranja: não feito;
+  - ○: programado;
+  - ½: Blaine incompleto.
+- O dia em que a atrasada foi feita aparece em **✔ azul-claro**.
+- O mapa usa a largura toda e mostra **todos os dias do mês**. A primeira
+  linha traz o dia da semana e destaca **hoje**.
+- Embaixo do mapa ficam a **legenda** e a tabela **"Regras de cada ensaio
+  · o dia certo"**. Clicar num ensaio do mapa filtra essa tabela.
+- Regras e exemplos: `docs/14-metas-e-origem-dos-numeros.md`, seção 3.
+
+**Números de rotina**
+
+- A aderência passou a ser **feitas no dia certo ÷ programadas até
+  hoje**.
+- Cartão: "Rotina · feitas no dia certo".
+- Situação por ensaio: colunas "No dia certo", "Com atraso" e "Não
+  feitos". A coluna de frequência saiu e foi para a tabela de regras.
+
+**Modelo**
+
+- **DimEnsaio** ganhou a coluna **Regra**, que é o texto da tabela de
+  regras.
+- Nova tabela **tbl_MapaLinhas**: são as linhas do mapa, o dia da semana
+  mais os ensaios. Ela não tem relacionamento com as outras tabelas.
+- Novas medidas: `_Mapa Nível Data`, `_Mapa Data`, `Rotina · No Dia Certo`,
+  `Rotina · Com Atraso`, `Rotina · Não Feitas`, `Rotina · Programadas`,
+  `Regra · Dias Certos`, `Regra · No Dia Certo`, `Regra Aparece`.
+- A página Aferições ficou mais alta (1920×1900) e continua ajustada à
+  largura.
+
 ## v18: ajustes finais
 
 **Laboratórios**
@@ -247,22 +287,9 @@ acrescentar a linha na aba.
 
 ## Rotina das aferições
 
-A aderência é calculada contra a rotina do cabeçalho de cada aba, contando
-até ontem:
-
-| Ensaio | Rotina |
-|---|---|
-| Tambor de abrasão | toda segunda |
-| Peneiradores | ter, qui e sáb |
-| Compressão | toda segunda |
-| Blaine | 1 por turno (2 por dia) |
-| Alpine | seg, qua e sáb |
-| Granulometria | 1 por semana |
-| Tamb 5 × 15 kg | toda segunda |
-| Umidade e Fisher | sem rotina definida: não entram na aderência |
-
-Para mudar uma rotina, ajuste a tabela DimEnsaio: Transformar dados >
-DimEnsaio.
+Desde a v19 a rotina segue a **regra do dia certo**. A tabela de rotinas,
+a regra de atraso e como ajustar estão em
+`docs/14-metas-e-origem-dos-numeros.md`, seção 3.
 
 ## O que foi verificado aqui e o que só o Power BI confirma
 
