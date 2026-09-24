@@ -93,15 +93,46 @@ Outras verificações:
    digitados, como já fazem. As abas ocultas vão junto. Não recriar a partir
    de um modelo antigo, porque ele não tem as abas BD_.
 
-## Pontos que precisam da sua decisão
+## Decisões do gestor (24/09/2026), já aplicadas na planilha
 
-| # | Ponto | O que eu fiz |
-|---|---|---|
-| 1 | **Compressão, valor nominal.** O título da aba diz 355 kgf/pel (FX −16,0 +12,5). As fórmulas usam 345 na linha 6 e 360 nas linhas 7–8, e o cabeçalho diz 360. | Usei **355**, do título. Com 355, o 66PS04 de 14/09 (378) dá diferença 23 → Não conforme; com 360 daria 18 → Conforme. Qual é o certo? Troque em `BD_Limites`, linha COM16. |
-| 2 | **Umidade.** O texto diz diferença aceitável 0,05; a fórmula da aba aceita < 0,06. | Usei 0,05. Uma diferença de 0,055 fica Não conforme aqui e VERDADEIRO na aba. |
-| 3 | **Granulometria, −6,3 mm.** A aba só marca "Confirmar" quando LTF − LCE > 0,30, positivo. | Usei a diferença em módulo: LCE maior que LTF em 0,4 também é Não conforme. |
-| 4 | **Tambor, bloco "200 voltas"** (linhas 25–34). O 66TA06 calcula com 188 voltas (E25) e o 66TA07 com 200. | Usei o RPM que a aba calcula. Se o 66TA06 também roda 200 voltas, o RPM dele está subestimado em 6 %. |
-| 5 | **Blaine Automático** (coluna L). Usa a mesma faixa do manual, 1986–2074. | Mantive. A coluna está vazia em setembro. |
+| # | Ponto | Decisão | Efeito em setembro |
+|---|---|---|---|
+| 1 | Compressão FX −16,0 +12,5: valor nominal | **360 kgf/pel** (`BD_Limites`, COM16) | 66PS04 de 14/09 (378): diferença 18, **Conforme** |
+| 2 | Umidade: tolerância | **0,05**. O "< 0,06" da fórmula da aba está errado | Nada muda: já era 0,05 |
+| 3 | Granulometria −6,3 mm | Diferença **nos dois sentidos** (módulo) | Nada muda: já era assim |
+| 4 | Voltas dos tambores | **66TA06 = 200 voltas**; 66TA05, 66TA08 e 66TA09 = 188 | Ver abaixo |
+| 5 | Blaine Automático | Mesma faixa do manual (1986–2074) | Coluna vazia em setembro |
+
+**Tambores.** A BD não usa mais o RPM da aba. Ela recalcula a rotação a
+partir dos minutos e segundos digitados:
+
+    RPM = voltas × 60 ÷ tempo (s)
+
+As voltas de cada tambor ficam em `BD_Limites` (linhas V_TA05 a V_TA07).
+Com 200 voltas, o **66TA06 fica fora de 24–26 rpm em 3 das 4 aferições**:
+
+| Data | Tempo | RPM | Resultado |
+|---|---|---|---|
+| 09/09 | 7 min 36 s | 26,32 | Não conforme |
+| 12/09 | 7 min 35 s | 26,37 | Não conforme |
+| 14/09 | 7 min 31 s | 26,61 | Não conforme |
+| 16/09 | 7 min 42 s | 25,97 | Conforme |
+
+Isso bate com o cabeçalho da própria aba, que para 200 voltas aceita de 461
+a 501 s. Os três tempos fora ficaram entre 451 e 456 s. A aba mostra
+24,4–25,0 porque a fórmula E25:E34 usa 188.
+
+**66TA07.** Mantive 200 voltas, como está na fórmula J25 da aba. Se ele
+também roda 188, troque para 188 na linha V_TA07 de `BD_Limites`.
+
+**Resultado de setembro com as decisões:**
+
+- 288 registros avaliados, 270 conformes (**93,8 %**).
+- 18 não conformidades:
+  - Peneiradores: 12.
+  - Tambor 66TA06: 3.
+  - Umidade: 2.
+  - Compressão 66PS05, 14/09: 1.
 
 ## Problemas que encontrei nas abas dos operadores (não corrigi)
 
@@ -111,6 +142,8 @@ depende de nenhum deles.
 - **Granulometria, bloco da direita:**
   - A coluna K (%) calcula `=J12-CR12`, em vez de `=(J12/J22)*100`.
   - Por isso W17:W22, AE17:AE22 e AI17:AI22 e a média Q26/Q27 dão `#VALUE!`.
+- **Tambor, E25:E34:** o 66TA06 é calculado com 188 voltas; o correto é 200.
+- **Umidade, coluna J:** aceita diferença < 0,06; o correto é ≤ 0,05.
 - **Resultados 1:**
   - 66PS 05 com `#DIV/0!`.
   - 66PS 10 aponta para a coluna de velocidade.
@@ -168,4 +201,3 @@ depende de nenhum deles.
 
 1. O **endereço da pasta** no SharePoint onde ficam os arquivos mensais.
    Basta o link da pasta, copiado do navegador.
-2. As respostas aos pontos 1 a 5 acima. Pode ser só "mantém como fez".

@@ -20,13 +20,19 @@ LIM = [
  ("BLAS",  "Blaine", "Calibração Star", "cm²/g", 2120, 2076, 2164, None, "Aba Calibração Blaine, fórmula K6"),
  ("BLAA",  "Blaine", "Blaine Automático", "cm²/g", 2030, 1986, 2074, None, "Aba Calibração Blaine, fórmula M6"),
  ("FIS",   "Comparativo Fisher", "Superfície específica", "cm²/g", None, None, None, 300, "Aba Comparativo Fisher, F6: diferença aceitável 300 cm²/g"),
- ("COM16", "Compressão", "FX -16,0 +12,5 mm", "kgf/pel", 355, None, None, 20, "Aba Compressão, B1: nominal 355 kgf/pel, diferença aceitável 20"),
+ ("COM16", "Compressão", "FX -16,0 +12,5 mm", "kgf/pel", 360, None, None, 20, "Definido pelo gestor (24/09/2026): nominal 360 kgf/pel; aba Compressão, B1: diferença aceitável 20"),
  ("COM12", "Compressão", "FX -12,5 +10,0 mm", "kgf/pel", 310, None, None, 20, "Aba Compressão, B16: nominal 310 kgf/pel, diferença aceitável 20"),
  ("VEL",   "Compressão", "Velocidade", "mm/min", 15, 13, 17, None, "Aba Compressão, B1: velocidade 15 ± 2 mm/min"),
  ("G63",   "Granulometria", "-6,3 mm", "%", None, None, None, 0.30, "Aba Granulometria, R11: tolerância 0,30"),
  ("GRG",   "Granulometria", "RG (Relação)", "-", None, None, None, 0.15, "Aba Granulometria, R10: tolerância 0,15"),
  ("UMI",   "Umidade", "Umidade", "%", None, None, None, 0.05, "Aba Umidade, coluna I: diferença aceitável 0,05"),
  ("T515",  "Tamb 5 kg x 15 kg", "+6,3 mm", "%", None, None, None, 0.5, "Aba Tamb Kg x Tamb 15,0Kg, V10: diferença aceitável 0,5"),
+ # voltas por tambor: a rotação é recalculada aqui a partir de minutos e segundos (RPM = voltas x 60 / tempo em s)
+ ("V_TA05", "Tambor de Abrasão", "Voltas 66TA05", "voltas", 188, None, None, None, "Definido pelo gestor (24/09/2026): 188 voltas"),
+ ("V_TA08", "Tambor de Abrasão", "Voltas 66TA08", "voltas", 188, None, None, None, "Definido pelo gestor (24/09/2026): 188 voltas"),
+ ("V_TA09", "Tambor de Abrasão", "Voltas 66TA09", "voltas", 188, None, None, None, "Definido pelo gestor (24/09/2026): 188 voltas"),
+ ("V_TA06", "Tambor de Abrasão", "Voltas 66TA06", "voltas", 200, None, None, None, "Definido pelo gestor (24/09/2026): 200 voltas (a aba calcula com 188 em E25:E34)"),
+ ("V_TA07", "Tambor de Abrasão", "Voltas 66TA07", "voltas", 200, None, None, None, "Aba Tambor de Abrasão, J25 (bloco de 200 voltas) — CONFIRMAR"),
 ]
 LROW = {k: i + 2 for i, (k, *_) in enumerate(LIM)}
 # BD_Limites: A Chave, B Ensaio, C Parâmetro, D Unidade, E Nominal, F Lim. Inferior, G Lim. Superior, H Tolerância, I Fonte
@@ -49,13 +55,16 @@ def add(**kw): rows.append(kw)
 def F(s): return ("f", s)
 
 # ---------------- Tambor de Abrasão (calibração, limites 24–26 rpm)
-for tag, col, r0, r1, nome in [("66TA05","E",6,14,"Q"),("66TA08","J",6,14,"Q"),("66TA09","O",6,14,"Q"),
-                               ("66TA06","E",25,34,"L"),("66TA07","J",25,34,"L")]:
+# rotação recalculada de minutos (cm) e segundos (cs) com as voltas de cada tambor (BD_Limites)
+for tag, cm, cs, r0, r1, nome in [("66TA05","C","D",6,14,"Q"),("66TA08","H","I",6,14,"Q"),("66TA09","M","N",6,14,"Q"),
+                                  ("66TA06","C","D",25,34,"L"),("66TA07","H","I",25,34,"L")]:
     for r in range(r0, r1 + 1):
+        mm = "%s!$%s$%d" % (TAMB, cm, r); ss = "%s!$%s$%d" % (TAMB, cs, r)
+        rpm = 'IF(N(%s)*60+N(%s)=0,"",%s*60/(N(%s)*60+N(%s)))' % (mm, ss, lim("V_" + tag[2:], "D"), mm, ss)
         add(A="Tambor de Abrasão", B="Calibração", C=F(dt("%s!$A$%d" % (TAMB, r))), D=tag,
-            E="Rotação", F="rpm", G=F(num("%s!$%s$%d" % (TAMB, col, r))), H=F(lim("TAMB","D")),
+            E="Rotação", F="rpm", G=F(rpm), H=F(lim("TAMB","D")),
             I="DIF", J=F(lim("TAMB","E")), K=F(lim("TAMB","F")), M="LIM",
-            N=F(tx("%s!$%s$%d" % (TAMB, nome, r))), Q="Tambor de Abrasão!%s%d" % (col, r))
+            N=F(tx("%s!$%s$%d" % (TAMB, nome, r))), Q="Tambor de Abrasão!%s%d:%s%d" % (cm, r, cs, r))
 
 # ---------------- Alpine (calibração, 87,4–89,4 %)
 for tag, col, pen in [("66AG09","B","66PN670"),("66AG10","D","66PN671"),("66AG11","F","66PN671")]:
