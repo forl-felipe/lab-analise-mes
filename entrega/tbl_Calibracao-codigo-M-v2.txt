@@ -10,6 +10,7 @@ let
     // interpreta os SEIS formatos que convivem nas colunas de data:
     //   serial do Excel · data nativa · dd/mm/aaaa · dd/mm/aa · mm/aa · mm/aaaa
     // fimDoMes=true usa o último dia quando o dia não foi informado (vencimentos)
+    // v2: dia que não existe no mês (31/06, 31/09) vira o último dia do mês, em vez de sumir
     fxData = ( valor as any, fimDoMes as logical ) as nullable date =>
         let
             ehData   = valor is date or valor is datetime or valor is datetimezone,
@@ -25,7 +26,10 @@ let
             anoCheio  = ( a as number ) as number => if a < 100 then 2000 + a else a,
             porCompleta =
                 if numerico and n = 3
-                then try #date( anoCheio( nums{2} ), nums{1}, nums{0} ) otherwise null
+                then try #date( anoCheio( nums{2} ), nums{1}, nums{0} )
+                     otherwise ( if nums{0} >= 29 and nums{0} <= 31
+                                 then try Date.EndOfMonth( #date( anoCheio( nums{2} ), nums{1}, 1 ) ) otherwise null
+                                 else null )
                 else null,
             porMesAno =
                 if numerico and n = 2 then
@@ -62,7 +66,34 @@ let
     // DateTimeZone.SwitchZone(-3): no Serviço, DateTime.LocalNow() roda em UTC
     Hoje = Date.From( DateTimeZone.SwitchZone( DateTimeZone.UtcNow(), -3 ) ),
 
-    Bruto = Fonte{[Item="tbl_Calibracao",Kind="Table"]}[Data],
+    // v2: acha a tabela pelo nome tbl_Calibracao; se o nome mudou, pela tabela que tem Tag e Próximo Vencimento
+    Tabelas    = Table.SelectRows( Fonte, each [Kind] = "Table" ),
+    PorNome    = Table.SelectRows( Tabelas, each [Item] = "tbl_Calibracao" ),
+    PorColunas = Table.SelectRows( Tabelas, each
+                     let c = List.Transform( Table.ColumnNames( [Data] ), Text.Trim )
+                     in  List.Contains( c, "Tag" ) and List.Contains( c, "Próximo Vencimento" ) ),
+    Planilha   = if not Table.IsEmpty( PorNome ) then PorNome{0}[Data] else PorColunas{0}[Data],
+
+    // v2: cabeçalho com espaço sobrando (ou espaço não separável) volta ao nome certo
+    Cabecalhos = Table.TransformColumnNames( Planilha, each Text.Trim( Text.Replace( _, "#(00A0)", " " ) ) ),
+    // v2: colunas que podem faltar na planilha entram vazias (o painel não quebra)
+    Opcionais  = { "Laboratório", "Local", "Frequência (meses)", "Última Calibração", "Status Calibração",
+                   "Certificado", "Empresa Calibradora", "Observações" },
+    Original   = List.Accumulate( Opcionais, Cabecalhos,
+                     ( t, c ) => if List.Contains( Table.ColumnNames( t ), c ) then t else Table.AddColumn( t, c, each null ) ),
+    ColunasOriginais = Table.ColumnNames( Original ),
+
+    // Célula com erro de fórmula no Excel (#VALOR!, #N/D, #REF!...) chega ao M como
+    // erro, e um único erro dentro do Table.SelectRows de SemVazias derruba a tabela
+    // inteira (e cancela as demais consultas do arquivo). Registra quais colunas
+    // tinham erro, para não escondê-lo, e só então troca o erro por null.
+    ComErro = Table.AddColumn( Original, "Células com Erro",
+        each let r = _,
+                 cols = List.Select( ColunasOriginais, (c) => ( try Record.Field( r, c ) )[HasError] )
+             in  if List.IsEmpty( cols ) then null else Text.Combine( cols, ", " ),
+        type nullable text ),
+    Bruto = Table.ReplaceErrorValues( ComErro, List.Transform( ColunasOriginais, each { _, null } ) ),
+
     SemVazias =
         let
             // U+00A0 (espaço não separável) chega do SharePoint em célula "vazia".
@@ -87,8 +118,11 @@ let
             )
         ),
 
+    // v2: linha repetida idêntica (ex.: PN 0543 colada duas vezes) conta uma vez só
+    SemRepetidas = Table.Distinct( SemVazias, ColunasOriginais ),
+
     Renomear = Table.RenameColumns(
-        SemVazias,
+        SemRepetidas,
         {
             { "Laboratório",        "Laboratorio"      },
             { "Última Calibração",  "UltimaCalibracao" },
@@ -97,8 +131,12 @@ let
         MissingField.Ignore
     ),
 
+    // v2: frequência escrita como texto ("12 meses", "12 ") não gera erro
+    Freq = Table.TransformColumns( Renomear, {{ "Frequência (meses)",
+               each try Number.RoundDown( Number.From( Text.Select( Text.From( _ ), { "0" .. "9" } ) ) ) otherwise null }} ),
+
     Tipos = Table.TransformColumnTypes(
-        Renomear,
+        Freq,
         {
             { "Equipamento",        type text },
             { "Laboratorio",        type text },
@@ -142,8 +180,6 @@ let
     // ⚠ OS EMOJIS SÃO MANTIDOS DE PROPÓSITO: a tabela da página CALIBRAÇÕES tem
     //   um filtro de visual fixo em ('🔴 Vencido','🟠 Atenção','🟡 Crítico').
     //   Mudar os rótulos deixaria aquela tabela VAZIA, sem mensagem de erro.
-    //   Agora com guarda de nulo — o if antigo deixava 22 linhas em branco,
-    //   porque em M  null < 0  devolve null, não false.
     Criticidade = Table.AddColumn( OrdemStatus, "CriticidadeCalibracao",
         each if [DiasParaVencer] = null then "⚪ Sem Data"
              else if [DiasParaVencer] < 0 then "🔴 Vencido"
@@ -162,10 +198,10 @@ let
              else if [DiasParaVencer] <= 90 then "Vence em 31 a 90 dias"
              else "Vence em mais de 90 dias", type text ),
 
-    // STATUS METROLÓGICO — a coluna que o relatório nunca usou.
-    // origem: OK 137 · N/OK 47 · E/C 23 · NOK 1 (erro de digitação)
+    // STATUS METROLÓGICO, lido da coluna "Status Calibração" da planilha:
+    //   OK = Aprovado · N/OK (ou NOK) = Reprovado · E/C = Em calibração · vazio = Não informado
     Metro = Table.AddColumn( Faixa, "Status Metrologico",
-        each let b = if [Status Calibração] = null then "" else Text.Upper( Text.Remove( Text.Trim( [Status Calibração] ), { "/", " ", "-" } ) )
+        each let b = if [Status Calibração] = null then "" else Text.Upper( Text.Remove( Text.Trim( [Status Calibração] ), { "/", " ", "-", "." } ) )
              in  if b = "OK" then "Aprovado"
                  else if b = "NOK" then "Reprovado"
                  else if b = "EC" then "Em calibração"
@@ -196,7 +232,7 @@ let
                  else if Text.Contains( d, "PESAGEM"    ) then "Pesagem"
                  else "Outros", type text ),
 
-    // 6 linhas sem laboratório viram "N/A" para casar com DimLaboratorio
+    // linhas sem laboratório viram "N/A" para casar com DimLaboratorio
     Lab = Table.TransformColumns( Tipo,
         {{ "Laboratorio", each if _ = null or Text.Trim( Text.From( _ ) ) = "" then "N/A" else Text.Upper( Text.Trim( Text.From( _ ) ) ), type text }} ),
 
