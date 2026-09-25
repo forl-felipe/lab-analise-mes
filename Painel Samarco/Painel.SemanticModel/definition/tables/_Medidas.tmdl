@@ -137,6 +137,8 @@ table _Medidas
 			
 			CALCULATE (
 			    COUNTROWS ( tbl_Calibracao ),
+			    -- a página Calibrações filtra StatusAtual em A Vencer/Vencido; estes itens estão "Em Dia"
+			    REMOVEFILTERS ( tbl_Calibracao[StatusAtual] ),
 			    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] > 30 ),
 			    KEEPFILTERS ( tbl_Calibracao[DiasParaVencer] <= 90 )
 			)
