@@ -1,0 +1,215 @@
+let
+    Fonte = Excel.Workbook( Web.Contents( "https://smineracao.sharepoint.com/sites/automacao/laboratorios/ZTESTE/Base_PowerBI_Gestao_Equipamentos.xlsx" ), null, true ),
+    // normaliza a chave: a coluna Tag mistura número, texto e espaços irregulares
+    fxTag = ( tag as any ) as nullable text =>
+        let
+            t = if tag = null then null else Text.Upper( Text.Trim( Text.From( tag ) ) ),
+            s = if t = null then null else Text.Remove( t, { " ", Character.FromNumber( 160 ) } )
+        in
+            if s = null or s = "" then null else s,
+    // interpreta os SEIS formatos que convivem nas colunas de data:
+    //   serial do Excel · data nativa · dd/mm/aaaa · dd/mm/aa · mm/aa · mm/aaaa
+    // fimDoMes=true usa o último dia quando o dia não foi informado (vencimentos)
+    fxData = ( valor as any, fimDoMes as logical ) as nullable date =>
+        let
+            ehData   = valor is date or valor is datetime or valor is datetimezone,
+            ehNumero = valor is number,
+            texto    = if valor = null then null else Text.Trim( Text.From( valor ) ),
+            vazio    = texto = null or texto = "",
+            porData   = if ehData then try Date.From( valor ) otherwise null else null,
+            porSerial = if ehNumero and valor > 1 and valor < 100000 then try Date.From( valor ) otherwise null else null,
+            partes    = if vazio then {} else Text.Split( texto, "/" ),
+            n         = List.Count( partes ),
+            nums      = List.Transform( partes, each try Number.FromText( Text.Trim( _ ) ) otherwise null ),
+            numerico  = n >= 2 and not List.Contains( nums, null ),
+            anoCheio  = ( a as number ) as number => if a < 100 then 2000 + a else a,
+            porCompleta =
+                if numerico and n = 3
+                then try #date( anoCheio( nums{2} ), nums{1}, nums{0} ) otherwise null
+                else null,
+            porMesAno =
+                if numerico and n = 2 then
+                    let p = try #date( anoCheio( nums{1} ), nums{0}, 1 ) otherwise null
+                    in  if p = null then null else if fimDoMes then Date.EndOfMonth( p ) else p
+                else null
+        in
+            if porData <> null then porData
+            else if porSerial <> null then porSerial
+            else if porCompleta <> null then porCompleta
+            else porMesAno,
+    // classifica a confiabilidade do valor de origem, em vez de escondê-la
+    fxQual = ( valor as any ) as text =>
+        let
+            texto = if valor = null then null else Text.Trim( Text.From( valor ) ),
+            vazio = texto = null or texto = "",
+            nativo = valor is date or valor is datetime or valor is number,
+            partes = if vazio then {} else Text.Split( texto, "/" ),
+            n = List.Count( partes ),
+            nums = List.Transform( partes, each try Number.FromText( Text.Trim( _ ) ) otherwise null ),
+            numerico = n >= 2 and not List.Contains( nums, null )
+        in
+            if vazio then "Vazio"
+            else if nativo then "OK"
+            else if numerico and n = 3 then "OK"
+            else if numerico and n = 2 then "Mês sem dia"
+            else "Não interpretável",
+
+    // limiares lidos de tbl_Config, onde sempre estiveram (estavam fixos no código)
+    Cfg         = Fonte{[Item="tbl_Config",Kind="Table"]}[Data],
+    DiasAlerta  = try Number.From( Table.SelectRows( Cfg, each [Parâmetro] = "Dias p/ Alerta Vencimento Calibração" ){0}[Valor] ) otherwise 30,
+    DiasCritico = try Number.From( Table.SelectRows( Cfg, each [Parâmetro] = "Dias p/ Alerta Vencimento Crítico" ){0}[Valor] ) otherwise 15,
+
+    // DateTimeZone.SwitchZone(-3): no Serviço, DateTime.LocalNow() roda em UTC
+    Hoje = Date.From( DateTimeZone.SwitchZone( DateTimeZone.UtcNow(), -3 ) ),
+
+    Bruto = Fonte{[Item="tbl_Calibracao",Kind="Table"]}[Data],
+    SemVazias =
+        let
+            // U+00A0 (espaço não separável) chega do SharePoint em célula "vazia".
+            // Sem esta limpeza ele conta como conteúdo: a linha entra no modelo e o
+            // valor vira uma categoria em branco no gráfico.
+            Branco = { " ", "#(00A0)", "#(tab)", "#(cr)", "#(lf)" },
+            Limpo =
+                Table.TransformColumns(
+                    Bruto, {},
+                    ( v ) => if v is text
+                            then ( let t = Text.Trim( v, Branco ) in if t = "" then null else t )
+                            else v
+                )
+        in
+        Table.SelectRows(
+            Limpo,
+            each List.AnyTrue(
+                List.Transform(
+                    Table.ColumnNames( Limpo ),
+                    (c) => Record.Field( _, c ) <> null
+                )
+            )
+        ),
+
+    Renomear = Table.RenameColumns(
+        SemVazias,
+        {
+            { "Laboratório",        "Laboratorio"      },
+            { "Última Calibração",  "UltimaCalibracao" },
+            { "Próximo Vencimento", "ProxVencimento"   }
+        },
+        MissingField.Ignore
+    ),
+
+    Tipos = Table.TransformColumnTypes(
+        Renomear,
+        {
+            { "Equipamento",        type text },
+            { "Laboratorio",        type text },
+            { "Local",              type text },
+            { "Frequência (meses)", Int64.Type },
+            { "Status Calibração",  type text },
+            { "Certificado",        type text },
+            { "Empresa Calibradora", type text },
+            { "Observações",        type text }
+        },
+        "pt-BR"
+    ),
+
+    TagTexto = Table.TransformColumns( Tipos, {{ "Tag", each if _ = null then null else Text.Trim( Text.From( _ ) ), type nullable text }} ),
+    ComTagKey = Table.AddColumn( TagTexto, "TagKey", each fxTag( [Tag] ), type nullable text ),
+
+    UltimaCalib = Table.AddColumn( ComTagKey,   "UltimaCalibData", each fxData( [UltimaCalibracao], false ), type nullable date ),
+    Vencimento  = Table.AddColumn( UltimaCalib, "DataVencimento",  each fxData( [ProxVencimento],  true  ), type nullable date ),
+    QualUltima  = Table.AddColumn( Vencimento,  "Qualidade Última Calibração", each fxQual( [UltimaCalibracao] ), type text ),
+    QualVenc    = Table.AddColumn( QualUltima,  "Qualidade Vencimento",        each fxQual( [ProxVencimento]   ), type text ),
+
+    // calibração "realizada" com data futura é impossível — melhor deixar visível
+    DataFutura = Table.AddColumn( QualVenc, "Última Calibração no Futuro",
+        each [UltimaCalibData] <> null and [UltimaCalibData] > Hoje, type logical ),
+
+    Dias = Table.AddColumn( DataFutura, "DiasParaVencer",
+        each if [DataVencimento] = null then null else Duration.Days( [DataVencimento] - Hoje ), Int64.Type ),
+
+    Status = Table.AddColumn( Dias, "StatusAtual",
+        each if [DiasParaVencer] = null then "Sem Data"
+             else if [DiasParaVencer] < 0 then "Vencido"
+             else if [DiasParaVencer] <= DiasAlerta then "A Vencer"
+             else "Em Dia", type text ),
+
+    OrdemStatus = Table.AddColumn( Status, "Ordem Status",
+        each if [StatusAtual] = "Vencido" then 1
+             else if [StatusAtual] = "A Vencer" then 2
+             else if [StatusAtual] = "Em Dia" then 3
+             else 4, Int64.Type ),
+
+    // ⚠ OS EMOJIS SÃO MANTIDOS DE PROPÓSITO: a tabela da página CALIBRAÇÕES tem
+    //   um filtro de visual fixo em ('🔴 Vencido','🟠 Atenção','🟡 Crítico').
+    //   Mudar os rótulos deixaria aquela tabela VAZIA, sem mensagem de erro.
+    //   Agora com guarda de nulo — o if antigo deixava 22 linhas em branco,
+    //   porque em M  null < 0  devolve null, não false.
+    Criticidade = Table.AddColumn( OrdemStatus, "CriticidadeCalibracao",
+        each if [DiasParaVencer] = null then "⚪ Sem Data"
+             else if [DiasParaVencer] < 0 then "🔴 Vencido"
+             else if [DiasParaVencer] <= DiasCritico then "🟡 Crítico"
+             else if [DiasParaVencer] <= 90 then "🟠 Atenção"
+             else "🟢 OK", type text ),
+
+    // faixa detalhada em coluna separada, para não interferir naquele filtro
+    Faixa = Table.AddColumn( Criticidade, "Faixa de Vencimento",
+        each if [DiasParaVencer] = null then "Sem data"
+             else if [DiasParaVencer] < -180 then "Vencido há +180 dias"
+             else if [DiasParaVencer] < -30 then "Vencido há 31 a 180 dias"
+             else if [DiasParaVencer] < 0 then "Vencido há até 30 dias"
+             else if [DiasParaVencer] <= DiasCritico then "Vence em até 15 dias"
+             else if [DiasParaVencer] <= DiasAlerta then "Vence em 16 a 30 dias"
+             else if [DiasParaVencer] <= 90 then "Vence em 31 a 90 dias"
+             else "Vence em mais de 90 dias", type text ),
+
+    // STATUS METROLÓGICO — a coluna que o relatório nunca usou.
+    // origem: OK 137 · N/OK 47 · E/C 23 · NOK 1 (erro de digitação)
+    Metro = Table.AddColumn( Faixa, "Status Metrologico",
+        each let b = if [Status Calibração] = null then "" else Text.Upper( Text.Remove( Text.Trim( [Status Calibração] ), { "/", " ", "-" } ) )
+             in  if b = "OK" then "Aprovado"
+                 else if b = "NOK" then "Reprovado"
+                 else if b = "EC" then "Em calibração"
+                 else "Não informado", type text ),
+
+    OrdemMetro = Table.AddColumn( Metro, "Ordem Metrologico",
+        each if [Status Metrologico] = "Reprovado" then 1
+             else if [Status Metrologico] = "Em calibração" then 2
+             else if [Status Metrologico] = "Aprovado" then 3
+             else 4, Int64.Type ),
+
+    // reprovado OU fora do prazo
+    Risco = Table.AddColumn( OrdemMetro, "Em Risco",
+        each [Status Metrologico] = "Reprovado" or [StatusAtual] = "Vencido", type logical ),
+
+    Tipo = Table.AddColumn( Risco, "Tipo Instrumento",
+        each let d = if [Equipamento] = null then "" else Text.Upper( Text.From( [Equipamento] ) )
+             in  if      Text.Contains( d, "PENEIRA"    ) then "Peneira"
+                 else if Text.Contains( d, "BALAN"      ) then "Balança"
+                 else if Text.Contains( d, "ESTUFA"     ) then "Estufa"
+                 else if Text.Contains( d, "PRENSA"     ) then "Prensa"
+                 else if Text.Contains( d, "ANALISADOR" ) then "Analisador"
+                 else if Text.Contains( d, "TAMBOR"     ) then "Tambor"
+                 else if Text.Contains( d, "PERMEAB"    ) then "Permeabilímetro"
+                 else if Text.Contains( d, "TITULA"     ) then "Titulador"
+                 else if Text.Contains( d, "FORNO"      ) then "Forno"
+                 else if Text.Contains( d, "DINAM"      ) then "Dinamômetro"
+                 else if Text.Contains( d, "PESAGEM"    ) then "Pesagem"
+                 else "Outros", type text ),
+
+    // 6 linhas sem laboratório viram "N/A" para casar com DimLaboratorio
+    Lab = Table.TransformColumns( Tipo,
+        {{ "Laboratorio", each if _ = null or Text.Trim( Text.From( _ ) ) = "" then "N/A" else Text.Upper( Text.Trim( Text.From( _ ) ) ), type text }} ),
+
+    // v15: família de instrumento de laboratório (liga a calibração à saúde por grupo)
+    Grupo = Table.AddColumn( Lab, "Grupo Operacional",
+        each let k = if [TagKey] = null then "" else [TagKey]
+             in  if      Text.StartsWith( k, "66TA" ) then "Tambores de Abrasão"
+                 else if Text.StartsWith( k, "66AG" ) then "Peneiradores Alpine"
+                 else if Text.StartsWith( k, "66PS" ) then "Prensas de Compressão"
+                 else if Text.StartsWith( k, "66AN" ) then "Analisadores de Umidade"
+                 else null, type nullable text ),
+
+    // v18: o LDP deixou de ser monitorado neste painel
+    SemLDP = Table.SelectRows( Grupo, each [Laboratorio] <> "LDP" )
+in
+    SemLDP
