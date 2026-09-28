@@ -353,6 +353,7 @@ class Construtor:
                  'Dados_MES!$B$5,Dados_MES!$B$6,Dados_MES!$B$7,Dados_MES!$B$3,Dados_MES!$B$4,'
                  '"2h",0,"",0,"1",0,1560,0,0,1,1,%s,ROWS(%s)&"#"&COLUMNS(%s),1)' % (ancora, saida, saida))
         ws.write_formula(8, 0, f_get, self.f(font_size=8))
+        self.nome('mesConsulta', ws, 8, 0)
         ws.write(9, 0, 'Data/hora', self.f(bold=True, bg_color=AZUL, font_color=BRANCO))
         for p in range(1, NPARAM + 1):
             for k, us in enumerate(USINAS):

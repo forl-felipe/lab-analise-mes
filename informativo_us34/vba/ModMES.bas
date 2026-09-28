@@ -75,11 +75,12 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
 
     If Not pronto Then
         msg = "O MES não retornou dados para " & Format$(ini, "dd\/mm\/yyyy hh:mm") & "." & vbCrLf & vbCrLf & _
-              "Resposta da consulta: " & Nm("mesSaida").Cells(1, 1).Text & vbCrLf & vbCrLf & _
+              "Resposta do MES: " & Left$(Nm("mesConsulta").Text & " " & Nm("mesSaida").Cells(1, 1).Text, 180) & vbCrLf & vbCrLf & _
               "Verifique:" & vbCrLf & _
               "  - Suplemento Aspen Process Explorer / Excel Add-in ativo" & vbCrLf & _
               "    (Arquivo > Opções > Suplementos). #NOME? indica suplemento ausente;" & vbCrLf & _
-              "  - Conexão com o servidor '" & CfgTxt("cfgServidor") & "';" & vbCrLf & _
+              "  - Nome da fonte de dados (servidor) '" & CfgTxt("cfgServidor") & "' na aba Configurações." & vbCrLf & _
+              "    'Nome de fonte de dados inválido' = use o nome exibido no suplemento Aspen;" & vbCrLf & _
               "  - Tags e tipos na aba Configurações." & vbCrLf & vbCrLf & _
               "Deseja abrir a aba Dados_MES para conferir?"
         If Aviso(msg, vbExclamation + vbYesNo, "MES sem resposta") = vbYes Then MostrarDadosMES
