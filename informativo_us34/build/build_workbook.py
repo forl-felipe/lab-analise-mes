@@ -42,36 +42,45 @@ LARANJA_FUNDO = '#FDE6D8'
 FONTE = 'Segoe UI'
 
 # ---------------------------------------------------------------- parametros US3 / US4
-# (grupo, parametro, unidade, decimais, agregacao, tag US3, tipo US3, tag US4, tipo US4, tipico US3, tipico US4)
+# (grupo, parametro, unidade, decimais, agregacao, tag US3, tipo US3, tag US4, tipo US4, tipico US3, tipico US4, consulta)
+# consulta: Q = Qualidade, P = Produção, R = Ritmo de processo (ver BLOCOS)
 MV, AM = 'IP_MESVALOR', 'IP_ANALOGMAP'
 PARAMS = [
-    ('Alimentação', 'Alimentação da Grelha', 't/h', 0, 'Média', '306TP001-FX001-R', AM, '406-FX-001', AM, 1000, 1100),
-    ('Prensa de Rolos', 'Superfície Específica - Alimentação RP', 'cm²/g', 0, 'Média', 'M650060010-0017-HHLFU', MV, 'M4650060010-0017-HHLFU', MV, 2010, 2010),
-    ('Prensa de Rolos', 'Superfície Específica - Saída RP', 'cm²/g', 0, 'Média', 'M650060030-0017-HHLFU', MV, 'M4650060030-0017-HHLFU', MV, 2160, 2120),
-    ('Prensa de Rolos', '#325 - Saída RP', '%', 1, 'Média', 'M650060030-0016-HHLFU', MV, 'M4650060030-0016-HHLFU', MV, 90.2, 89.9),
-    ('Prensa de Rolos', 'H2O - Alimentação RP', '%', 2, 'Média', 'M650060010-0001-HHLFU', MV, 'M4650060010-0001-HHLFU', MV, 11.2, 11.2),
-    ('Prensa de Rolos', 'H2O - Saída RP', '%', 2, 'Média', 'M650060030-0001-HHLFU', MV, 'M4650060030-0001-HHLFU', MV, 11.0, 11.0),
-    ('Pellet Feed', 'PPC - Pellet Feed', '%', 2, 'Média', 'M650030010-0013-HHLQU', MV, 'M650030010-0013-HHLQU', MV, 3.66, 3.66),
-    ('Pellet Feed', 'SiO2 - Pellet Feed', '%', 2, 'Média', 'M650030010-0004-HHLQU', MV, 'M650030010-0004-HHLQU', MV, 1.29, 1.29),
-    ('Pellet Feed', 'CaO - Pellet Feed', '%', 2, 'Média', 'M650030010-0006-HHLQU', MV, 'M650030010-0006-HHLQU', MV, 0.09, 0.09),
-    ('Mistura', 'SiO2 - Mistura', '%', 2, 'Média', 'M710050020-0004-HHLQU', MV, 'M4710050020-0004-HHLQU', MV, 1.82, 1.90),
-    ('Mistura', 'CaO - Mistura', '%', 2, 'Média', 'M710050020-0006-HHLQU', MV, 'M4710050020-0006-HHLQU', MV, 0.82, 0.88),
-    ('Mistura', 'B2 - Mistura', '-', 2, 'Média', 'M710050020-0018-HHLQU', MV, 'M4710050020-0018-HHLQU', MV, 0.45, 0.46),
-    ('Mistura', 'Dosagem de Carvão - Mistura', 'kg/t', 1, 'Média', 'M710050020-0084-HHLQU', MV, 'M4710050020-0084-HHLQU', MV, 12.7, 17.6),
-    ('Mistura', 'Carbono Fixo - Mistura', '%', 2, 'Média', 'M710050020-0493-HHLQU', MV, 'M4710050020-0493-HHLQU', MV, 1.07, 1.20),
-    ('Pelota Queimada', 'Faixa +16,0 -8,0 mm', '%', 1, 'Média', 'M710050020-0028-HHLFU', MV, 'M4710050020-0028-HHLFU', MV, 92.5, 90.9),
-    ('Pelota Queimada', 'Relação Granulométrica', '-', 2, 'Média', 'M710050020-2021-HHLFU', MV, 'M4710050020-2021-HHLFU', MV, 0.73, 0.80),
-    ('Pelota Queimada', 'Tamboramento', '%', 1, 'Média', 'M710050020-0029-HHLFU', MV, 'M4710050020-0029-HHLFU', MV, 94.0, 93.9),
-    ('Pelota Queimada', 'Resistência à Compressão', 'kgf/pel', 0, 'Média', 'M710050020-0031-HHLFU', MV, 'M4710050020-0031-HHLFU', MV, 320, 334),
-    ('Pelota Queimada', 'Compressão < 200 kgf/pel', '%', 0, 'Média', 'M710050020-0032-HHLFU', MV, 'M4710050020-0032-HHLFU', MV, 17, 16),
-    ('Pelota Queimada', 'Finos -6,3 mm', '%', 1, 'Média', 'M710050020-0026-HHLFU', MV, 'M4710050020-0026-HHLFU', MV, 0.97, 1.17),
-    ('Produção', 'Produção', 't', 0, 'Soma', 'M710050020-0150-HHCC', MV, 'M4710050020-0150-HHCC', MV, 700, 750),
-    ('Produção', 'Ritmo', 't/dia', 0, 'Último valor', 'M710050031-0150-HHCC', MV, 'M4710050031-0150-HHCC', MV, 19000, 20600),
+    ('Alimentação', 'Alimentação da Grelha', 't/h', 0, 'Média', '306TP001-FX001-R', AM, '406-FX-001', AM, 1000, 1100, 'Q'),
+    ('Prensa de Rolos', 'Superfície Específica - Alimentação RP', 'cm²/g', 0, 'Média', 'M650060010-0017-HHLFU', MV, 'M4650060010-0017-HHLFU', MV, 2010, 2010, 'Q'),
+    ('Prensa de Rolos', 'Superfície Específica - Saída RP', 'cm²/g', 0, 'Média', 'M650060030-0017-HHLFU', MV, 'M4650060030-0017-HHLFU', MV, 2160, 2120, 'Q'),
+    ('Prensa de Rolos', '#325 - Saída RP', '%', 1, 'Média', 'M650060030-0016-HHLFU', MV, 'M4650060030-0016-HHLFU', MV, 90.2, 89.9, 'Q'),
+    ('Prensa de Rolos', 'H2O - Alimentação RP', '%', 2, 'Média', 'M650060010-0001-HHLFU', MV, 'M4650060010-0001-HHLFU', MV, 11.2, 11.2, 'Q'),
+    ('Prensa de Rolos', 'H2O - Saída RP', '%', 2, 'Média', 'M650060030-0001-HHLFU', MV, 'M4650060030-0001-HHLFU', MV, 11.0, 11.0, 'Q'),
+    ('Pellet Feed', 'PPC - Pellet Feed', '%', 2, 'Média', 'M650030010-0013-HHLQU', MV, 'M650030010-0013-HHLQU', MV, 3.66, 3.66, 'Q'),
+    ('Pellet Feed', 'SiO2 - Pellet Feed', '%', 2, 'Média', 'M650030010-0004-HHLQU', MV, 'M650030010-0004-HHLQU', MV, 1.29, 1.29, 'Q'),
+    ('Pellet Feed', 'CaO - Pellet Feed', '%', 2, 'Média', 'M650030010-0006-HHLQU', MV, 'M650030010-0006-HHLQU', MV, 0.09, 0.09, 'Q'),
+    ('Mistura', 'SiO2 - Mistura', '%', 2, 'Média', 'M710050020-0004-HHLQU', MV, 'M4710050020-0004-HHLQU', MV, 1.82, 1.90, 'Q'),
+    ('Mistura', 'CaO - Mistura', '%', 2, 'Média', 'M710050020-0006-HHLQU', MV, 'M4710050020-0006-HHLQU', MV, 0.82, 0.88, 'Q'),
+    ('Mistura', 'B2 - Mistura', '-', 2, 'Média', 'M710050020-0018-HHLQU', MV, 'M4710050020-0018-HHLQU', MV, 0.45, 0.46, 'Q'),
+    ('Mistura', 'Dosagem de Carvão - Mistura', 'kg/t', 1, 'Média', 'M710050020-0084-HHLQU', MV, 'M4710050020-0084-HHLQU', MV, 12.7, 17.6, 'Q'),
+    ('Mistura', 'Carbono Fixo - Mistura', '%', 2, 'Média', 'M710050020-0493-HHLQU', MV, 'M4710050020-0493-HHLQU', MV, 1.07, 1.20, 'Q'),
+    ('Pelota Queimada', 'Faixa +16,0 -8,0 mm', '%', 1, 'Média', 'M710050020-0028-HHLFU', MV, 'M4710050020-0028-HHLFU', MV, 92.5, 90.9, 'Q'),
+    ('Pelota Queimada', 'Relação Granulométrica', '-', 2, 'Média', 'M710050020-2021-HHLFU', MV, 'M4710050020-2021-HHLFU', MV, 0.73, 0.80, 'Q'),
+    ('Pelota Queimada', 'Tamboramento', '%', 1, 'Média', 'M710050020-0029-HHLFU', MV, 'M4710050020-0029-HHLFU', MV, 94.0, 93.9, 'Q'),
+    ('Pelota Queimada', 'Resistência à Compressão', 'kgf/pel', 0, 'Média', 'M710050020-0031-HHLFU', MV, 'M4710050020-0031-HHLFU', MV, 320, 334, 'Q'),
+    ('Pelota Queimada', 'Compressão < 200 kgf/pel', '%', 0, 'Média', 'M710050020-0032-HHLFU', MV, 'M4710050020-0032-HHLFU', MV, 17, 16, 'Q'),
+    ('Pelota Queimada', 'Finos -6,3 mm', '%', 1, 'Média', 'M710050020-0026-HHLFU', MV, 'M4710050020-0026-HHLFU', MV, 0.97, 1.17, 'Q'),
+    ('Pelota Queimada', 'SiO2 - Pelota Queimada', '%', 2, 'Média', 'M710050020-0004-HHLFU', MV, 'M4710050020-0004-HHLFU', MV, 1.90, 1.95, 'Q'),
+    ('Produção', 'Produção', 't', 0, 'Soma', 'M710050020-0150-HHCC', MV, 'M4710050020-0150-HHCC', MV, 700, 750, 'P'),
+    ('Produção', 'Ritmo (MES)', 't/dia', 0, 'Último valor', 'M710050031-0150-HHCC', MV, 'M4710050031-0150-HHCC', MV, 19000, 20600, 'P'),
+    ('Produção', 'Ritmo (processo)', 't/dia', 0, 'Último valor', '306GERAL-FIT003-R', AM, '406-RITMO', AM, 19000, 20600, 'R'),
 ]
 NPARAM = len(PARAMS)
 NSLOT = 6
 USINAS = ('US3', 'US4')
-KPIS = [(18, 'Resistência à Compressão'), (17, 'Tamboramento'), (10, 'SiO2 - Mistura'), (21, 'Produção')]
+KPIS = [(i + 1, n) for n in ('Resistência à Compressão', 'Tamboramento', 'SiO2 - Mistura', 'Produção')
+        for i, pr in enumerate(PARAMS) if pr[1] == n]
+# Consultas ao MES, montadas como na planilha de referencia (out/2014): uma formula por grupo,
+# com tags, servidores e mapas em TEXTO LITERAL. (codigo, titulo, tipo de calculo, linha da ancora 1-based)
+BLOCOS = [('Q', 'Qualidade', '1', 7), ('P', 'Produção', '1', 17), ('R', 'Ritmo de processo', '0', 27)]
+SERVIDOR_PADRAO = 'UBU'
+TAG_COMPRESSAO_REF = ('M710050020-0030-HHLFU', 'M4710050020-0030-HHLFU')
 
 # Configuracoes: colunas (1-based) da tabela de tags
 CFG_ROW1 = 18
@@ -98,6 +107,24 @@ def cfg_ref(p, key, absolute=True):
 
 def fmt_dec(d):
     return '0' if d == 0 else '0.' + '0' * d
+
+
+def literal(texto):
+    """Texto literal para formula do Excel, quebrado em pedacos de 250 caracteres
+    (limite de 255 por texto), unidos com &, como faz o proprio suplemento Aspen."""
+    pedacos = [texto[i:i + 250] for i in range(0, len(texto), 250)] or ['']
+    return '&'.join('"%s"' % p for p in pedacos)
+
+
+def formula_consulta(ps, calc, ancora, saida):
+    """Mesma assinatura das formulas H2/BN2/BT2 da planilha de referencia."""
+    tags = ','.join('%s,%s' % (PARAMS[p - 1][5], PARAMS[p - 1][7]) for p in ps)
+    mapas = ','.join('%s,%s' % (PARAMS[p - 1][6], PARAMS[p - 1][8]) for p in ps)
+    servs = ','.join([SERVIDOR_PADRAO] * (2 * len(ps)))
+    return ('=_xll.AspenTech.PME.ProcessData.Functions.GetCalculationValues("time,attribute",%s,%s,%s,'
+            'Dados_MES!$B$3,Dados_MES!$B$4,"2h",0,"",0,"%s",0,1560,0,0,1,1,'
+            'ADDRESS(ROW(Dados_MES!%s),COLUMN(Dados_MES!%s),1,,"Dados_MES"),"Dados_MES!%s",1)'
+            % (literal(tags), literal(servs), literal(mapas), calc, ancora, ancora, saida))
 
 
 # ============================================================================
@@ -232,7 +259,7 @@ class Construtor:
         self.secao(ws, 4, 1, 15, 'PARÂMETROS GERAIS')
         gerais = [
             ('cfgFonte', 'Fonte dos dados', 'MES', 'MES = busca no Aspen/IP.21  ·  SIMULAÇÃO = dados fictícios (treinamento e teste)'),
-            ('cfgServidor', 'Servidor do MES', 'UBU', 'Nome do servidor IP.21 usado nas fórmulas do suplemento Aspen'),
+            ('cfgServidor', 'Servidor do MES', 'UBU', 'Fonte de dados do suplemento Aspen (UBU, como na planilha de referência de 2014)'),
             ('cfgInicioDia', 'Início do turno Dia', dtm.time(7, 0), 'Turno Noite começa 12 h depois (Dia 07h-19h · Noite 19h-07h)'),
             ('cfgTimeout', 'Espera máxima pelo MES (s)', 60, 'Tempo de espera pela resposta das fórmulas do Aspen'),
             ('cfgPastaPDF', 'Pasta dos PDFs', '', 'Vazio = pasta "Informativos PDF" ao lado desta planilha'),
@@ -276,7 +303,7 @@ class Construtor:
                                           align='center', border=1, border_color=BRANCO))
         for p, pr in enumerate(PARAMS, start=1):
             r = CFG_ROW1 - 1 + p - 1
-            g, nome, un, dec, agg, t3, ty3, t4, ty4, tip3, tip4 = pr
+            g, nome, un, dec, agg, t3, ty3, t4, ty4, tip3, tip4 = pr[:11]
             zebra = FUNDO_CLARO if p % 2 else BRANCO
             fl = self.f(bg_color=zebra, border=1, border_color=BRANCO, indent=1)
             ws.write(r, 1, g, self.f(bg_color=zebra, border=1, border_color=BRANCO, indent=1, font_color=AZUL_ACINZ))
@@ -301,6 +328,15 @@ class Construtor:
         ws.data_validation(r1, 9, r2, 9, {'validate': 'list', 'source': '=lstTipo'})
         self.nome('lstParam', ws, r1, 2, r2, 2)
         ws.freeze_panes(17, 3)
+        pc = [i for i, pr in enumerate(PARAMS) if pr[1] == 'Resistência à Compressão'][0]
+        nota = ('ATENÇÃO - tag a confirmar no MES: a planilha de referência (out/2014) usa %s (US3) e %s (US4) '
+                'para a compressão. Esta planilha usa ...-0031-HHLFU. Troque aqui se o MES indicar a -0030.'
+                % TAG_COMPRESSAO_REF)
+        for col in (6, 8):
+            ws.write_comment(CFG_ROW1 - 1 + pc, col, nota, {'x_scale': 2.2, 'y_scale': 1.4})
+        ws.write(CFG_ROW1 - 1 + NPARAM + 1, 2, '⚠ Compressão: a referência de 2014 usa as tags ...-0030-HHLFU; '
+                 'aqui está ...-0031-HHLFU. Confirmar no MES (veja o comentário na tag).',
+                 self.f(font_size=9, bold=True, font_color=LARANJA))
         ws.set_landscape()
         ws.set_paper(9)
         ws.fit_to_pages(1, 0)
@@ -325,8 +361,11 @@ class Construtor:
 
     # ------------------------------------------------------------ Dados_MES
     def aba_dados_mes(self):
+        """Tres consultas ao Aspen (Qualidade, Producao, Ritmo de processo) no mesmo formato da
+        planilha de referencia. O VBA (ModMES.RegerarFormulasMES) reescreve estas formulas a partir
+        da aba Configuracoes antes de cada atualizacao, sempre com as listas em texto literal."""
         ws = self.ws_mes
-        ws.set_column(0, 0, 18)
+        ws.set_column(0, 0, 18, self.f(num_format='dd/mm/yyyy hh:mm'))
         ws.set_column(1, 2 * NPARAM, 14)
         ws.write(0, 0, 'Dados brutos do MES (Aspen IP.21) - não editar', self.f(bold=True, font_size=13, font_color=AZUL))
         txt = self.f(num_format='@', bg_color=FUNDO_CLARO)
@@ -337,33 +376,27 @@ class Construtor:
         ws.write_string(3, 1, '', txt)
         self.nome('mesInicio', ws, 2, 1)
         self.nome('mesFim', ws, 3, 1)
-        tags = '&","&'.join(cfg_ref(p, k) for p in range(1, NPARAM + 1) for k in ('TAG3', 'TAG4'))
-        tipos = '&","&'.join(cfg_ref(p, k) for p in range(1, NPARAM + 1) for k in ('TIPO3', 'TIPO4'))
-        serv = 'REPT(cfgServidor&",",%d)&cfgServidor' % (2 * NPARAM - 1)
-        ws.write(4, 0, 'Tags', rot)
-        ws.write_formula(4, 1, '=' + tags, self.f(font_size=8))
-        ws.write(5, 0, 'Servidores', rot)
-        ws.write_formula(5, 1, '=' + serv, self.f(font_size=8))
-        ws.write(6, 0, 'Tipos', rot)
-        ws.write_formula(6, 1, '=' + tipos, self.f(font_size=8))
-        ncol = 1 + 2 * NPARAM
-        saida = 'Dados_MES!%s:%s' % (rc(10, 0), rc(10 + NSLOT - 1, ncol - 1))
-        ancora = 'ADDRESS(ROW(Dados_MES!A9),COLUMN(Dados_MES!A9),1,,"Dados_MES")'
-        f_get = ('=_xll.AspenTech.PME.ProcessData.Functions.GetCalculationValues("time,attribute",'
-                 'Dados_MES!$B$5,Dados_MES!$B$6,Dados_MES!$B$7,Dados_MES!$B$3,Dados_MES!$B$4,'
-                 '"2h",0,"",0,"1",0,1560,0,0,1,1,%s,ROWS(%s)&"#"&COLUMNS(%s),1)' % (ancora, saida, saida))
-        ws.write_formula(8, 0, f_get, self.f(font_size=8))
-        self.nome('mesConsulta', ws, 8, 0)
-        ws.write(9, 0, 'Data/hora', self.f(bold=True, bg_color=AZUL, font_color=BRANCO))
-        for p in range(1, NPARAM + 1):
-            for k, us in enumerate(USINAS):
-                ws.write(9, 1 + (p - 1) * 2 + k, 'P%02d %s · %s' % (p, us, PARAMS[p - 1][1]),
-                         self.f(bold=True, bg_color=AZUL, font_color=BRANCO, font_size=8, text_wrap=True))
-        ws.set_row(9, 45)
-        f_show = ('{=_xll.AspenTech.PME.ProcessData.Functions.ShowCalculationValues(%s,Dados_MES!A9, 0)}' % ancora)
-        ws.write_array_formula(10, 0, 10 + NSLOT - 1, ncol - 1, f_show, self.f(num_format='0.00'))
-        ws.set_column(0, 0, 18, self.f(num_format='dd/mm/yyyy hh:mm'))
-        self.nome('mesSaida', ws, 10, 0, 10 + NSLOT - 1, ncol - 1)
+        self.blocos = []
+        for cod, titulo, calc, lin in BLOCOS:
+            ps = [i + 1 for i, pr in enumerate(PARAMS) if pr[11] == cod]
+            r_anc = lin - 1                   # 0-based
+            r_out = r_anc + 2
+            ncol = 1 + 2 * len(ps)
+            anc = rc(r_anc, 0)
+            out = rc(r_out, 0)
+            ws.write(r_anc - 1, 0, 'Consulta: %s  (tipo de cálculo "%s")' % (titulo, calc),
+                     self.f(bold=True, font_color=AZUL_ACINZ))
+            ws.write_formula(r_anc, 0, formula_consulta(ps, calc, anc, out), self.f(font_size=8), 'Success')
+            ws.write(r_anc + 1, 0, 'Data/hora', self.f(bold=True, bg_color=AZUL, font_color=BRANCO))
+            for i, pp in enumerate(ps):
+                for k, us in enumerate(USINAS):
+                    ws.write(r_anc + 1, 1 + i * 2 + k, 'P%02d %s · %s' % (pp, us, PARAMS[pp - 1][1]),
+                             self.f(bold=True, bg_color=AZUL, font_color=BRANCO, font_size=8, text_wrap=True))
+            ws.set_row(r_anc + 1, 45)
+            f_show = ('{=_xll.AspenTech.PME.ProcessData.Functions.ShowCalculationValues('
+                      'ADDRESS(ROW(Dados_MES!%s),COLUMN(Dados_MES!%s),1,,"Dados_MES"),Dados_MES!%s, 0)}' % (anc, anc, anc))
+            ws.write_array_formula(r_out, 0, r_out + NSLOT - 1, ncol - 1, f_show, self.f(num_format='0.00'))
+            self.blocos.append((cod, titulo, calc, anc, out, ps, ncol))
         self.botao(ws, 0, 4, 'Voltar às Configurações', 'OcultarDadosMES', 200, 28, 'primario', y=2)
 
     # ------------------------------------------------------------ Informativo
@@ -672,8 +705,8 @@ class Construtor:
         r = c0 + len(campos) + 1
         self.secao(ws, r, 1, 12, '7.  EMBARQUES / CLIENTES')
         cols = [(1, 1, 'Cliente'), (2, 2, 'Produto'), (3, 3, 'Navio'), (4, 4, 'Início'), (5, 5, 'Término'),
-                (6, 6, 'Qtd (t)'), (7, 7, 'Tamb. (%)'), (8, 8, 'Compr. (kgf)'), (9, 9, '-6,3 mm (%)'),
-                (10, 12, 'Observação')]
+                (6, 6, 'Qtd (TMS)'), (7, 7, 'Tamb. (%)'), (8, 8, 'Compr. (kgf)'), (9, 9, '-6,3 mm (%)'),
+                (10, 10, 'Relação'), (11, 11, 'B2'), (12, 12, 'SiO2 (%)')]
         ws.set_row(r + 1, 26)
         for c1, c2, t in cols:
             if c1 == c2:
@@ -682,17 +715,19 @@ class Construtor:
             else:
                 ws.merge_range(r + 1, c1, r + 1, c2, t, hdr)
         for i in range(4):
-            rr = r + 2 + i
+            rr = r + 2 + i * 2
             ws.set_row(rr, 19)
             for c1, c2, t in cols:
-                if c1 == c2:
-                    ws.write_blank(rr, c1, None, self.f_input(font_size=9, align='center' if c1 > 1 else 'left'))
-                else:
-                    ws.merge_range(rr, c1, rr, c2, '', self.f_input(font_size=9))
+                ws.write_blank(rr, c1, None, self.f_input(font_size=9, align='center' if c1 > 1 else 'left'))
                 self.mapa_add('Embarque', 'Embarque %d' % (i + 1), t, '', '@' + rc(rr, c1))
+            ws.set_row(rr + 1, 17)
+            ws.write(rr + 1, 1, 'Observação', self.f(font_size=8, italic=True, font_color=AZUL_ACINZ, align='right',
+                                                    bg_color=FUNDO_CLARO))
+            ws.merge_range(rr + 1, 2, rr + 1, 12, '', self.f_input(font_size=9))
+            self.mapa_add('Embarque', 'Embarque %d' % (i + 1), 'Observação', '', '@' + rc(rr + 1, 2))
 
         # 8. Observacoes
-        r = r + 7
+        r = r + 11
         self.secao(ws, r, 1, 12, '8.  OBSERVAÇÕES GERAIS')
         ws.merge_range(r + 1, 1, r + 3, 12, '', txt)
         self.nome('ptObs', ws, r + 1, 1)
@@ -1017,6 +1052,12 @@ class Construtor:
                 ws.write_number(r, 7, k)
                 ws.write_number(r, 8, self.linhas_inf[(p, k)])
                 r += 1
+        for i, t in enumerate(['Bloco', 'Consulta', 'Cálculo', 'Âncora', 'Saída', 'Parâmetros', 'Colunas']):
+            ws.write(0, 10 + i, t)
+        for r, (cod, titulo, calc, anc, out, ps, ncol) in enumerate(self.blocos, start=1):
+            for i, v in enumerate([cod, titulo, calc, anc, out, ','.join(str(x) for x in ps)]):
+                ws.write_string(r, 10 + i, v)
+            ws.write_number(r, 16, ncol)
 
     # ------------------------------------------------------------ VBA
     def modulo_layout(self):

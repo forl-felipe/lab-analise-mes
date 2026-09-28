@@ -1,7 +1,7 @@
 Option Explicit
 
 ' Gerado por build_workbook.py - posicoes fixas das abas (nao editar a mao)
-Public Const NPARAM As Long = 22
+Public Const NPARAM As Long = 24
 Public Const NSLOT As Long = 6
 Public Const HORAS_SLOT As Double = 2
 Public Const CFG_ROW1 As Long = 18
@@ -24,7 +24,7 @@ Public Const INF_COL_H1 As Long = 5
 Public Const INF_COL_RES As Long = 11
 Public Const HIST_ROW_HDR As Long = 6
 Public Const HIST_COL_RES1 As Long = 8
-Public Const HIST_COL_NOK As Long = 52
+Public Const HIST_COL_NOK As Long = 56
 Public Const REG_ROW_HDR As Long = 6
 ' Senha de protecao das abas (vazio = sem senha)
 Public Const SENHA As String = ""

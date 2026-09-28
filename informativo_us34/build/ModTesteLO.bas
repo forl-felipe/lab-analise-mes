@@ -62,3 +62,11 @@ Public Sub DemoLO()
     Nm("ptStatus").Cells(3, 1).Value = "FORA DE OPERAÇÃO"
     shPassagem.Range("C58").Value = "PBF"
 End Sub
+
+' Grava os argumentos que o VBA monta para cada consulta (comparados com o Python no teste)
+Public Sub TesteFormulas()
+    Dim b As Long
+    For b = 1 To NumBlocos()
+        shConfig.Cells(b, 27).Value = "'" & ArgumentosBloco(b)
+    Next b
+End Sub

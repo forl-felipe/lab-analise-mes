@@ -48,13 +48,112 @@ Public Sub AtualizarMES()
     End If
 End Sub
 
-' Escreve o periodo na aba Dados_MES, recalcula as formulas Aspen e espera o retorno
+' ---------------------------------------------------------------------------
+'  Consulta ao MES - mesmo formato da planilha de referencia (out/2014):
+'  uma formula GetCalculationValues por grupo (Qualidade, Producao, Ritmo de
+'  processo), com tags, servidores e mapas em TEXTO LITERAL dentro da formula.
+'  Os grupos estao na aba _Mapa (colunas K:Q).
+' ---------------------------------------------------------------------------
+Private Const MAPA_COL_BLOCO As Long = 11
+
+Public Function NumBlocos() As Long
+    Dim r As Long
+    r = 2
+    Do While Not Vazio(shMapa.Cells(r, MAPA_COL_BLOCO).Value)
+        r = r + 1
+    Loop
+    NumBlocos = r - 2
+End Function
+
+Private Function BlocoInfo(ByVal b As Long, ByVal campo As Long) As String
+    ' campo: 0 codigo, 1 titulo, 2 calculo, 3 ancora, 4 saida, 5 lista de parametros
+    BlocoInfo = CStr(shMapa.Cells(1 + b, MAPA_COL_BLOCO + campo).Value)
+End Function
+
+' Texto literal para formula, em pedacos de 250 caracteres unidos com & (limite do Excel: 255)
+Private Function Literal(ByVal texto As String) As String
+    Dim r As String, i As Long
+    For i = 1 To Len(texto) Step 250
+        If r <> "" Then r = r & "&"
+        r = r & """" & Mid$(texto, i, 250) & """"
+    Next i
+    If r = "" Then r = """"""
+    Literal = r
+End Function
+
+' Argumentos da GetCalculationValues do bloco b (tudo o que vem depois do "(")
+Public Function ArgumentosBloco(ByVal b As Long) As String
+    Dim ps As Variant, i As Long, p As Long, serv As String
+    Dim tags As String, mapas As String, servs As String, anc As String
+
+    serv = CfgTxt("cfgServidor")
+    If serv = "" Then serv = "UBU"
+    ps = Split(BlocoInfo(b, 5), ",")
+    For i = LBound(ps) To UBound(ps)
+        p = CLng(ps(i))
+        If tags <> "" Then
+            tags = tags & ","
+            mapas = mapas & ","
+            servs = servs & ","
+        End If
+        tags = tags & Trim$(CStr(CfgCel(p, CFG_COL_TAG3))) & "," & Trim$(CStr(CfgCel(p, CFG_COL_TAG4)))
+        mapas = mapas & Trim$(CStr(CfgCel(p, CFG_COL_TIPO3))) & "," & Trim$(CStr(CfgCel(p, CFG_COL_TIPO4)))
+        servs = servs & serv & "," & serv
+    Next i
+    anc = BlocoInfo(b, 3)
+    ArgumentosBloco = """time,attribute""," & Literal(tags) & "," & Literal(servs) & "," & Literal(mapas) & _
+        ",Dados_MES!$B$3,Dados_MES!$B$4,""2h"",0,"""",0,""" & BlocoInfo(b, 2) & """,0,1560,0,0,1,1," & _
+        "ADDRESS(ROW(Dados_MES!" & anc & "),COLUMN(Dados_MES!" & anc & "),1,,""Dados_MES"")," & _
+        """Dados_MES!" & BlocoInfo(b, 4) & """,1)"
+End Function
+
+' Reescreve as formulas das consultas a partir da aba Configuracoes (texto literal).
+' O nome da funcao (com ou sem _xll.) e preservado exatamente como o Excel o mostra.
+Public Sub RegerarFormulasMES()
+    Dim b As Long, c As Range, atual As String, prefixo As String, nova As String
+    For b = 1 To NumBlocos()
+        Set c = shDadosMES.Range(BlocoInfo(b, 3))
+        atual = c.Formula
+        If InStr(atual, "(") > 0 And InStr(1, atual, "GetCalculationValues", vbTextCompare) > 0 Then
+            prefixo = Left$(atual, InStr(atual, "("))
+        Else
+            prefixo = "=_xll.AspenTech.PME.ProcessData.Functions.GetCalculationValues("
+        End If
+        nova = prefixo & ArgumentosBloco(b)
+        If nova <> atual Then c.Formula = nova
+    Next b
+End Sub
+
+Private Function SaidaBloco(ByVal b As Long) As Range
+    Dim ps As Variant
+    ps = Split(BlocoInfo(b, 5), ",")
+    Set SaidaBloco = shDadosMES.Range(BlocoInfo(b, 4)).Resize(NSLOT, 1 + 2 * (UBound(ps) - LBound(ps) + 1))
+End Function
+
+Private Function BlocoPronto(ByVal b As Long, ByVal ini As Date) As Boolean
+    Dim v As Variant
+    v = SaidaBloco(b).Cells(1, 1).Value
+    BlocoPronto = False
+    If Vazio(v) Then Exit Function
+    If VarType(v) = vbDate Or IsNumeric(v) Or IsDate(v) Then
+        BlocoPronto = (Abs(CDbl(CDate(v)) - CDbl(ini)) <= HORAS_SLOT / 24 + 1 / 1440)
+    End If
+End Function
+
+' Escreve o periodo, regera as formulas, recalcula e espera o retorno de cada consulta
 Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados As Variant) As Boolean
-    Dim t0 As Single, limite As Double, v As Variant, pronto As Boolean, msg As String
+    Dim t0 As Single, limite As Double, msg As String, nb As Long, b As Long, nOk As Long
+    Dim pronto() As Boolean, d() As Variant, arr As Variant, ps As Variant
+    Dim i As Long, k As Long, s As Long, p As Long, falhas As String
 
     ConsultarMES = False
+    nb = NumBlocos()
+    ReDim pronto(1 To nb)
     Nm("mesInicio").Value = Format$(ini, "dd\/mm\/yyyy hh:mm:ss")
     Nm("mesFim").Value = Format$(fim, "dd\/mm\/yyyy hh:mm:ss")
+    On Error GoTo FalhaFormula
+    RegerarFormulasMES
+    On Error GoTo 0
     Application.CalculateFull
 
     limite = 60
@@ -62,32 +161,61 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     t0 = Timer
     Do
         DoEvents
-        v = Nm("mesSaida").Cells(1, 1).Value
-        If Not Vazio(v) Then
-            If VarType(v) = vbDate Or IsNumeric(v) Or IsDate(v) Then
-                If Abs(CDbl(CDate(v)) - CDbl(ini)) <= HORAS_SLOT / 24 + 1 / 1440 Then pronto = True
-            End If
-        End If
-        If pronto Then Exit Do
+        nOk = 0
+        For b = 1 To nb
+            If Not pronto(b) Then pronto(b) = BlocoPronto(b, ini)
+            If pronto(b) Then nOk = nOk + 1
+        Next b
+        If nOk = nb Then Exit Do
         If Timer < t0 Then t0 = t0 - 86400
         If Timer - t0 > limite Then Exit Do
     Loop
 
-    If Not pronto Then
+    For b = 1 To nb
+        If Not pronto(b) Then
+            falhas = falhas & "  - " & BlocoInfo(b, 1) & ": " & _
+                     Left$(shDadosMES.Range(BlocoInfo(b, 3)).Text & " " & SaidaBloco(b).Cells(1, 1).Text, 150) & vbCrLf
+        End If
+    Next b
+
+    If nOk = 0 Then
         msg = "O MES não retornou dados para " & Format$(ini, "dd\/mm\/yyyy hh:mm") & "." & vbCrLf & vbCrLf & _
-              "Resposta do MES: " & Left$(Nm("mesConsulta").Text & " " & Nm("mesSaida").Cells(1, 1).Text, 180) & vbCrLf & vbCrLf & _
+              "Resposta de cada consulta:" & vbCrLf & falhas & vbCrLf & _
               "Verifique:" & vbCrLf & _
-              "  - Suplemento Aspen Process Explorer / Excel Add-in ativo" & vbCrLf & _
-              "    (Arquivo > Opções > Suplementos). #NOME? indica suplemento ausente;" & vbCrLf & _
-              "  - Nome da fonte de dados (servidor) '" & CfgTxt("cfgServidor") & "' na aba Configurações." & vbCrLf & _
-              "    'Nome de fonte de dados inválido' = use o nome exibido no suplemento Aspen;" & vbCrLf & _
-              "  - Tags e tipos na aba Configurações." & vbCrLf & vbCrLf & _
+              "  - Suplemento Aspen Process Data ativo (#NOME? = suplemento ausente);" & vbCrLf & _
+              "  - Fonte de dados '" & CfgTxt("cfgServidor") & "' (aba Configurações);" & vbCrLf & _
+              "  - Tags e mapas na aba Configurações." & vbCrLf & vbCrLf & _
               "Deseja abrir a aba Dados_MES para conferir?"
         If Aviso(msg, vbExclamation + vbYesNo, "MES sem resposta") = vbYes Then MostrarDadosMES
         Exit Function
     End If
-    dados = Nm("mesSaida").Value
+    If falhas <> "" Then
+        Aviso "Algumas consultas do MES não responderam e ficarão em branco:" & vbCrLf & falhas, _
+              vbExclamation, "MES - resposta parcial"
+    End If
+
+    ReDim d(1 To NSLOT, 1 To 1 + 2 * NPARAM)
+    For b = 1 To nb
+        If pronto(b) Then
+            arr = SaidaBloco(b).Value
+            ps = Split(BlocoInfo(b, 5), ",")
+            For i = LBound(ps) To UBound(ps)
+                p = CLng(ps(i))
+                For k = 1 To 2
+                    For s = 1 To NSLOT
+                        d(s, 1 + (p - 1) * 2 + k) = arr(s, 1 + (i - LBound(ps)) * 2 + k)
+                    Next s
+                Next k
+            Next i
+        End If
+    Next b
+    dados = d
     ConsultarMES = True
+    Exit Function
+
+FalhaFormula:
+    Aviso "Não foi possível montar as fórmulas de consulta ao MES:" & vbCrLf & Err.Description & vbCrLf & _
+          "Confira as tags na aba Configurações.", vbExclamation, "MES"
 End Function
 
 ' Gera valores ficticios em torno do "valor tipico" (modo de treinamento/teste)

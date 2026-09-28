@@ -49,6 +49,21 @@ Planilha Excel com macros (`Informativo_Qualidade_US3_US4.xlsm`) que substitui a
 4. Para treinar ou testar sem o MES, mude **Fonte dos dados** para `SIMULAÇÃO`. Para uso real, deixe `MES`.
 5. O **suplemento Aspen Process Explorer (Excel Add-in)** precisa estar ativo, como na planilha antiga. Sem ele, as fórmulas mostram `#NOME?`, e o botão 1 avisa e explica o que verificar.
 
+## Consulta ao MES (formato da planilha de referência)
+
+A aba oculta `Dados_MES` segue o mesmo formato da `TRABALHO_INFORMATIVO_QUALIDADE.xlsm` (out/2014), que funciona no Excel. São três consultas `GetCalculationValues`:
+
+| Consulta | Célula | Tags | Mapa | Cálculo |
+|---|---|---|---|---|
+| Qualidade | A7 → saída A9 | Grelha + 20 parâmetros de laboratório (US3/US4) | IP_ANALOGMAP / IP_MESVALOR | "1" |
+| Produção | A17 → saída A19 | Produção e Ritmo (MES) | IP_MESVALOR | "1" |
+| Ritmo de processo | A27 → saída A29 | 306GERAL-FIT003-R (US3), 406-RITMO (US4) | IP_ANALOGMAP | "0" |
+
+- Tags, servidores (`UBU`) e mapas ficam em **texto literal** dentro da fórmula, quebrados em pedaços de até 250 caracteres com `&`, como faz o próprio suplemento.
+- A cada **Atualizar dados do MES**, o VBA (`ModMES.RegerarFormulasMES`) reescreve as fórmulas a partir da aba Configurações. Assim, uma tag alterada ali entra na consulta.
+- O texto completo das fórmulas, lado a lado com a referência, está em [`FORMULAS_MES.md`](FORMULAS_MES.md).
+- **Tag de compressão:** a referência usa `…-0030-HHLFU`; esta planilha usa `…-0031-HHLFU`. Confirme no MES e troque na aba Configurações, se necessário.
+
 ## Pontos a confirmar com a área
 
 - **Tags:** as tags de US3/US4 vieram da planilha padrão antiga. Algumas podem ter mudado no MES.
