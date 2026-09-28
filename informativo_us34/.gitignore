@@ -1,0 +1,5 @@
+__pycache__/
+*_TESTE.xlsm
+*.base.xlsm
+build/vbaProject.bin
+~$*
