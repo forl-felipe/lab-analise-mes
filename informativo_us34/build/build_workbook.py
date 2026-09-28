@@ -1083,9 +1083,26 @@ class Construtor:
 
 
 # ============================================================================
+def checar_declaracoes(nome, codigo):
+    """O Excel exige declaracoes de modulo (Const, Dim, Private x As...) antes da 1a rotina.
+    O LibreOffice aceita fora de ordem, entao a verificacao e feita aqui."""
+    em_rotina, viu_rotina = False, False
+    for n, linha in enumerate(codigo.split('\n'), start=1):
+        t = linha.strip()
+        if re.match(r'^(Public |Private |Friend )?(Static )?(Sub|Function|Property) ', t):
+            em_rotina = viu_rotina = True
+        elif re.match(r'^End (Sub|Function|Property)\b', t):
+            em_rotina = False
+        elif viu_rotina and not em_rotina and re.match(
+                r'^(Public |Private |Global )?(Const |Dim |Declare |Type |Enum )|^(Public|Private|Global) \w+ As ', t):
+            raise SystemExit('ERRO VBA em %s, linha %d: declaração depois de rotina (o Excel não compila): %s'
+                             % (nome, n, t))
+    return codigo
+
+
 def ler_vba(nome):
     with open(os.path.join(VBA_DIR, nome), encoding='utf-8') as fh:
-        return fh.read()
+        return checar_declaracoes(nome, fh.read())
 
 
 def montar_vba(layout_code):

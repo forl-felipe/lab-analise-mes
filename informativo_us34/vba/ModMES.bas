@@ -7,6 +7,8 @@ Option Explicit
 
 Private mLinhas() As Long
 Private mCarregado As Boolean
+' Coluna inicial da tabela de consultas ao MES na aba _Mapa (K)
+Private Const MAPA_COL_BLOCO As Long = 11
 
 ' Botao 1 do Painel
 Public Sub AtualizarMES()
@@ -54,7 +56,6 @@ End Sub
 '  processo), com tags, servidores e mapas em TEXTO LITERAL dentro da formula.
 '  Os grupos estao na aba _Mapa (colunas K:Q).
 ' ---------------------------------------------------------------------------
-Private Const MAPA_COL_BLOCO As Long = 11
 
 Public Function NumBlocos() As Long
     Dim r As Long
