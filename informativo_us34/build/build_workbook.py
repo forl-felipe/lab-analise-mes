@@ -91,15 +91,9 @@ CFG_ROW1 = 18
 CFG_COL = dict(GRUPO=2, PARAM=3, UNID=4, DEC=5, AGG=6, TAG3=7, TIPO3=8, TAG4=9, TIPO4=10,
                LIE=11, LSE=12, VMIN=13, VMAX=14, TIP3=15, TIP4=16)
 INF_COL_H1, INF_COL_RES = 5, 11
-HIST_ROW_HDR, REG_ROW_HDR = 6, 6
-HIST_FIXAS = ['Data', 'Turno', 'Turma', 'Responsável', 'Turma que recebe', 'Fechado em', 'Fonte dos dados']
-HIST_COL_RES1 = len(HIST_FIXAS) + 1
-HIST_COL_NOK = HIST_COL_RES1 + NPARAM * 2
-HIST_FINAIS = ['Equip. não operando', 'Pendências p/ próximo turno', 'Observações gerais']
 
 SH_CFG = "'Configurações'"
 SH_PASS = "'Passagem de Turno'"
-SH_HIST = "'Histórico'"
 
 
 def cfg_ref(p, key, absolute=True):
@@ -223,40 +217,35 @@ class Construtor:
     def construir(self):
         wb = self.wb
         self.ws_painel = wb.add_worksheet('Painel')
-        self.ws_resumo = wb.add_worksheet('Resumo do Turno')
-        self.ws_inf = wb.add_worksheet('Informativo')
+        self.ws_res_d = wb.add_worksheet('Resumo Dia')
+        self.ws_res_n = wb.add_worksheet('Resumo Noite')
         self.ws_pass = wb.add_worksheet('Passagem de Turno')
-        self.ws_hist = wb.add_worksheet('Histórico')
-        self.ws_reg = wb.add_worksheet('Registro Passagem')
+        self.ws_inf = wb.add_worksheet('Informativo')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
         self.ws_mapa = wb.add_worksheet('_Mapa')
-        for ws, cn in [(self.ws_painel, 'shPainel'), (self.ws_resumo, 'shResumo'), (self.ws_inf, 'shInformativo'),
-                       (self.ws_pass, 'shPassagem'), (self.ws_hist, 'shHistorico'),
-                       (self.ws_reg, 'shRegistro'),
+        for ws, cn in [(self.ws_painel, 'shPainel'), (self.ws_res_d, 'shResumoDia'), (self.ws_res_n, 'shResumoNoite'),
+                       (self.ws_inf, 'shInformativo'), (self.ws_pass, 'shPassagem'),
                        (self.ws_cfg, 'shConfig'), (self.ws_mes, 'shDadosMES'), (self.ws_mapa, 'shMapa')]:
             ws.set_vba_name(cn)
             ws.hide_gridlines(2)
         self.ws_painel.set_tab_color(AZUL)
-        self.ws_resumo.set_tab_color(AMARELO)
+        self.ws_res_d.set_tab_color(AMARELO)
+        self.ws_res_n.set_tab_color(AMARELO)
         self.ws_inf.set_tab_color(AZUL_MEDIO)
         self.ws_pass.set_tab_color(OURO)
-        self.ws_hist.set_tab_color(AZUL_ACINZ)
-        self.ws_reg.set_tab_color(AZUL_ACINZ)
         self.ws_cfg.set_tab_color(CINZA)
 
         self.aba_config()
         self.aba_dados_mes()
         self.aba_informativo()
         self.aba_passagem()
-        self.aba_historico()
-        self.aba_registro()
-        self.aba_resumo()
+        self.aba_resumo(self.ws_res_d, 'rsD', 'Turno Dia  ·  07h às 19h', 'Dia')
+        self.aba_resumo(self.ws_res_n, 'rsN', 'Turno Noite  ·  19h às 07h', 'Noite')
         self.aba_painel()
         self.aba_mapa()
         self.ws_mes.hide()
         self.ws_cfg.hide()
-        self.ws_reg.hide()
         self.ws_mapa.very_hidden() if hasattr(self.ws_mapa, 'very_hidden') else self.ws_mapa.hide()
         self.ws_painel.activate()
 
@@ -735,95 +724,42 @@ class Construtor:
         ws.set_footer('&L&8Passagem de Turno US3/US4&R&8Página &P de &N')
 
         self.botao(ws, 1, 14, 'Voltar ao Painel', 'IrPainel', 205, 30, 'claro', x=4)
-        self.botao(ws, 4, 14, 'Copiar como imagem', 'CopiarImagemPassagem', 205, 30, 'primario', x=4)
+        self.botao(ws, 4, 14, 'Ver resumo do turno', 'IrResumo', 205, 30, 'primario', x=4)
         self.botao(ws, 7, 14, 'Limpar formulário', 'LimparPassagem', 205, 30, 'claro', x=4)
-        self.botao(ws, 10, 14, 'Salvar turno', 'FecharTurno', 205, 34, 'destaque', x=4)
+        self.botao(ws, 10, 14, 'Finalizar turno', 'FecharTurno', 205, 34, 'destaque', x=4)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
-    # ------------------------------------------------------------ Histórico
-    def aba_historico(self):
-        ws = self.ws_hist
-        self.cabecalho(ws, 12, 'Histórico dos Turnos', 'Um registro por turno salvo  ·  resultados US3 e US4',
-                       col_logo_fim=1, col_ini=0)
-        cab = HIST_FIXAS + ['%s · %s' % (p[1], us) for p in PARAMS for us in USINAS] + HIST_FINAIS
-        self.hist_cab = cab
-        h = HIST_ROW_HDR - 1
-        ws.set_row(h, 48)
-        for i, t in enumerate(cab):
-            ws.write(h, i, t, self.f(bold=True, font_color=BRANCO, bg_color=AZUL, text_wrap=True, align='center',
-                                     font_size=9, border=1, border_color=AZUL_MEDIO))
-        base = dict(font_size=9)
-        ws.set_column(0, 0, 11, self.f(num_format='dd/mm/yyyy', align='center', **base))
-        ws.set_column(1, 1, 17, self.f(**base))
-        ws.set_column(2, 2, 7, self.f(align='center', **base))
-        ws.set_column(3, 3, 20, self.f(**base))
-        ws.set_column(4, 4, 9, self.f(align='center', **base))
-        ws.set_column(5, 5, 15, self.f(num_format='dd/mm/yyyy hh:mm', **base))
-        ws.set_column(6, 6, 16, self.f(**base))
-        for p, pr in enumerate(PARAMS, start=1):
-            for k in range(2):
-                c = HIST_COL_RES1 - 1 + (p - 1) * 2 + k
-                ws.set_column(c, c, 11, self.f(num_format=fmt_dec(pr[3]), align='center', **base))
-        c = HIST_COL_NOK - 1
-        ws.set_column(c, c, 9, self.f(align='center', **base))
-        ws.set_column(c + 1, c + 2, 40, self.f(text_wrap=True, valign='top', **base))
-        ws.freeze_panes(HIST_ROW_HDR, 3)
-        ws.autofilter(h, 0, 20000, len(cab) - 1)
-        self.botao(ws, 4, 4, 'Voltar ao Painel', 'IrPainel', 160, 24, 'pequeno', x=0, y=2)
-        ws.set_row(4, 30)
-
-    # ------------------------------------------------------------ Registro
-    def aba_registro(self):
-        ws = self.ws_reg
-        self.cabecalho(ws, 8, 'Registro da Passagem de Turno',
-                       'Cada informação preenchida vira uma linha (ideal para filtros e Power BI)',
-                       col_logo_fim=1, col_ini=0)
-        cab = ['Data', 'Turno', 'Turma', 'Tipo', 'Seção / Usina', 'Item', 'Status', 'Texto', 'Registrado em']
-        h = REG_ROW_HDR - 1
-        ws.set_row(h, 26)
-        for i, t in enumerate(cab):
-            ws.write(h, i, t, self.f(bold=True, font_color=BRANCO, bg_color=AZUL, align='center', font_size=9,
-                                     border=1, border_color=AZUL_MEDIO))
-        base = dict(font_size=9)
-        larg = [11, 17, 7, 13, 22, 34, 16, 70, 15]
-        for i, w in enumerate(larg):
-            extra = {}
-            if i == 0:
-                extra = dict(num_format='dd/mm/yyyy', align='center')
-            if i == 8:
-                extra = dict(num_format='dd/mm/yyyy hh:mm')
-            if i == 7:
-                extra = dict(text_wrap=True, valign='top')
-            ws.set_column(i, i, w, self.f(**base, **extra))
-        ws.freeze_panes(REG_ROW_HDR, 0)
-        ws.autofilter(h, 0, 50000, len(cab) - 1)
-        ws.conditional_format(REG_ROW_HDR, 6, 50000, 6, {'type': 'cell', 'criteria': '==', 'value': '"Não operando"',
-                                                          'format': self.wb.add_format({'font_color': '#B4501A',
-                                                                                        'bold': True})})
-        self.botao(ws, 4, 3, 'Voltar ao Painel', 'IrPainel', 160, 24, 'pequeno', y=2)
-        ws.set_row(4, 30)
-
-    # ------------------------------------------------------------ Resumo do Turno
-    def aba_resumo(self):
-        """Duas imagens prontas para o e-mail, uma embaixo da outra:
-        (1) Resultados do turno: resultado (media), minimo e maximo por usina - sem LIE/LSE/Status;
+    # ------------------------------------------------------------ Resumo Dia / Resumo Noite
+    def aba_resumo(self, ws, pref, sub_turno, nome_turno):
+        """Resumo de UM turno, em duas imagens prontas para o e-mail:
+        (1) Resultados: resultado do turno (media), minimo e maximo por usina - sem LIE/LSE/Status;
         (2) Passagem de turno em texto corrido.
-        Resultados = formulas ligadas ao Informativo; textos = VBA (ModResumo.AtualizarResumo)."""
-        ws = self.ws_resumo
-        larg = {0: 2, 1: 32, 2: 7, 3: 11, 4: 8, 5: 8, 6: 11, 7: 8, 8: 8, 9: 3, 10: 26}
+        Os valores sao GRAVADOS pelo VBA (ModResumo.GerarResumo) - ficam como uma "foto" do turno,
+        para o outro turno poder atualizar o MES e a passagem sem apagar este resumo."""
+        larg = {0: 2, 1: 32, 2: 7, 3: 11, 4: 8, 5: 8, 6: 11, 7: 8, 8: 8, 9: 3, 10: 27}
         for c, w in larg.items():
             ws.set_column(c, c, w)
+        ws.set_column(12, 13, 16, None, {'hidden': True})
         UC = 8   # ultima coluna das imagens (I)
         info_fmt = self.f(bold=True, font_size=10, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO,
                           indent=1, border=1, border_color=BORDA)
+        vazio = 'Resumo ainda não gerado  ·  use o botão 3 do Painel (Resumo do turno)'
+        chave_fmt = self.f(font_color=BRANCO, font_size=6)
+
+        # controle (colunas ocultas): quando foi gerado / finalizado
+        ws.write(0, 12, 'Gerado em')
+        ws.write(0, 13, 'Finalizado em')
+        ws.write_blank(1, 12, None, self.f(num_format='dd/mm/yyyy hh:mm'))
+        ws.write_blank(1, 13, None, self.f(num_format='dd/mm/yyyy hh:mm'))
+        self.nome(pref + 'Gerado', ws, 1, 12)
+        self.nome(pref + 'Final', ws, 1, 13)
 
         # ---------------- imagem 1: resultados
-        self.cabecalho(ws, UC, 'Informativo de Qualidade - Usinas 3 e 4',
-                       'Resultados do turno  ·  Laboratório Físico')
+        self.cabecalho(ws, UC, 'Informativo de Qualidade - Usinas 3 e 4', 'Resultados do turno  ·  ' + sub_turno)
         ws.set_row(4, 6)
         ws.set_row(5, 22)
-        ws.merge_range(5, 1, 5, UC, '', info_fmt)
-        self.nome('rsInfo', ws, 5, 1)
+        ws.merge_range(5, 1, 5, UC, vazio, info_fmt)
+        self.nome(pref + 'Info', ws, 5, 1)
         ws.set_row(6, 6)
         hdr = self.f(bold=True, font_size=9, font_color=BRANCO, bg_color=AZUL, align='center', text_wrap=True,
                      border=1, border_color=BRANCO)
@@ -838,7 +774,6 @@ class Construtor:
                 ws.write(8, c0 + i, t, hdr)
         r = 9
         grupo = None
-        cel_res = []
         for p, pr in enumerate(PARAMS, start=1):
             g, nome, un, dec = pr[:4]
             if g != grupo:
@@ -851,64 +786,54 @@ class Construtor:
             b = dict(border=1, border_color=BORDA, bg_color=zebra)
             nf = fmt_dec(dec)
             ws.set_row(r, 17)
+            ws.write(r, 0, 'P%02d' % p, chave_fmt)
             ws.write(r, 1, nome, self.f(font_size=9, indent=1, **b))
             ws.write(r, 2, un, self.f(font_size=8, font_color=TEXTO_SEC, align='center', **b))
             for k in range(2):
-                chave = 'P%02dU%d' % (p, 3 + k)
-                for i, col_inf in enumerate(('K', 'L', 'M')):
+                for i in range(3):
                     c = 3 + 3 * k + i
-                    fm = ('=IFERROR(IF(INDEX(Informativo!$%s:$%s,MATCH("%s",Informativo!$A:$A,0))="","-",'
-                          'INDEX(Informativo!$%s:$%s,MATCH("%s",Informativo!$A:$A,0))),"-")'
-                          % (col_inf, col_inf, chave, col_inf, col_inf, chave))
                     if i == 0:
                         fmt = self.f(font_size=10, bold=True, font_color=AZUL_TITULO, align='center',
                                      num_format=nf, **dict(b, bg_color=FUNDO_AZUL_CLARO))
-                        cel_res.append((r, c, chave))
                     else:
                         fmt = self.f(font_size=9, font_color=AZUL_ACINZ, align='center', num_format=nf, **b)
-                    ws.write_formula(r, c, fm, fmt, '-')
+                    ws.write(r, c, '-', fmt)
             r += 1
         ws.set_row(r, 16)
         ws.merge_range(r, 1, r, UC, 'Resultado do turno = média (Produção = soma; Ritmo = último valor). '
                        'Valores em laranja: fora da especificação.',
                        self.f(font_size=8, font_color=TEXTO_SEC, italic=True, indent=1))
         fim1 = r
-        # destaque laranja quando o Informativo marca "Fora"
-        fora = self.wb.add_format({'font_color': LARANJA, 'bold': True, 'bg_color': LARANJA_FUNDO})
-        for rr, c, chave in cel_res:
-            ws.conditional_format(rr, c, rr, c, {
-                'type': 'formula', 'format': fora,
-                'criteria': '=IFERROR(INDEX(Informativo!$P:$P,MATCH("%s",Informativo!$A:$A,0))="Fora",FALSE)'
-                            % chave})
-        self.nome('rsAreaResultados', ws, 1, 1, fim1, UC)
+        self.res_fim_resultados = fim1 + 1
+        self.nome(pref + 'AreaResultados', ws, 1, 1, fim1, UC)
 
         # ---------------- imagem 2: passagem de turno
         r0 = fim1 + 3
         for rr in range(fim1 + 1, r0):
             ws.set_row(rr, 14)
-        self.cabecalho(ws, UC, 'Passagem de Turno - Usinas 3 e 4',
-                       'Laboratório Físico  ·  Dia 07h-19h  ·  Noite 19h-07h', r0=r0)
+        self.cabecalho(ws, UC, 'Passagem de Turno - Usinas 3 e 4', 'Laboratório Físico  ·  ' + sub_turno, r0=r0)
         ws.set_row(r0 + 4, 6)
         ws.set_row(r0 + 5, 22)
-        ws.merge_range(r0 + 5, 1, r0 + 5, UC, '', info_fmt)
-        self.nome('rsInfo2', ws, r0 + 5, 1)
+        ws.merge_range(r0 + 5, 1, r0 + 5, UC, vazio, info_fmt)
+        self.nome(pref + 'Info2', ws, r0 + 5, 1)
         ws.set_row(r0 + 6, 6)
-        itens = [('Equipe', 'rsEquipe'), ('Equipamentos não operando', 'rsNaoOper'), ('Minerodutos', 'rsMin'),
-                 ('Testes realizados', 'rsTestes'), ('Pendências p/ próximo turno', 'rsPend'),
-                 ('Comentários US3', 'rsCom3'), ('Comentários US4', 'rsCom4'),
-                 ('Embarque em andamento', 'rsEmbarque'), ('Observações', 'rsObs')]
+        itens = [('Equipe', 'Equipe'), ('Turma que recebe', 'Recebe'),
+                 ('Equipamentos não operando', 'NaoOper'), ('Minerodutos', 'Min'),
+                 ('Testes realizados', 'Testes'), ('Pendências p/ próximo turno', 'Pend'),
+                 ('Comentários US3', 'Com3'), ('Comentários US4', 'Com4'),
+                 ('Embarque em andamento', 'Embarque'), ('Observações', 'Obs')]
         rot = self.f(font_size=9, bold=True, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO, indent=1,
                      border=1, border_color=BORDA, text_wrap=True)
         val = self.f(font_size=9, text_wrap=True, indent=1, border=1, border_color=BORDA)
         for i, (t, nm) in enumerate(itens):
             rr = r0 + 7 + i
-            ws.set_row(rr, 30)
+            ws.set_row(rr, 30 if nm not in ('Recebe',) else 20)
             ws.write(rr, 1, t, rot)
             ws.merge_range(rr, 2, rr, UC, '-', val)
-            self.nome(nm, ws, rr, 2)
+            self.nome(pref + nm, ws, rr, 2)
         fim2 = r0 + 6 + len(itens)
-        self.nome('rsAreaPassagem', ws, r0 + 1, 1, fim2, UC)
-        self.res_passagem_row = r0 + 1   # 1-based = r0 + 2 (usado para rolar a tela)
+        self.nome(pref + 'AreaPassagem', ws, r0 + 1, 1, fim2, UC)
+        self.res_passagem_row = r0 + 1   # 0-based
 
         ws.print_area(1, 1, fim2, UC)
         ws.set_portrait()
@@ -919,14 +844,18 @@ class Construtor:
         ws.center_horizontally()
 
         # botoes (fora das imagens)
-        self.botao(ws, 1, 10, 'Voltar ao Painel', 'IrPainel', 190, 28, 'claro', x=4, y=4)
-        self.botao(ws, 5, 10, 'Copiar RESULTADOS\n(imagem 1)', 'CopiarImagemResultados', 190, 44, 'destaque', x=4)
-        self.botao(ws, 9, 10, 'Ir para a Passagem\n(imagem 2) ↓', 'ResumoIrPassagem', 190, 40, 'claro', x=4, y=6)
-        self.botao(ws, 13, 10, 'Informativo completo', 'IrInformativo', 190, 28, 'claro', x=4, y=6)
-        self.botao(ws, r0 + 1, 10, 'Voltar ao Painel', 'IrPainel', 190, 28, 'claro', x=4)
-        self.botao(ws, r0 + 5, 10, 'Copiar PASSAGEM\n(imagem 2)', 'CopiarImagemPassagemResumo', 190, 44,
-                   'destaque', x=4)
-        self.botao(ws, r0 + 9, 10, '↑ Ir para os Resultados\n(imagem 1)', 'ResumoIrResultados', 190, 40,
+        T = nome_turno
+        self.botao(ws, 1, 10, 'Voltar ao Painel', 'IrPainel', 195, 28, 'claro', x=4, y=4)
+        self.botao(ws, 5, 10, 'Copiar RESULTADOS\n(imagem 1)', 'CopiarResultados' + T, 195, 44, 'destaque', x=4)
+        self.botao(ws, 9, 10, 'Ir para a Passagem\n(imagem 2) ↓', 'Resumo%sIrPassagem' % T, 195, 40, 'claro',
+                   x=4, y=6)
+        ws.merge_range(13, 10, 17, 10, 'Este resumo guarda uma "foto" do turno %s.\n'
+                       'Ele é refeito pelo botão 3 do Painel (Resumo do turno) e ao atualizar o MES, '
+                       'enquanto o turno não for finalizado.' % T,
+                       self.f(font_size=8, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1))
+        self.botao(ws, r0 + 1, 10, 'Voltar ao Painel', 'IrPainel', 195, 28, 'claro', x=4)
+        self.botao(ws, r0 + 5, 10, 'Copiar PASSAGEM\n(imagem 2)', 'CopiarPassagem' + T, 195, 44, 'destaque', x=4)
+        self.botao(ws, r0 + 9, 10, '↑ Ir para os Resultados\n(imagem 1)', 'Resumo%sIrResultados' % T, 195, 40,
                    'claro', x=4)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
@@ -972,8 +901,8 @@ class Construtor:
         bw, bh = 262, 62
         acoes = [(1, '1 · Atualizar dados do MES\nBusca os resultados das Usinas 3 e 4', 'AtualizarMES', 'primario'),
                  (5, '2 · Passagem de turno\nEquipe, testes, equipamentos e comentários', 'IrPassagem', 'primario'),
-                 (9, '3 · Resumo para o e-mail\nResultados e passagem em 2 imagens', 'IrResumo', 'primario'),
-                 (13, '4 · Salvar turno\nGrava no histórico', 'FecharTurno', 'destaque')]
+                 (9, '3 · Resumo do turno\nAs 2 imagens para o e-mail', 'IrResumo', 'primario'),
+                 (13, '4 · Finalizar turno\nFixa o resumo e salva o arquivo', 'FecharTurno', 'destaque')]
         for col, txt, mac, est in acoes:
             self.botao(ws, 11, col, txt, mac, bw, bh, est, x=4, y=6)
 
@@ -985,22 +914,22 @@ class Construtor:
         ws.set_row(18, 28)
         d = 'iData'
         tiles = [
-            (1, 4, 'Informativo carregado',
+            (1, 4, 'Informativo carregado (MES)',
              '=IF(%s="","— não carregado —",TEXT(DAY(%s),"00")&"/"&TEXT(MONTH(%s),"00")&"/"&YEAR(%s)&"  ·  "&IFERROR(LEFT(iTurno,FIND(" (",iTurno)-1),iTurno))'
              % (d, d, d, d), self.f(**tv)),
-            (5, 8, 'Última atualização do MES', '=IF(iAtualizado="","—",iAtualizado)',
-             self.f(num_format='dd/mm/yyyy hh:mm', **tv)),
-            (9, 12, 'Passagem de turno preenchida', self._formula_preench(), self.f(num_format='0%', **tv)),
-            (13, 16, 'Equipamentos não operando', '=COUNTIF(ptStatus,"Não operando")', self.f(num_format='0', **tv)),
+            (5, 8, 'Passagem de turno preenchida', self._formula_preench(), self.f(num_format='0%', **tv)),
+            (9, 12, 'Resumo Dia', self._formula_resumo('rsD'), self.f(**tv)),
+            (13, 16, 'Resumo Noite', self._formula_resumo('rsN'), self.f(**tv)),
         ]
         for c1, c2, t, fm, fv in tiles:
             ws.merge_range(17, c1, 17, c2, t, tl)
             ws.merge_range(18, c1, 18, c2, '', fv)
             ws.write_formula(18, c1, fm, fv)
-        ws.conditional_format(18, 13, 18, 13, {'type': 'cell', 'criteria': '>', 'value': 0,
-                                               'format': self.wb.add_format({'font_color': '#B4501A',
-                                                                             'bg_color': LARANJA_FUNDO})})
-        ws.conditional_format(18, 9, 18, 9, {'type': 'cell', 'criteria': '>=', 'value': 1,
+        for c in (9, 13):
+            ws.conditional_format(18, c, 18, c, {'type': 'text', 'criteria': 'begins with', 'value': 'Finalizado',
+                                                 'format': self.wb.add_format({'font_color': VERDE_TXT,
+                                                                               'bg_color': VERDE_FUNDO})})
+        ws.conditional_format(18, 5, 18, 5, {'type': 'cell', 'criteria': '>=', 'value': 1,
                                              'format': self.wb.add_format({'font_color': VERDE_TXT,
                                                                            'bg_color': VERDE_FUNDO})})
 
@@ -1033,8 +962,7 @@ class Construtor:
 
         self.secao(ws, 25, 1, 16, 'Mais opções')
         ws.set_row(26, 28)
-        extras = [(1, 'Histórico dos turnos', 'IrHistorico'), (5, 'Registro da passagem', 'IrRegistro'),
-                  (9, 'Configurações', 'IrConfig'), (13, 'Informativo completo', 'IrInformativo')]
+        extras = [(1, 'Informativo completo (MES)', 'IrInformativo'), (5, 'Configurações', 'IrConfig')]
         for col, txt, mac in extras:
             self.botao(ws, 26, col, txt, mac, 262, 28, 'claro', x=4, y=4)
         ws.merge_range(28, 1, 28, 16, '', self.f(font_size=8, font_color=TEXTO_SEC))
@@ -1043,6 +971,12 @@ class Construtor:
         ws.protect('', {'format_columns': True, 'format_rows': True})
         ws.set_landscape()
         ws.fit_to_pages(1, 1)
+
+    @staticmethod
+    def _formula_resumo(pref):
+        g, f = pref + 'Gerado', pref + 'Final'
+        return ('=IF(ISNUMBER({f}),"Finalizado "&TEXT({f},"hh:mm"),IF(ISNUMBER({g}),"Gerado "&TEXT({g},"hh:mm"),'
+                '"— pendente —"))').format(f=f, g=g)
 
     def _formula_preench(self):
         e0, e1 = self.eq_rows
@@ -1094,10 +1028,7 @@ class Construtor:
             linhas.append("Public Const CFG_COL_%s As Long = %d" % (k, c[k]))
         linhas += ["Public Const INF_COL_H1 As Long = %d" % INF_COL_H1,
                    "Public Const INF_COL_RES As Long = %d" % INF_COL_RES,
-                   "Public Const HIST_ROW_HDR As Long = %d" % HIST_ROW_HDR,
-                   "Public Const HIST_COL_RES1 As Long = %d" % HIST_COL_RES1,
-                   "Public Const HIST_COL_NOK As Long = %d" % HIST_COL_NOK,
-                   "Public Const REG_ROW_HDR As Long = %d" % REG_ROW_HDR,
+                   "Public Const RES_FIM_RESULTADOS As Long = %d" % self.res_fim_resultados,
                    "Public Const RES_ROW_PASSAGEM As Long = %d" % (self.res_passagem_row + 1),
                    "' Senha de protecao das abas (vazio = sem senha)",
                    'Public Const SENHA As String = ""', ""]
@@ -1131,7 +1062,7 @@ def montar_vba(layout_code):
     with open(os.path.join(VBA_DIR, 'ModLayout.bas'), 'w', encoding='utf-8') as fh:
         fh.write(layout_code)
     mods = [{'name': 'ThisWorkbook', 'kind': 'workbook', 'code': ler_vba('ThisWorkbook.cls')}]
-    for cn in ['shPainel', 'shResumo', 'shInformativo', 'shPassagem', 'shHistorico', 'shRegistro',
+    for cn in ['shPainel', 'shResumoDia', 'shResumoNoite', 'shPassagem', 'shInformativo',
                'shConfig', 'shDadosMES', 'shMapa']:
         mods.append({'name': cn, 'kind': 'sheet', 'code': ''})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModTurno', 'ModExportar', 'ModResumo']:

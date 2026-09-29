@@ -13,7 +13,7 @@ Public Const XL_DEFAULT As Long = -4143
 
 ' Quando True, as mensagens nao sao exibidas (usado em testes automaticos)
 Public gSilencioso As Boolean
-' Quando True, AtualizarMES nao mostra a mensagem de sucesso (usado pelo Salvar turno)
+' Quando True, AtualizarMES nao mostra a mensagem de sucesso (usado pelo Finalizar turno)
 Public gSilenciarSucesso As Boolean
 ' Minutos apos o inicio de um turno em que o Painel ainda sugere o turno que acabou de terminar
 Public Const TOLERANCIA_MIN As Long = 60
@@ -24,7 +24,6 @@ Public Sub Inicializar()
     ProtegerPlanilhas
     shDadosMES.Visible = XL_HIDDEN
     shConfig.Visible = XL_HIDDEN
-    shRegistro.Visible = XL_HIDDEN
     shMapa.Visible = XL_VERYHIDDEN
     ' Sempre abre no turno de referencia pelo relogio (pode ser trocado no Painel)
     DefinirTurnoAtual
@@ -191,7 +190,7 @@ End Function
 Public Sub ProtegerPlanilhas()
     Dim ws As Variant
     On Error Resume Next
-    For Each ws In Array(shPainel, shResumo, shInformativo, shPassagem)
+    For Each ws In Array(shPainel, shResumoDia, shResumoNoite, shPassagem, shInformativo)
         ws.Unprotect Password:=SENHA
         ws.Protect Password:=SENHA, DrawingObjects:=True, Contents:=True, Scenarios:=True, _
                    UserInterfaceOnly:=True, AllowFormattingColumns:=True, AllowFormattingRows:=True, _
@@ -205,7 +204,7 @@ Public Sub PrepararEdicao()
 End Sub
 
 ' ---------------------------------------------------------------- navegacao
-Private Sub Mostrar(ByVal ws As Worksheet)
+Public Sub Mostrar(ByVal ws As Worksheet)
     On Error Resume Next
     ws.Visible = XL_VISIBLE
     ws.Activate
@@ -219,29 +218,14 @@ Public Sub IrPainel()
     On Error Resume Next
     shConfig.Visible = XL_HIDDEN
     shDadosMES.Visible = XL_HIDDEN
-    shRegistro.Visible = XL_HIDDEN
 End Sub
 
 Public Sub IrInformativo()
     Mostrar shInformativo
 End Sub
 
-' Resumo do turno: e sempre refeito antes de exibir (mostra o que esta no Informativo e na Passagem)
-Public Sub IrResumo()
-    AtualizarResumo
-    Mostrar shResumo
-End Sub
-
 Public Sub IrPassagem()
     Mostrar shPassagem
-End Sub
-
-Public Sub IrHistorico()
-    Mostrar shHistorico
-End Sub
-
-Public Sub IrRegistro()
-    Mostrar shRegistro
 End Sub
 
 Public Sub IrConfig()

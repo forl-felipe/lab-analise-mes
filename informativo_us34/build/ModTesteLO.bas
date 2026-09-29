@@ -16,6 +16,7 @@ Public Sub TesteLO()
     AtualizarMES
     passo = 3
     r = "info=" & Nm("iTurno").Value & "|" & shInformativo.Cells(LinhaInformativo(18, 1), INF_COL_H1).Value
+    r = r & "|dGeradoAposMES=" & (Not Vazio(Nm("rsDGerado").Value))
     shPassagem.Range("C10").Value = "Fulano"
     Nm("ptRecebe").Value = "B"
     For Each c In Nm("ptStatus").Cells
@@ -26,16 +27,23 @@ Public Sub TesteLO()
     passo = 4
     FecharTurno
     passo = 5
-    r = r & "|apos=" & Nm("pTurno").Value & "|" & Nm("pTurma").Value & "|resp=" & Nm("pResp").Value & _
-        "|pend=" & Nm("ptPendencias").Value & "|iData=" & Nm("iData").Value & "|reg=" & shRegistro.Visible & _
-        "|naoOper=" & shHistorico.Cells(HIST_ROW_HDR + 1, HIST_COL_NOK).Value
+    r = r & "|pendAposLimpar=" & Nm("ptPendencias").Value & "|dFinal=" & (Not Vazio(Nm("rsDFinal").Value)) & _
+        "|dEquipe=" & Nm("rsDEquipe").Value & "|dPend=" & Nm("rsDPend").Value & "|dNaoOper=" & Nm("rsDNaoOper").Value & _
+        "|dRes=" & shResumoDia.Cells(11, 4).Value
     passo = 6
-    ' segundo turno: Noite do mesmo dia, sem atualizar antes (Salvar busca sozinho)
+    ' segundo turno: Noite do mesmo dia (Finalizar busca o MES sozinho)
     Nm("pTurno").Value = TurnoNoite()
     Nm("pTurma").Value = "C"
+    shPassagem.Range("C10").Value = "Beltrano"
+    Nm("ptPendencias").Value = "Nada pendente"
     FecharTurno
-    r = r & "|noite=" & Nm("iTurno").Value & "|hist=" & (UltimaLinha(shHistorico, 1) - HIST_ROW_HDR)
+    r = r & "|noite=" & Nm("iTurno").Value & "|nEquipe=" & Nm("rsNEquipe").Value & "|nPend=" & Nm("rsNPend").Value & _
+        "|dEquipeDepois=" & Nm("rsDEquipe").Value & "|dResDepois=" & shResumoDia.Cells(11, 4).Value & _
+        "|nRes=" & shResumoNoite.Cells(11, 4).Value
     passo = 7
+    ' copia de um resumo finalizado nao pode refazer o outro turno
+    PrepararResumoParaCopia "rsD"
+    r = r & "|dEquipeAposCopia=" & Nm("rsDEquipe").Value
     Dim d As Date, t As String, hs As Variant, i As Long
     hs = Array(6.5, 7.5, 8.5, 18.5, 19.5, 20.5, 23)
     For i = 0 To UBound(hs)
@@ -70,7 +78,7 @@ Public Sub DemoLO()
     Nm("ptStatus").Cells(2, 1).Value = "Não operando"
     Nm("ptStatus").Cells(2, 1).Offset(0, 2).Value = "Aguardando manutenção mecânica"
     Nm("ptStatus").Cells(3, 1).Value = "Operando"
-    AtualizarResumo
+    GerarResumo "rsD"
 End Sub
 
 ' Grava os argumentos que o VBA monta para cada consulta (comparados com o Python no teste)

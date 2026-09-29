@@ -8,18 +8,16 @@ Planilha Excel com macros (`Informativo_Qualidade_US3_US4.xlsm`) que substitui a
 - **turmas A, B, C e D**;
 - **resultados puxados do MES** (Aspen IP.21), com a mesma função do suplemento Aspen usada na planilha antiga;
 - **identidade visual Samarco**: logo, paleta e padrão do kit visual (`build/assets/`);
-- **tudo numa única planilha**, com histórico acumulado de todos os turnos.
+- **modelo diário**: um arquivo por dia (copiado do modelo), com os turnos Dia e Noite. Não há histórico acumulado dentro da planilha: o histórico é a própria pasta do mês, com um arquivo por dia.
 
 ## Abas
 
 | Aba | Para que serve |
 |---|---|
 | **Painel** | Menu principal: seleção do turno (data, Dia/Noite, turma, responsável), 4 botões de ação, situação do turno e indicadores US3 × US4 |
-| **Resumo do Turno** | Pronta para o e-mail, em **2 imagens**: (1) resultados do turno por usina (resultado, mín. e máx., sem LIE/LSE/Status; valores fora da especificação em laranja) e (2) passagem de turno em texto. Botões **Copiar RESULTADOS** e **Copiar PASSAGEM**, ou print com Windows+Shift+S |
-| **Informativo** | Resultados do MES do turno: 24 parâmetros × 2 usinas, 6 janelas de 2 h, resultado do turno, mín./máx., LIE/LSE e status OK/Fora. Botão **Copiar como imagem** |
-| **Passagem de Turno** | Equipe (técnico físico, técnico químico e 4 laboratoristas), testes e pendências, minerodutos 02 e 03, status de 14 equipamentos (Operando / Não operando), comentários por usina (produto, aglomerante, combustível sólido, qualidade das pelotas), embarque em andamento e observações. Botão **Copiar como imagem** |
-| **Histórico** | Uma linha por turno salvo, com os resultados de US3 e US4, equipamentos não operando, pendências e observações |
-| **Registro Passagem** (oculta) | Cada informação da passagem vira uma linha (formato pronto para filtros e Power BI) |
+| **Resumo Dia** / **Resumo Noite** | Um resumo por turno, pronto para o e-mail, em **2 imagens**: (1) resultados do turno por usina (resultado, mín. e máx., sem LIE/LSE/Status; fora da especificação em laranja) e (2) passagem de turno em texto. Botões **Copiar RESULTADOS** e **Copiar PASSAGEM**, ou print com Windows+Shift+S. Os valores são gravados como uma "foto" do turno: o turno seguinte pode atualizar o MES e preencher a passagem sem alterar o resumo já finalizado |
+| **Passagem de Turno** | Equipe (técnico físico, técnico químico e 4 laboratoristas), turma que recebe, testes e pendências, minerodutos 02 e 03, status de 14 equipamentos (Operando / Não operando), comentários por usina (produto, aglomerante, combustível sólido, qualidade das pelotas), embarque em andamento e observações |
+| **Informativo** | Detalhe do MES do turno: 24 parâmetros × 2 usinas, 6 janelas de 2 h, resultado do turno, mín./máx., LIE/LSE e status OK/Fora (acesso em **Mais opções** no Painel) |
 | **Configurações** (oculta) | Fonte dos dados, servidor, horário, formato da data, **tags do MES**, **limites LIE/LSE** e faixa válida |
 | Dados_MES (oculta) | Fórmulas do suplemento Aspen (`GetCalculationValues` / `ShowCalculationValues`) |
 
@@ -31,21 +29,27 @@ Ao abrir, o Painel já vem com a **data e o turno pelo relógio**. Na primeira h
    - A macro espera todas as consultas responderem e os valores pararem de mudar, para não trazer dados incompletos.
    - Num turno em andamento, os horários futuros ficam em branco. Basta atualizar de novo mais tarde.
 2. **Passagem de Turno**: preencher os campos amarelos.
-3. **Resumo para o e-mail**: abre a aba Resumo do Turno (2 imagens). O Informativo completo continua em **Mais opções**.
-4. **Salvar turno**:
+3. **Resumo do turno**: gera (ou refaz) o resumo do turno do Painel na aba Resumo Dia ou Resumo Noite e abre a aba. O resumo também é refeito sozinho ao atualizar o MES e antes de copiar as imagens, enquanto o turno não for finalizado.
+4. **Finalizar turno**:
    - busca os dados do MES sozinho, se ainda não foram buscados;
-   - grava o Histórico e o Registro e salva o arquivo;
-   - oferece limpar a passagem.
+   - refaz e **fixa** o resumo do turno (Resumo Dia ou Resumo Noite);
+   - salva o arquivo e oferece limpar a passagem para o próximo turno.
    - **Não muda o turno do Painel.**
 
-Para enviar por e-mail: botão 3 → **Copiar RESULTADOS** (imagem 1) e **Copiar PASSAGEM** (imagem 2), colando cada uma com Ctrl+V. A cópia usa o formato bitmap, que cola no Outlook (inclusive web), no Teams e no WhatsApp Web. O formato anterior (imagem do Office) não colava nesses programas.
+Para enviar por e-mail: na aba Resumo do turno, **Copiar RESULTADOS** (imagem 1) e **Copiar PASSAGEM** (imagem 2), colando cada uma com Ctrl+V. A cópia usa o formato bitmap, que cola no Outlook (inclusive web), no Teams e no WhatsApp Web.
+
+### Rotina diária
+
+1. Copie o arquivo modelo (`Informativo_Qualidade_US3_US4.xlsm`) para a pasta do mês e renomeie com a data, por exemplo `Informativo_2026-09-28.xlsm`.
+2. O turno Dia usa o arquivo e finaliza; o turno Noite continua no **mesmo arquivo** e finaliza o seu.
+3. No fim do mês, a pasta tem um arquivo por dia, cada um com o Resumo Dia e o Resumo Noite.
 
 Guia de uma página para os técnicos: [`guia/Guia_rapido_Informativo_US3_US4.png`](guia/Guia_rapido_Informativo_US3_US4.png).
 
 ## Primeiro uso
 
 1. **Desbloqueie o arquivo** baixado: botão direito → Propriedades → marcar **Desbloquear**. Depois abra e clique em **Habilitar conteúdo**.
-2. Em **Configurações** (botão no Painel):
+2. Em **Configurações** (botão no Painel), **no arquivo modelo** (as cópias diárias herdam os ajustes):
    - **confira as tags** das Usinas 3 e 4 (foram herdadas da planilha de 2014);
    - preencha **LIE/LSE** dos parâmetros que devem ser avaliados.
 3. Para treinar ou testar sem o MES, mude **Fonte dos dados** para `SIMULAÇÃO`. Para uso real, deixe `MES`.
@@ -78,7 +82,7 @@ A aba oculta `Dados_MES` segue o mesmo formato da `TRABALHO_INFORMATIVO_QUALIDAD
 ## Como foi validado
 
 - O projeto VBA é gerado por código (`build/`).
-- Foi validado com **olevba** e com o **LibreOffice**. O LibreOffice executou o fluxo completo em modo simulação: atualizar → preencher passagem → fechar turno → Histórico/Registro gravados → próximo turno preparado → pendências recarregadas.
+- Foi validado com **olevba** e com o **LibreOffice**. O LibreOffice executou o fluxo completo em modo simulação: atualizar MES → preencher passagem → finalizar Dia (Resumo Dia fixado) → turno Noite no mesmo arquivo → finalizar Noite, com o Resumo Dia intacto.
 - Não foi possível testar no **Excel para Windows** nem com o **MES real** neste ambiente. Recomenda-se o primeiro uso em modo `SIMULAÇÃO` e depois um turno real acompanhado.
 
 ## Regerar a planilha

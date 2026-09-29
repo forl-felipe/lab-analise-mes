@@ -50,7 +50,7 @@ Public Sub AtualizarMES()
 
     n = PreencherInformativo(dados, dt, turno, turma, resp, ini, fim, simulado)
     If gSilenciarSucesso Then Exit Sub
-    IrResumo
+    AtualizarResumoAtual True
     If CDbl(fim) > CDbl(Now) And Not simulado Then
         obs = vbCrLf & vbCrLf & "Turno em andamento: os horários futuros ficam em branco." & vbCrLf & _
               "Clique em Atualizar de novo mais tarde para completar."

@@ -1,7 +1,7 @@
 Option Explicit
 
 ' ============================================================================
-'  ModExportar - copia o Resumo / Informativo / Passagem como imagem
+'  ModExportar - copia os Resumos / Informativo / Passagem como imagem
 '  (para colar no e-mail, Teams ou WhatsApp com Ctrl+V)
 '  Usa formato BITMAP: o formato "imagem do Office" (metarquivo) nao cola no
 '  Outlook Web, Gmail, Teams e outros programas.
@@ -10,15 +10,26 @@ Option Explicit
 Private Const XL_SCREEN As Long = 1
 Private Const XL_BITMAP As Long = 2
 
-' Botoes da aba Resumo do Turno (imagem 1 e imagem 2)
-Public Sub CopiarImagemResultados()
-    AtualizarResumo
-    CopiarAreaComoImagem shResumo, "rsAreaResultados", "Resultados do turno (imagem 1)"
+' Botoes das abas Resumo Dia / Resumo Noite (imagem 1 e imagem 2)
+Public Sub CopiarResultadosDia()
+    CopiarDoResumo "rsD", "AreaResultados", "Resultados do turno Dia (imagem 1)"
 End Sub
 
-Public Sub CopiarImagemPassagemResumo()
-    AtualizarResumo
-    CopiarAreaComoImagem shResumo, "rsAreaPassagem", "Passagem de turno (imagem 2)"
+Public Sub CopiarPassagemDia()
+    CopiarDoResumo "rsD", "AreaPassagem", "Passagem do turno Dia (imagem 2)"
+End Sub
+
+Public Sub CopiarResultadosNoite()
+    CopiarDoResumo "rsN", "AreaResultados", "Resultados do turno Noite (imagem 1)"
+End Sub
+
+Public Sub CopiarPassagemNoite()
+    CopiarDoResumo "rsN", "AreaPassagem", "Passagem do turno Noite (imagem 2)"
+End Sub
+
+Private Sub CopiarDoResumo(ByVal pref As String, ByVal area As String, ByVal titulo As String)
+    PrepararResumoParaCopia pref
+    CopiarAreaComoImagem AbaResumo(pref), pref & area, titulo
 End Sub
 
 ' Botao da aba Informativo
