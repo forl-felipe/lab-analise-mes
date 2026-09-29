@@ -19,25 +19,25 @@ Planilha Excel com macros (`Informativo_Qualidade_US3_US4.xlsm`) que substitui a
 | **Passagem de Turno** | Formulário: equipe, segurança (SSMA), testes e pendências, minerodutos/batch, status de 14 equipamentos (US3/US4), comentários por usina, embarques e observações |
 | **Histórico** | Uma linha por turno fechado, com os resultados de US3 e US4, a contagem de equipamentos NÃO OK, SSMA, pendências e o PDF |
 | **Registro Passagem** | Cada informação da passagem vira uma linha (formato pronto para filtros e Power BI) |
-| **Tendências** | Gráfico dos últimos 30 turnos (US3 × US4 × LIE/LSE) do parâmetro escolhido, com estatísticas |
 | **Configurações** | Fonte dos dados, servidor, horário, pasta dos PDFs, e-mail, **tags do MES**, **limites LIE/LSE**, faixa válida e botão **Inserir logo** |
 | Dados_MES (oculta) | Fórmulas do suplemento Aspen (`GetCalculationValues` / `ShowCalculationValues`) |
 
 ## Os 4 botões do Painel
 
-1. **Atualizar dados do MES**: consulta o MES para a janela do turno selecionado (6 intervalos de 2 h).
-   - Descarta valores fora da faixa válida e preenche o Informativo.
-   - Cada parâmetro recebe um resultado do turno: média; Produção = soma; Ritmo = último valor. A regra pode ser mudada em Configurações.
-2. **Passagem de Turno**: abre o formulário.
-   - Há um botão para **carregar as pendências do turno anterior** direto do Histórico.
-3. **Informativo do Turno**: mostra o relatório, com botões para **copiar como imagem** (colar no e-mail, Teams ou WhatsApp) e **gerar PDF**.
-4. **Fechar Turno**:
-   - valida os dados;
-   - grava no Histórico e no Registro;
-   - gera o PDF (Informativo + Passagem);
-   - opcionalmente abre um e-mail no Outlook com resumo e anexo;
-   - salva o arquivo;
-   - oferece **preparar o próximo turno**: avança Dia → Noite → Dia, define a turma que recebe e leva as pendências.
+Ao abrir, o Painel já vem com a **data e o turno pelo relógio**. Na primeira hora de um turno, ele sugere o turno que acabou de terminar.
+
+1. **Atualizar dados do MES**: busca os resultados do turno selecionado.
+   - A macro espera todas as consultas responderem e os valores pararem de mudar, para não trazer dados incompletos.
+   - Num turno em andamento, os horários futuros ficam em branco. Basta atualizar de novo mais tarde.
+2. **Passagem de Turno**: preencher os campos amarelos.
+3. **Informativo do Turno**: relatório, com botões de PDF e imagem.
+4. **Salvar turno**:
+   - busca os dados do MES sozinho, se ainda não foram buscados;
+   - grava o Histórico e o Registro, gera o PDF e salva o arquivo;
+   - oferece limpar a passagem.
+   - **Não muda o turno do Painel.**
+
+Guia de uma página para os técnicos: [`guia/Guia_rapido_Informativo_US3_US4.png`](guia/Guia_rapido_Informativo_US3_US4.png).
 
 ## Primeiro uso
 

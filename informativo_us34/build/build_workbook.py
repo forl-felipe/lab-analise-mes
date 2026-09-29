@@ -214,13 +214,12 @@ class Construtor:
         self.ws_pass = wb.add_worksheet('Passagem de Turno')
         self.ws_hist = wb.add_worksheet('Histórico')
         self.ws_reg = wb.add_worksheet('Registro Passagem')
-        self.ws_tend = wb.add_worksheet('Tendências')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
         self.ws_mapa = wb.add_worksheet('_Mapa')
         for ws, cn in [(self.ws_painel, 'shPainel'), (self.ws_inf, 'shInformativo'),
                        (self.ws_pass, 'shPassagem'), (self.ws_hist, 'shHistorico'),
-                       (self.ws_reg, 'shRegistro'), (self.ws_tend, 'shTendencias'),
+                       (self.ws_reg, 'shRegistro'),
                        (self.ws_cfg, 'shConfig'), (self.ws_mes, 'shDadosMES'), (self.ws_mapa, 'shMapa')]:
             ws.set_vba_name(cn)
             ws.hide_gridlines(2)
@@ -229,7 +228,6 @@ class Construtor:
         self.ws_pass.set_tab_color(OURO)
         self.ws_hist.set_tab_color(AZUL_ACINZ)
         self.ws_reg.set_tab_color(AZUL_ACINZ)
-        self.ws_tend.set_tab_color(AZUL_CLARO)
         self.ws_cfg.set_tab_color(CINZA)
 
         self.aba_config()
@@ -238,11 +236,11 @@ class Construtor:
         self.aba_passagem()
         self.aba_historico()
         self.aba_registro()
-        self.aba_tendencias()
         self.aba_painel()
         self.aba_mapa()
         self.ws_mes.hide()
         self.ws_cfg.hide()
+        self.ws_reg.hide()
         self.ws_mapa.very_hidden() if hasattr(self.ws_mapa, 'very_hidden') else self.ws_mapa.hide()
         self.ws_painel.activate()
 
@@ -729,7 +727,7 @@ class Construtor:
 
         self.botao(ws, 1, 14, 'Voltar ao Painel', 'IrPainel', 205, 34, 'primario', x=4)
         self.botao(ws, 4, 14, 'Limpar formulário', 'LimparPassagem', 205, 34, 'claro', x=4)
-        self.botao(ws, 7, 14, 'Fechar turno', 'FecharTurno', 205, 44, 'destaque', x=4)
+        self.botao(ws, 7, 14, 'Salvar turno', 'FecharTurno', 205, 44, 'destaque', x=4)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
     # ------------------------------------------------------------ Histórico
@@ -764,7 +762,6 @@ class Construtor:
         ws.freeze_panes(HIST_ROW_HDR, 3)
         ws.autofilter(h, 0, 20000, len(cab) - 1)
         self.botao(ws, 4, 4, 'Voltar ao Painel', 'IrPainel', 160, 26, 'pequeno', x=0, y=1)
-        self.botao(ws, 4, 6, 'Tendências', 'IrTendencias', 120, 26, 'pequeno', x=0, y=1)
         ws.set_row(4, 30)
 
     # ------------------------------------------------------------ Registro
@@ -797,95 +794,6 @@ class Construtor:
                                                                                         'bold': True})})
         self.botao(ws, 4, 3, 'Voltar ao Painel', 'IrPainel', 160, 26, 'pequeno', y=1)
         ws.set_row(4, 30)
-
-    # ------------------------------------------------------------ Tendências
-    def aba_tendencias(self):
-        ws = self.ws_tend
-        N = 30
-        ws.set_column(0, 0, 3, None, {'hidden': True})
-        ws.set_column(1, 1, 12)
-        ws.set_column(2, 5, 10)
-        ws.set_column(6, 6, 3)
-        ws.set_column(7, 16, 9)
-        ws.set_column(17, 17, 10, None, {'hidden': True})
-        self.cabecalho(ws, 16, 'Tendências por Parâmetro', 'Últimos %d turnos fechados  ·  Usina 3 x Usina 4' % N,
-                       'logoTendencias')
-        ws.set_row(5, 26)
-        ws.write(5, 1, 'Parâmetro:', self.f(bold=True, align='right'))
-        ws.merge_range(5, 2, 5, 5, 'Resistência à Compressão', self.f_input(bold=True, font_size=11, indent=1))
-        ws.data_validation(5, 2, 5, 2, {'validate': 'list', 'source': '=lstParam'})
-        self.nome('tdParam', ws, 5, 2)
-        # auxiliares (coluna R oculta)
-        ws.write_formula(1, 17, "=COUNTA(%s!$A$%d:$A$20000)" % (SH_HIST, HIST_ROW_HDR + 1))
-        ws.write_formula(2, 17, '=MATCH(tdParam&" · US3",%s!$%d:$%d,0)' % (SH_HIST, HIST_ROW_HDR, HIST_ROW_HDR))
-        ws.write_formula(3, 17, '=MATCH(tdParam&" · US4",%s!$%d:$%d,0)' % (SH_HIST, HIST_ROW_HDR, HIST_ROW_HDR))
-        ws.write_formula(4, 17, '=MATCH(tdParam,lstParam,0)')
-        hdr = self.f(bold=True, font_color=BRANCO, bg_color=AZUL, align='center', font_size=9)
-        R0 = 7
-        for i, t in enumerate(['Turno', 'US3', 'US4', 'LIE', 'LSE']):
-            ws.write(R0, 1 + i, t, hdr)
-        corpo = self.f(font_size=9, align='center', num_format='0.00')
-        for k in range(1, N + 1):
-            r = R0 + k
-            linha_hist = '%d+$R$2-%d+$A%d' % (HIST_ROW_HDR, N, r + 1)
-            idx = '$R$2-%d+$A%d' % (N, r + 1)
-            ws.write(r, 0, k)
-            ws.write_formula(r, 1, ('=IF({i}<1,"",TEXT(DAY(INDEX({h}!$A:$A,{l})),"00")&"/"&TEXT(MONTH(INDEX({h}!$A:$A,{l})),"00")'
-                                    '&" "&LEFT(INDEX({h}!$B:$B,{l}),1))').format(i=idx, h=SH_HIST, l=linha_hist),
-                             self.f(font_size=9, align='center'))
-            for c, colref in ((2, '$R$3'), (3, '$R$4')):
-                v = 'INDEX({h}!$A:$ZZ,{l},{c})'.format(h=SH_HIST, l=linha_hist, c=colref)
-                ws.write_formula(r, c, '=IF(OR({i}<1,ISNA({c})),NA(),IF({v}="",NA(),{v}))'.format(i=idx, c=colref, v=v),
-                                 corpo)
-            for c, key in ((4, 'LIE'), (5, 'LSE')):
-                rng = '%s!$%s$%d:$%s$%d' % (SH_CFG, colname(CFG_COL[key] - 1), CFG_ROW1,
-                                            colname(CFG_COL[key] - 1), CFG_ROW1 + NPARAM - 1)
-                v = 'INDEX(%s,$R$5)' % rng
-                ws.write_formula(r, c, '=IF(ISNA($R$5),NA(),IF(%s="",NA(),%s))' % (v, v), corpo)
-        ultima = R0 + N
-        ws.conditional_format(R0 + 1, 2, ultima, 5, {'type': 'formula', 'criteria': '=ISNA(C%d)' % (R0 + 2),
-                                                     'format': self.wb.add_format({'font_color': '#D0D7DC'})})
-        ch = self.wb.add_chart({'type': 'line'})
-        cats = ['Tendências', R0 + 1, 1, ultima, 1]
-        series = [(2, 'Usina 3', AZUL, 2.5, 'solid', True), (3, 'Usina 4', OURO, 2.5, 'solid', True),
-                  (4, 'LIE', LARANJA, 1.25, 'dash', False), (5, 'LSE', LARANJA, 1.25, 'dash', False)]
-        for c, nm, cor, w, dash, mk in series:
-            s = {'name': nm, 'categories': cats, 'values': ['Tendências', R0 + 1, c, ultima, c],
-                 'line': {'color': cor, 'width': w, 'dash_type': dash}}
-            s['marker'] = {'type': 'circle', 'size': 5, 'fill': {'color': cor}, 'border': {'color': cor}} if mk \
-                else {'type': 'none'}
-            ch.add_series(s)
-        ch.set_title({'name': ['Tendências', 5, 2], 'name_font': {'name': FONTE, 'size': 12, 'color': AZUL}})
-        ch.set_legend({'position': 'bottom', 'font': {'name': FONTE, 'size': 9}})
-        ch.set_x_axis({'num_font': {'name': FONTE, 'size': 8, 'rotation': -45}, 'line': {'color': CINZA}})
-        ch.set_y_axis({'num_font': {'name': FONTE, 'size': 8}, 'major_gridlines': {'visible': True,
-                       'line': {'color': '#E3E8EC'}}, 'line': {'none': True}})
-        ch.set_chartarea({'border': {'none': True}})
-        ch.show_na_as_empty_cell()
-        ch.show_blanks_as('gap')
-        ch.set_size({'width': 760, 'height': 420})
-        ws.insert_chart(R0, 7, ch, {'x_offset': 6})
-
-        r = ultima + 2
-        ws.write(r, 1, 'Estatística', hdr)
-        ws.write(r, 2, 'US3', hdr)
-        ws.write(r, 3, 'US4', hdr)
-        stats = [('Nº de turnos', 'COUNT({c})'), ('Média', 'AGGREGATE(1,6,{c})'), ('Mínimo', 'AGGREGATE(5,6,{c})'),
-                 ('Máximo', 'AGGREGATE(4,6,{c})'), ('Desvio padrão', 'AGGREGATE(7,6,{c})')]
-        for i, (t, fm) in enumerate(stats):
-            ws.write(r + 1 + i, 1, t, self.f(bold=True, font_size=9, bg_color=FUNDO_CLARO, indent=1))
-            for j, col in enumerate('CD'):
-                rngc = '%s%d:%s%d' % (col, R0 + 2, col, ultima + 1)
-                ws.write_formula(r + 1 + i, 2 + j, '=IFERROR(%s,"")' % fm.format(c=rngc),
-                                 self.f(font_size=9, align='center', num_format='0' if i == 0 else '0.00',
-                                        bg_color=FUNDO_CLARO))
-        ws.set_landscape()
-        ws.set_paper(9)
-        ws.fit_to_pages(1, 1)
-        ws.print_area(1, 1, r + len(stats), 16)
-        self.botao(ws, 5, 7, 'Voltar ao Painel', 'IrPainel', 160, 28, 'pequeno', x=4)
-        self.botao(ws, 5, 10, 'Ver Histórico', 'IrHistorico', 140, 28, 'pequeno', x=4)
-        ws.protect('', {'format_columns': True, 'format_rows': True})
 
     # ------------------------------------------------------------ Painel
     def aba_painel(self):
@@ -931,7 +839,7 @@ class Construtor:
         acoes = [(1, '1\nATUALIZAR DADOS DO MES\nBusca os resultados das Usinas 3 e 4', 'AtualizarMES', 'primario'),
                  (5, '2\nPASSAGEM DE TURNO\nEquipe, testes, equipamentos e comentários', 'IrPassagem', 'medio'),
                  (9, '3\nINFORMATIVO DO TURNO\nResultados, limites e status por usina', 'IrInformativo', 'titulo'),
-                 (13, '4\nFECHAR TURNO\nGrava o histórico e gera o PDF', 'FecharTurno', 'destaque')]
+                 (13, '4\nSALVAR TURNO\nGrava o histórico e gera o PDF', 'FecharTurno', 'destaque')]
         for col, txt, mac, est in acoes:
             self.botao(ws, 11, col, txt, mac, bw, bh, est, x=4, y=2)
 
@@ -989,7 +897,7 @@ class Construtor:
         ws.write(27, 1, 'MAIS OPÇÕES', sub)
         ws.set_row(28, 30)
         extras = [(1, 'Histórico dos turnos', 'IrHistorico'), (5, 'Registro da passagem', 'IrRegistro'),
-                  (9, 'Tendências', 'IrTendencias'), (13, 'Configurações', 'IrConfig')]
+                  (9, 'Configurações', 'IrConfig')]
         for col, txt, mac in extras:
             self.botao(ws, 28, col, txt, mac, 262, 32, 'claro', x=4, y=4)
         ws.merge_range(30, 1, 30, 16, '', self.f(font_size=8, italic=True, font_color=AZUL_ACINZ))
@@ -1086,7 +994,7 @@ def montar_vba(layout_code):
     with open(os.path.join(VBA_DIR, 'ModLayout.bas'), 'w', encoding='utf-8') as fh:
         fh.write(layout_code)
     mods = [{'name': 'ThisWorkbook', 'kind': 'workbook', 'code': ler_vba('ThisWorkbook.cls')}]
-    for cn in ['shPainel', 'shInformativo', 'shPassagem', 'shHistorico', 'shRegistro', 'shTendencias',
+    for cn in ['shPainel', 'shInformativo', 'shPassagem', 'shHistorico', 'shRegistro',
                'shConfig', 'shDadosMES', 'shMapa']:
         mods.append({'name': cn, 'kind': 'sheet', 'code': ''})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModTurno', 'ModExportar']:

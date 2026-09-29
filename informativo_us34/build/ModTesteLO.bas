@@ -27,7 +27,20 @@ Public Sub TesteLO()
     FecharTurno
     passo = 5
     r = r & "|apos=" & Nm("pTurno").Value & "|" & Nm("pTurma").Value & "|resp=" & Nm("pResp").Value & _
-        "|pend=" & Nm("ptPendencias").Value & "|iData=" & Nm("iData").Value & "|cfgVisivel=" & shConfig.Visible
+        "|pend=" & Nm("ptPendencias").Value & "|iData=" & Nm("iData").Value & "|reg=" & shRegistro.Visible
+    passo = 6
+    ' segundo turno: Noite do mesmo dia, sem atualizar antes (Salvar busca sozinho)
+    Nm("pTurno").Value = TurnoNoite()
+    Nm("pTurma").Value = "C"
+    FecharTurno
+    r = r & "|noite=" & Nm("iTurno").Value & "|hist=" & (UltimaLinha(shHistorico, 1) - HIST_ROW_HDR)
+    passo = 7
+    Dim d As Date, t As String, hs As Variant, i As Long
+    hs = Array(6.5, 7.5, 8.5, 18.5, 19.5, 20.5, 23)
+    For i = 0 To UBound(hs)
+        TurnoDeReferencia CDbl(DateSerial(2026, 9, 28)) + hs(i) / 24, d, t
+        r = r & "|" & hs(i) & "h=" & Format$(d, "dd") & Left$(t, 1)
+    Next i
     shConfig.Range("Z1").Value = r
     Exit Sub
 Erro:

@@ -8,9 +8,15 @@ Public Const XL_VISIBLE As Long = -1
 Public Const XL_HIDDEN As Long = 0
 Public Const XL_VERYHIDDEN As Long = 2
 Public Const XL_UP As Long = -4162
+Public Const XL_WAIT As Long = 2
+Public Const XL_DEFAULT As Long = -4143
 
 ' Quando True, as mensagens nao sao exibidas (usado em testes automaticos)
 Public gSilencioso As Boolean
+' Quando True, AtualizarMES nao mostra a mensagem de sucesso (usado pelo Salvar turno)
+Public gSilenciarSucesso As Boolean
+' Minutos apos o inicio de um turno em que o Painel ainda sugere o turno que acabou de terminar
+Public Const TOLERANCIA_MIN As Long = 60
 
 ' ---------------------------------------------------------------- abertura
 Public Sub Inicializar()
@@ -18,8 +24,10 @@ Public Sub Inicializar()
     ProtegerPlanilhas
     shDadosMES.Visible = XL_HIDDEN
     shConfig.Visible = XL_HIDDEN
+    shRegistro.Visible = XL_HIDDEN
     shMapa.Visible = XL_VERYHIDDEN
-    If Vazio(Nm("pData").Value) Then DefinirTurnoAtual
+    ' Sempre abre no turno de referencia pelo relogio (pode ser trocado no Painel)
+    DefinirTurnoAtual
     shPainel.Activate
     ActiveWindow.ScrollRow = 1
     ActiveWindow.ScrollColumn = 1
@@ -117,21 +125,33 @@ Public Function MesmoTurno(ByVal vData As Variant, ByVal vTurno As Variant, _
     End If
 End Function
 
+' Turno de referencia pelo relogio:
+'  - durante o turno, o proprio turno;
+'  - nos primeiros TOLERANCIA_MIN minutos de um turno, o turno que acabou de terminar
+'    (e quando normalmente se fecha o informativo do turno anterior).
 Public Sub DefinirTurnoAtual()
-    Dim agora As Double, h As Double, hIni As Double
+    Dim d As Date, t As String
     PrepararEdicao
-    agora = CDbl(Now)
-    h = agora - Int(agora)
+    TurnoDeReferencia CDbl(Now), d, t
+    Nm("pData").Value = d
+    Nm("pTurno").Value = t
+End Sub
+
+Public Sub TurnoDeReferencia(ByVal agora As Double, ByRef d As Date, ByRef t As String)
+    Dim ref As Double, h As Double, hIni As Double, dia As Double
+    ref = agora - TOLERANCIA_MIN / 1440#
     hIni = HoraInicioDia()
+    dia = Int(ref)
+    h = ref - dia
     If h >= hIni And h < hIni + 0.5 Then
-        Nm("pData").Value = CDate(Int(agora))
-        Nm("pTurno").Value = TurnoDia()
+        d = CDate(dia)
+        t = TurnoDia()
     ElseIf h >= hIni + 0.5 Then
-        Nm("pData").Value = CDate(Int(agora))
-        Nm("pTurno").Value = TurnoNoite()
+        d = CDate(dia)
+        t = TurnoNoite()
     Else
-        Nm("pData").Value = CDate(Int(agora) - 1)
-        Nm("pTurno").Value = TurnoNoite()
+        d = CDate(dia - 1)
+        t = TurnoNoite()
     End If
 End Sub
 
@@ -171,7 +191,7 @@ End Function
 Public Sub ProtegerPlanilhas()
     Dim ws As Variant
     On Error Resume Next
-    For Each ws In Array(shPainel, shInformativo, shPassagem, shTendencias)
+    For Each ws In Array(shPainel, shInformativo, shPassagem)
         ws.Unprotect Password:=SENHA
         ws.Protect Password:=SENHA, DrawingObjects:=True, Contents:=True, Scenarios:=True, _
                    UserInterfaceOnly:=True, AllowFormattingColumns:=True, AllowFormattingRows:=True, _
@@ -199,6 +219,7 @@ Public Sub IrPainel()
     On Error Resume Next
     shConfig.Visible = XL_HIDDEN
     shDadosMES.Visible = XL_HIDDEN
+    shRegistro.Visible = XL_HIDDEN
 End Sub
 
 Public Sub IrInformativo()
@@ -215,10 +236,6 @@ End Sub
 
 Public Sub IrRegistro()
     Mostrar shRegistro
-End Sub
-
-Public Sub IrTendencias()
-    Mostrar shTendencias
 End Sub
 
 Public Sub IrConfig()
@@ -249,6 +266,11 @@ Public Function Aviso(ByVal msg As String, Optional ByVal estilo As Long = 64, _
         Aviso = MsgBox(msg, estilo, titulo)
     End If
 End Function
+
+Public Sub Ampulheta(ByVal ligada As Boolean)
+    On Error Resume Next
+    If ligada Then Application.Cursor = XL_WAIT Else Application.Cursor = XL_DEFAULT
+End Sub
 
 Public Sub Tela(ByVal ligada As Boolean)
     On Error Resume Next

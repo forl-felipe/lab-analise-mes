@@ -9,12 +9,14 @@ Private mLinhas() As Long
 Private mCarregado As Boolean
 ' Coluna inicial da tabela de consultas ao MES na aba _Mapa (K)
 Private Const MAPA_COL_BLOCO As Long = 11
+' Segundos sem mudanca nos resultados para considerar a consulta concluida
+Private Const ESTAVEL_SEG As Double = 3
 
 ' Botao 1 do Painel
 Public Sub AtualizarMES()
     Dim dt As Date, turno As String, turma As String, resp As String
     Dim ini As Date, fim As Date, dados As Variant, fonte As String
-    Dim ok As Boolean, simulado As Boolean, n As Long
+    Dim ok As Boolean, simulado As Boolean, n As Long, obs As String
 
     PrepararEdicao
     If Not LerTurnoPainel(dt, turno, turma, resp, True) Then Exit Sub
@@ -24,8 +26,17 @@ Public Sub AtualizarMES()
     fonte = UCase$(CfgTxt("cfgFonte"))
     simulado = (Left$(fonte, 3) = "SIM")
 
+    If Not simulado And CDbl(ini) > CDbl(Now) Then
+        Aviso "O turno selecionado ainda não começou (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & vbCrLf & _
+              "Confira a DATA e o TURNO no Painel, ou clique em 'Usar turno atual'.", vbExclamation, "MES"
+        IrPainel
+        Exit Sub
+    End If
+
+    On Error GoTo Falha
+    Ampulheta True
     Application.StatusBar = "Consultando resultados das Usinas 3 e 4 (" & _
-        Format$(ini, "dd\/mm hh:mm") & " a " & Format$(fim, "dd\/mm hh:mm") & ")..."
+        Format$(ini, "dd\/mm hh:mm") & " a " & Format$(fim, "dd\/mm hh:mm") & ")... aguarde"
     If simulado Then
         dados = DadosSimulados()
         ok = True
@@ -33,21 +44,33 @@ Public Sub AtualizarMES()
         ok = ConsultarMES(ini, fim, dados)
     End If
     Application.StatusBar = False
+    Ampulheta False
+    On Error GoTo 0
     If Not ok Then Exit Sub
 
     n = PreencherInformativo(dados, dt, turno, turma, resp, ini, fim, simulado)
+    If gSilenciarSucesso Then Exit Sub
     IrInformativo
+    If CDbl(fim) > CDbl(Now) And Not simulado Then
+        obs = vbCrLf & vbCrLf & "Turno em andamento: os horários futuros ficam em branco." & vbCrLf & _
+              "Clique em Atualizar de novo mais tarde para completar."
+    End If
     If simulado Then
         Aviso "Informativo preenchido com DADOS SIMULADOS (" & n & " valores)." & vbCrLf & _
                "Para usar o MES, altere 'Fonte dos dados' para MES na aba Configurações.", _
                vbInformation, "Simulação"
     ElseIf n = 0 Then
-        Aviso "O MES respondeu, mas nenhum resultado válido foi encontrado para o turno." & vbCrLf & _
-               "Confira as tags na aba Configurações ou a aba Dados_MES.", vbExclamation, "MES"
+        Aviso "O MES respondeu, mas ainda não há resultados para este turno." & obs, vbExclamation, "MES"
     Else
         Aviso n & " resultados carregados do MES para " & Format$(dt, "dd\/mm\/yyyy") & _
-               " - " & turno & ".", vbInformation, "MES"
+               " - " & turno & "." & obs, vbInformation, "MES"
     End If
+    Exit Sub
+
+Falha:
+    Application.StatusBar = False
+    Ampulheta False
+    Aviso "Erro ao atualizar os dados do MES: " & Err.Description, vbExclamation, "MES"
 End Sub
 
 ' ---------------------------------------------------------------------------
@@ -165,11 +188,32 @@ Private Sub EscreverTexto(ByVal c As Range, ByVal texto As String)
     c.Value = texto
 End Sub
 
+' Resumo do conteudo atual das saidas (texto da ancora + qtde e soma dos numeros)
+Private Function AssinaturaSaidas(ByVal nb As Long) As String
+    Dim b As Long, arr As Variant, i As Long, j As Long, n As Long, soma As Double, r As String
+    For b = 1 To nb
+        arr = SaidaBloco(b).Value
+        n = 0
+        soma = 0
+        For i = LBound(arr, 1) To UBound(arr, 1)
+            For j = LBound(arr, 2) To UBound(arr, 2)
+                If ENumero(arr(i, j)) Then
+                    n = n + 1
+                    soma = soma + CDbl(arr(i, j))
+                End If
+            Next j
+        Next i
+        r = r & shDadosMES.Range(BlocoInfo(b, 3)).Text & "|" & n & "|" & soma & ";"
+    Next b
+    AssinaturaSaidas = r
+End Function
+
 ' Escreve o periodo, regera as formulas, recalcula e espera o retorno de cada consulta
 Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados As Variant) As Boolean
     Dim t0 As Single, limite As Double, msg As String, nb As Long, b As Long, nOk As Long
     Dim pronto() As Boolean, d() As Variant, arr As Variant, ps As Variant
     Dim i As Long, k As Long, s As Long, p As Long, falhas As String
+    Dim tEstavel As Single, assin As String, assinAnt As String
 
     ConsultarMES = False
     nb = NumBlocos()
@@ -182,16 +226,26 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
 
     limite = 60
     If ENumero(Nm("cfgTimeout").Value) Then limite = CDbl(Nm("cfgTimeout").Value)
+    ' Espera ate todas as consultas responderem E os valores pararem de mudar por
+    ' ESTAVEL_SEG segundos (o Aspen preenche a matriz aos poucos; ler antes disso
+    ' trazia dados incompletos).
     t0 = Timer
+    tEstavel = Timer
     Do
         DoEvents
+        If Timer < t0 Then t0 = t0 - 86400
+        If Timer < tEstavel Then tEstavel = tEstavel - 86400
         nOk = 0
         For b = 1 To nb
-            If Not pronto(b) Then pronto(b) = BlocoPronto(b, ini)
+            pronto(b) = BlocoPronto(b, ini)
             If pronto(b) Then nOk = nOk + 1
         Next b
-        If nOk = nb Then Exit Do
-        If Timer < t0 Then t0 = t0 - 86400
+        assin = AssinaturaSaidas(nb)
+        If assin <> assinAnt Then
+            assinAnt = assin
+            tEstavel = Timer
+        End If
+        If nOk = nb And Timer - tEstavel >= ESTAVEL_SEG Then Exit Do
         If Timer - t0 > limite Then Exit Do
     Loop
 

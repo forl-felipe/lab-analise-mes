@@ -4,43 +4,37 @@ Option Explicit
 '  ModTurno - fechamento do turno, historico e passagem de turno
 ' ============================================================================
 
-' Botao 4 do Painel
+' Botao 4 do Painel: SALVAR TURNO
+' Fluxo unico e simples: (1) garante os dados do MES do turno, (2) grava Historico e
+' Registro, (3) gera o PDF, (4) salva o arquivo, (5) oferece limpar a passagem.
+' Nao muda o turno do Painel sozinho (o Painel e ajustado pelo relogio ao abrir o arquivo).
 Public Sub FecharTurno()
     Dim dt As Date, turno As String, turma As String, resp As String
-    Dim resposta As Long, nSem As Long, quando As Date, pdf As String, msg As String
+    Dim quando As Date, pdf As String, msg As String
 
     PrepararEdicao
     If Not LerTurnoPainel(dt, turno, turma, resp, True) Then Exit Sub
     If turma = "" Or resp = "" Then
-        Aviso "Informe a TURMA e o RESPONSÁVEL no Painel antes de fechar o turno.", vbExclamation, "Fechar turno"
+        Aviso "Preencha a TURMA e o RESPONSÁVEL no Painel antes de salvar o turno.", vbExclamation, "Salvar turno"
         IrPainel
         Exit Sub
     End If
 
+    ' Se os resultados deste turno ainda nao estao no Informativo, busca agora (sem perguntar)
     If Not InformativoConfere(dt, turno) Then
-        resposta = Aviso("Os resultados do MES ainda não foram carregados para este turno." & vbCrLf & vbCrLf & _
-                          "SIM = buscar os dados do MES agora" & vbCrLf & _
-                          "NÃO = fechar o turno sem os resultados" & vbCrLf & _
-                          "CANCELAR = voltar", vbQuestion + vbYesNoCancel, "Fechar turno")
-        If resposta = vbCancel Then Exit Sub
-        If resposta = vbYes Then
-            AtualizarMES
-            If Not InformativoConfere(dt, turno) Then Exit Sub
-        End If
-    End If
-
-    nSem = ContarSemStatus()
-    If nSem > 0 Then
-        If Aviso(nSem & " equipamento(s) estão sem status na Passagem de Turno." & vbCrLf & _
-                  "Deseja fechar o turno mesmo assim?", vbQuestion + vbYesNo, "Fechar turno") = vbNo Then
-            IrPassagem
-            Exit Sub
+        gSilenciarSucesso = True
+        AtualizarMES
+        gSilenciarSucesso = False
+        If Not InformativoConfere(dt, turno) Then
+            If Aviso("Não foi possível trazer os resultados do MES para este turno." & vbCrLf & _
+                     "Deseja salvar a passagem de turno mesmo assim (sem resultados)?", _
+                     vbQuestion + vbYesNo, "Salvar turno", vbNo) = vbNo Then Exit Sub
         End If
     End If
 
     If ExisteNoHistorico(dt, turno) Then
-        If Aviso("Este turno (" & Format$(dt, "dd\/mm\/yyyy") & " - " & turno & ") já foi fechado antes." & vbCrLf & _
-                  "Deseja substituir o registro anterior?", vbQuestion + vbYesNo, "Fechar turno") = vbNo Then Exit Sub
+        If Aviso("Este turno (" & Format$(dt, "dd\/mm\/yyyy") & " - " & turno & ") já foi salvo." & vbCrLf & _
+                 "Deseja substituir o registro anterior?", vbQuestion + vbYesNo, "Salvar turno") = vbNo Then Exit Sub
         RemoverDoHistorico dt, turno
     End If
 
@@ -54,21 +48,15 @@ Public Sub FecharTurno()
     If UCase$(Left$(CfgTxt("cfgEmail"), 1)) = "S" Then CriarEmail dt, turno, turma, resp, pdf
     SalvarArquivo
 
-    msg = "Turno fechado com sucesso!" & vbCrLf & vbCrLf & "- Resultados e passagem gravados no Histórico"
+    msg = "Turno salvo com sucesso!" & vbCrLf & vbCrLf & "- Gravado no Histórico"
     If pdf <> "" Then msg = msg & vbCrLf & "- PDF: " & pdf
-    msg = msg & vbCrLf & vbCrLf & "Deseja preparar o PRÓXIMO turno agora?" & vbCrLf & _
-          "(limpa a passagem, avança Dia/Noite e define a turma que recebe)"
-    If Aviso(msg, vbInformation + vbYesNo, "Fechar turno") = vbYes Then PrepararProximoTurno dt, turno
+    msg = msg & vbCrLf & vbCrLf & "Deseja LIMPAR a Passagem de Turno para o próximo turno?"
+    If Aviso(msg, vbInformation + vbYesNo, "Salvar turno") = vbYes Then
+        LimparCamposPassagem
+        SalvarArquivo
+    End If
     IrPainel
 End Sub
-
-Private Function ContarSemStatus() As Long
-    Dim c As Range, n As Long
-    For Each c In Nm("ptStatus").Cells
-        If Vazio(c.Value) Then n = n + 1
-    Next c
-    ContarSemStatus = n
-End Function
 
 Private Function ContarStatus(ByVal status As String) As Long
     Dim c As Range, n As Long
@@ -204,22 +192,6 @@ End Sub
 Public Sub LimparPassagem()
     If Aviso("Limpar TODOS os campos da Passagem de Turno?", vbQuestion + vbYesNo, "Limpar") = vbNo Then Exit Sub
     LimparCamposPassagem
-End Sub
-
-Private Sub PrepararProximoTurno(ByVal dt As Date, ByVal turno As String)
-    Dim recebe As Variant
-    recebe = Nm("ptRecebe").Value
-    LimparCamposPassagem
-    If EhDia(turno) Then
-        Nm("pData").Value = dt
-        Nm("pTurno").Value = TurnoNoite()
-    Else
-        Nm("pData").Value = CDate(CDbl(dt) + 1)
-        Nm("pTurno").Value = TurnoDia()
-    End If
-    Nm("pTurma").Value = recebe
-    Nm("pResp").MergeArea.ClearContents
-    LimparInformativo
 End Sub
 
 Public Sub SalvarArquivo()

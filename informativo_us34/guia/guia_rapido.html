@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Guia rápido – Informativo US3/US4</title>
+<style>
+  :root{
+    --azul:#00335A; --azul-medio:#004070; --azul-titulo:#003B6C; --azul-profundo:#002643;
+    --ouro:#FDB913; --azul-claro:#59C6F2; --laranja:#F37021; --cinza:#B5BEC4; --acinz:#61889B;
+    --fundo:#F3F6F8; --input:#FFF7DC;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{width:1080px;background:var(--fundo);font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:var(--azul-profundo)}
+  header{background:var(--azul);color:#fff;padding:48px 64px 40px;border-bottom:12px solid var(--ouro)}
+  header .marca{font-size:26px;font-weight:800;letter-spacing:6px;color:var(--cinza)}
+  header h1{font-size:54px;line-height:1.1;margin-top:14px;font-weight:800}
+  header p{font-size:28px;margin-top:12px;color:#cfe3ee}
+  .antes{margin:36px 64px 0;background:#fff;border-left:10px solid var(--acinz);border-radius:14px;padding:22px 28px;font-size:27px}
+  .antes b{color:var(--azul)}
+  ol{list-style:none;margin:28px 64px 0}
+  li{display:flex;gap:28px;background:#fff;border-radius:18px;padding:30px 32px;margin-bottom:22px;box-shadow:0 2px 0 rgba(0,51,90,.08)}
+  .n{flex:0 0 92px;height:92px;border-radius:50%;background:var(--azul);color:var(--ouro);font-size:52px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  li.salvar .n{background:var(--ouro);color:var(--azul-profundo)}
+  .t h2{font-size:36px;color:var(--azul);margin-bottom:10px}
+  .t p{font-size:27px;line-height:1.35}
+  .btn{display:inline-block;background:var(--azul);color:#fff;font-weight:700;border-radius:10px;padding:4px 14px;font-size:25px;white-space:nowrap}
+  li.salvar .btn{background:var(--ouro);color:var(--azul-profundo)}
+  .campo{display:inline-block;background:var(--input);border:2px solid var(--ouro);border-radius:8px;padding:0 10px;font-weight:700}
+  .chips{margin-top:12px;display:flex;flex-wrap:wrap;gap:10px}
+  .chips span{background:var(--input);border:2px solid #f3dc9b;border-radius:30px;padding:4px 16px;font-size:24px}
+  .pronto{margin:6px 64px 0;background:var(--azul-profundo);color:#fff;border-radius:18px;padding:26px 32px;font-size:28px}
+  .pronto b{color:var(--ouro)}
+  .dicas{margin:28px 64px 56px;background:#fff;border-radius:18px;padding:26px 32px;border-top:8px solid var(--laranja)}
+  .dicas h3{font-size:30px;color:var(--laranja);margin-bottom:12px}
+  .dicas li{display:block;background:none;box-shadow:none;padding:0 0 10px 34px;margin:0;font-size:25px;line-height:1.35;position:relative;border-radius:0}
+  .dicas li::before{content:"•";position:absolute;left:8px;color:var(--laranja);font-weight:800}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">SAMARCO · LABORATÓRIO FÍSICO</div>
+  <h1>Como preencher o<br>Informativo do turno</h1>
+  <p>Usinas 3 e 4 · 4 passos · leva poucos minutos</p>
+</header>
+
+<div class="antes">Ao abrir a planilha, clique em <b>Habilitar conteúdo</b> (barra amarela no topo).</div>
+
+<ol>
+  <li><div class="n">1</div><div class="t">
+    <h2>Confira o Painel</h2>
+    <p><span class="campo">Data</span> e <span class="campo">Turno</span> já vêm preenchidos pelo relógio – só confira.<br>
+    Preencha <span class="campo">Turma</span> e <span class="campo">Responsável</span>.</p>
+  </div></li>
+
+  <li><div class="n">2</div><div class="t">
+    <h2>Busque os resultados</h2>
+    <p>Clique em <span class="btn">1 · ATUALIZAR DADOS DO MES</span><br>
+    Aguarde a mensagem de confirmação (até 1 minuto).</p>
+  </div></li>
+
+  <li><div class="n">3</div><div class="t">
+    <h2>Preencha a passagem</h2>
+    <p>Clique em <span class="btn">2 · PASSAGEM DE TURNO</span> e preencha <b>só os campos amarelos</b>:</p>
+    <div class="chips"><span>Equipe</span><span>Testes e pendências</span><span>Minerodutos</span><span>Status dos equipamentos</span><span>Comentários US3 / US4</span><span>Embarque</span><span>Observações</span></div>
+  </div></li>
+
+  <li class="salvar"><div class="n">4</div><div class="t">
+    <h2>Salve o turno</h2>
+    <p>Clique em <span class="btn">4 · SALVAR TURNO</span><br>
+    Quando perguntar, responda <b>Sim</b> para limpar a passagem para o próximo turno.</p>
+  </div></li>
+</ol>
+
+<div class="pronto"><b>Pronto!</b> O turno fica gravado no Histórico e o PDF é salvo na pasta <b>Informativos PDF</b>.</div>
+
+<div class="dicas">
+  <h3>Dicas importantes</h3>
+  <ul>
+    <li>Resultado faltando? Os dados do laboratório entram ao longo do turno – clique em <b>Atualizar</b> de novo mais tarde.</li>
+    <li>Não apague linhas nem colunas da planilha. Só escreva nos campos amarelos.</li>
+    <li>Turno errado no Painel? Troque a Data/Turno ou clique em <b>Usar turno atual</b>.</li>
+  </ul>
+</div>
+</body>
+</html>

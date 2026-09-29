@@ -140,7 +140,7 @@ Public Sub InserirLogo()
                                       "Selecione o arquivo do logo")
     If VarType(arq) = vbBoolean Then Exit Sub
     PrepararEdicao
-    nomes = Array("logoPainel", "logoInformativo", "logoPassagem", "logoHistorico", "logoRegistro", "logoTendencias", "logoConfig")
+    nomes = Array("logoPainel", "logoInformativo", "logoPassagem", "logoHistorico", "logoRegistro", "logoConfig")
     For i = LBound(nomes) To UBound(nomes)
         Set rng = Nm(CStr(nomes(i)))
         Set ws = rng.Worksheet
