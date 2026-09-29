@@ -25,8 +25,7 @@ Public Sub Inicializar()
     shDadosMES.Visible = XL_HIDDEN
     shConfig.Visible = XL_HIDDEN
     shMapa.Visible = XL_VERYHIDDEN
-    ' Sempre abre no turno de referencia pelo relogio (pode ser trocado no Painel)
-    DefinirTurnoAtual
+    AjustarTurnoAoAbrir
     shPainel.Activate
     ActiveWindow.ScrollRow = 1
     ActiveWindow.ScrollColumn = 1
@@ -123,6 +122,48 @@ Public Function MesmoTurno(ByVal vData As Variant, ByVal vTurno As Variant, _
         End If
     End If
 End Function
+
+' Ao abrir o arquivo (modelo diario):
+'  - arquivo novo (sem data, ou copia do modelo ainda sem resumo gerado): data e turno pelo relogio;
+'  - arquivo do dia de hoje: mantem a data e ajusta o turno pelo relogio;
+'  - arquivo de outro dia ja usado: mantem data e turno (para completar/corrigir o turno depois).
+Private Sub AjustarTurnoAoAbrir()
+    Dim d As Date, t As String, v As Variant, usado As Boolean
+    v = Nm("pData").Value
+    usado = Not (Vazio(Nm("rsDGerado").Value) And Vazio(Nm("rsNGerado").Value))
+    TurnoDeReferencia CDbl(Now), d, t
+    If Vazio(v) Or Not (VarType(v) = vbDate Or IsNumeric(v)) Then
+        DefinirTurnoAtual
+    ElseIf Int(CDbl(v)) = CDbl(d) Then
+        PrepararEdicao
+        Nm("pTurno").Value = t
+    ElseIf Not usado Then
+        DefinirTurnoAtual
+    End If
+End Sub
+
+' Botoes "Editar turno Dia" / "Editar turno Noite" do Painel (mantem a data do arquivo)
+Public Sub SelecionarDia()
+    SelecionarTurno TurnoDia()
+End Sub
+
+Public Sub SelecionarNoite()
+    SelecionarTurno TurnoNoite()
+End Sub
+
+Private Sub SelecionarTurno(ByVal t As String)
+    Dim d As Date, tRef As String
+    PrepararEdicao
+    If Vazio(Nm("pData").Value) Then
+        TurnoDeReferencia CDbl(Now), d, tRef
+        Nm("pData").Value = d
+    End If
+    Nm("pTurno").Value = t
+    Nm("pTurma").Value = Empty
+    Nm("pResp").Value = Empty
+    Aviso "Turno selecionado: " & Format$(Nm("pData").Value, "dd\/mm\/yyyy") & " - " & t & "." & vbCrLf & _
+          "Preencha a TURMA e o RESPONSÁVEL.", vbInformation, "Painel"
+End Sub
 
 ' Turno de referencia pelo relogio:
 '  - durante o turno, o proprio turno;

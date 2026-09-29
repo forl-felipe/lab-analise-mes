@@ -27,8 +27,9 @@ Public Sub FecharTurno()
         MarcarFinal pref, Empty
     End If
 
-    ' Se os resultados deste turno ainda nao estao no Informativo, busca agora (sem perguntar)
-    If Not InformativoConfere(dt, turno) Then
+    ' Se os resultados deste turno nao estao completos no Informativo (nao carregados, ou
+    ' carregados antes do fim do turno), busca agora (sem perguntar)
+    If Not InformativoCompleto(dt, turno) Then
         gSilenciarSucesso = True
         AtualizarMES
         gSilenciarSucesso = False

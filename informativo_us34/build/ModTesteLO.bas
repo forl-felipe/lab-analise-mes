@@ -55,6 +55,30 @@ Public Sub TesteLO()
     r = r & "|noite=" & Nm("iTurno").Value & "|nEquipe=" & Nm("rsNEquipe").Value & "|nPend=" & Nm("rsNPend").Value & _
         "|dEquipeDepois=" & Nm("rsDEquipe").Value & "|dResDepois=" & shResumoDia.Cells(10, 11).Value & _
         "|nRes=" & shResumoNoite.Cells(10, 11).Value & "|nHora1=" & shResumoNoite.Cells(8, 5).Value
+    passo = 65
+    ' matrizes de saida do MES: limpar inteiras e recriar
+    LimparSaidasMES
+    r = r & "|limpo=" & Vazio(shDadosMES.Range("A9").Formula) & "," & Vazio(shDadosMES.Range("C31").Formula)
+    RestaurarSaidasMES
+    r = r & "|restaurado=" & (InStr(1, shDadosMES.Range("A9").Formula, "ShowCalculationValues", 1) > 0) & "," & _
+        (InStr(1, shDadosMES.Range("C34").Formula, "ShowCalculationValues", 1) > 0) & "," & _
+        Vazio(shDadosMES.Range("A15").Formula)
+    passo = 66
+    ' turno futuro (fonte MES): nao bloqueia; resultados em branco
+    Nm("cfgFonte").Value = "MES"
+    SelecionarNoite
+    Nm("pData").Value = Date + 3
+    Nm("pTurma").Value = "D"
+    Nm("pResp").Value = "Futuro"
+    AtualizarMES
+    Dim nf As Long, pp As Long
+    For pp = 1 To NPARAM
+        If ENumero(shInformativo.Cells(LinhaInformativo(pp, 1), INF_COL_RES).Value) Then nf = nf + 1
+    Next pp
+    r = r & "|futuro=" & Nm("iTurno").Value & "/" & Format$(Nm("iData").Value, "dd") & "/valores=" & nf & _
+        "/confere=" & InformativoConfere(Nm("pData").Value, TurnoNoite()) & _
+        "/completo=" & InformativoCompleto(Nm("pData").Value, TurnoNoite())
+    Nm("cfgFonte").Value = "SIMULAÇÃO"
     passo = 7
     ' copia de um resumo finalizado nao pode refazer o outro turno
     PrepararResumoParaCopia "rsD"

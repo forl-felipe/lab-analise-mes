@@ -18,7 +18,7 @@ Public Const TURNO_PERIODO As String = "Período escolhido"
 Public Sub AtualizarMES()
     Dim dt As Date, turno As String, turma As String, resp As String
     Dim ini As Date, fim As Date, dados As Variant, fonte As String
-    Dim ok As Boolean, simulado As Boolean, n As Long, obs As String
+    Dim ok As Boolean, simulado As Boolean, n As Long, obs As String, futuro As Boolean, vazio() As Variant
 
     PrepararEdicao
     If Not LerTurnoPainel(dt, turno, turma, resp, True) Then Exit Sub
@@ -28,18 +28,19 @@ Public Sub AtualizarMES()
     fonte = UCase$(CfgTxt("cfgFonte"))
     simulado = (Left$(fonte, 3) = "SIM")
 
-    If Not simulado And CDbl(ini) > CDbl(Now) Then
-        Aviso "O turno selecionado ainda não começou (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & vbCrLf & _
-              "Confira a DATA e o TURNO no Painel, ou clique em 'Usar turno atual'.", vbExclamation, "MES"
-        IrPainel
-        Exit Sub
-    End If
+    ' Turno que ainda nao comecou: nao consulta o MES (nao ha resultados); o Informativo fica
+    ' em branco para esse turno e a passagem de turno pode ser preenchida normalmente.
+    futuro = (Not simulado And CDbl(ini) > CDbl(Now))
 
     On Error GoTo Falha
     Ampulheta True
     Application.StatusBar = "Consultando resultados das Usinas 3 e 4 (" & _
         Format$(ini, "dd\/mm hh:mm") & " a " & Format$(fim, "dd\/mm hh:mm") & ")... aguarde"
-    If simulado Then
+    If futuro Then
+        ReDim vazio(1 To NSLOT, 1 To 1 + 2 * NPARAM)
+        dados = vazio
+        ok = True
+    ElseIf simulado Then
         dados = DadosSimulados()
         ok = True
     Else
@@ -59,7 +60,12 @@ Public Sub AtualizarMES()
         obs = vbCrLf & vbCrLf & "Turno em andamento: os horários futuros ficam em branco." & vbCrLf & _
               "Clique em Atualizar de novo mais tarde para completar."
     End If
-    If simulado Then
+    If futuro Then
+        Aviso "O turno " & turno & " de " & Format$(dt, "dd\/mm\/yyyy") & " ainda não começou (" & _
+              Format$(ini, "hh:mm") & "): os resultados ficam em branco." & vbCrLf & _
+              "A passagem de turno pode ser preenchida normalmente." & vbCrLf & _
+              "Depois que o turno começar, clique em Atualizar dados do MES de novo.", vbInformation, "MES"
+    ElseIf simulado Then
         Aviso "Informativo preenchido com DADOS SIMULADOS (" & n & " valores)." & vbCrLf & _
                "Para usar o MES, altere 'Fonte dos dados' para MES na aba Configurações.", _
                vbInformation, "Simulação"
@@ -319,27 +325,12 @@ Private Function AssinaturaSaidas(ByVal nb As Long) As String
     AssinaturaSaidas = r
 End Function
 
-' Escreve o periodo, regera as formulas, recalcula e espera o retorno de cada consulta
-Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados As Variant) As Boolean
-    Dim t0 As Single, limite As Double, msg As String, nb As Long, b As Long, nOk As Long
-    Dim pronto() As Boolean, d() As Variant, arr As Variant, ps As Variant
-    Dim i As Long, k As Long, s As Long, p As Long, falhas As String
-    Dim tEstavel As Single, assin As String, assinAnt As String
-
-    ConsultarMES = False
-    nb = NumBlocos()
-    ReDim pronto(1 To nb)
-    GravarPeriodoMES ini, fim
-    On Error GoTo FalhaFormula
-    RegerarFormulasMES
-    On Error GoTo 0
-    Application.CalculateFull
-
-    limite = 60
-    If ENumero(Nm("cfgTimeout").Value) Then limite = CDbl(Nm("cfgTimeout").Value)
-    ' Espera ate todas as consultas responderem E os valores pararem de mudar por
-    ' ESTAVEL_SEG segundos (o Aspen preenche a matriz aos poucos; ler antes disso
-    ' trazia dados incompletos).
+' Espera ate todas as consultas responderem E os valores pararem de mudar por
+' ESTAVEL_SEG segundos (o Aspen preenche a matriz aos poucos; ler antes disso
+' trazia dados incompletos). Devolve quantas consultas responderam.
+Private Function EsperarBlocos(ByVal ini As Date, ByVal nb As Long, ByRef pronto() As Boolean, _
+                               ByVal limite As Double) As Long
+    Dim t0 As Single, tEstavel As Single, assin As String, assinAnt As String, b As Long, nOk As Long
     t0 = Timer
     tEstavel = Timer
     Do
@@ -359,6 +350,77 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
         If nOk = nb And Timer - tEstavel >= ESTAVEL_SEG Then Exit Do
         If Timer - t0 > limite Then Exit Do
     Loop
+    EsperarBlocos = nOk
+End Function
+
+' Apaga as matrizes de resultados das consultas (inteiras, nunca "parte" delas)
+Public Sub LimparSaidasMES()
+    Dim b As Long, area As Range, c As Range
+    On Error Resume Next
+    For b = 1 To NumBlocos()
+        Set area = shDadosMES.Range(BlocoInfo(b, 4)).Resize(NSLOT + 1, LarguraSaida(b))
+        For Each c In area.Cells
+            If c.HasArray Then c.CurrentArray.ClearContents
+        Next c
+        area.ClearContents
+    Next b
+    On Error GoTo 0
+End Sub
+
+' Recria as matrizes ShowCalculationValues no formato original (NSLOT linhas)
+Public Sub RestaurarSaidasMES()
+    Dim b As Long, anc As Range, prefixo As String, atual As String, ender As String
+    On Error Resume Next
+    For b = 1 To NumBlocos()
+        Set anc = shDadosMES.Range(BlocoInfo(b, 3))
+        atual = anc.Formula
+        prefixo = "=_xll.AspenTech.PME.ProcessData.Functions."
+        If InStr(1, atual, "GetCalculationValues", vbTextCompare) > 0 Then
+            prefixo = Left$(atual, InStr(1, atual, "GetCalculationValues", vbTextCompare) - 1)
+        End If
+        ender = "Dados_MES!" & anc.Address(False, False)
+        shDadosMES.Range(BlocoInfo(b, 4)).Resize(NSLOT, LarguraSaida(b)).FormulaArray = _
+            prefixo & "ShowCalculationValues(ADDRESS(ROW(" & ender & "),COLUMN(" & ender & "),1,,""Dados_MES""),"  & _
+            ender & ", 0)"
+    Next b
+    On Error GoTo 0
+End Sub
+
+Private Function LarguraSaida(ByVal b As Long) As Long
+    Dim ps As Variant
+    ps = Split(BlocoInfo(b, 5), ",")
+    LarguraSaida = 1 + 2 * (UBound(ps) - LBound(ps) + 1)
+End Function
+
+' Escreve o periodo, regera as formulas, recalcula e espera o retorno de cada consulta
+Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados As Variant) As Boolean
+    Dim limite As Double, msg As String, nb As Long, b As Long, nOk As Long
+    Dim pronto() As Boolean, d() As Variant, arr As Variant, ps As Variant
+    Dim i As Long, k As Long, s As Long, p As Long, falhas As String
+
+    ConsultarMES = False
+    nb = NumBlocos()
+    ReDim pronto(1 To nb)
+    limite = 60
+    If ENumero(Nm("cfgTimeout").Value) Then limite = CDbl(Nm("cfgTimeout").Value)
+
+    ' O suplemento Aspen cria/redimensiona sozinho a matriz de resultados de cada consulta.
+    ' Se sobrar a matriz de uma consulta anterior com outro numero de linhas, o Excel recusa
+    ' ("Nao e possivel alterar parte de uma matriz"). Por isso as saidas sao limpas antes.
+    LimparSaidasMES
+    GravarPeriodoMES ini, fim
+    On Error GoTo FalhaFormula
+    RegerarFormulasMES
+    On Error GoTo 0
+    Application.CalculateFull
+    nOk = EsperarBlocos(ini, nb, pronto, limite)
+
+    ' Seguranca: se nada voltou, recria as matrizes de saida no formato original e tenta de novo
+    If nOk = 0 Then
+        RestaurarSaidasMES
+        Application.CalculateFull
+        nOk = EsperarBlocos(ini, nb, pronto, limite)
+    End If
 
     For b = 1 To nb
         If Not pronto(b) Then
@@ -525,6 +587,17 @@ Public Function InformativoConfere(ByVal dt As Date, ByVal turno As String) As B
         InformativoConfere = False
     Else
         InformativoConfere = MesmoTurno(Nm("iData").Value, Nm("iTurno").Value, dt, turno)
+    End If
+End Function
+
+' True quando o Informativo e deste turno E foi atualizado depois do fim do turno
+Public Function InformativoCompleto(ByVal dt As Date, ByVal turno As String) As Boolean
+    Dim v As Variant
+    InformativoCompleto = False
+    If Not InformativoConfere(dt, turno) Then Exit Function
+    v = Nm("iAtualizado").Value
+    If VarType(v) = vbDate Or ENumero(v) Then
+        InformativoCompleto = (CDbl(v) >= CDbl(InicioTurno(dt, turno)) + NSLOT * HORAS_SLOT / 24)
     End If
 End Function
 

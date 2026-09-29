@@ -23,7 +23,9 @@ Planilha Excel com macros (`Informativo_Qualidade_US3_US4.xlsm`) que substitui a
 
 ## Os 4 botões do Painel
 
-Ao abrir, o Painel já vem com a **data e o turno pelo relógio**. Na primeira hora de um turno, ele sugere o turno que acabou de terminar.
+Ao abrir um arquivo novo, o Painel já vem com a **data e o turno pelo relógio** (na primeira hora de um turno, sugere o turno que acabou de terminar). Um arquivo de outro dia, já usado, abre com a **sua própria data e turno**, para completar ou corrigir depois.
+
+Os botões **Editar turno Dia** e **Editar turno Noite** trocam o turno sem mudar a data. Um turno que ainda não começou pode ser selecionado e preenchido: o MES não é consultado e os resultados ficam em branco. Ao **Finalizar turno**, os dados do MES são buscados de novo sempre que o Informativo foi carregado antes do fim do turno.
 
 1. **Atualizar dados do MES**: busca os resultados do turno selecionado.
    - A macro espera todas as consultas responderem e os valores pararem de mudar, para não trazer dados incompletos.
@@ -60,6 +62,8 @@ Guia de uma página para os técnicos: [`guia/Guia_rapido_Informativo_US3_US4.pn
 O logo vem embutido. Para regenerá-lo a partir do kit visual: `python3 build/gerar_logos.py <samarco-kit-visual.html>` (requer `pip install cairosvg`).
 
 ## Consulta ao MES (formato da planilha de referência)
+
+**Matrizes de resultado:** o suplemento Aspen cria e redimensiona sozinho a matriz de resultados de cada consulta (no arquivo em uso, a saída vira `ROWS(...)&"#"&COLUMNS(...)`). Se sobrar a matriz de uma consulta anterior com outro número de linhas, o Excel recusa com *"Não é possível alterar parte de uma matriz"*. Por isso, antes de cada consulta a macro apaga as matrizes de saída inteiras (`LimparSaidasMES`). Se nenhuma consulta responder depois disso, ela recria as matrizes no formato original (`RestaurarSaidasMES`) e tenta mais uma vez.
 
 A aba oculta `Dados_MES` segue o mesmo formato da `TRABALHO_INFORMATIVO_QUALIDADE.xlsm` (out/2014), que funciona no Excel. São três consultas `GetCalculationValues`:
 

@@ -927,7 +927,9 @@ class Construtor:
         ws.data_validation(7, 8, 7, 8, {'validate': 'list', 'source': '=lstTurma'})
         ws.set_row(8, 26)
         self.botao(ws, 8, 1, 'Usar turno atual', 'BtnTurnoAtual', 150, 22, 'claro', y=3, tamanho=9)
-        ws.merge_range(8, 4, 8, 16, 'Dia: 07h às 19h   ·   Noite: 19h às 07h do dia seguinte   ·   '
+        self.botao(ws, 8, 4, 'Editar turno Dia', 'SelecionarDia', 140, 22, 'claro', y=3, tamanho=9)
+        self.botao(ws, 8, 6, 'Editar turno Noite', 'SelecionarNoite', 140, 22, 'claro', x=12, y=3, tamanho=9)
+        ws.merge_range(8, 9, 8, 16, 'Dia: 07h às 19h   ·   Noite: 19h às 07h do dia seguinte   ·   '
                                     'Turmas A, B, C e D',
                        self.f(font_size=8, font_color=TEXTO_SEC, indent=1))
 
