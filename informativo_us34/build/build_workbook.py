@@ -266,6 +266,8 @@ class Construtor:
             ('cfgEmail', 'Criar e-mail ao fechar turno', 'Não', 'Sim = abre um e-mail no Outlook com resumo e PDF anexado'),
             ('cfgEmailPara', 'E-mail: Para', '', 'Endereços separados por ponto e vírgula'),
             ('cfgEmailCC', 'E-mail: Cópia', '', ''),
+            ('cfgFormatoData', 'Formato da data para o MES', 'Data do Excel',
+             'Data do Excel (padrão) · Texto dd/mm/aaaa · Texto mm/dd/aaaa - troque se o MES acusar "formato incorreto de data"'),
         ]
         for i, (nm, rot, val, desc) in enumerate(gerais):
             r = 5 + i
@@ -282,6 +284,7 @@ class Construtor:
             self.nome(nm, ws, r, 3)
         ws.data_validation(5, 3, 5, 3, {'validate': 'list', 'source': '=lstFonte'})
         ws.data_validation(10, 3, 10, 3, {'validate': 'list', 'source': '=lstSN'})
+        ws.data_validation(13, 3, 13, 3, {'validate': 'list', 'source': '=lstFormatoData'})
         # botoes
         self.botao(ws, 5, 11, 'Voltar ao Painel', 'IrPainel', 230, 30, 'primario', x=5)
         self.botao(ws, 7, 11, 'Inserir logo nas abas', 'InserirLogo', 230, 30, 'destaque', x=5)
@@ -349,8 +352,9 @@ class Construtor:
                   ('lstAgreg', 'Resultado do turno', ['Média', 'Soma', 'Último valor']),
                   ('lstFonte', 'Fonte', ['MES', 'SIMULAÇÃO']),
                   ('lstSN', 'Sim/Não', ['Sim', 'Não']),
-                  ('lstTipo', 'Tipo de tag', [MV, AM])]
-        ws.merge_range(4, 18, 4, 24, 'LISTAS (usadas nas caixas de seleção)',
+                  ('lstTipo', 'Tipo de tag', [MV, AM]),
+                  ('lstFormatoData', 'Formato data MES', ['Data do Excel', 'Texto dd/mm/aaaa', 'Texto mm/dd/aaaa'])]
+        ws.merge_range(4, 18, 4, 25, 'LISTAS (usadas nas caixas de seleção)',
                        self.f(bold=True, font_color=BRANCO, bg_color=AZUL_ACINZ, indent=1))
         for i, (nm, tit, itens) in enumerate(listas):
             c = 18 + i
@@ -368,12 +372,12 @@ class Construtor:
         ws.set_column(0, 0, 18, self.f(num_format='dd/mm/yyyy hh:mm'))
         ws.set_column(1, 2 * NPARAM, 14)
         ws.write(0, 0, 'Dados brutos do MES (Aspen IP.21) - não editar', self.f(bold=True, font_size=13, font_color=AZUL))
-        txt = self.f(num_format='@', bg_color=FUNDO_CLARO)
+        txt = self.f(num_format='dd/mm/yyyy hh:mm:ss', bg_color=FUNDO_CLARO, align='left')
         rot = self.f(bold=True)
         ws.write(2, 0, 'Início', rot)
-        ws.write_string(2, 1, '', txt)
+        ws.write_blank(2, 1, None, txt)
         ws.write(3, 0, 'Fim', rot)
-        ws.write_string(3, 1, '', txt)
+        ws.write_blank(3, 1, None, txt)
         self.nome('mesInicio', ws, 2, 1)
         self.nome('mesFim', ws, 3, 1)
         self.blocos = []

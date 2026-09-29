@@ -70,3 +70,14 @@ Public Sub TesteFormulas()
         shConfig.Cells(b, 27).Value = "'" & ArgumentosBloco(b)
     Next b
 End Sub
+
+Public Sub TesteDatas()
+    Dim modos As Variant, i As Long, ini As Date
+    modos = Array("Data do Excel", "Texto dd/mm/aaaa", "Texto mm/dd/aaaa")
+    ini = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
+    For i = 0 To 2
+        Nm("cfgFormatoData").Value = modos(i)
+        GravarPeriodoMES ini, ini + 0.5
+        shConfig.Cells(10 + i, 27).Value = "'" & modos(i) & " | " & TypeName(Nm("mesInicio").Value) & " | " & Nm("mesInicio").Text & " | " & Nm("mesFim").Text
+    Next i
+End Sub

@@ -141,6 +141,30 @@ Private Function BlocoPronto(ByVal b As Long, ByVal ini As Date) As Boolean
     End If
 End Function
 
+' Grava inicio/fim do periodo nas celulas usadas pelas formulas (Dados_MES!B3:B4).
+' Padrao: valor de data do Excel (independe do idioma). Alternativas em Configuracoes.
+Public Sub GravarPeriodoMES(ByVal ini As Date, ByVal fim As Date)
+    Dim modo As String
+    modo = UCase$(CfgTxt("cfgFormatoData"))
+    If InStr(modo, "MM/DD") > 0 Then
+        EscreverTexto Nm("mesInicio"), Format$(ini, "mm\/dd\/yyyy hh:mm:ss")
+        EscreverTexto Nm("mesFim"), Format$(fim, "mm\/dd\/yyyy hh:mm:ss")
+    ElseIf InStr(modo, "TEXTO") > 0 Then
+        EscreverTexto Nm("mesInicio"), Format$(ini, "dd\/mm\/yyyy hh:mm:ss")
+        EscreverTexto Nm("mesFim"), Format$(fim, "dd\/mm\/yyyy hh:mm:ss")
+    Else
+        Nm("mesInicio").NumberFormat = "dd/mm/yyyy hh:mm:ss"
+        Nm("mesInicio").Value = ini
+        Nm("mesFim").NumberFormat = "dd/mm/yyyy hh:mm:ss"
+        Nm("mesFim").Value = fim
+    End If
+End Sub
+
+Private Sub EscreverTexto(ByVal c As Range, ByVal texto As String)
+    c.NumberFormat = "@"
+    c.Value = texto
+End Sub
+
 ' Escreve o periodo, regera as formulas, recalcula e espera o retorno de cada consulta
 Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados As Variant) As Boolean
     Dim t0 As Single, limite As Double, msg As String, nb As Long, b As Long, nOk As Long
@@ -150,8 +174,7 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     ConsultarMES = False
     nb = NumBlocos()
     ReDim pronto(1 To nb)
-    Nm("mesInicio").Value = Format$(ini, "dd\/mm\/yyyy hh:mm:ss")
-    Nm("mesFim").Value = Format$(fim, "dd\/mm\/yyyy hh:mm:ss")
+    GravarPeriodoMES ini, fim
     On Error GoTo FalhaFormula
     RegerarFormulasMES
     On Error GoTo 0
@@ -185,7 +208,8 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
               "Verifique:" & vbCrLf & _
               "  - Suplemento Aspen Process Data ativo (#NOME? = suplemento ausente);" & vbCrLf & _
               "  - Fonte de dados '" & CfgTxt("cfgServidor") & "' (aba Configurações);" & vbCrLf & _
-              "  - Tags e mapas na aba Configurações." & vbCrLf & vbCrLf & _
+              "  - Tags e mapas na aba Configurações;" & vbCrLf & _
+              "  - Formato incorreto de data = troque Formato da data para o MES em Configurações." & vbCrLf & vbCrLf & _
               "Deseja abrir a aba Dados_MES para conferir?"
         If Aviso(msg, vbExclamation + vbYesNo, "MES sem resposta") = vbYes Then MostrarDadosMES
         Exit Function
