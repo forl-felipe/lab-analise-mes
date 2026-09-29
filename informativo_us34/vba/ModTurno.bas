@@ -6,11 +6,11 @@ Option Explicit
 
 ' Botao 4 do Painel: SALVAR TURNO
 ' Fluxo unico e simples: (1) garante os dados do MES do turno, (2) grava Historico e
-' Registro, (3) gera o PDF, (4) salva o arquivo, (5) oferece limpar a passagem.
+' Registro, (3) salva o arquivo, (4) oferece limpar a passagem.
 ' Nao muda o turno do Painel sozinho (o Painel e ajustado pelo relogio ao abrir o arquivo).
 Public Sub FecharTurno()
     Dim dt As Date, turno As String, turma As String, resp As String
-    Dim quando As Date, pdf As String, msg As String
+    Dim quando As Date, msg As String
 
     PrepararEdicao
     If Not LerTurnoPainel(dt, turno, turma, resp, True) Then Exit Sub
@@ -40,17 +40,14 @@ Public Sub FecharTurno()
 
     Tela False
     quando = Now
-    pdf = ExportarPDF(dt, turno, turma, False)
-    GravarHistorico dt, turno, turma, resp, quando, pdf
+    GravarHistorico dt, turno, turma, resp, quando
     GravarRegistro dt, turno, turma, quando
     Tela True
-
-    If UCase$(Left$(CfgTxt("cfgEmail"), 1)) = "S" Then CriarEmail dt, turno, turma, resp, pdf
     SalvarArquivo
 
-    msg = "Turno salvo com sucesso!" & vbCrLf & vbCrLf & "- Gravado no Histórico"
-    If pdf <> "" Then msg = msg & vbCrLf & "- PDF: " & pdf
-    msg = msg & vbCrLf & vbCrLf & "Deseja LIMPAR a Passagem de Turno para o próximo turno?"
+    msg = "Turno salvo com sucesso no Histórico!" & vbCrLf & vbCrLf & _
+          "Para enviar por e-mail, use 'Copiar como imagem' no Informativo e na Passagem de Turno." & _
+          vbCrLf & vbCrLf & "Deseja LIMPAR a Passagem de Turno para o próximo turno?"
     If Aviso(msg, vbInformation + vbYesNo, "Salvar turno") = vbYes Then
         LimparCamposPassagem
         SalvarArquivo
@@ -87,7 +84,7 @@ Private Sub RemoverDoHistorico(ByVal dt As Date, ByVal turno As String)
 End Sub
 
 Private Sub GravarHistorico(ByVal dt As Date, ByVal turno As String, ByVal turma As String, _
-                            ByVal resp As String, ByVal quando As Date, ByVal pdf As String)
+                            ByVal resp As String, ByVal quando As Date)
     Dim ws As Worksheet, lin As Long, p As Long, k As Long, v As Variant
 
     Set ws = shHistorico
@@ -111,10 +108,9 @@ Private Sub GravarHistorico(ByVal dt As Date, ByVal turno As String, ByVal turma
         Next k
     Next p
 
-    ws.Cells(lin, HIST_COL_NOK).Value = ContarStatus("NÃO OK")
+    ws.Cells(lin, HIST_COL_NOK).Value = ContarStatus("Não operando")
     ws.Cells(lin, HIST_COL_NOK + 1).Value = Nm("ptPendencias").Value
     ws.Cells(lin, HIST_COL_NOK + 2).Value = Nm("ptObs").Value
-    ws.Cells(lin, HIST_COL_NOK + 3).Value = pdf
 End Sub
 
 ' Grava cada campo preenchido da passagem em formato "longo" (uma linha por informacao)

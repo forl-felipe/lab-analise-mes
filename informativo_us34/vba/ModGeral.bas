@@ -276,10 +276,3 @@ Public Sub Tela(ByVal ligada As Boolean)
     On Error Resume Next
     Application.ScreenUpdating = ligada
 End Sub
-
-Public Function HtmlEsc(ByVal s As String) As String
-    s = Replace(s, "&", "&amp;")
-    s = Replace(s, "<", "&lt;")
-    s = Replace(s, ">", "&gt;")
-    HtmlEsc = Replace(s, vbLf, "<br>")
-End Function

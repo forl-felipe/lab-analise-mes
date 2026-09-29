@@ -7,7 +7,7 @@ Planilha Excel com macros (`Informativo_Qualidade_US3_US4.xlsm`) que substitui a
 - **turnos de 12 horas**: Dia 07h–19h e Noite 19h–07h;
 - **turmas A, B, C e D**;
 - **resultados puxados do MES** (Aspen IP.21), com a mesma função do suplemento Aspen usada na planilha antiga;
-- **identidade visual Samarco** (paleta institucional);
+- **identidade visual Samarco**: logo, paleta e padrão do kit visual (`build/assets/`);
 - **tudo numa única planilha**, com histórico acumulado de todos os turnos.
 
 ## Abas
@@ -15,11 +15,11 @@ Planilha Excel com macros (`Informativo_Qualidade_US3_US4.xlsm`) que substitui a
 | Aba | Para que serve |
 |---|---|
 | **Painel** | Menu principal: seleção do turno (data, Dia/Noite, turma, responsável), 4 botões de ação, situação do turno e indicadores US3 × US4 |
-| **Informativo** | Resultados do MES do turno: 22 parâmetros × 2 usinas, 6 janelas de 2 h, resultado do turno, mín./máx., LIE/LSE e status OK/Fora |
-| **Passagem de Turno** | Formulário: equipe, segurança (SSMA), testes e pendências, minerodutos/batch, status de 14 equipamentos (US3/US4), comentários por usina, embarques e observações |
-| **Histórico** | Uma linha por turno fechado, com os resultados de US3 e US4, a contagem de equipamentos NÃO OK, SSMA, pendências e o PDF |
-| **Registro Passagem** | Cada informação da passagem vira uma linha (formato pronto para filtros e Power BI) |
-| **Configurações** | Fonte dos dados, servidor, horário, pasta dos PDFs, e-mail, **tags do MES**, **limites LIE/LSE**, faixa válida e botão **Inserir logo** |
+| **Informativo** | Resultados do MES do turno: 24 parâmetros × 2 usinas, 6 janelas de 2 h, resultado do turno, mín./máx., LIE/LSE e status OK/Fora. Botão **Copiar como imagem** |
+| **Passagem de Turno** | Equipe (técnico físico, técnico químico e 4 laboratoristas), testes e pendências, minerodutos 02 e 03, status de 14 equipamentos (Operando / Não operando), comentários por usina (produto, aglomerante, combustível sólido, qualidade das pelotas), embarque em andamento e observações. Botão **Copiar como imagem** |
+| **Histórico** | Uma linha por turno salvo, com os resultados de US3 e US4, equipamentos não operando, pendências e observações |
+| **Registro Passagem** (oculta) | Cada informação da passagem vira uma linha (formato pronto para filtros e Power BI) |
+| **Configurações** (oculta) | Fonte dos dados, servidor, horário, formato da data, **tags do MES**, **limites LIE/LSE** e faixa válida |
 | Dados_MES (oculta) | Fórmulas do suplemento Aspen (`GetCalculationValues` / `ShowCalculationValues`) |
 
 ## Os 4 botões do Painel
@@ -30,24 +30,27 @@ Ao abrir, o Painel já vem com a **data e o turno pelo relógio**. Na primeira h
    - A macro espera todas as consultas responderem e os valores pararem de mudar, para não trazer dados incompletos.
    - Num turno em andamento, os horários futuros ficam em branco. Basta atualizar de novo mais tarde.
 2. **Passagem de Turno**: preencher os campos amarelos.
-3. **Informativo do Turno**: relatório, com botões de PDF e imagem.
+3. **Informativo do Turno**: relatório por usina.
 4. **Salvar turno**:
    - busca os dados do MES sozinho, se ainda não foram buscados;
-   - grava o Histórico e o Registro, gera o PDF e salva o arquivo;
+   - grava o Histórico e o Registro e salva o arquivo;
    - oferece limpar a passagem.
    - **Não muda o turno do Painel.**
+
+Para enviar por e-mail: botão **Copiar como imagem** no Informativo e na Passagem de Turno, e colar no e-mail com Ctrl+V.
 
 Guia de uma página para os técnicos: [`guia/Guia_rapido_Informativo_US3_US4.png`](guia/Guia_rapido_Informativo_US3_US4.png).
 
 ## Primeiro uso
 
 1. **Desbloqueie o arquivo** baixado: botão direito → Propriedades → marcar **Desbloquear**. Depois abra e clique em **Habilitar conteúdo**.
-2. Em **Configurações**, clique em **Inserir logo nas abas** e escolha o arquivo do logo Samarco (PNG).
-3. Ainda em **Configurações**:
+2. Em **Configurações** (botão no Painel):
    - **confira as tags** das Usinas 3 e 4 (foram herdadas da planilha de 2014);
    - preencha **LIE/LSE** dos parâmetros que devem ser avaliados.
-4. Para treinar ou testar sem o MES, mude **Fonte dos dados** para `SIMULAÇÃO`. Para uso real, deixe `MES`.
-5. O **suplemento Aspen Process Explorer (Excel Add-in)** precisa estar ativo, como na planilha antiga. Sem ele, as fórmulas mostram `#NOME?`, e o botão 1 avisa e explica o que verificar.
+3. Para treinar ou testar sem o MES, mude **Fonte dos dados** para `SIMULAÇÃO`. Para uso real, deixe `MES`.
+4. O **suplemento Aspen Process Data** precisa estar ativo, como na planilha antiga. Sem ele, as fórmulas mostram `#NOME?`, e o botão 1 avisa e explica o que verificar.
+
+O logo vem embutido. Para regenerá-lo a partir do kit visual: `python3 build/gerar_logos.py <samarco-kit-visual.html>` (requer `pip install cairosvg`).
 
 ## Consulta ao MES (formato da planilha de referência)
 

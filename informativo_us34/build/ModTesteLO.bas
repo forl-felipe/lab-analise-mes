@@ -19,15 +19,16 @@ Public Sub TesteLO()
     shPassagem.Range("C10").Value = "Fulano"
     Nm("ptRecebe").Value = "B"
     For Each c In Nm("ptStatus").Cells
-        c.Value = "OK"
+        c.Value = "Operando"
     Next c
-    Nm("ptStatus").Cells(2, 1).Value = "NÃO OK"
+    Nm("ptStatus").Cells(2, 1).Value = "Não operando"
     Nm("ptPendencias").Value = "Refazer tamboramento US4"
     passo = 4
     FecharTurno
     passo = 5
     r = r & "|apos=" & Nm("pTurno").Value & "|" & Nm("pTurma").Value & "|resp=" & Nm("pResp").Value & _
-        "|pend=" & Nm("ptPendencias").Value & "|iData=" & Nm("iData").Value & "|reg=" & shRegistro.Visible
+        "|pend=" & Nm("ptPendencias").Value & "|iData=" & Nm("iData").Value & "|reg=" & shRegistro.Visible & _
+        "|naoOper=" & shHistorico.Cells(HIST_ROW_HDR + 1, HIST_COL_NOK).Value
     passo = 6
     ' segundo turno: Noite do mesmo dia, sem atualizar antes (Salvar busca sozinho)
     Nm("pTurno").Value = TurnoNoite()
@@ -60,14 +61,15 @@ Public Sub DemoLO()
     shConfig.Range("K34").Value = 94
     AtualizarMES
     shPassagem.Range("C10").Value = "Maria Silva"
-    shPassagem.Range("C11").Value = "João Souza"
+    shPassagem.Range("C11").Value = "Carlos Lima"
+    shPassagem.Range("C12").Value = "João Souza"
     Nm("ptRecebe").Value = "B"
     Nm("ptTestes").Value = "Tamboramento e compressão US3/US4 conforme plano."
     Nm("ptPendencias").Value = "Refazer granulometria US4 das 15h."
-    Nm("ptStatus").Cells(1, 1).Value = "OK"
-    Nm("ptStatus").Cells(2, 1).Value = "NÃO OK"
+    Nm("ptStatus").Cells(1, 1).Value = "Operando"
+    Nm("ptStatus").Cells(2, 1).Value = "Não operando"
     Nm("ptStatus").Cells(2, 1).Offset(0, 2).Value = "Aguardando manutenção mecânica"
-    Nm("ptStatus").Cells(3, 1).Value = "FORA DE OPERAÇÃO"
+    Nm("ptStatus").Cells(3, 1).Value = "Operando"
 End Sub
 
 ' Grava os argumentos que o VBA monta para cada consulta (comparados com o Python no teste)
