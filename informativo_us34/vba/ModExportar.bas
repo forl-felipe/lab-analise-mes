@@ -125,10 +125,6 @@ Private Function CorpoEmail(ByVal dt As Date, ByVal turno As String, ByVal turma
         End If
     Next c
     If nok <> "" Then h = h & "<p style='margin:10px 0 2px 0;font-weight:bold;color:#F37021'>Equipamentos NÃO OK</p><ul>" & nok & "</ul>"
-    If Not Vazio(Nm("ptSeguranca").Value) Then
-        h = h & "<p style='margin:10px 0 2px 0;font-weight:bold'>Segurança</p><p style='margin:0'>" & _
-                HtmlEsc(CStr(Nm("ptSeguranca").Value)) & "</p>"
-    End If
     If Not Vazio(Nm("ptPendencias").Value) Then
         h = h & "<p style='margin:10px 0 2px 0;font-weight:bold'>Pendências para o próximo turno</p><p style='margin:0'>" & _
                 HtmlEsc(CStr(Nm("ptPendencias").Value)) & "</p>"

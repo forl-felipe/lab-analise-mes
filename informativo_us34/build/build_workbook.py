@@ -91,8 +91,7 @@ HIST_ROW_HDR, REG_ROW_HDR = 6, 6
 HIST_FIXAS = ['Data', 'Turno', 'Turma', 'Responsável', 'Turma que recebe', 'Fechado em', 'Fonte dos dados']
 HIST_COL_RES1 = len(HIST_FIXAS) + 1
 HIST_COL_NOK = HIST_COL_RES1 + NPARAM * 2
-HIST_FINAIS = ['Equip. NÃO OK', 'Ocorrência SSMA?', 'Segurança (SSMA)', 'Pendências p/ próximo turno',
-               'Observações gerais', 'Arquivo PDF']
+HIST_FINAIS = ['Equip. NÃO OK', 'Pendências p/ próximo turno', 'Observações gerais', 'Arquivo PDF']
 
 SH_CFG = "'Configurações'"
 SH_PASS = "'Passagem de Turno'"
@@ -243,6 +242,7 @@ class Construtor:
         self.aba_painel()
         self.aba_mapa()
         self.ws_mes.hide()
+        self.ws_cfg.hide()
         self.ws_mapa.very_hidden() if hasattr(self.ws_mapa, 'very_hidden') else self.ws_mapa.hide()
         self.ws_painel.activate()
 
@@ -266,8 +266,8 @@ class Construtor:
             ('cfgEmail', 'Criar e-mail ao fechar turno', 'Não', 'Sim = abre um e-mail no Outlook com resumo e PDF anexado'),
             ('cfgEmailPara', 'E-mail: Para', '', 'Endereços separados por ponto e vírgula'),
             ('cfgEmailCC', 'E-mail: Cópia', '', ''),
-            ('cfgFormatoData', 'Formato da data para o MES', 'Data do Excel',
-             'Data do Excel (padrão) · Texto dd/mm/aaaa · Texto mm/dd/aaaa - troque se o MES acusar "formato incorreto de data"'),
+            ('cfgFormatoData', 'Formato da data para o MES', 'Texto dd/mm/aaaa',
+             'Texto dd/mm/aaaa (padrão, validado no MES) · Data do Excel · Texto mm/dd/aaaa - troque se o MES acusar "formato incorreto de data"'),
         ]
         for i, (nm, rot, val, desc) in enumerate(gerais):
             r = 5 + i
@@ -583,55 +583,34 @@ class Construtor:
         hdr = self.f(bold=True, font_size=9, font_color=AZUL, bg_color=FUNDO_GRUPO, align='center',
                      border=1, border_color=BRANCO)
 
-        # 1. Equipe
+        # 1. Equipe (tecnico + 4 laboratoristas)
         r = 8
         self.secao(ws, r, 1, 12, '1.  EQUIPE DO TURNO')
-        esq = ['Técnico / Supervisor', 'Amostrador 01', 'Amostrador 02', 'LTF 01', 'LTF 02']
-        dir_ = ['Laboratorista 01', 'Laboratorista 02', 'Laboratorista 03', 'Laboratorista 04', 'Apoio / T03']
-        for i in range(5):
+        funcoes = ['Técnico', 'Laboratorista 01', 'Laboratorista 02', 'Laboratorista 03', 'Laboratorista 04']
+        for i, fn in enumerate(funcoes):
             rr = r + 1 + i
             ws.set_row(rr, 20)
-            ws.write(rr, 1, esq[i], rot)
-            ws.merge_range(rr, 2, rr, 6, '', self.f_input())
-            ws.merge_range(rr, 7, rr, 8, dir_[i], rot)
-            ws.merge_range(rr, 9, rr, 12, '', self.f_input())
+            ws.write(rr, 1, fn, rot)
+            ws.merge_range(rr, 2, rr, 12, '', self.f_input())
             self.mapa_add('Equipe', '', '@' + rc(rr, 1), '', '@' + rc(rr, 2))
-            self.mapa_add('Equipe', '', '@' + rc(rr, 7), '', '@' + rc(rr, 9))
+        self.equipe_rows = (r + 1, r + len(funcoes))
 
-        # 2. Seguranca
-        r = 15
-        self.secao(ws, r, 1, 12, '2.  SEGURANÇA (SSMA)')
-        ws.set_row(r + 1, 20)
-        ws.write(r + 1, 1, 'Houve ocorrência de segurança?', rot)
-        ws.merge_range(r + 1, 2, r + 1, 3, '', self.f_input(align='center', bold=True))
-        ws.data_validation(r + 1, 2, r + 1, 2, {'validate': 'list', 'source': '=lstSN'})
-        self.nome('ptSegFlag', ws, r + 1, 2)
-        ws.merge_range(r + 1, 4, r + 1, 12, 'Relate abaixo acidentes, incidentes, desvios ou condições inseguras.',
-                       self.f(font_size=8, italic=True, font_color=AZUL_ACINZ, indent=1))
-        ws.merge_range(r + 2, 1, r + 4, 1, 'Descrição', rot)
-        ws.merge_range(r + 2, 2, r + 4, 12, '', txt)
-        self.nome('ptSeguranca', ws, r + 2, 2)
-        self.mapa_add('Segurança', '', 'Houve ocorrência?', '#ptSegFlag', '')
-        self.mapa_add('Segurança', '', 'Descrição', '', '#ptSeguranca')
-
-        # 3. Testes e pendencias
-        r = 21
-        self.secao(ws, r, 1, 12, '3.  TESTES E PENDÊNCIAS')
-        blocos = [('Pendências recebidas do turno anterior', 'ptPendRecebidas', FUNDO_AZUL_CLARO),
-                  ('Testes realizados no turno', 'ptTestes', None),
-                  ('Pendências / testes a realizar (para o próximo turno)', 'ptPendencias', None)]
+        # 2. Testes e pendencias
+        r = r + len(funcoes) + 2
+        self.secao(ws, r, 1, 12, '2.  TESTES E PENDÊNCIAS')
+        blocos = [('Testes realizados no turno', 'ptTestes'),
+                  ('Pendências / testes a realizar (para o próximo turno)', 'ptPendencias')]
         rr = r + 1
-        for t, nm, cor in blocos:
+        for t, nm in blocos:
             ws.merge_range(rr, 1, rr + 2, 1, t, rot)
-            ws.merge_range(rr, 2, rr + 2, 12, '', self.f_input(valign='top', text_wrap=True,
-                                                               **({'bg_color': cor} if cor else {})))
+            ws.merge_range(rr, 2, rr + 2, 12, '', self.f_input(valign='top', text_wrap=True))
             self.nome(nm, ws, rr, 2)
             self.mapa_add('Texto', '', t, '', '#' + nm)
             rr += 3
 
-        # 4. Minerodutos
-        r = 32
-        self.secao(ws, r, 1, 12, '4.  MINERODUTOS / BATCH')
+        # 3. Minerodutos
+        r = rr + 1
+        self.secao(ws, r, 1, 12, '3.  MINERODUTOS / BATCH')
         ws.write(r + 1, 1, 'Mineroduto', hdr)
         for (c1, c2, t) in [(2, 3, 'Batch'), (4, 5, 'Início'), (6, 7, 'Término'), (8, 12, 'Observação')]:
             ws.merge_range(r + 1, c1, r + 1, c2, t, hdr)
@@ -643,9 +622,9 @@ class Construtor:
                 ws.merge_range(rr, c1, rr, c2, '', self.f_input(align='center' if c2 < 8 else 'left'))
                 self.mapa_add('Batch', '@' + rc(rr, 1), t, '', '@' + rc(rr, c1))
 
-        # 5. Equipamentos
-        r = 38
-        self.secao(ws, r, 1, 12, '5.  STATUS DOS EQUIPAMENTOS (US3 / US4)')
+        # 4. Equipamentos
+        r = r + 6
+        self.secao(ws, r, 1, 12, '4.  STATUS DOS EQUIPAMENTOS (US3 / US4)')
         ws.write(r + 1, 1, 'Área', hdr)
         ws.merge_range(r + 1, 2, r + 1, 4, 'Equipamento', hdr)
         ws.merge_range(r + 1, 5, r + 1, 6, 'Status', hdr)
@@ -687,7 +666,7 @@ class Construtor:
 
         # 6. Comentarios por usina
         r = e1 + 2
-        self.secao(ws, r, 1, 12, '6.  COMENTÁRIOS POR USINA')
+        self.secao(ws, r, 1, 12, '5.  COMENTÁRIOS POR USINA')
         ws.write(r + 1, 1, 'Assunto', hdr)
         ws.merge_range(r + 1, 2, r + 1, 6, 'Usina 3', self.f(bold=True, font_color=BRANCO, bg_color=AZUL, align='center'))
         ws.merge_range(r + 1, 7, r + 1, 12, 'Usina 4', self.f(bold=True, font_color=BRANCO, bg_color=AZUL_ACINZ,
@@ -707,7 +686,7 @@ class Construtor:
 
         # 7. Embarques
         r = c0 + len(campos) + 1
-        self.secao(ws, r, 1, 12, '7.  EMBARQUES / CLIENTES')
+        self.secao(ws, r, 1, 12, '6.  EMBARQUE EM ANDAMENTO')
         cols = [(1, 1, 'Cliente'), (2, 2, 'Produto'), (3, 3, 'Navio'), (4, 4, 'Início'), (5, 5, 'Término'),
                 (6, 6, 'Qtd (TMS)'), (7, 7, 'Tamb. (%)'), (8, 8, 'Compr. (kgf)'), (9, 9, '-6,3 mm (%)'),
                 (10, 10, 'Relação'), (11, 11, 'B2'), (12, 12, 'SiO2 (%)')]
@@ -718,7 +697,7 @@ class Construtor:
                                               align='center', text_wrap=True, border=1, border_color=BRANCO))
             else:
                 ws.merge_range(r + 1, c1, r + 1, c2, t, hdr)
-        for i in range(4):
+        for i in range(1):
             rr = r + 2 + i * 2
             ws.set_row(rr, 19)
             for c1, c2, t in cols:
@@ -730,20 +709,15 @@ class Construtor:
             ws.merge_range(rr + 1, 2, rr + 1, 12, '', self.f_input(font_size=9))
             self.mapa_add('Embarque', 'Embarque %d' % (i + 1), 'Observação', '', '@' + rc(rr + 1, 2))
 
-        # 8. Observacoes
-        r = r + 11
-        self.secao(ws, r, 1, 12, '8.  OBSERVAÇÕES GERAIS')
+        # 7. Observacoes
+        r = r + 5
+        self.secao(ws, r, 1, 12, '7.  OBSERVAÇÕES GERAIS')
         ws.merge_range(r + 1, 1, r + 3, 12, '', txt)
         self.nome('ptObs', ws, r + 1, 1)
         self.mapa_add('Texto', '', 'Observações gerais', '', '#ptObs')
         self.mapa_add('Informativo', '', 'Destaques do turno', '', '#iObs')
 
-        r = r + 5
-        ws.set_row(r, 30)
-        ws.merge_range(r, 1, r, 5, 'Entregue por: ____________________________',
-                       self.f(font_size=9, font_color=AZUL_ACINZ, valign='bottom'))
-        ws.merge_range(r, 7, r, 12, 'Recebido por: ____________________________',
-                       self.f(font_size=9, font_color=AZUL_ACINZ, valign='bottom'))
+        r = r + 3
         self.pass_ultima = r
         ws.print_area(1, 1, r, 12)
         ws.set_portrait()
@@ -754,9 +728,8 @@ class Construtor:
         ws.set_footer('&L&8Passagem de Turno US3/US4&R&8Página &P de &N')
 
         self.botao(ws, 1, 14, 'Voltar ao Painel', 'IrPainel', 205, 34, 'primario', x=4)
-        self.botao(ws, 4, 14, 'Carregar pendências\ndo turno anterior', 'CarregarPendencias', 205, 44, 'medio', x=4)
-        self.botao(ws, 8, 14, 'Limpar formulário', 'LimparPassagem', 205, 34, 'claro', x=4)
-        self.botao(ws, 11, 14, 'Fechar turno', 'FecharTurno', 205, 44, 'destaque', x=4)
+        self.botao(ws, 4, 14, 'Limpar formulário', 'LimparPassagem', 205, 34, 'claro', x=4)
+        self.botao(ws, 7, 14, 'Fechar turno', 'FecharTurno', 205, 44, 'destaque', x=4)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
     # ------------------------------------------------------------ Histórico
@@ -786,9 +759,8 @@ class Construtor:
                 ws.set_column(c, c, 11, self.f(num_format=fmt_dec(pr[3]), align='center', **base))
         c = HIST_COL_NOK - 1
         ws.set_column(c, c, 9, self.f(align='center', **base))
-        ws.set_column(c + 1, c + 1, 10, self.f(align='center', **base))
-        ws.set_column(c + 2, c + 4, 40, self.f(text_wrap=True, valign='top', **base))
-        ws.set_column(c + 5, c + 5, 40, self.f(font_size=8, font_color=AZUL_ACINZ))
+        ws.set_column(c + 1, c + 2, 40, self.f(text_wrap=True, valign='top', **base))
+        ws.set_column(c + 3, c + 3, 40, self.f(font_size=8, font_color=AZUL_ACINZ))
         ws.freeze_panes(HIST_ROW_HDR, 3)
         ws.autofilter(h, 0, 20000, len(cab) - 1)
         self.botao(ws, 4, 4, 'Voltar ao Painel', 'IrPainel', 160, 26, 'pequeno', x=0, y=1)
@@ -957,7 +929,7 @@ class Construtor:
             ws.set_row(r, 20)
         bw, bh = 262, 116
         acoes = [(1, '1\nATUALIZAR DADOS DO MES\nBusca os resultados das Usinas 3 e 4', 'AtualizarMES', 'primario'),
-                 (5, '2\nPASSAGEM DE TURNO\nEquipe, segurança, equipamentos e pendências', 'IrPassagem', 'medio'),
+                 (5, '2\nPASSAGEM DE TURNO\nEquipe, testes, equipamentos e comentários', 'IrPassagem', 'medio'),
                  (9, '3\nINFORMATIVO DO TURNO\nResultados, limites e status por usina', 'IrInformativo', 'titulo'),
                  (13, '4\nFECHAR TURNO\nGrava o histórico e gera o PDF', 'FecharTurno', 'destaque')]
         for col, txt, mac, est in acoes:
@@ -1031,12 +1003,13 @@ class Construtor:
     def _formula_preench(self):
         e0, e1 = self.eq_rows
         c0, c1 = self.com_rows
+        q0, q1 = self.equipe_rows
         Q = SH_PASS
-        partes = ['COUNTA(%s!$C$10:$C$14)' % Q, 'COUNTA(%s!$J$10:$J$14)' % Q, 'COUNTA(ptRecebe)',
-                  'COUNTA(ptRecebidoPor)', 'COUNTA(ptSegFlag)', 'COUNTA(ptTestes)',
-                  'COUNTA(ptStatus)', 'COUNTA(%s!$C$%d:$C$%d)' % (Q, c0 + 1, c1 + 1),
+        partes = ['COUNTA(%s!$C$%d:$C$%d)' % (Q, q0 + 1, q1 + 1), 'COUNTA(ptRecebe)', 'COUNTA(ptRecebidoPor)',
+                  'COUNTA(ptTestes)', 'COUNTA(ptStatus)',
+                  'COUNTA(%s!$C$%d:$C$%d)' % (Q, c0 + 1, c1 + 1),
                   'COUNTA(%s!$H$%d:$H$%d)' % (Q, c0 + 1, c1 + 1)]
-        total = 5 + 5 + 1 + 1 + 1 + 1 + (e1 - e0 + 1) + 2 * (c1 - c0 + 1)
+        total = (q1 - q0 + 1) + 1 + 1 + 1 + (e1 - e0 + 1) + 2 * (c1 - c0 + 1)
         return '=(%s)/%d' % ('+'.join(partes), total)
 
     # ------------------------------------------------------------ _Mapa

@@ -57,7 +57,7 @@ Public Sub FecharTurno()
     msg = "Turno fechado com sucesso!" & vbCrLf & vbCrLf & "- Resultados e passagem gravados no Histórico"
     If pdf <> "" Then msg = msg & vbCrLf & "- PDF: " & pdf
     msg = msg & vbCrLf & vbCrLf & "Deseja preparar o PRÓXIMO turno agora?" & vbCrLf & _
-          "(limpa a passagem e leva as pendências para o próximo turno)"
+          "(limpa a passagem, avança Dia/Noite e define a turma que recebe)"
     If Aviso(msg, vbInformation + vbYesNo, "Fechar turno") = vbYes Then PrepararProximoTurno dt, turno
     IrPainel
 End Sub
@@ -124,11 +124,9 @@ Private Sub GravarHistorico(ByVal dt As Date, ByVal turno As String, ByVal turma
     Next p
 
     ws.Cells(lin, HIST_COL_NOK).Value = ContarStatus("NÃO OK")
-    ws.Cells(lin, HIST_COL_NOK + 1).Value = Nm("ptSegFlag").Value
-    ws.Cells(lin, HIST_COL_NOK + 2).Value = Nm("ptSeguranca").Value
-    ws.Cells(lin, HIST_COL_NOK + 3).Value = Nm("ptPendencias").Value
-    ws.Cells(lin, HIST_COL_NOK + 4).Value = Nm("ptObs").Value
-    ws.Cells(lin, HIST_COL_NOK + 5).Value = pdf
+    ws.Cells(lin, HIST_COL_NOK + 1).Value = Nm("ptPendencias").Value
+    ws.Cells(lin, HIST_COL_NOK + 2).Value = Nm("ptObs").Value
+    ws.Cells(lin, HIST_COL_NOK + 3).Value = pdf
 End Sub
 
 ' Grava cada campo preenchido da passagem em formato "longo" (uma linha por informacao)
@@ -208,47 +206,10 @@ Public Sub LimparPassagem()
     LimparCamposPassagem
 End Sub
 
-' Botao da aba Passagem de Turno: traz as pendencias do turno anterior
-Public Sub CarregarPendencias()
-    Dim dt As Date, turno As String, turma As String, resp As String
-    Dim dAnt As Date, tAnt As String, r As Long, achou As Long, v As Variant
-
-    PrepararEdicao
-    If Not LerTurnoPainel(dt, turno, turma, resp, True) Then Exit Sub
-    If EhDia(turno) Then
-        dAnt = CDate(CDbl(dt) - 1)
-        tAnt = TurnoNoite()
-    Else
-        dAnt = dt
-        tAnt = TurnoDia()
-    End If
-    For r = UltimaLinha(shHistorico, 1) To HIST_ROW_HDR + 1 Step -1
-        If MesmoTurno(shHistorico.Cells(r, 1).Value, shHistorico.Cells(r, 2).Value, dAnt, tAnt) Then
-            achou = r
-            Exit For
-        End If
-    Next r
-    If achou = 0 Then
-        Aviso "O turno anterior (" & Format$(dAnt, "dd\/mm\/yyyy") & " - " & tAnt & ") não está no Histórico.", _
-               vbInformation, "Pendências"
-        Exit Sub
-    End If
-    v = shHistorico.Cells(achou, HIST_COL_NOK + 3).Value
-    If Vazio(v) Then
-        Aviso "O turno anterior não registrou pendências.", vbInformation, "Pendências"
-    Else
-        Nm("ptPendRecebidas").Value = v
-        Aviso "Pendências do turno anterior carregadas (turma " & shHistorico.Cells(achou, 3).Value & ").", _
-               vbInformation, "Pendências"
-    End If
-End Sub
-
 Private Sub PrepararProximoTurno(ByVal dt As Date, ByVal turno As String)
-    Dim pend As Variant, recebe As Variant
-    pend = Nm("ptPendencias").Value
+    Dim recebe As Variant
     recebe = Nm("ptRecebe").Value
     LimparCamposPassagem
-    If Not Vazio(pend) Then Nm("ptPendRecebidas").Value = pend
     If EhDia(turno) Then
         Nm("pData").Value = dt
         Nm("pTurno").Value = TurnoNoite()
@@ -257,7 +218,7 @@ Private Sub PrepararProximoTurno(ByVal dt As Date, ByVal turno As String)
         Nm("pTurno").Value = TurnoDia()
     End If
     Nm("pTurma").Value = recebe
-    Nm("pResp").ClearContents
+    Nm("pResp").MergeArea.ClearContents
     LimparInformativo
 End Sub
 

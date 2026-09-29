@@ -17,6 +17,7 @@ Public Sub Inicializar()
     On Error Resume Next
     ProtegerPlanilhas
     shDadosMES.Visible = XL_HIDDEN
+    shConfig.Visible = XL_HIDDEN
     shMapa.Visible = XL_VERYHIDDEN
     If Vazio(Nm("pData").Value) Then DefinirTurnoAtual
     shPainel.Activate
@@ -194,6 +195,10 @@ End Sub
 
 Public Sub IrPainel()
     Mostrar shPainel
+    ' Configuracoes e dados brutos ficam ocultos; acesso pelo botao "Configuracoes" do Painel
+    On Error Resume Next
+    shConfig.Visible = XL_HIDDEN
+    shDadosMES.Visible = XL_HIDDEN
 End Sub
 
 Public Sub IrInformativo()

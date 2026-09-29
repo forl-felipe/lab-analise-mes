@@ -26,12 +26,8 @@ Public Sub TesteLO()
     passo = 4
     FecharTurno
     passo = 5
-    r = r & "|apos=" & Nm("pTurno").Value & "|" & Nm("pTurma").Value & "|" & Nm("ptPendRecebidas").Value
-    Nm("ptPendRecebidas").Value = ""
-    Nm("pResp").Value = "Outro"
-    passo = 6
-    CarregarPendencias
-    r = r & "|pend=" & Nm("ptPendRecebidas").Value
+    r = r & "|apos=" & Nm("pTurno").Value & "|" & Nm("pTurma").Value & "|resp=" & Nm("pResp").Value & _
+        "|pend=" & Nm("ptPendencias").Value & "|iData=" & Nm("iData").Value & "|cfgVisivel=" & shConfig.Visible
     shConfig.Range("Z1").Value = r
     Exit Sub
 Erro:
@@ -53,14 +49,12 @@ Public Sub DemoLO()
     shPassagem.Range("C10").Value = "Maria Silva"
     shPassagem.Range("C11").Value = "João Souza"
     Nm("ptRecebe").Value = "B"
-    Nm("ptSegFlag").Value = "Não"
     Nm("ptTestes").Value = "Tamboramento e compressão US3/US4 conforme plano."
     Nm("ptPendencias").Value = "Refazer granulometria US4 das 15h."
     Nm("ptStatus").Cells(1, 1).Value = "OK"
     Nm("ptStatus").Cells(2, 1).Value = "NÃO OK"
-    shPassagem.Range("H42").Value = "Aguardando manutenção mecânica"
+    Nm("ptStatus").Cells(2, 1).Offset(0, 2).Value = "Aguardando manutenção mecânica"
     Nm("ptStatus").Cells(3, 1).Value = "FORA DE OPERAÇÃO"
-    shPassagem.Range("C58").Value = "PBF"
 End Sub
 
 ' Grava os argumentos que o VBA monta para cada consulta (comparados com o Python no teste)

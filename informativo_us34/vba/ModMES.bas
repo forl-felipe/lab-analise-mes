@@ -337,13 +337,13 @@ Public Sub LimparInformativo()
             shInformativo.Cells(LinhaInformativo(p, k), INF_COL_H1).Resize(1, NSLOT).ClearContents
         Next k
     Next p
-    Nm("iData").ClearContents
-    Nm("iTurno").ClearContents
-    Nm("iTurma").ClearContents
-    Nm("iResp").ClearContents
-    Nm("iAtualizado").ClearContents
-    Nm("iFonte").ClearContents
-    Nm("iPeriodo").ClearContents
+    Nm("iData").MergeArea.ClearContents
+    Nm("iTurno").MergeArea.ClearContents
+    Nm("iTurma").MergeArea.ClearContents
+    Nm("iResp").MergeArea.ClearContents
+    Nm("iAtualizado").MergeArea.ClearContents
+    Nm("iFonte").MergeArea.ClearContents
+    Nm("iPeriodo").MergeArea.ClearContents
     Nm("iObs").MergeArea.ClearContents
     ProtegerPlanilhas
 End Sub
