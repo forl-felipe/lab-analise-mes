@@ -15,6 +15,7 @@ Planilha Excel com macros (`Informativo_Qualidade_US3_US4.xlsm`) que substitui a
 | Aba | Para que serve |
 |---|---|
 | **Painel** | Menu principal: seleção do turno (data, Dia/Noite, turma, responsável), 4 botões de ação, situação do turno e indicadores US3 × US4 |
+| **Resumo do Turno** | Pronta para o e-mail, em **2 imagens**: (1) resultados do turno por usina (resultado, mín. e máx., sem LIE/LSE/Status; valores fora da especificação em laranja) e (2) passagem de turno em texto. Botões **Copiar RESULTADOS** e **Copiar PASSAGEM**, ou print com Windows+Shift+S |
 | **Informativo** | Resultados do MES do turno: 24 parâmetros × 2 usinas, 6 janelas de 2 h, resultado do turno, mín./máx., LIE/LSE e status OK/Fora. Botão **Copiar como imagem** |
 | **Passagem de Turno** | Equipe (técnico físico, técnico químico e 4 laboratoristas), testes e pendências, minerodutos 02 e 03, status de 14 equipamentos (Operando / Não operando), comentários por usina (produto, aglomerante, combustível sólido, qualidade das pelotas), embarque em andamento e observações. Botão **Copiar como imagem** |
 | **Histórico** | Uma linha por turno salvo, com os resultados de US3 e US4, equipamentos não operando, pendências e observações |
@@ -30,14 +31,14 @@ Ao abrir, o Painel já vem com a **data e o turno pelo relógio**. Na primeira h
    - A macro espera todas as consultas responderem e os valores pararem de mudar, para não trazer dados incompletos.
    - Num turno em andamento, os horários futuros ficam em branco. Basta atualizar de novo mais tarde.
 2. **Passagem de Turno**: preencher os campos amarelos.
-3. **Informativo do Turno**: relatório por usina.
+3. **Resumo para o e-mail**: abre a aba Resumo do Turno (2 imagens). O Informativo completo continua em **Mais opções**.
 4. **Salvar turno**:
    - busca os dados do MES sozinho, se ainda não foram buscados;
    - grava o Histórico e o Registro e salva o arquivo;
    - oferece limpar a passagem.
    - **Não muda o turno do Painel.**
 
-Para enviar por e-mail: botão **Copiar como imagem** no Informativo e na Passagem de Turno, e colar no e-mail com Ctrl+V.
+Para enviar por e-mail: botão 3 → **Copiar RESULTADOS** (imagem 1) e **Copiar PASSAGEM** (imagem 2), colando cada uma com Ctrl+V. A cópia usa o formato bitmap, que cola no Outlook (inclusive web), no Teams e no WhatsApp Web. O formato anterior (imagem do Office) não colava nesses programas.
 
 Guia de uma página para os técnicos: [`guia/Guia_rapido_Informativo_US3_US4.png`](guia/Guia_rapido_Informativo_US3_US4.png).
 

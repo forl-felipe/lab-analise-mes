@@ -70,6 +70,7 @@ Public Sub DemoLO()
     Nm("ptStatus").Cells(2, 1).Value = "Não operando"
     Nm("ptStatus").Cells(2, 1).Offset(0, 2).Value = "Aguardando manutenção mecânica"
     Nm("ptStatus").Cells(3, 1).Value = "Operando"
+    AtualizarResumo
 End Sub
 
 ' Grava os argumentos que o VBA monta para cada consulta (comparados com o Python no teste)

@@ -191,7 +191,7 @@ End Function
 Public Sub ProtegerPlanilhas()
     Dim ws As Variant
     On Error Resume Next
-    For Each ws In Array(shPainel, shInformativo, shPassagem)
+    For Each ws In Array(shPainel, shResumo, shInformativo, shPassagem)
         ws.Unprotect Password:=SENHA
         ws.Protect Password:=SENHA, DrawingObjects:=True, Contents:=True, Scenarios:=True, _
                    UserInterfaceOnly:=True, AllowFormattingColumns:=True, AllowFormattingRows:=True, _
@@ -224,6 +224,12 @@ End Sub
 
 Public Sub IrInformativo()
     Mostrar shInformativo
+End Sub
+
+' Resumo do turno: e sempre refeito antes de exibir (mostra o que esta no Informativo e na Passagem)
+Public Sub IrResumo()
+    AtualizarResumo
+    Mostrar shResumo
 End Sub
 
 Public Sub IrPassagem()

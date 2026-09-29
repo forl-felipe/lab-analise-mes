@@ -26,5 +26,6 @@ Public Const HIST_ROW_HDR As Long = 6
 Public Const HIST_COL_RES1 As Long = 8
 Public Const HIST_COL_NOK As Long = 56
 Public Const REG_ROW_HDR As Long = 6
+Public Const RES_ROW_PASSAGEM As Long = 44
 ' Senha de protecao das abas (vazio = sem senha)
 Public Const SENHA As String = ""

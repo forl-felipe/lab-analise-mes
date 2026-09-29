@@ -46,7 +46,7 @@ Public Sub FecharTurno()
     SalvarArquivo
 
     msg = "Turno salvo com sucesso no Histórico!" & vbCrLf & vbCrLf & _
-          "Para enviar por e-mail, use 'Copiar como imagem' no Informativo e na Passagem de Turno." & _
+          "Para enviar por e-mail, abra o botão 3 (Resumo para o e-mail) e copie as 2 imagens." & _
           vbCrLf & vbCrLf & "Deseja LIMPAR a Passagem de Turno para o próximo turno?"
     If Aviso(msg, vbInformation + vbYesNo, "Salvar turno") = vbYes Then
         LimparCamposPassagem
@@ -146,7 +146,7 @@ End Sub
 '   "@B9"   -> valor da celula B9 da aba Passagem de Turno
 '   "#nome" -> valor do nome definido
 '   texto   -> o proprio texto
-Private Function LerEspec(ByVal espec As Variant) As Variant
+Public Function LerEspec(ByVal espec As Variant) As Variant
     Dim s As String
     If Vazio(espec) Then
         LerEspec = Empty
