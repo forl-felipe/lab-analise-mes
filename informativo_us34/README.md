@@ -15,10 +15,10 @@ Planilha Excel com macros (`Informativo_Qualidade_US3_US4.xlsm`) que substitui a
 | Aba | Para que serve |
 |---|---|
 | **Painel** | Menu principal: seleção do turno (data, Dia/Noite, turma, responsável), 4 botões de ação, situação do turno e indicadores US3 × US4 |
-| **Resumo Dia** / **Resumo Noite** | Um resumo por turno, pronto para o e-mail, em **2 imagens**: (1) resultados do turno por usina (resultado, mín. e máx., sem LIE/LSE/Status; fora da especificação em laranja) e (2) passagem de turno em texto. Botões **Copiar RESULTADOS** e **Copiar PASSAGEM**, ou print com Windows+Shift+S. Os valores são gravados como uma "foto" do turno: o turno seguinte pode atualizar o MES e preencher a passagem sem alterar o resumo já finalizado |
+| **Resumo Dia** / **Resumo Noite** | Um resumo por turno, pronto para o e-mail, em **2 imagens**: (1) resultados de 2 em 2 h de US3 e US4, com resultado do turno, mín. e máx. (sem LIE/LSE/Status; fora da especificação em laranja) e (2) passagem de turno em texto. Botões **Copiar RESULTADOS** e **Copiar PASSAGEM**, ou print com Windows+Shift+S. Os valores são gravados como uma "foto" do turno: o turno seguinte pode atualizar o MES e preencher a passagem sem alterar o resumo já finalizado |
 | **Passagem de Turno** | Equipe (técnico físico, técnico químico e 4 laboratoristas), turma que recebe, testes e pendências, minerodutos 02 e 03, status de 14 equipamentos (Operando / Não operando), comentários por usina (produto, aglomerante, combustível sólido, qualidade das pelotas), embarque em andamento e observações |
-| **Informativo** | Detalhe do MES do turno: 24 parâmetros × 2 usinas, 6 janelas de 2 h, resultado do turno, mín./máx., LIE/LSE e status OK/Fora (acesso em **Mais opções** no Painel) |
-| **Configurações** (oculta) | Fonte dos dados, servidor, horário, formato da data, **tags do MES**, **limites LIE/LSE** e faixa válida |
+| **Informativo** (completo) | Resultados do MES de 2 em 2 h de **qualquer período de até 24 h**: o técnico preenche **Início** e **Fim** no alto da aba e clica em **Atualizar dados do MES** (acima de 12 h, a macro faz duas consultas de 12 h, iguais às do turno, e junta os resultados). Mostra só as janelas do período, o resultado, o mín. e o máx.; LIE/LSE/Status ficam ocultos. Botão **Copiar como imagem**. O botão 1 do Painel também carrega aqui o turno selecionado |
+| **Configurações** (oculta, sem botão) | Fonte dos dados, servidor, horário, formato da data, **tags do MES**, **limites LIE/LSE** e faixa válida |
 | Dados_MES (oculta) | Fórmulas do suplemento Aspen (`GetCalculationValues` / `ShowCalculationValues`) |
 
 ## Os 4 botões do Painel
@@ -36,6 +36,8 @@ Ao abrir, o Painel já vem com a **data e o turno pelo relógio**. Na primeira h
    - salva o arquivo e oferece limpar a passagem para o próximo turno.
    - **Não muda o turno do Painel.**
 
+As imagens são copiadas com o Excel em 200% de zoom (e o zoom volta ao normal em seguida). Assim a imagem tem o dobro de pixels e as letras continuam nítidas ao ampliar no e-mail.
+
 Para enviar por e-mail: na aba Resumo do turno, **Copiar RESULTADOS** (imagem 1) e **Copiar PASSAGEM** (imagem 2), colando cada uma com Ctrl+V. A cópia usa o formato bitmap, que cola no Outlook (inclusive web), no Teams e no WhatsApp Web.
 
 ### Rotina diária
@@ -49,7 +51,7 @@ Guia de uma página para os técnicos: [`guia/Guia_rapido_Informativo_US3_US4.pn
 ## Primeiro uso
 
 1. **Desbloqueie o arquivo** baixado: botão direito → Propriedades → marcar **Desbloquear**. Depois abra e clique em **Habilitar conteúdo**.
-2. Em **Configurações** (botão no Painel), **no arquivo modelo** (as cópias diárias herdam os ajustes):
+2. Em **Configurações**, **no arquivo modelo** (as cópias diárias herdam os ajustes). A aba fica oculta e sem botão: clique com o botão direito numa guia → **Reexibir** → Configurações.
    - **confira as tags** das Usinas 3 e 4 (foram herdadas da planilha de 2014);
    - preencha **LIE/LSE** dos parâmetros que devem ser avaliados.
 3. Para treinar ou testar sem o MES, mude **Fonte dos dados** para `SIMULAÇÃO`. Para uso real, deixe `MES`.

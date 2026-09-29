@@ -16,7 +16,22 @@ Public Sub TesteLO()
     AtualizarMES
     passo = 3
     r = "info=" & Nm("iTurno").Value & "|" & shInformativo.Cells(LinhaInformativo(18, 1), INF_COL_H1).Value
-    r = r & "|dGeradoAposMES=" & (Not Vazio(Nm("rsDGerado").Value))
+    r = r & "|dGeradoAposMES=" & (Not Vazio(Nm("rsDGerado").Value)) & "|dRes1=" & shResumoDia.Cells(10, 11).Value & _
+        "|dHora1=" & shResumoDia.Cells(8, 5).Value & "|dSlot1=" & shResumoDia.Cells(10, 5).Value
+    passo = 31
+    ' periodo livre de 24 h no Informativo (2 consultas de 12 h)
+    Nm("iSelIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
+    Nm("iSelFim").Value = DateSerial(2026, 9, 29) + TimeSerial(7, 0, 0)
+    AtualizarMESPeriodo
+    Dim nv As Long, jj As Long
+    For jj = 0 To NSLOT_INF - 1
+        If ENumero(shInformativo.Cells(LinhaInformativo(1, 1), INF_COL_H1 + jj).Value) Then nv = nv + 1
+    Next jj
+    r = r & "|per=" & Nm("iTurno").Value & "|perSlots=" & nv & "|perH12=" & Nm("iHoras").Cells(1, 12).Value & _
+        "|perPeriodo=" & Nm("iPeriodo").Value
+    ' o resumo do Dia nao pode perder os resultados por causa do periodo livre
+    GerarResumo "rsD"
+    r = r & "|dRes2=" & shResumoDia.Cells(10, 11).Value
     shPassagem.Range("C10").Value = "Fulano"
     Nm("ptRecebe").Value = "B"
     For Each c In Nm("ptStatus").Cells
@@ -29,7 +44,7 @@ Public Sub TesteLO()
     passo = 5
     r = r & "|pendAposLimpar=" & Nm("ptPendencias").Value & "|dFinal=" & (Not Vazio(Nm("rsDFinal").Value)) & _
         "|dEquipe=" & Nm("rsDEquipe").Value & "|dPend=" & Nm("rsDPend").Value & "|dNaoOper=" & Nm("rsDNaoOper").Value & _
-        "|dRes=" & shResumoDia.Cells(11, 4).Value
+        "|dRes=" & shResumoDia.Cells(10, 11).Value & "|col11oculta=" & shInformativo.Columns(INF_COL_H1 + 10).Hidden
     passo = 6
     ' segundo turno: Noite do mesmo dia (Finalizar busca o MES sozinho)
     Nm("pTurno").Value = TurnoNoite()
@@ -38,8 +53,8 @@ Public Sub TesteLO()
     Nm("ptPendencias").Value = "Nada pendente"
     FecharTurno
     r = r & "|noite=" & Nm("iTurno").Value & "|nEquipe=" & Nm("rsNEquipe").Value & "|nPend=" & Nm("rsNPend").Value & _
-        "|dEquipeDepois=" & Nm("rsDEquipe").Value & "|dResDepois=" & shResumoDia.Cells(11, 4).Value & _
-        "|nRes=" & shResumoNoite.Cells(11, 4).Value
+        "|dEquipeDepois=" & Nm("rsDEquipe").Value & "|dResDepois=" & shResumoDia.Cells(10, 11).Value & _
+        "|nRes=" & shResumoNoite.Cells(10, 11).Value & "|nHora1=" & shResumoNoite.Cells(8, 5).Value
     passo = 7
     ' copia de um resumo finalizado nao pode refazer o outro turno
     PrepararResumoParaCopia "rsD"
@@ -79,6 +94,9 @@ Public Sub DemoLO()
     Nm("ptStatus").Cells(2, 1).Offset(0, 2).Value = "Aguardando manutenção mecânica"
     Nm("ptStatus").Cells(3, 1).Value = "Operando"
     GerarResumo "rsD"
+    Nm("iSelIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
+    Nm("iSelFim").Value = DateSerial(2026, 9, 29) + TimeSerial(7, 0, 0)
+    AtualizarMESPeriodo
 End Sub
 
 ' Grava os argumentos que o VBA monta para cada consulta (comparados com o Python no teste)

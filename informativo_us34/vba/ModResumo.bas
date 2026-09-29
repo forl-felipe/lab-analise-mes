@@ -13,6 +13,7 @@ Private Const COR_NORMAL As Long = 7092992     ' RGB(0, 59, 108)    Azul Titulo 
 Private Const FUNDO_NORMAL As Long = 16644334  ' RGB(238, 248, 253)
 Private Const COR_FORA As Long = 2191603       ' RGB(243, 112, 33)  laranja
 Private Const FUNDO_FORA As Long = 14214909    ' RGB(253, 230, 216)
+Private Const COR_TEXTO As Long = 3549981      ' RGB(29, 43, 54)    texto
 
 ' ---------------------------------------------------------------- utilidades
 Public Function PrefixoResumo(ByVal turno As String) As String
@@ -109,9 +110,9 @@ End Sub
 
 ' ---------------------------------------------------------------- geracao
 Public Sub GerarResumo(ByVal pref As String)
-    Dim ws As Worksheet, s As String, r As Long, p As Long, k As Long, i As Long
+    Dim ws As Worksheet, s As String, r As Long, p As Long, k As Long, i As Long, lin As Long, col As Long
     Dim dt As Date, turno As String, turma As String, resp As String, confere As Boolean
-    Dim chave As Variant, v As Variant, c As Range, fora As Boolean, lin As Long
+    Dim chave As Variant, v As Variant, c As Range, lie As Variant, lse As Variant, fora As Boolean
 
     Set ws = AbaResumo(pref)
     PrepararEdicao
@@ -120,39 +121,60 @@ Public Sub GerarResumo(ByVal pref As String)
     On Error GoTo 0
 
     If LerTurnoPainel(dt, turno, turma, resp, False) Then confere = InformativoConfere(dt, turno)
-    s = LinhaDeInformacao()
-    Nm(pref & "Info").Value = s
-    Nm(pref & "Info2").Value = s
 
-    For r = 1 To RES_FIM_RESULTADOS
-        chave = ws.Cells(r, 1).Value
-        If VarType(chave) = vbString Then
-            If Len(chave) = 3 And Left$(chave, 1) = "P" Then
-                p = CLng(Mid$(chave, 2))
-                For k = 1 To 2
+    ' Resultados: so sao regravados quando o Informativo e deste turno
+    ' (se o Informativo estiver com outro turno/periodo, os resultados ja gravados sao mantidos)
+    If confere Then
+        ' garante resultado/min/max recalculados (tambem com o Excel em calculo manual)
+        On Error Resume Next
+        shInformativo.Calculate
+        On Error GoTo 0
+        For i = 1 To NSLOT
+            Nm(pref & "Horas").Cells(1, i).Value = Nm("iHoras").Cells(1, i).Value
+        Next i
+        For r = 1 To RES_FIM_RESULTADOS
+            chave = ws.Cells(r, 1).Value
+            If VarType(chave) = vbString Then
+                If Len(chave) = 5 And Left$(chave, 1) = "P" Then
+                    p = CLng(Mid$(chave, 2, 2))
+                    If Right$(chave, 1) = "3" Then k = 1 Else k = 2
                     lin = LinhaInformativo(p, k)
-                    fora = False
-                    If confere Then fora = (CStr(shInformativo.Cells(lin, INF_COL_RES + 5).Value) = "Fora")
-                    For i = 0 To 2
-                        Set c = ws.Cells(r, 4 + 3 * (k - 1) + i)
-                        v = Empty
-                        If confere Then v = shInformativo.Cells(lin, INF_COL_RES + i).Value
+                    lie = CfgCel(p, CFG_COL_LIE)
+                    lse = CfgCel(p, CFG_COL_LSE)
+                    For i = 1 To NSLOT + 3
+                        If i <= NSLOT Then col = INF_COL_H1 + i - 1 Else col = INF_COL_RES + i - NSLOT - 1
+                        Set c = ws.Cells(r, 4 + i)
+                        v = shInformativo.Cells(lin, col).Value
                         If ENumero(v) Then c.Value = CDbl(v) Else c.Value = "-"
-                        If i = 0 Then
+                        ' destaque laranja: janelas de 2 h e resultado fora de LIE/LSE
+                        If i <= NSLOT + 1 Then
+                            fora = False
+                            If ENumero(v) Then
+                                If ENumero(lie) Then fora = (CDbl(v) < CDbl(lie))
+                                If ENumero(lse) Then fora = fora Or (CDbl(v) > CDbl(lse))
+                            End If
+                            c.Font.Bold = fora Or (i = NSLOT + 1)
                             If fora Then
                                 c.Font.Color = COR_FORA
                                 c.Interior.Color = FUNDO_FORA
-                            Else
+                            ElseIf i = NSLOT + 1 Then
                                 c.Font.Color = COR_NORMAL
                                 c.Interior.Color = FUNDO_NORMAL
+                            Else
+                                c.Font.Color = COR_TEXTO
+                                c.Interior.Color = ws.Cells(r, 4).Interior.Color
                             End If
                         End If
                     Next i
-                Next k
+                End If
             End If
-        End If
-    Next r
+        Next r
+        Nm(pref & "MES").Value = Now
+    End If
 
+    s = LinhaDeInformacao(pref, confere)
+    Nm(pref & "Info").Value = s
+    Nm(pref & "Info2").Value = s
     Nm(pref & "Equipe").Value = Juntar("Equipe", "", False)
     Nm(pref & "Recebe").Value = TextoOuTraco(Nm("ptRecebe").Value)
     Nm(pref & "NaoOper").Value = NaoOperando()
@@ -167,13 +189,13 @@ Public Sub GerarResumo(ByVal pref As String)
     ProtegerPlanilhas
 End Sub
 
-Private Function LinhaDeInformacao() As String
+Private Function LinhaDeInformacao(ByVal pref As String, ByVal confere As Boolean) As String
     Dim dt As Date, turno As String, turma As String, resp As String, s As String
     If LerTurnoPainel(dt, turno, turma, resp, False) Then
         s = Format$(dt, "dd\/mm\/yyyy") & "   ·   " & turno
         If turma <> "" Then s = s & "   ·   Turma " & turma
         If resp <> "" Then s = s & "   ·   " & resp
-        If Not InformativoConfere(dt, turno) Then
+        If Not confere And Vazio(Nm(pref & "MES").Value) Then
             s = s & "   ·   (resultados do MES ainda não atualizados para este turno)"
         End If
     End If

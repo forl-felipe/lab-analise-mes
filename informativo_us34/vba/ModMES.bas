@@ -11,6 +11,8 @@ Private mCarregado As Boolean
 Private Const MAPA_COL_BLOCO As Long = 11
 ' Segundos sem mudanca nos resultados para considerar a consulta concluida
 Private Const ESTAVEL_SEG As Double = 3
+' Texto gravado em "Turno" quando o Informativo tem um periodo escolhido pelo tecnico
+Public Const TURNO_PERIODO As String = "Período escolhido"
 
 ' Botao 1 do Painel
 Public Sub AtualizarMES()
@@ -49,6 +51,8 @@ Public Sub AtualizarMES()
     If Not ok Then Exit Sub
 
     n = PreencherInformativo(dados, dt, turno, turma, resp, ini, fim, simulado)
+    Nm("iSelIni").Value = ini
+    Nm("iSelFim").Value = fim
     If gSilenciarSucesso Then Exit Sub
     AtualizarResumoAtual True
     If CDbl(fim) > CDbl(Now) And Not simulado Then
@@ -79,6 +83,113 @@ End Sub
 '  processo), com tags, servidores e mapas em TEXTO LITERAL dentro da formula.
 '  Os grupos estao na aba _Mapa (colunas K:Q).
 ' ---------------------------------------------------------------------------
+
+' Botao da aba Informativo: consulta o periodo escolhido (inicio/fim, ate 24 h).
+' Usa a MESMA consulta do turno (janelas de 2 h, 12 h por vez): para mais de 12 h,
+' consulta duas vezes (12 h + 12 h) e junta os resultados.
+Public Sub AtualizarMESPeriodo()
+    Dim vi As Variant, vf As Variant, ini As Date, fim As Date, a As Date, horas As Double
+    Dim n As Long, nPartes As Long, parte As Long, s As Long, j As Long, lin As Long, qtd As Long
+    Dim d() As Variant, bloco As Variant, ok As Boolean, simulado As Boolean, obs As String
+    Dim dtP As Date, turnoP As String, turmaP As String, respP As String
+
+    PrepararEdicao
+    vi = Nm("iSelIni").Value
+    vf = Nm("iSelFim").Value
+    If Not DataHoraValida(vi) Or Not DataHoraValida(vf) Then
+        Aviso "Preencha o INÍCIO e o FIM do período no alto da aba Informativo" & vbCrLf & _
+              "(data e hora, por exemplo 28/09/2026 07:00).", vbExclamation, "Informativo"
+        Exit Sub
+    End If
+    ini = CDate(vi)
+    fim = CDate(vf)
+    ini = CDate(Round(CDbl(ini) * 1440, 0) / 1440)
+    fim = CDate(Round(CDbl(fim) * 1440, 0) / 1440)
+    horas = (CDbl(fim) - CDbl(ini)) * 24
+    If horas <= 0 Then
+        Aviso "O FIM precisa ser depois do INÍCIO.", vbExclamation, "Informativo"
+        Exit Sub
+    End If
+    If horas > NSLOT_INF * HORAS_SLOT + 0.01 Then
+        Aviso "O período pode ter no máximo " & NSLOT_INF * HORAS_SLOT & " horas.", vbExclamation, "Informativo"
+        Exit Sub
+    End If
+    ' janelas de 2 h a partir do inicio (a ultima completa as 2 h)
+    n = Int((horas + 0.01) / HORAS_SLOT)
+    If n * HORAS_SLOT < horas - 0.01 Then n = n + 1
+    fim = CDate(CDbl(ini) + n * HORAS_SLOT / 24)
+    simulado = (Left$(UCase$(CfgTxt("cfgFonte")), 3) = "SIM")
+    If Not simulado And CDbl(ini) > CDbl(Now) Then
+        Aviso "O período escolhido ainda não começou (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ").", _
+              vbExclamation, "Informativo"
+        Exit Sub
+    End If
+
+    nPartes = (n + NSLOT - 1) \ NSLOT
+    ReDim d(1 To n, 1 To 1 + 2 * NPARAM)
+    On Error GoTo Falha
+    Ampulheta True
+    For parte = 1 To nPartes
+        a = CDate(CDbl(ini) + (parte - 1) * NSLOT * HORAS_SLOT / 24)
+        Application.StatusBar = "Consultando o MES (" & Format$(a, "dd\/mm hh:mm") & ", parte " & parte & _
+                                " de " & nPartes & ")... aguarde"
+        If simulado Then
+            bloco = DadosSimulados()
+            ok = True
+        Else
+            ok = ConsultarMES(a, CDate(CDbl(a) + NSLOT * HORAS_SLOT / 24), bloco)
+        End If
+        If Not ok Then
+            Application.StatusBar = False
+            Ampulheta False
+            Exit Sub
+        End If
+        For s = 1 To NSLOT
+            lin = (parte - 1) * NSLOT + s
+            If lin <= n Then
+                For j = 1 To 1 + 2 * NPARAM
+                    d(lin, j) = bloco(s, j)
+                Next j
+            End If
+        Next s
+    Next parte
+    Application.StatusBar = False
+    Ampulheta False
+    On Error GoTo 0
+
+    If Not LerTurnoPainel(dtP, turnoP, turmaP, respP, False) Then
+        turmaP = "-"
+        respP = "-"
+    End If
+    If turmaP = "" Then turmaP = "-"
+    If respP = "" Then respP = "-"
+    qtd = PreencherInformativo(d, CDate(Int(CDbl(ini))), TURNO_PERIODO, turmaP, respP, ini, fim, simulado)
+    Nm("iSelIni").Value = ini
+    Nm("iSelFim").Value = fim
+    Mostrar shInformativo
+    If CDbl(fim) > CDbl(Now) And Not simulado Then
+        obs = vbCrLf & vbCrLf & "O período ainda não terminou: os horários futuros ficam em branco."
+    End If
+    Aviso qtd & " resultados carregados para " & Format$(ini, "dd\/mm hh:mm") & " a " & _
+          Format$(fim, "dd\/mm hh:mm") & "." & obs & vbCrLf & vbCrLf & _
+          "Use 'Copiar como imagem' para colar no e-mail.", vbInformation, "Informativo"
+    Exit Sub
+
+Falha:
+    Application.StatusBar = False
+    Ampulheta False
+    Aviso "Erro ao atualizar os dados do MES: " & Err.Description, vbExclamation, "MES"
+End Sub
+
+Private Function DataHoraValida(ByVal v As Variant) As Boolean
+    If Vazio(v) Then
+        DataHoraValida = False
+    ElseIf VarType(v) = vbDate Or IsNumeric(v) Then
+        DataHoraValida = (CDbl(v) > 40000)
+    Else
+        DataHoraValida = IsDate(v)
+    End If
+End Function
 
 Public Function NumBlocos() As Long
     Dim r As Long
@@ -345,14 +456,14 @@ Private Function PreencherInformativo(ByVal dados As Variant, ByVal dt As Date, 
 
     Set ws = shInformativo
     nLin = UBound(dados, 1) - LBound(dados, 1) + 1
-    If nLin > NSLOT Then nLin = NSLOT
+    If nLin > NSLOT_INF Then nLin = NSLOT_INF
 
     For p = 1 To NPARAM
         vmin = CfgCel(p, CFG_COL_VMIN)
         vmax = CfgCel(p, CFG_COL_VMAX)
         For k = 1 To 2
             lin = LinhaInformativo(p, k)
-            ws.Cells(lin, INF_COL_H1).Resize(1, NSLOT).ClearContents
+            ws.Cells(lin, INF_COL_H1).Resize(1, NSLOT_INF).ClearContents
             For s = 1 To nLin
                 v = dados(LBound(dados, 1) + s - 1, LBound(dados, 2) + (p - 1) * 2 + k)
                 If ValorValido(v, vmin, vmax) Then
@@ -374,10 +485,18 @@ Private Function PreencherInformativo(ByVal dados As Variant, ByVal dt As Date, 
         Nm("iFonte").Value = "MES - servidor " & CfgTxt("cfgServidor")
     End If
     Nm("iPeriodo").Value = Format$(ini, "dd\/mm\/yyyy hh:mm") & "  a  " & Format$(fim, "dd\/mm\/yyyy hh:mm")
-    For s = 1 To NSLOT
-        Nm("iHoras").Cells(1, s).Value = Format$(CDate(CDbl(ini) + (s - 1) * HORAS_SLOT / 24), "hh") & "h-" & _
-                                         Format$(CDate(CDbl(ini) + s * HORAS_SLOT / 24), "hh") & "h"
+    ' mostra so as janelas do periodo (as demais colunas ficam ocultas, tambem na imagem)
+    On Error Resume Next
+    For s = 1 To NSLOT_INF
+        If s <= nLin Then
+            Nm("iHoras").Cells(1, s).Value = Format$(CDate(CDbl(ini) + (s - 1) * HORAS_SLOT / 24), "hh") & "h-" & _
+                                             Format$(CDate(CDbl(ini) + s * HORAS_SLOT / 24), "hh") & "h"
+        Else
+            Nm("iHoras").Cells(1, s).Value = ""
+        End If
+        ws.Columns(INF_COL_H1 + s - 1).Hidden = (s > nLin)
     Next s
+    On Error GoTo 0
     PreencherInformativo = n
 End Function
 
@@ -388,7 +507,7 @@ Public Sub LimparInformativo()
     On Error GoTo 0
     For p = 1 To NPARAM
         For k = 1 To 2
-            shInformativo.Cells(LinhaInformativo(p, k), INF_COL_H1).Resize(1, NSLOT).ClearContents
+            shInformativo.Cells(LinhaInformativo(p, k), INF_COL_H1).Resize(1, NSLOT_INF).ClearContents
         Next k
     Next p
     Nm("iData").MergeArea.ClearContents
@@ -398,12 +517,15 @@ Public Sub LimparInformativo()
     Nm("iAtualizado").MergeArea.ClearContents
     Nm("iFonte").MergeArea.ClearContents
     Nm("iPeriodo").MergeArea.ClearContents
-    Nm("iObs").MergeArea.ClearContents
     ProtegerPlanilhas
 End Sub
 
 Public Function InformativoConfere(ByVal dt As Date, ByVal turno As String) As Boolean
-    InformativoConfere = MesmoTurno(Nm("iData").Value, Nm("iTurno").Value, dt, turno)
+    If CStr(Nm("iTurno").Value) = TURNO_PERIODO Then
+        InformativoConfere = False
+    Else
+        InformativoConfere = MesmoTurno(Nm("iData").Value, Nm("iTurno").Value, dt, turno)
+    End If
 End Function
 
 ' Linha da aba Informativo para o parametro p (1..NPARAM) e usina k (1 = US3, 2 = US4)
