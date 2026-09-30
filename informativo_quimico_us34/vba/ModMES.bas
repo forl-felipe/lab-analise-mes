@@ -13,6 +13,11 @@ Option Explicit
 Private Const MAPA_COL_BLOCO As Long = 11
 ' Segundos sem mudanca nos resultados para considerar a consulta concluida
 Private Const ESTAVEL_SEG As Double = 3
+' Consulta que respondeu "Success" mas sem nenhuma linha (inicio do turno, sem analises ainda):
+' depois deste tempo e tratada como "sem dados" (sem esperar o limite nem mostrar erro)
+Private Const SEM_DADOS_SEG As Double = 15
+' Evita duas consultas ao mesmo tempo (clique repetido no botao durante a espera)
+Private mOcupado As Boolean
 
 ' ---------------------------------------------------------------- botoes
 Public Sub AtualizarMESDia()
@@ -45,11 +50,11 @@ Private Sub AtualizarTurno(ByVal ws As Worksheet, ByVal t As String, ByVal noite
     CompactarAba ws
     ws.Activate
     If CDbl(ini) + NSLOT * HORAS_SLOT / 24 > CDbl(Now) And Not simulado Then
-        obs = vbCrLf & vbCrLf & "Turno em andamento: os horários futuros ficam em branco." & vbCrLf & _
-              "Clique em Atualizar de novo mais tarde para completar."
+        obs = vbCrLf & vbCrLf & "Turno em andamento: resultados até agora (" & Format$(Now, "hh:mm") & ")." & _
+              vbCrLf & "Os horários seguintes ficam em branco; clique em Atualizar quando quiser acompanhar."
     End If
     If n = 0 And Not simulado Then
-        Aviso "O MES respondeu, mas ainda não há resultados para o turno " & nome & "." & obs, vbExclamation, "MES"
+        Aviso "Ainda não há resultados no MES para o turno " & nome & "." & obs, vbInformation, "MES"
     Else
         Aviso n & " resultados do turno " & nome & " (" & Format$(ini, "dd\/mm\/yyyy") & ") atualizados." & obs & _
               IIf(simulado, vbCrLf & vbCrLf & "Atenção: DADOS SIMULADOS (Fonte dos dados = SIMULAÇÃO).", ""), _
@@ -113,42 +118,63 @@ End Function
 ' Busca n janelas de 2 h a partir de ini. Usa a mesma consulta de 12 h (6 janelas) do
 ' turno; para mais de 12 h consulta mais de uma vez e junta. dados(1..n, 1 + 2*NPARAM).
 Private Function BuscarMES(ByVal ini As Date, ByVal n As Long, ByRef dados As Variant) As Boolean
-    Dim nPartes As Long, parte As Long, a As Date, bloco As Variant, ok As Boolean, s As Long, j As Long, lin As Long
+    Dim nPartes As Long, parte As Long, a As Date, fimParte As Date, nAgora As Long, simulado As Boolean
+    Dim bloco As Variant, ok As Boolean, s As Long, j As Long, lin As Long
     Dim d() As Variant
     BuscarMES = False
+    If mOcupado Then
+        Aviso "Uma consulta ao MES já está em andamento. Aguarde terminar.", vbInformation, "MES"
+        Exit Function
+    End If
+    mOcupado = True
+    simulado = FonteSimulada()
     nPartes = (n + NSLOT - 1) \ NSLOT
     ReDim d(1 To n, 1 To 1 + 2 * NPARAM)
     On Error GoTo Falha
     Ampulheta True
     For parte = 1 To nPartes
         a = CDate(CDbl(ini) + (parte - 1) * NSLOT * HORAS_SLOT / 24)
-        Application.StatusBar = "Consultando o MES (" & Format$(a, "dd\/mm hh:mm") & ", parte " & parte & _
-                                " de " & nPartes & ")... aguarde"
-        If FonteSimulada() Then
-            bloco = DadosSimulados()
-            ok = True
-        Else
-            ok = ConsultarMES(a, CDate(CDbl(a) + NSLOT * HORAS_SLOT / 24), bloco)
-        End If
-        If Not ok Then GoTo Fim
-        For s = 1 To NSLOT
-            lin = (parte - 1) * NSLOT + s
-            If lin <= n Then
-                For j = 1 To 1 + 2 * NPARAM
-                    d(lin, j) = bloco(s, j)
-                Next j
+        ' parte que ainda nao comecou: nada a consultar (fica em branco)
+        If simulado Or CDbl(a) <= CDbl(Now) Then
+            ' Periodo em andamento: consulta so ate o fim da janela de 2 h atual
+            ' (nunca pede horarios futuros ao MES)
+            fimParte = CDate(CDbl(a) + NSLOT * HORAS_SLOT / 24)
+            If Not simulado And CDbl(fimParte) > CDbl(Now) Then
+                nAgora = Int((CDbl(Now) - CDbl(a)) * 24 / HORAS_SLOT) + 1
+                If nAgora > NSLOT Then nAgora = NSLOT
+                fimParte = CDate(CDbl(a) + nAgora * HORAS_SLOT / 24)
             End If
-        Next s
+            Application.StatusBar = "Consultando o MES (" & Format$(a, "dd\/mm hh:mm") & " a " & _
+                                    Format$(fimParte, "dd\/mm hh:mm") & ")... aguarde"
+            If simulado Then
+                bloco = DadosSimulados()
+                ok = True
+            Else
+                ok = ConsultarMES(a, fimParte, bloco)
+            End If
+            If Not ok Then GoTo Fim
+            For s = 1 To NSLOT
+                lin = (parte - 1) * NSLOT + s
+                ' janelas que ainda nao comecaram ficam em branco
+                If lin <= n And CDbl(a) + (s - 1) * HORAS_SLOT / 24 <= CDbl(Now) Then
+                    For j = 1 To 1 + 2 * NPARAM
+                        d(lin, j) = bloco(s, j)
+                    Next j
+                End If
+            Next s
+        End If
     Next parte
     dados = d
     BuscarMES = True
 Fim:
     Application.StatusBar = False
     Ampulheta False
+    mOcupado = False
     Exit Function
 Falha:
     Application.StatusBar = False
     Ampulheta False
+    mOcupado = False
     Aviso "Erro ao consultar o MES: " & Err.Description, vbExclamation, "MES"
 End Function
 
@@ -158,7 +184,7 @@ Private Function EscreverTabela(ByVal ws As Worksheet, ByVal dados As Variant, B
                                 ByVal nCols As Long, ByVal ini As Date, ByVal nomeHoras As String, _
                                 ByVal nomeAtual As String, ByVal simulado As Boolean) As Long
     Dim r As Long, rFim As Long, chave As String, p As Long, k As Long, s As Long, v As Variant, qtd As Long
-    Dim vmin As Variant, vmax As Variant, c As Range
+    Dim vmin As Variant, vmax As Variant, c As Range, emAndamento As Boolean
 
     Desproteger ws
     rFim = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
@@ -186,6 +212,12 @@ Private Function EscreverTabela(ByVal ws As Worksheet, ByVal dados As Variant, B
         If s <= n Then
             Nm(nomeHoras).Cells(1, s).Value = Format$(CDate(CDbl(ini) + (s - 1) * HORAS_SLOT / 24), "hh") & "h-" & _
                                               Format$(CDate(CDbl(ini) + s * HORAS_SLOT / 24), "hh") & "h"
+            ' janela em andamento: media parcial
+            If Not simulado And CDbl(ini) + (s - 1) * HORAS_SLOT / 24 <= CDbl(Now) And _
+               CDbl(ini) + s * HORAS_SLOT / 24 > CDbl(Now) Then
+                Nm(nomeHoras).Cells(1, s).Value = Nm(nomeHoras).Cells(1, s).Value & " *"
+                emAndamento = True
+            End If
         Else
             Nm(nomeHoras).Cells(1, s).Value = "—"
         End If
@@ -194,6 +226,7 @@ Private Function EscreverTabela(ByVal ws As Worksheet, ByVal dados As Variant, B
         Format$(CDate(CDbl(ini) + n * HORAS_SLOT / 24), "dd\/mm\/yyyy hh:mm") & "   ·   atualizado em " & _
         Format$(Now, "dd\/mm\/yyyy hh:mm") & "   ·   fonte: " & IIf(simulado, "SIMULAÇÃO (dados fictícios)", _
         "MES - servidor " & CfgTxt("cfgServidor"))
+    If emAndamento Then Nm(nomeAtual).Value = Nm(nomeAtual).Value & "   ·   * janela em andamento (parcial)"
     ws.Calculate
     Proteger ws
     EscreverTabela = qtd
@@ -308,6 +341,12 @@ Private Function SaidaBloco(ByVal b As Long) As Range
     Set SaidaBloco = shDadosMES.Range(BlocoInfo(b, 4)).Resize(NSLOT, 1 + 2 * (UBound(ps) - LBound(ps) + 1))
 End Function
 
+' A consulta respondeu ("Success"), mas o MES ainda nao tem nenhum resultado no periodo
+Private Function RespondeuSemDados(ByVal b As Long) As Boolean
+    RespondeuSemDados = (LCase$(Left$(Trim$(shDadosMES.Range(BlocoInfo(b, 3)).Text), 7)) = "success") And _
+                        Vazio(SaidaBloco(b).Cells(1, 1).Value)
+End Function
+
 Private Function BlocoPronto(ByVal b As Long, ByVal ini As Date) As Boolean
     Dim v As Variant
     v = SaidaBloco(b).Cells(1, 1).Value
@@ -377,6 +416,7 @@ Private Function EsperarBlocos(ByVal ini As Date, ByVal nb As Long, ByRef pronto
         nOk = 0
         For b = 1 To nb
             pronto(b) = BlocoPronto(b, ini)
+            If Not pronto(b) And Timer - t0 >= SEM_DADOS_SEG Then pronto(b) = RespondeuSemDados(b)
             If pronto(b) Then nOk = nOk + 1
         Next b
         assin = AssinaturaSaidas(nb)

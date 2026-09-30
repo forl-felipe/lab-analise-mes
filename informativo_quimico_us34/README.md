@@ -59,6 +59,12 @@ Essas análises já estão no relatório, mas ficam **ocultas** e **fora da cons
 
 Uma única consulta `GetCalculationValues` com todas as análises configuradas: tipo de cálculo `"1"`, janelas de `"2h"` e listas em texto literal, no mesmo formato validado no Físico. A consulta inclui só as análises com as duas tags preenchidas.
 
+- **O botão pode ser usado a qualquer hora do turno**, para acompanhar os resultados:
+  - consulta só até o fim da janela de 2 h atual e nunca pede horários futuros ao MES;
+  - a janela em andamento aparece com `*` (média parcial);
+  - as janelas seguintes ficam em branco;
+  - no início do turno, sem análises ainda, a consulta termina em cerca de 15 s com o aviso "ainda não há resultados", sem erro;
+  - um segundo clique durante a consulta é ignorado com um aviso.
 - Cada botão consulta 12 h (6 janelas). Os Resultados gerais fazem mais de uma consulta para períodos maiores.
 - Antes de cada consulta, as matrizes de resultado do Aspen são apagadas, para evitar o erro "Não é possível alterar parte de uma matriz".
 - A macro espera os valores estabilizarem antes de gravar.

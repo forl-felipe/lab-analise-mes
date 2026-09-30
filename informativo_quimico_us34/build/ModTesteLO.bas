@@ -84,6 +84,21 @@ Public Sub TesteLO()
     AtualizarResultados
     r = r & "|g10h_col6visivel=" & (Not shResultados.Columns(COL_SLOT1 + 4).Hidden) & _
         "|g10h_col6oculta=" & shResultados.Columns(COL_SLOT1 + 5).Hidden
+    passo = 55
+    ' periodo em andamento (comecou ha 3 h, termina daqui a 3 h): janelas futuras em branco
+    Dim ag As Date, cheias As Long, vazia3 As Boolean
+    ag = CDate(Round(CDbl(Now) * 1440, 0) / 1440)
+    Nm("gIni").Value = CDate(CDbl(ag) - 3 / 24)
+    Nm("gFim").Value = CDate(CDbl(ag) + 3 / 24)
+    AtualizarResultados
+    AtualizarResultados
+    lin = LinhaChave(shResultados, "P12U3")
+    For jj = 0 To 2
+        If ENumero(shResultados.Cells(lin, COL_SLOT1 + jj).Value) Then cheias = cheias + 1
+    Next jj
+    vazia3 = Vazio(shResultados.Cells(lin, COL_SLOT1 + 2).Value)
+    r = r & "|andamento_cheias=" & cheias & "|andamento_janela3vazia=" & vazia3 & _
+        "|andamento_atual=" & Left$(Nm("gAtualizado").Value, 60)
     passo = 6
     LimparSaidasMES
     r = r & "|limpo=" & Vazio(shDadosMES.Range("A9").Formula)
