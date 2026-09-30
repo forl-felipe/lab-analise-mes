@@ -5,35 +5,30 @@ Informativo do Laboratório Físico (`../informativo_us34`):
 
 - turnos de 12 horas (Dia 07h–19h, Noite 19h–07h) e letras A, B, C e D, com **um técnico por letra**;
 - **modelo diário**: um arquivo por dia, com os dois turnos;
-- **resultados químicos puxados do MES** (Aspen IP.21) de 2 em 2 horas, com a mesma consulta do Físico;
-- **relatório do turno em uma página**: ocorrências em cima e informativo de qualidade químico embaixo, pronto
-  para copiar como imagem e colar no e-mail.
+- **estrutura simples, 4 abas**: quase tudo funciona por fórmula. O VBA só busca o MES, copia a imagem e esconde as
+  linhas vazias do resumo. Não há Painel nem "Finalizar turno".
 
 A ocorrência segue a planilha que o laboratório usa hoje (`01-09-26.xlsm`). As análises seguem a planilha
 `CONTROLE DE PRODUÇÃO USINAS 03 E 04` (aba Resultados).
 
-## Abas
+## As 4 abas
 
 | Aba | Para que serve |
 |---|---|
-| **Painel** | Data, turno, letra e técnico; 4 botões; situação do turno; indicadores (SiO2 PF, SiO2 e B2 da mistura/pelota, carbono fixo) |
-| **Relatório Dia** / **Relatório Noite** | Uma página por turno: ocorrências + resultados de 2 em 2 h com média, mín. e máx. (fora da especificação em laranja). Botão **Copiar relatório** (imagem em alta resolução) ou print com Windows+Shift+S. Os valores são gravados como uma "foto" do turno |
-| **Ocorrência** | Entrada de dados: tarefas realizadas, solicitações, equipamentos, tarefas a realizar, controle do laboratório (programas em uso, padrões, sistema de ar), pessoal (ausência, troca, hora extra, letra que recebe), cadinhos de platina e observações |
-| **Informativo** | Resultados do MES de qualquer período de até 24 h (Início/Fim no alto da aba), com **Copiar como imagem** |
-| **Configurações** (oculta) | Fonte dos dados, servidor, **tags do MES**, LIE/LSE e faixa válida. Para abrir: botão direito numa guia → Reexibir |
-| Dados_MES (oculta) | Fórmula do suplemento Aspen (`GetCalculationValues` / `ShowCalculationValues`) |
+| **Preenchimento** | A única aba em que o técnico escreve. No alto fica a **data do dia**; abaixo, o **Turno Dia** e, mais embaixo, o **Turno Noite**, com os mesmos campos: letra e técnico, tarefas realizadas, solicitações, equipamentos, tarefas a realizar, controle do laboratório, pessoal, cadinhos de platina e observações |
+| **Resumo Dia** / **Resumo Noite** | Página pronta para o e-mail. As ocorrências vêm **sozinhas, por fórmula**, do Preenchimento. Tem **2 botões**: **Atualizar dados do MES** (busca os resultados químicos do período do turno na data do Preenchimento) e **Copiar imagem**. Linhas vazias ficam ocultas ao abrir a aba e antes de copiar |
+| **Resultados gerais** | Resultados químicos de qualquer período de até 24 h: **Início** e **Fim** no alto, **Atualizar dados do MES** e **Copiar imagem** |
+| Configurações (oculta) | Fonte dos dados, servidor, **tags do MES**, LIE/LSE e faixa válida. Para abrir: botão direito numa guia → Reexibir |
 
-## Os 4 botões do Painel
+Navegação: links "▶ Resumo Dia", "▶ Resumo Noite", "▼ Ir para o Turno Noite" e "◀ Voltar ao preenchimento" (hiperlinks, sem macro).
 
-1. **Atualizar dados do MES**: busca os resultados químicos do turno e atualiza o relatório do turno.
-2. **Ocorrência do turno**: abre a aba de preenchimento.
-3. **Relatório do turno**: gera (ou refaz) a página do turno selecionado e a abre.
-4. **Finalizar turno**:
-   - busca o MES de novo, se preciso;
-   - fixa o relatório do turno e salva o arquivo;
-   - oferece **preparar a ocorrência do próximo turno**: as "Tarefas a realizar" passam para "Tarefas realizadas" e os demais campos voltam ao padrão.
+## Rotina do técnico
 
-**Editar turno Dia** / **Editar turno Noite** trocam o turno sem mudar a data. Um turno que ainda não começou pode ser preenchido; os resultados ficam em branco.
+1. Todo dia: copie o arquivo modelo para a pasta do mês e renomeie com a data. Ao abrir, a **data do dia** é preenchida pelo relógio, se estiver vazia.
+2. Preencha o seu turno na aba **Preenchimento**.
+3. Abra o **Resumo** do seu turno: as informações já estão lá. Clique em **Atualizar dados do MES** e depois em **Copiar imagem**, e cole no e-mail (Ctrl+V). Também dá para tirar o print com Windows + Shift + S.
+
+Os resultados de cada Resumo ficam gravados na própria aba. O turno Noite atualiza o seu resumo sem mexer no do Dia.
 
 ## Análises e tags do MES
 
@@ -62,15 +57,16 @@ Essas análises já estão no relatório, mas ficam **ocultas** e **fora da cons
 
 ## Consulta ao MES
 
-Uma única consulta `GetCalculationValues` com todas as análises configuradas: tipo de cálculo `"1"`, janelas de `"2h"`, listas em texto literal, no mesmo formato validado no Físico. A consulta inclui só as análises com as duas tags preenchidas. O resto é igual ao Físico:
+Uma única consulta `GetCalculationValues` com todas as análises configuradas: tipo de cálculo `"1"`, janelas de `"2h"` e listas em texto literal, no mesmo formato validado no Físico. A consulta inclui só as análises com as duas tags preenchidas.
 
-- limpeza das matrizes de resultado antes de cada consulta, para evitar o erro "Não é possível alterar parte de uma matriz";
-- espera até os valores estabilizarem;
-- período livre de até 24 h, feito com duas consultas de 12 h.
+- Cada botão consulta 12 h (6 janelas). Os Resultados gerais fazem mais de uma consulta para períodos maiores.
+- Antes de cada consulta, as matrizes de resultado do Aspen são apagadas, para evitar o erro "Não é possível alterar parte de uma matriz".
+- A macro espera os valores estabilizarem antes de gravar.
+- Os valores de 2 em 2 h são gravados direto na tabela da aba. Média, mínimo e máximo são fórmulas, e o laranja vem de formatação condicional (LIE/LSE em Configurações).
 
 ## Primeiro uso
 
-1. Desbloqueie o arquivo baixado: Propriedades → **Desbloquear**. Depois clique em **Habilitar conteúdo**.
+1. Desbloqueie o arquivo baixado: Propriedades → **Desbloquear**. Depois clique em **Habilitar conteúdo**. Sem macros, o preenchimento e os resumos continuam funcionando; só os botões do MES e da imagem ficam inativos.
 2. No **arquivo modelo**, confira as tags e preencha LIE/LSE em Configurações.
 3. Para treinar sem o MES: **Fonte dos dados** = `SIMULAÇÃO`.
 4. O suplemento **Aspen Process Data** precisa estar ativo, como no Informativo do Físico.
@@ -90,7 +86,8 @@ O código VBA fica em `vba/`. O `ModLayout.bas` é gerado pelo build.
 Validação no LibreOffice (modo simulação):
 
 - fórmula de consulta montada pelo VBA idêntica à do Python;
-- fluxo: MES → ocorrência → finalizar Dia → preparar a Noite → finalizar Noite, com o Relatório Dia intacto;
+- migração por fórmula e ocultação das linhas vazias;
+- Resumo Dia e Resumo Noite independentes;
 - análises sem tag ocultas;
-- período de 24 h;
+- Resultados gerais de 24 h e de 10 h (colunas que sobram ficam ocultas);
 - limpeza e recriação das matrizes do MES.
