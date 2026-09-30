@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Guia rápido – Relatório Químico US3/US4</title>
+<style>
+  :root{
+    --samarco-azul-samarco:#00335A; --samarco-azul-titulo:#003B6C; --samarco-azul-profundo:#002643;
+    --samarco-amarelo:#FFC000; --samarco-laranja:#F37021; --samarco-azul-acinzentado:#61889B;
+    --texto:#1d2b36; --texto-sec:#5b6b77; --borda:#dde3e8; --fundo:#F3F5F7; --campo:#FFF8E1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{width:1080px;background:var(--fundo);font-family:"Segoe UI",Calibri,Arial,sans-serif;color:var(--texto);line-height:1.45}
+  header{background:var(--samarco-azul-samarco);color:#fff;padding:36px 56px 32px;display:flex;align-items:center;gap:40px;border-bottom:8px solid var(--samarco-amarelo)}
+  header img{height:64px;display:block}
+  header h1{font-size:40px;font-weight:600;line-height:1.15}
+  header p{font-size:24px;opacity:.8;margin-top:6px}
+  main{padding:32px 56px 48px}
+  .aviso{background:#fff;border:1px solid var(--borda);border-left:6px solid var(--samarco-azul-acinzentado);border-radius:6px;padding:18px 24px;font-size:25px}
+  section{background:#fff;border:1px solid var(--borda);border-radius:6px;padding:26px 30px;margin-top:20px;display:flex;gap:26px}
+  .n{flex:0 0 64px;height:64px;border-radius:6px;background:var(--samarco-azul-samarco);color:#fff;font-size:34px;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .fim .n{background:var(--samarco-amarelo);color:var(--samarco-azul-profundo)}
+  h2{font-size:32px;color:var(--samarco-azul-titulo);font-weight:600;margin-bottom:8px}
+  p{font-size:25px}
+  .btn{display:inline-block;background:var(--samarco-azul-samarco);color:#fff;font-weight:600;border-radius:4px;padding:2px 12px;font-size:23px}
+  .fim .btn{background:var(--samarco-amarelo);color:var(--samarco-azul-profundo)}
+  .campo{display:inline-block;background:var(--campo);border:1px solid var(--borda);border-radius:4px;padding:0 10px;font-weight:600}
+  ul.itens{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  ul.itens li{background:var(--campo);border:1px solid var(--borda);border-radius:4px;padding:3px 12px;font-size:22px}
+  .dicas{margin-top:24px;background:#fff;border:1px solid var(--borda);border-top:4px solid var(--samarco-laranja);border-radius:6px;padding:22px 30px}
+  .dicas h3{font-size:27px;color:var(--samarco-azul-titulo);font-weight:600;margin-bottom:10px}
+  .dicas li{font-size:23px;margin:0 0 8px 28px}
+</style>
+</head>
+<body>
+<header>
+  <img src="../build/assets/logo_fundo_escuro.svg" alt="Samarco">
+  <div>
+    <h1>Relatório de Turno<br>Laboratório Químico</h1>
+    <p>Usinas 3 e 4 · guia rápido</p>
+  </div>
+</header>
+<main>
+  <div class="aviso"><b>Um arquivo por dia:</b> copie o arquivo modelo para a pasta do mês e renomeie com a data
+  (ex.: <b>Quimico_2026-09-01.xlsm</b>). Os turnos Dia e Noite usam o mesmo arquivo.
+  Ao abrir, clique em <b>Habilitar conteúdo</b>.</div>
+
+  <section><div class="n">1</div><div>
+    <h2>Confira o Painel</h2>
+    <p><span class="campo">Data</span> e <span class="campo">Turno</span> já vêm pelo relógio. Preencha
+    <span class="campo">Letra</span> e <span class="campo">Técnico</span>.</p>
+  </div></section>
+
+  <section><div class="n">2</div><div>
+    <h2>Busque os resultados do MES</h2>
+    <p>Clique em <span class="btn">1 · Atualizar dados do MES</span> e aguarde a mensagem.
+    Os resultados químicos de 2 em 2 h vão sozinhos para o relatório.</p>
+  </div></section>
+
+  <section><div class="n">3</div><div>
+    <h2>Preencha a ocorrência</h2>
+    <p>Clique em <span class="btn">2 · Ocorrência do turno</span> e preencha os campos amarelos, uma tarefa por linha:</p>
+    <ul class="itens"><li>Tarefas realizadas</li><li>Solicitações</li><li>Equipamentos</li>
+      <li>Tarefas a realizar</li><li>Controle do laboratório</li><li>Pessoal</li><li>Cadinhos</li><li>Observações</li></ul>
+  </div></section>
+
+  <section class="fim"><div class="n">4</div><div>
+    <h2>Finalize o turno</h2>
+    <p>Clique em <span class="btn">4 · Finalizar turno</span>. O relatório fica guardado na aba
+    <b>Relatório Dia</b> ou <b>Relatório Noite</b> e o arquivo é salvo. Responda <b>Sim</b> para preparar a
+    ocorrência do próximo turno.</p>
+  </div></section>
+
+  <section><div class="n">5</div><div>
+    <h2>Envie por e-mail</h2>
+    <p>Na aba do relatório, clique em <span class="btn">Copiar relatório</span> e cole no e-mail com
+    <b>Ctrl+V</b>. Ou tire o print com <b>Windows + Shift + S</b>.</p>
+  </div></section>
+
+  <div class="dicas">
+    <h3>Dicas</h3>
+    <ul>
+      <li>Resultado em branco? O laboratório lança ao longo do turno: clique em <b>Atualizar</b> de novo mais tarde.</li>
+      <li>Ao preparar o próximo turno, as <b>Tarefas a realizar</b> viram o ponto de partida das <b>Tarefas realizadas</b>.</li>
+      <li>Precisa corrigir o outro turno? No Painel, <b>Editar turno Dia</b> ou <b>Editar turno Noite</b>.</li>
+      <li>Outro período (ex.: o dia inteiro)? Painel → <b>Informativo completo (MES)</b>: Início, Fim e
+      <b>Atualizar dados do MES</b>.</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>
