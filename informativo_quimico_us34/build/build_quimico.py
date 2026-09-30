@@ -107,6 +107,44 @@ NSLOT = 6
 USINAS = ('US3', 'US4')
 
 
+# ---------------------------------------------------------------- limites por produto (farol)
+# Fonte: SMIN-POP-GEA-001 rev. 12 (Limites de Processo, aprovado em 24/03/2025).
+# Pelota: Processo (GPU), limites Max./Min. para DADOS HORARIOS (itens 10.4.1 e 10.4.2).
+#   Onde ha revisao com seta ("67,10 -> 67,19"), vale o valor novo.
+# Pellet Feed: pelo concentrado da pelota (item 10.1/10.2): SiO2 max. bi-horario do concentrador III;
+#   P e PPC = limite maximo diario do batch.
+# Cada item: (chave, rotulo). Na aba Limites cada chave tem duas colunas: Min. e Max.
+LIM_ITENS = [('LM_FE', 'Fe'), ('LM_SIO2', 'SiO2'), ('LM_P', 'P'), ('LM_CAO', 'CaO'), ('LM_B2', 'B2'),
+             ('PF_SIO2', 'SiO2'), ('PF_P', 'P'), ('PF_PPC', 'PPC')]
+PF_CONC = {'CLS': {'PF_SIO2': (None, 1.36), 'PF_P': (None, 0.050), 'PF_PPC': (None, 4.30)},
+           'CNS': {'PF_SIO2': (None, 1.99), 'PF_P': (None, 0.075), 'PF_PPC': (None, 4.30)},
+           'CHS': {'PF_SIO2': (None, 2.50), 'PF_P': (None, 0.075), 'PF_PPC': (None, 4.30)},
+           'CSP': {'PF_SIO2': (None, 5.30), 'PF_P': (None, 0.110), 'PF_PPC': (None, 4.30)}}
+# (produto, concentrado, {chave: (min, max)})
+LIMITES = [
+    ('PDR/MX', 'CLS', {'LM_FE': (67.39, None), 'LM_SIO2': (None, 1.54), 'LM_P': (None, 0.050), 'LM_CAO': (0.70, None)}),
+    ('PDR/STD', 'CNS', {'LM_FE': (67.19, None), 'LM_SIO2': (None, 2.05), 'LM_P': (None, 0.074), 'LM_CAO': (0.65, None)}),
+    ('PBF/MB45', 'CHS', {'LM_FE': (65.30, None), 'LM_SIO2': (None, 3.45), 'LM_P': (None, 0.074), 'LM_B2': (None, 0.55)}),
+    ('PBF/STD', 'CHS', {'LM_FE': (65.10, None), 'LM_SIO2': (None, 3.20), 'LM_P': (None, 0.074), 'LM_B2': (0.75, None)}),
+    ('PBF/HB', 'CNS', {'LM_FE': (65.30, None), 'LM_SIO2': (None, 2.80), 'LM_P': (None, 0.074), 'LM_B2': (0.95, None)}),
+    ('PBF/SF', 'CNS', {'LM_FE': (65.00, None), 'LM_SIO2': (None, 3.00), 'LM_P': (None, 0.072), 'LM_B2': (1.10, None)}),
+    ('PBF/SA', 'CSP', {'LM_FE': (63.50, None), 'LM_SIO2': (None, 5.30), 'LM_P': (None, 0.100), 'LM_B2': (0.40, None)}),
+]
+LIM_ROW1 = 8          # 1a linha de produtos na aba Limites (0-based)
+LIM_NLIN = 25         # linhas disponiveis (produtos novos podem ser acrescentados)
+LIM_COL1 = 3          # coluna do 1o limite (D), 0-based
+# analise do relatorio -> chave de limite
+PARAM_LIM = {(G_PF, 'SiO2'): 'PF_SIO2', (G_PF, 'P'): 'PF_P', (G_PF, 'PPC'): 'PF_PPC',
+             (G_LM, 'FeT'): 'LM_FE', (G_LM, 'SiO2'): 'LM_SIO2', (G_LM, 'P'): 'LM_P', (G_LM, 'CaO'): 'LM_CAO',
+             (G_LM, 'B2 (CaO/SiO2)'): 'LM_B2'}
+
+
+def lim_col(chave, qual):
+    """Letra da coluna do limite (qual = 0 min, 1 max) na aba Limites."""
+    i = [k for k, _ in LIM_ITENS].index(chave)
+    return colname(LIM_COL1 + 2 * i + qual)
+
+
 # Consulta ao MES no mesmo formato da planilha de referencia (texto literal); uma consulta so,
 # com todas as analises quimicas (tipo de calculo "1" = media da janela de 2 h)
 BLOCOS = [('Q', 'Análises químicas', '1', 7)]
@@ -252,12 +290,13 @@ class Construtor:
         self.ws_res_d = wb.add_worksheet('Resumo Dia')
         self.ws_res_n = wb.add_worksheet('Resumo Noite')
         self.ws_ger = wb.add_worksheet('Resultados gerais')
+        self.ws_lim = wb.add_worksheet('Limites')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
         self.ws_mapa = wb.add_worksheet('_Mapa')
         for ws, cn in [(self.ws_pre, 'shPreenchimento'), (self.ws_res_d, 'shResumoDia'),
                        (self.ws_res_n, 'shResumoNoite'), (self.ws_ger, 'shResultados'),
-                       (self.ws_cfg, 'shConfig'), (self.ws_mes, 'shDadosMES'), (self.ws_mapa, 'shMapa')]:
+                       (self.ws_lim, 'shLimites'), (self.ws_cfg, 'shConfig'), (self.ws_mes, 'shDadosMES'), (self.ws_mapa, 'shMapa')]:
             ws.set_vba_name(cn)
             ws.hide_gridlines(2)
         self.ws_pre.set_tab_color(OURO)
@@ -267,6 +306,7 @@ class Construtor:
         self.ws_cfg.set_tab_color(CINZA)
 
         self.aba_config()
+        self.aba_limites()
         self.aba_dados_mes()
         self.aba_preenchimento()
         self.aba_resumo(self.ws_res_d, 'd', 'Dia', 'Turno Dia  ·  07h às 19h', 7)
@@ -275,6 +315,7 @@ class Construtor:
         self.aba_mapa()
         self.ws_mes.hide()
         self.ws_cfg.hide()
+        self.ws_lim.hide()
         self.ws_mapa.very_hidden() if hasattr(self.ws_mapa, 'very_hidden') else self.ws_mapa.hide()
         self.ws_pre.activate()
 
@@ -437,6 +478,81 @@ class Construtor:
             self.blocos.append((cod, titulo, calc, anc, out, ps, ncol))
         self.botao(ws, 0, 4, 'Voltar às Configurações', 'OcultarDadosMES', 200, 28, 'primario', y=2)
 
+    # ------------------------------------------------------------ Limites (oculta)
+    def aba_limites(self):
+        """Limites quimicos por produto (farol verde/vermelho dos Resumos e dos Resultados gerais).
+        Aba oculta: botao direito numa guia -> Reexibir -> Limites. Pode ser editada/ampliada a mao."""
+        ws = self.ws_lim
+        n = len(LIM_ITENS)
+        UC = LIM_COL1 + 2 * n - 1
+        ws.set_column(0, 0, 2)
+        ws.set_column(1, 1, 14)
+        ws.set_column(2, 2, 12)
+        ws.set_column(LIM_COL1, UC, 8.5)
+        ws.set_column(UC + 1, UC + 1, 3)
+        self.cabecalho(ws, UC, 'Limites por Produto - Farol', 'SMIN-POP-GEA-001 rev. 12 (24/03/2025)  ·  '
+                       'Processo (GPU), limites para dados horários', col_logo_fim=2)
+        ws.set_row(4, 8)
+        ws.set_row(5, 44)
+        ws.merge_range(5, 1, 5, UC,
+                       'Como funciona: no Preenchimento o técnico escolhe o PRODUTO da US3 e da US4. Cada resultado é '
+                       'comparado com a linha do produto: VERDE = dentro (igual ou acima do mínimo e igual ou abaixo do '
+                       'máximo) · VERMELHO = fora. Célula vazia = sem limite. Para atualizar, edite os valores; para '
+                       'um produto novo, use uma linha vazia (a lista de seleção inclui o produto sozinha).',
+                       self.f(font_size=9, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1,
+                              bg_color=FUNDO_CLARO, border=1, border_color=BORDA))
+        hdr = self.f(bold=True, font_size=9, font_color=BRANCO, bg_color=AZUL, align='center', text_wrap=True,
+                     border=1, border_color=BRANCO)
+        hdr2 = self.f(bold=True, font_size=8, font_color=AZUL_TITULO, bg_color=FUNDO_GRUPO, align='center',
+                      border=1, border_color=BORDA)
+        ws.set_row(6, 30)
+        ws.merge_range(6, 1, 7, 1, 'Produto', hdr)
+        ws.merge_range(6, 2, 7, 2, 'Concentrado', hdr)
+        npel = sum(1 for k, _ in LIM_ITENS if k.startswith('LM'))
+        ws.merge_range(6, LIM_COL1, 6, LIM_COL1 + 2 * npel - 1,
+                       'PELOTA (Linha de Mistura US3/US4)  ·  Processo GPU, dados horários', hdr)
+        ws.merge_range(6, LIM_COL1 + 2 * npel, 6, UC,
+                       'PELLET FEED - MD03  ·  pelo concentrado (SiO2 bi-horário; P e PPC máx. diário)', hdr)
+        for i, (k, rotulo) in enumerate(LIM_ITENS):
+            ws.write(7, LIM_COL1 + 2 * i, rotulo + ' mín.', hdr2)
+            ws.write(7, LIM_COL1 + 2 * i + 1, rotulo + ' máx.', hdr2)
+        inp = dict(bg_color=FUNDO_INPUT, border=1, border_color=BORDA, locked=False, align='center')
+        for j in range(LIM_NLIN):
+            r = LIM_ROW1 + j
+            ws.set_row(r, 17)
+            if j < len(LIMITES):
+                prod, conc, lim = LIMITES[j]
+                lim = dict(lim, **PF_CONC[conc])
+            else:
+                prod, conc, lim = '', '', {}
+            ws.write(r, 1, prod, self.f(bold=True, indent=1, **inp))
+            ws.write(r, 2, conc, self.f(**inp))
+            for i, (k, _) in enumerate(LIM_ITENS):
+                mn, mx = lim.get(k, (None, None))
+                dec = 3 if k in ('LM_P', 'PF_P') else 2
+                fm = self.f(num_format=fmt_dec(dec), **inp)
+                for q, v in enumerate((mn, mx)):
+                    if v is None:
+                        ws.write_blank(r, LIM_COL1 + 2 * i + q, None, fm)
+                    else:
+                        ws.write_number(r, LIM_COL1 + 2 * i + q, v, fm)
+        r = LIM_ROW1 + LIM_NLIN + 1
+        ws.merge_range(r, 1, r + 2, UC,
+                       'Observações do padrão: quando houver incorporações de terceiros/internas, os alvos e limites de '
+                       'SiO2 do concentrado devem ser reduzidos em 0,10 p.p. Pelota para Mercado Interno: limites '
+                       'químicos de acordo com o produto a ser entregue (não incluída). Fe e P aparecem no relatório '
+                       'quando as tags forem configuradas.',
+                       self.f(font_size=8, italic=True, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1))
+        # lista de produtos para a selecao (cresce sozinha com linhas novas)
+        self.wb.define_name('lstProdutos', "=OFFSET('Limites'!$B$%d,0,0,MAX(1,COUNTA('Limites'!$B$%d:$B$%d)),1)"
+                            % (LIM_ROW1 + 1, LIM_ROW1 + 1, LIM_ROW1 + LIM_NLIN))
+        ws.freeze_panes(8, 3)
+        ws.print_area(1, 1, LIM_ROW1 + LIM_NLIN + 3, UC)
+        ws.set_landscape()
+        ws.set_paper(9)
+        ws.fit_to_pages(1, 0)
+        ws.protect('', {'format_columns': True, 'format_rows': True})
+
     # ------------------------------------------------------------ Preenchimento
     def aba_preenchimento(self):
         """Uma aba so para o tecnico: Turno Dia em cima, Turno Noite embaixo, mesmos campos.
@@ -511,6 +627,17 @@ class Construtor:
         ws.merge_range(r, 4, r, 5, 'Técnico', rot)
         ws.merge_range(r, 6, r, UC, '', self.f_input(bold=True, indent=1, font_size=11))
         self.nome(t + 'Tecnico', ws, r, 6)
+        r += 1
+        ws.set_row(r, 22)
+        prod = self.f_input(bold=True, align='center', font_size=11, font_color=AZUL_TITULO)
+        for i, us in enumerate(('US3', 'US4')):
+            c1 = 1 + 5 * i
+            ws.merge_range(r, c1, r, c1 + 1, 'Produto ' + us, rot)
+            ws.merge_range(r, c1 + 2, r, c1 + 4 if i == 0 else UC, '', prod)
+            ws.data_validation(r, c1 + 2, r, c1 + 2, {'validate': 'list', 'source': '=lstProdutos',
+                                                      'error_title': 'Produto',
+                                                      'error_message': 'Escolha um produto da lista.'})
+            self.nome(t + 'Prod' + us, ws, r, c1 + 2)
         r += 2
 
         def lista(r, titulo, nome, n, dica):
@@ -606,7 +733,7 @@ class Construtor:
         return rr + 2
 
     # ------------------------------------------------------------ tabela de resultados (Resumo e Resultados gerais)
-    def tabela(self, ws, r, nslot, horas, nome_horas, tit_media, uc_extra=0):
+    def tabela(self, ws, r, nslot, horas, nome_horas, tit_media, prod3, prod4, col_lim):
         """Tabela de analises: Amostra/analise | Un. | Usina | janelas de 2 h | Media | Min | Max.
         As janelas sao gravadas pelo VBA; media, minimo e maximo sao formulas.
         Chaves na coluna A (fonte branca): G1.. = grupo, P02U3 = analise/usina (usadas pelo VBA)."""
@@ -624,7 +751,10 @@ class Construtor:
         r += 1
         grupo = None
         gi = 0
-        fora = self.wb.add_format({'font_color': LARANJA, 'bold': True, 'bg_color': LARANJA_FUNDO})
+        verde = self.wb.add_format({'font_color': VERDE_TXT, 'bold': True, 'bg_color': VERDE_FUNDO})
+        vermelho = self.wb.add_format({'font_color': '#B42318', 'bold': True, 'bg_color': '#FDE3E1'})
+        # colunas auxiliares (ocultas) com o limite minimo e maximo do produto de cada linha
+        ws.set_column(col_lim, col_lim + 1, 8, None, {'hidden': True})
         for p, pr in enumerate(PARAMS, start=1):
             g, nome, un, dec = pr[:4]
             unica = pr[12]
@@ -648,7 +778,7 @@ class Construtor:
             else:
                 ws.write(r, 1, nome, fnome)
                 ws.write(r, 2, un, fun)
-            lie, lse = cfg_ref(p, 'LIE'), cfg_ref(p, 'LSE')
+            chave_lim = PARAM_LIM.get((g, nome))
             for k in range(nlin):
                 rr = r + k
                 ws.set_row(rr, 14)
@@ -666,11 +796,31 @@ class Construtor:
                                  self.f(font_size=8, font_color=AZUL_ACINZ, align='center', num_format=nf, **b))
                 ws.write_formula(rr, CM + 2, '=IF(COUNT(%s)=0,"",MAX(%s))' % (vals, vals),
                                  self.f(font_size=8, font_color=AZUL_ACINZ, align='center', num_format=nf, **b))
-                # laranja: fora de LIE/LSE (aba Configuracoes)
-                c0 = rc(rr, CS, False, False)
-                crit = ('=AND(ISNUMBER({c}),OR(AND(ISNUMBER({i}),{c}<{i}),AND(ISNUMBER({s}),{c}>{s})))'
-                        .format(c=c0, i=lie, s=lse))
-                ws.conditional_format(rr, CS, rr, CM, {'type': 'formula', 'criteria': crit, 'format': fora})
+                # farol: limite do produto selecionado (aba Limites)
+                if unica:
+                    pr_ref = 'IF(%s="",%s,%s)' % (prod3, prod4, prod3)
+                else:
+                    pr_ref = prod3 if k == 0 else prod4
+                for q in (0, 1):
+                    if chave_lim:
+                        col = lim_col(chave_lim, q)
+                        idx = "INDEX('Limites'!$%s:$%s,MATCH(%s,'Limites'!$B:$B,0))" % (col, col, pr_ref)
+                        ws.write_formula(rr, col_lim + q, '=IFERROR(IF(%s="","",%s),"")' % (idx, idx))
+                    else:
+                        ws.write_blank(rr, col_lim + q, None)
+                if chave_lim:
+                    c0 = rc(rr, CS, False, False)
+                    v = 'ROUND(%s,%d)' % (c0, dec)
+                    mn = '$%s%d' % (colname(col_lim), rr + 1)
+                    mx = '$%s%d' % (colname(col_lim + 1), rr + 1)
+                    fora = 'OR(AND(ISNUMBER({mn}),{v}<{mn}),AND(ISNUMBER({mx}),{v}>{mx}))'.format(v=v, mn=mn, mx=mx)
+                    ws.conditional_format(rr, CS, rr, CM, {
+                        'type': 'formula', 'format': vermelho,
+                        'criteria': '=AND(ISNUMBER({c}),{f})'.format(c=c0, f=fora)})
+                    ws.conditional_format(rr, CS, rr, CM, {
+                        'type': 'formula', 'format': verde,
+                        'criteria': '=AND(ISNUMBER({c}),OR(ISNUMBER({mn}),ISNUMBER({mx})),NOT({f}))'.format(
+                            c=c0, mn=mn, mx=mx, f=fora)})
             r += nlin
         return r, UC
 
@@ -782,12 +932,21 @@ class Construtor:
                        self.f(font_size=8, italic=True, font_color=TEXTO_SEC, indent=1))
         self.nome(t + 'Atualizado', ws, r, 1)
         r += 1
+        ws.set_row(r, 18)
+        pf = self.f(bold=True, font_size=9, font_color=AZUL_TITULO, bg_color=FUNDO_AZUL_CLARO, indent=1,
+                    border=1, border_color=BORDA)
+        ws.merge_range(r, 1, r, UC, '', pf)
+        ws.write_formula(r, 1, '="Produto US3: "&IF({p3}="","— não selecionado",{p3})&"     ·     Produto US4: "&'
+                               'IF({p4}="","— não selecionado",{p4})'.format(p3=t + 'ProdUS3', p4=t + 'ProdUS4'), pf)
+        r += 1
         horas = ['%02dh-%02dh' % ((hora_ini + 2 * i) % 24, (hora_ini + 2 * i + 2) % 24) for i in range(NSLOT)]
-        r, _ = self.tabela(ws, r, NSLOT, horas, t + 'Horas', 'Média do turno')
-        ws.set_row(r, 16)
-        ws.merge_range(r, 1, r, UC, 'Média do turno = média das janelas de 2 h. Laranja: fora da especificação. '
-                       'MD03 = Pellet Feed do Mineroduto 03 (amostra única para US3 e US4).',
-                       self.f(font_size=7.5, font_color=TEXTO_SEC, italic=True, indent=1))
+        r, _ = self.tabela(ws, r, NSLOT, horas, t + 'Horas', 'Média do turno', t + 'ProdUS3', t + 'ProdUS4',
+                           UC + 4)
+        ws.set_row(r, 26)
+        ws.merge_range(r, 1, r, UC, 'Farol pelo produto selecionado (limites SMIN-POP-GEA-001 rev. 12, Processo GPU, '
+                       'dados horários): VERDE = dentro do limite · VERMELHO = fora. Média do turno = média das janelas '
+                       'de 2 h. MD03 = Pellet Feed do Mineroduto 03 (limite pelo concentrado do produto da US3).',
+                       self.f(font_size=7.5, font_color=TEXTO_SEC, italic=True, indent=1, text_wrap=True, valign='top'))
         fim = r
         self.nome(t + 'Area', ws, 1, 1, fim, UC)
         ws.print_area(1, 1, fim, UC)
@@ -846,15 +1005,29 @@ class Construtor:
         ws.merge_range(5, CS + 7, 5, UC, 'Ex.: 01/09/2026 07:00  →  02/09/2026 07:00; depois clique em '
                        'Atualizar dados do MES.', self.f(font_size=8, font_color=TEXTO_SEC, indent=1, text_wrap=True))
         ws.set_row(6, 6)
-        ws.set_row(7, 15)
-        ws.merge_range(7, 1, 7, UC, 'Resultados ainda não atualizados', self.f(font_size=8, italic=True,
+        prod = self.f(bold=True, font_size=10, font_color=AZUL_TITULO, align='center', bg_color=FUNDO_INPUT,
+                      border=1, border_color=BORDA, locked=False)
+        for i, us in enumerate(('US3', 'US4')):
+            rr = 7 + i
+            ws.set_row(rr, 20)
+            ws.write(rr, 1, 'Produto ' + us + ' (farol)', rot)
+            ws.merge_range(rr, 2, rr, 3, '', prod)
+            ws.write_formula(rr, 2, '=IF(dProd{u}="","",dProd{u})'.format(u=us), prod)
+            ws.data_validation(rr, 2, rr, 2, {'validate': 'list', 'source': '=lstProdutos'})
+            self.nome('gProd' + us, ws, rr, 2)
+        ws.merge_range(7, 4, 8, 9, 'Vem do Turno Dia do Preenchimento; pode ser trocado aqui.',
+                       self.f(font_size=8, font_color=TEXTO_SEC, indent=1, text_wrap=True))
+        ws.set_row(9, 15)
+        ws.merge_range(9, 1, 9, UC, 'Resultados ainda não atualizados', self.f(font_size=8, italic=True,
                                                                               font_color=TEXTO_SEC, indent=1))
-        self.nome('gAtualizado', ws, 7, 1)
-        r = 8
-        r, _ = self.tabela(ws, r, NSLOT_INF, ['—'] * NSLOT_INF, 'gHoras', 'Média do período')
+        self.nome('gAtualizado', ws, 9, 1)
+        r = 10
+        r, _ = self.tabela(ws, r, NSLOT_INF, ['—'] * NSLOT_INF, 'gHoras', 'Média do período', 'gProdUS3', 'gProdUS4',
+                           CB + 2)
         ws.set_row(r, 16)
-        ws.merge_range(r, 1, r, UC, 'Média do período = média das janelas de 2 h. Laranja: fora da especificação. '
-                       'Análises sem tag no MES ficam ocultas.',
+        ws.merge_range(r, 1, r, UC, 'Farol pelo produto selecionado (SMIN-POP-GEA-001 rev. 12): VERDE = dentro do '
+                       'limite · VERMELHO = fora. Média do período = média das janelas de 2 h. Análises sem tag no MES '
+                       'ficam ocultas.',
                        self.f(font_size=7.5, font_color=TEXTO_SEC, italic=True, indent=1))
         fim = r
         self.nome('gArea', ws, 1, 1, fim, UC)
@@ -930,7 +1103,7 @@ def montar_vba(layout_code):
     # abas de Resumo: ao abrir, ocultam as linhas vazias (evento simples, sem outras macros)
     evento = ('Option Explicit\n\nPrivate Sub Worksheet_Activate()\n'
               '    On Error Resume Next\n    CompactarAba Me\nEnd Sub\n')
-    for cn in ['shPreenchimento', 'shResumoDia', 'shResumoNoite', 'shResultados', 'shConfig', 'shDadosMES',
+    for cn in ['shPreenchimento', 'shResumoDia', 'shResumoNoite', 'shResultados', 'shLimites', 'shConfig', 'shDadosMES',
                'shMapa']:
         mods.append({'name': cn, 'kind': 'sheet', 'code': evento if cn in ('shResumoDia', 'shResumoNoite') else ''})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModImagem']:

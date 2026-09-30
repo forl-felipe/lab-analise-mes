@@ -18,6 +18,7 @@ A ocorrência segue a planilha que o laboratório usa hoje (`01-09-26.xlsm`). As
 | **Preenchimento** | A única aba em que o técnico escreve. No alto fica a **data do dia**; abaixo, o **Turno Dia** e, mais embaixo, o **Turno Noite**, com os mesmos campos: letra e técnico, tarefas realizadas, solicitações, equipamentos, tarefas a realizar, controle do laboratório, pessoal, cadinhos de platina e observações |
 | **Resumo Dia** / **Resumo Noite** | Página pronta para o e-mail. As ocorrências vêm **sozinhas, por fórmula**, do Preenchimento. Tem **2 botões**: **Atualizar dados do MES** (busca os resultados químicos do período do turno na data do Preenchimento) e **Copiar imagem**. Linhas vazias ficam ocultas ao abrir a aba e antes de copiar |
 | **Resultados gerais** | Resultados químicos de qualquer período de até 24 h: **Início** e **Fim** no alto, **Atualizar dados do MES** e **Copiar imagem** |
+| Limites (oculta) | **Farol por produto**: limites químicos de cada produto (SMIN-POP-GEA-001 rev. 12). Pode ser editada e ampliada à mão (botão direito numa guia → Reexibir → Limites) |
 | Configurações (oculta) | Fonte dos dados, servidor, **tags do MES**, LIE/LSE e faixa válida. Para abrir: botão direito numa guia → Reexibir |
 
 Navegação: links "▶ Resumo Dia", "▶ Resumo Noite", "▼ Ir para o Turno Noite" e "◀ Voltar ao preenchimento" (hiperlinks, sem macro).
@@ -29,6 +30,42 @@ Navegação: links "▶ Resumo Dia", "▶ Resumo Noite", "▼ Ir para o Turno No
 3. Abra o **Resumo** do seu turno: as informações já estão lá. Clique em **Atualizar dados do MES** e depois em **Copiar imagem**, e cole no e-mail (Ctrl+V). Também dá para tirar o print com Windows + Shift + S.
 
 Os resultados de cada Resumo ficam gravados na própria aba. O turno Noite atualiza o seu resumo sem mexer no do Dia.
+
+## Farol (verde / vermelho) por produto
+
+No **Preenchimento**, cada turno escolhe o **Produto US3** e o **Produto US4** numa lista (PDR/MX, PDR/STD, PBF/MB45, PBF/STD, PBF/HB, PBF/SF, PBF/SA). Os resultados dos Resumos são comparados com os limites desse produto:
+
+- **VERDE**: dentro do limite, ou seja, **igual ou acima do mínimo** e **igual ou abaixo do máximo**. A comparação usa o valor arredondado, como aparece na tela;
+- **VERMELHO**: fora do limite;
+- sem cor: análise sem limite para o produto, ou produto não selecionado.
+
+O farol vale para as janelas de 2 h e para a média do turno. Nos Resultados gerais, os produtos vêm do Turno Dia e podem ser trocados ali.
+
+Limites usados, conforme o padrão **SMIN-POP-GEA-001 rev. 12**:
+
+- **Pelota (Linha de Mistura US3/US4):** colunas Máx./Mín. do **Processo (GPU), dados horários** (itens 10.4.1 e 10.4.2). Fe mín., SiO2 máx., P máx., CaO mín. (PDR) e B2 (PBF). Nas revisões com seta, vale o valor novo (ex.: Fe PDR/STD 67,10 → **67,19**).
+- **Pellet Feed MD03:** limites do **concentrado** da pelota da US3 (CLS, CNS, CHS ou CSP):
+  - SiO2 máx. bi-horário do concentrador III (item 10.2);
+  - P e PPC máx. diários do batch (item 10.1).
+
+| Produto | Concentrado | Fe mín. | SiO2 máx. | P máx. | CaO mín. | B2 |
+|---|---|---|---|---|---|---|
+| PDR/MX | CLS | 67,39 | 1,54 | 0,050 | 0,70 | – |
+| PDR/STD | CNS | 67,19 | 2,05 | 0,074 | 0,65 | – |
+| PBF/MB45 | CHS | 65,30 | 3,45 | 0,074 | – | máx. 0,55 |
+| PBF/STD | CHS | 65,10 | 3,20 | 0,074 | – | mín. 0,75 |
+| PBF/HB | CNS | 65,30 | 2,80 | 0,074 | – | mín. 0,95 |
+| PBF/SF | CNS | 65,00 | 3,00 | 0,072 | – | mín. 1,10 |
+| PBF/SA | CSP | 63,50 | 5,30 | 0,100 | – | mín. 0,40 |
+
+| Concentrado (Pellet Feed) | SiO2 máx. | P máx. | PPC máx. |
+|---|---|---|---|
+| CLS | 1,36 | 0,050 | 4,30 |
+| CNS | 1,99 | 0,075 | 4,30 |
+| CHS | 2,50 | 0,075 | 4,30 |
+| CSP | 5,30 | 0,110 | 4,30 |
+
+Fe e P do farol passam a aparecer quando as tags dessas análises forem configuradas.
 
 ## Análises e tags do MES
 

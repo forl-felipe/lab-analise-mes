@@ -39,6 +39,8 @@ Public Sub TesteLO()
     Nm("dAusQuem").Value = "Ciclano"
     Nm("dRecebe").Value = "B"
     Nm("dH2Coque").Value = "0,45"
+    Nm("dProdUS3").Value = "PDR/STD"
+    Nm("dProdUS4").Value = "PBF/MB45"
     Nm("nLetra").Value = "C"
     Nm("nTecnico").Value = "Beltrano"
     Nm("nReal").Cells(1, 1).Value = "Tarefa da noite"
@@ -51,6 +53,15 @@ Public Sub TesteLO()
         "|FeTPFoculta=" & ws.Rows(LinhaChave(ws, "P01U3")).Hidden & _
         "|SiO2PFvisivel=" & (Not ws.Rows(lin).Hidden) & _
         "|B2US4=" & ws.Cells(LinhaChave(ws, "P16U4"), 11).Value
+    ' farol: limites do produto (colunas auxiliares Q=min, R=max)
+    ws.Calculate
+    r = r & "|limSiO2US3=" & ws.Cells(LinhaChave(ws, "P12U3"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P12U3"), 18).Text & _
+        "|limSiO2US4=" & ws.Cells(LinhaChave(ws, "P12U4"), 18).Text & _
+        "|limCaOUS3min=" & ws.Cells(LinhaChave(ws, "P14U3"), 17).Text & _
+        "|limCaOUS4=" & ws.Cells(LinhaChave(ws, "P14U4"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P14U4"), 18).Text & _
+        "|limB2US4max=" & ws.Cells(LinhaChave(ws, "P16U4"), 18).Text & _
+        "|limSiO2PF=" & ws.Cells(LinhaChave(ws, "P02U3"), 18).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P09U3"), 18).Text & _
+        "|produtos=" & Application.WorksheetFunction.CountA(shLimites.Range("B9:B33")) & "|gProdUS3=" & Nm("gProdUS3").Text
     passo = 3
     ' migracao por formula
     lin = LinhaTexto(ws, "Controle da Produção: PF 03 04X04h")
@@ -118,7 +129,8 @@ Public Sub DemoLO()
     Nm("pData").Value = DateSerial(2026, 9, 1)
     Nm("dLetra").Value = "C"
     Nm("dTecnico").Value = "Técnico da letra C"
-    shConfig.Cells(CFG_ROW1 + 11, CFG_COL_LSE).Value = 1.85
+    Nm("dProdUS3").Value = "PDR/MX"
+    Nm("dProdUS4").Value = "PBF/MB45"
     Nm("dReal").Cells(1, 1).Value = "***Controle da Produção: PF 03 04X04h e LM 03 02X02h (Mix Coque/Moinha de Carvão, Calcário e Aglomerante) - PDR/STD2"
     Nm("dReal").Cells(2, 1).Value = " - Acompanhamento na Planilha do Batch - %SiO2, %P e PPC - Batch 242 - Mineroduto 03"
     Nm("dReal").Cells(3, 1).Value = " - Descarte das amostras bi-horárias;"
