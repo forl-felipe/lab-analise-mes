@@ -2,9 +2,11 @@ Option Explicit
 
 ' ============================================================================
 '  ModMES - resultados quimicos das Usinas 3 e 4 no MES (Aspen IP.21)
-'  Tres botoes:
+'  Botoes:
 '    AtualizarMESDia / AtualizarMESNoite  (abas Resumo Dia / Resumo Noite)
 '    AtualizarResultados                  (aba Resultados gerais, periodo livre)
+'    AtualizarEmbarque                    (aba Embarque, periodo livre - testes)
+'  Cada botao consulta so o seu bloco (Q = Filtragem/Pelota, E = Embarque).
 '  Os valores de 2 em 2 h sao gravados direto na tabela da propria aba
 '  (media, minimo e maximo sao formulas da planilha).
 ' ============================================================================
@@ -18,6 +20,8 @@ Private Const ESTAVEL_SEG As Double = 2
 Private Const SEM_DADOS_SEG As Double = 15
 ' Evita duas consultas ao mesmo tempo (clique repetido no botao durante a espera)
 Private mOcupado As Boolean
+' Bloco consultado no clique atual ("Q" ou "E"; vazio = todos)
+Private mBloco As String
 
 ' ---------------------------------------------------------------- botoes
 Public Sub AtualizarMESDia()
@@ -45,7 +49,7 @@ Private Sub AtualizarTurno(ByVal ws As Worksheet, ByVal t As String, ByVal noite
               Format$(ini, "hh:mm") & ").", vbInformation, "MES"
         Exit Sub
     End If
-    If Not BuscarMES(ini, NSLOT, dados) Then Exit Sub
+    If Not BuscarMES(ini, NSLOT, dados, "Q") Then Exit Sub
     n = EscreverTabela(ws, dados, NSLOT, NSLOT, ini, t & "Horas", t & "Atualizado", simulado)
     CompactarAba ws
     ws.Activate
@@ -63,24 +67,33 @@ End Sub
 
 ' Aba Resultados gerais: periodo escolhido (inicio/fim, ate 24 h)
 Public Sub AtualizarResultados()
+    AtualizarPeriodo shResultados, "g", "Q", "Resultados gerais"
+End Sub
+
+' Aba Embarque (testes): quimica e fisica do embarque, periodo escolhido (ate 24 h)
+Public Sub AtualizarEmbarque()
+    AtualizarPeriodo shEmbarque, "e", "E", "Embarque"
+End Sub
+
+Private Sub AtualizarPeriodo(ByVal ws As Worksheet, ByVal x As String, ByVal bloco As String, ByVal titulo As String)
     Dim vi As Variant, vf As Variant, ini As Date, fim As Date, horas As Double, n As Long, qtd As Long
     Dim dados As Variant, simulado As Boolean, s As Long
 
-    vi = Nm("gIni").Value
-    vf = Nm("gFim").Value
+    vi = Nm(x & "Ini").Value
+    vf = Nm(x & "Fim").Value
     If Not DataHoraValida(vi) Or Not DataHoraValida(vf) Then
-        Aviso "Informe início e fim do período (dd/mm/aaaa hh:mm).", vbExclamation, "Resultados gerais"
+        Aviso "Informe início e fim do período (dd/mm/aaaa hh:mm).", vbExclamation, titulo
         Exit Sub
     End If
     ini = CDate(Round(CDbl(CDate(vi)) * 1440, 0) / 1440)
     fim = CDate(Round(CDbl(CDate(vf)) * 1440, 0) / 1440)
     horas = (CDbl(fim) - CDbl(ini)) * 24
     If horas <= 0 Then
-        Aviso "O fim deve ser posterior ao início.", vbExclamation, "Resultados gerais"
+        Aviso "O fim deve ser posterior ao início.", vbExclamation, titulo
         Exit Sub
     End If
     If horas > NSLOT_MAX * HORAS_SLOT + 0.01 Then
-        Aviso "Período máximo: " & NSLOT_MAX * HORAS_SLOT & " horas.", vbExclamation, "Resultados gerais"
+        Aviso "Período máximo: " & NSLOT_MAX * HORAS_SLOT & " horas.", vbExclamation, titulo
         Exit Sub
     End If
     ' janelas de 2 h a partir do inicio (a ultima completa as 2 h)
@@ -88,22 +101,22 @@ Public Sub AtualizarResultados()
     If n * HORAS_SLOT < horas - 0.01 Then n = n + 1
     simulado = FonteSimulada()
     If Not simulado And CDbl(ini) > CDbl(Now) Then
-        Aviso "Período ainda não iniciado.", vbExclamation, "Resultados gerais"
+        Aviso "Período ainda não iniciado.", vbExclamation, titulo
         Exit Sub
     End If
-    If Not BuscarMES(ini, n, dados) Then Exit Sub
-    qtd = EscreverTabela(shResultados, dados, n, NSLOT_MAX, ini, "gHoras", "gAtualizado", simulado)
+    If Not BuscarMES(ini, n, dados, bloco) Then Exit Sub
+    qtd = EscreverTabela(ws, dados, n, NSLOT_MAX, ini, x & "Horas", x & "Atualizado", simulado)
     ' so as janelas do periodo aparecem (tambem na imagem)
     On Error Resume Next
-    Desproteger shResultados
+    Desproteger ws
     For s = 1 To NSLOT_MAX
-        shResultados.Columns(COL_SLOT1 + s - 1).Hidden = (s > n)
+        ws.Columns(COL_SLOT1 + s - 1).Hidden = (s > n)
     Next s
-    Proteger shResultados
+    Proteger ws
     On Error GoTo 0
-    CompactarAba shResultados
-    shResultados.Activate
-    Aviso "Período atualizado: " & qtd & " resultados.", vbInformation, "Resultados gerais"
+    CompactarAba ws
+    ws.Activate
+    Aviso "Período atualizado: " & qtd & " resultados.", vbInformation, titulo
 End Sub
 
 Private Function FonteSimulada() As Boolean
@@ -113,9 +126,10 @@ End Function
 ' ---------------------------------------------------------------- busca e gravacao
 ' Busca n janelas de 2 h a partir de ini. Usa a mesma consulta de 12 h (6 janelas) do
 ' turno; para mais de 12 h consulta mais de uma vez e junta. dados(1..n, 1 + 2*NPARAM).
-Private Function BuscarMES(ByVal ini As Date, ByVal n As Long, ByRef dados As Variant) As Boolean
+Private Function BuscarMES(ByVal ini As Date, ByVal n As Long, ByRef dados As Variant, _
+                           ByVal bloco As String) As Boolean
     Dim nPartes As Long, parte As Long, a As Date, fimParte As Date, nAgora As Long, simulado As Boolean
-    Dim bloco As Variant, ok As Boolean, s As Long, j As Long, lin As Long
+    Dim res As Variant, ok As Boolean, s As Long, j As Long, lin As Long
     Dim d() As Variant
     BuscarMES = False
     If mOcupado Then
@@ -123,6 +137,7 @@ Private Function BuscarMES(ByVal ini As Date, ByVal n As Long, ByRef dados As Va
         Exit Function
     End If
     mOcupado = True
+    mBloco = bloco
     simulado = FonteSimulada()
     nPartes = (n + NSLOT - 1) \ NSLOT
     ReDim d(1 To n, 1 To 1 + 2 * NPARAM)
@@ -143,10 +158,10 @@ Private Function BuscarMES(ByVal ini As Date, ByVal n As Long, ByRef dados As Va
             Application.StatusBar = "Consultando MES: " & Format$(a, "dd\/mm hh:mm") & " a " & _
                                     Format$(fimParte, "dd\/mm hh:mm")
             If simulado Then
-                bloco = DadosSimulados()
+                res = DadosSimulados()
                 ok = True
             Else
-                ok = ConsultarMES(a, fimParte, bloco)
+                ok = ConsultarMES(a, fimParte, res)
             End If
             If Not ok Then GoTo Fim
             For s = 1 To NSLOT
@@ -154,7 +169,7 @@ Private Function BuscarMES(ByVal ini As Date, ByVal n As Long, ByRef dados As Va
                 ' janelas que ainda nao comecaram ficam em branco
                 If lin <= n And CDbl(a) + (s - 1) * HORAS_SLOT / 24 <= CDbl(Now) Then
                     For j = 1 To 1 + 2 * NPARAM
-                        d(lin, j) = bloco(s, j)
+                        d(lin, j) = res(s, j)
                     Next j
                 End If
             Next s
@@ -272,6 +287,11 @@ Private Function ParamsBloco(ByVal b As Long) As Variant
     ParamsBloco = Split(s, ",")
 End Function
 
+' Bloco b faz parte da consulta do clique atual?
+Private Function BlocoUsado(ByVal b As Long) As Boolean
+    BlocoUsado = (mBloco = "" Or UCase$(BlocoInfo(b, 0)) = UCase$(mBloco))
+End Function
+
 Private Function BlocoInfo(ByVal b As Long, ByVal campo As Long) As String
     ' campo: 0 codigo, 1 titulo, 2 calculo, 3 ancora, 4 saida, 5 lista de parametros
     BlocoInfo = CStr(shMapa.Cells(1 + b, MAPA_COL_BLOCO + campo).Value)
@@ -320,7 +340,7 @@ Public Sub RegerarFormulasMES()
     Dim b As Long
     For b = 1 To NumBlocos()
         ' sempre reescreve (mesmo igual): o Excel recalcula a consulta uma unica vez
-        shDadosMES.Range(BlocoInfo(b, 3)).Formula = PrefixoAspen(b) & ArgumentosBloco(b)
+        If BlocoUsado(b) Then shDadosMES.Range(BlocoInfo(b, 3)).Formula = PrefixoAspen(b) & ArgumentosBloco(b)
     Next b
 End Sub
 
@@ -355,6 +375,20 @@ Private Sub DesligarConsultas()
     LimparSaidasMES
 End Sub
 
+' A consulta dos outros blocos (ex.: Embarque ao atualizar o turno) vira texto antes de mudar o
+' periodo, para nao ser refeita a toa pelo Excel.
+Private Sub DesligarOutrosBlocos()
+    Dim b As Long, c As Range
+    On Error Resume Next
+    For b = 1 To NumBlocos()
+        Set c = shDadosMES.Range(BlocoInfo(b, 3))
+        If Not BlocoUsado(b) And c.HasFormula Then
+            Call PrefixoAspen(b)
+            c.Value = "'Consulta desligada em " & Format$(Now, "dd\/mm\/yyyy hh:mm:ss")
+        End If
+    Next b
+End Sub
+
 ' True se alguma consulta do Aspen ainda esta como formula (antes da 1a atualizacao ou apos falha)
 Public Function ConsultaAspenAtiva() As Boolean
     Dim b As Long
@@ -372,7 +406,7 @@ Private Sub CalcularConsultas()
     Dim b As Long
     If Application.Calculation <> -4105 Then
         For b = 1 To NumBlocos()
-            shDadosMES.Range(BlocoInfo(b, 3)).Calculate
+            If BlocoUsado(b) Then shDadosMES.Range(BlocoInfo(b, 3)).Calculate
         Next b
     End If
 End Sub
@@ -427,6 +461,7 @@ End Sub
 Private Function AssinaturaSaidas(ByVal nb As Long) As String
     Dim b As Long, arr As Variant, i As Long, j As Long, n As Long, soma As Double, r As String
     For b = 1 To nb
+      If BlocoUsado(b) Then
         arr = SaidaBloco(b).Value
         n = 0
         soma = 0
@@ -439,6 +474,7 @@ Private Function AssinaturaSaidas(ByVal nb As Long) As String
             Next j
         Next i
         r = r & shDadosMES.Range(BlocoInfo(b, 3)).Text & "|" & n & "|" & soma & ";"
+      End If
     Next b
     AssinaturaSaidas = r
 End Function
@@ -449,6 +485,10 @@ End Function
 Private Function EsperarBlocos(ByVal ini As Date, ByVal nb As Long, ByRef pronto() As Boolean, _
                                ByVal limite As Double) As Long
     Dim t0 As Single, tEstavel As Single, assin As String, assinAnt As String, b As Long, nOk As Long
+    Dim nUsados As Long
+    For b = 1 To nb
+        If BlocoUsado(b) Then nUsados = nUsados + 1
+    Next b
     t0 = Timer
     tEstavel = Timer
     Do
@@ -457,16 +497,20 @@ Private Function EsperarBlocos(ByVal ini As Date, ByVal nb As Long, ByRef pronto
         If Timer < tEstavel Then tEstavel = tEstavel - 86400
         nOk = 0
         For b = 1 To nb
-            pronto(b) = BlocoPronto(b, ini)
-            If Not pronto(b) And Timer - t0 >= SEM_DADOS_SEG Then pronto(b) = RespondeuSemDados(b)
-            If pronto(b) Then nOk = nOk + 1
+            If BlocoUsado(b) Then
+                pronto(b) = BlocoPronto(b, ini)
+                If Not pronto(b) And Timer - t0 >= SEM_DADOS_SEG Then pronto(b) = RespondeuSemDados(b)
+                If pronto(b) Then nOk = nOk + 1
+            Else
+                pronto(b) = True
+            End If
         Next b
         assin = AssinaturaSaidas(nb)
         If assin <> assinAnt Then
             assinAnt = assin
             tEstavel = Timer
         End If
-        If nOk = nb And Timer - tEstavel >= ESTAVEL_SEG Then Exit Do
+        If nOk = nUsados And Timer - tEstavel >= ESTAVEL_SEG Then Exit Do
         If Timer - t0 > limite Then Exit Do
     Loop
     EsperarBlocos = nOk
@@ -531,6 +575,7 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     ' Se sobrar a matriz de uma consulta anterior com outro numero de linhas, o Excel recusa
     ' ("Nao e possivel alterar parte de uma matriz"). Por isso as saidas sao limpas antes.
     LimparSaidasMES
+    DesligarOutrosBlocos
     GravarPeriodoMES ini, fim
     On Error GoTo FalhaFormula
     RegerarFormulasMES
@@ -567,7 +612,7 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
 
     ReDim d(1 To NSLOT, 1 To 1 + 2 * NPARAM)
     For b = 1 To nb
-        If pronto(b) Then
+        If pronto(b) And BlocoUsado(b) Then
             arr = SaidaBloco(b).Value
             ps = ParamsBloco(b)
             For i = LBound(ps) To UBound(ps)

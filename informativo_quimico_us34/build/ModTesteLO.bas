@@ -31,6 +31,7 @@ Public Sub TesteLO()
     ' estado apos a 1a consulta real: formula do Aspen desligada (texto), prefixo guardado
     Nm("mesPrefixo").Value = "'" & Left$(shDadosMES.Range("A7").Formula, InStr(shDadosMES.Range("A7").Formula, "("))
     shDadosMES.Range("A7").Value = "'Consulta concluída"
+    shDadosMES.Range("A22").Value = "'Consulta concluída"
     Nm("cfgFonte").Value = "SIMULAÇÃO"
     Nm("pData").Value = DateSerial(2026, 9, 28)
     Nm("dLetra").Value = "A"
@@ -49,20 +50,26 @@ Public Sub TesteLO()
     passo = 2
     Set ws = shResumoDia
     AtualizarMESDia
-    lin = LinhaChave(ws, "P02U3")
+    passo = 21
+    lin = LinhaChave(ws, "P01U3")
     r = "dSiO2PF_slot1=" & ws.Cells(lin, 5).Value & "|dSiO2PF_media=" & ws.Cells(lin, 11).Value & _
+        "|dSiO2PF_US4=" & ws.Cells(LinhaChave(ws, "P01U4"), 11).Value & _
         "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & "|dAtual=" & Left$(Nm("dAtualizado").Value, 40) & _
-        "|FeTPFoculta=" & ws.Rows(LinhaChave(ws, "P01U3")).Hidden & _
+        "|FePelotaUS3=" & ws.Cells(LinhaChave(ws, "P06U3"), 11).Value & _
         "|SiO2PFvisivel=" & (Not ws.Rows(lin).Hidden) & _
-        "|B2US4=" & ws.Cells(LinhaChave(ws, "P16U4"), 11).Value
+        "|embarqueNoResumo=" & (LinhaChave(ws, "P14U3") > 0) & _
+        "|B2US4=" & ws.Cells(LinhaChave(ws, "P11U4"), 11).Value
     ' farol: limites do produto (colunas auxiliares Q=min, R=max)
+    passo = 22
     ws.Calculate
-    r = r & "|limSiO2US3=" & ws.Cells(LinhaChave(ws, "P12U3"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P12U3"), 18).Text & _
-        "|limSiO2US4=" & ws.Cells(LinhaChave(ws, "P12U4"), 18).Text & _
-        "|limCaOUS3min=" & ws.Cells(LinhaChave(ws, "P14U3"), 17).Text & _
-        "|limCaOUS4=" & ws.Cells(LinhaChave(ws, "P14U4"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P14U4"), 18).Text & _
-        "|limB2US4max=" & ws.Cells(LinhaChave(ws, "P16U4"), 18).Text & _
-        "|limSiO2PF=" & ws.Cells(LinhaChave(ws, "P02U3"), 18).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P09U3"), 18).Text & _
+    r = r & "|limSiO2US3=" & ws.Cells(LinhaChave(ws, "P07U3"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P07U3"), 18).Text & _
+        "|limSiO2US4=" & ws.Cells(LinhaChave(ws, "P07U4"), 18).Text & _
+        "|limFeUS3min=" & ws.Cells(LinhaChave(ws, "P06U3"), 17).Text & _
+        "|limCaOUS3min=" & ws.Cells(LinhaChave(ws, "P09U3"), 17).Text & _
+        "|limCaOUS4=" & ws.Cells(LinhaChave(ws, "P09U4"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P09U4"), 18).Text & _
+        "|limB2US4max=" & ws.Cells(LinhaChave(ws, "P11U4"), 18).Text & _
+        "|limSiO2PF_US3=" & ws.Cells(LinhaChave(ws, "P01U3"), 18).Text & "|limSiO2PF_US4=" & ws.Cells(LinhaChave(ws, "P01U4"), 18).Text & _
+        "|limP_PF_US3=" & ws.Cells(LinhaChave(ws, "P02U3"), 18).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P05U3"), 18).Text & _
         "|produtos=" & Application.WorksheetFunction.CountA(shLimites.Range("B9:B33")) & "|gProdUS3=" & Nm("gProdUS3").Text
     passo = 3
     ' migracao por formula
@@ -83,15 +90,15 @@ Public Sub TesteLO()
     passo = 4
     AtualizarMESNoite
     Set ws = shResumoNoite
-    lin = LinhaChave(ws, "P02U3")
+    lin = LinhaChave(ws, "P01U3")
     r = r & "|nHora1=" & Nm("nHoras").Cells(1, 1).Value & "|nSiO2PF_media=" & ws.Cells(lin, 11).Value & _
         "|nTecnico=" & ws.Cells(7, 3).Text & "|nReal=" & (LinhaTexto(ws, "Tarefa da noite") > 0) & _
-        "|dMediaIntacta=" & shResumoDia.Cells(LinhaChave(shResumoDia, "P02U3"), 11).Value
+        "|dMediaIntacta=" & shResumoDia.Cells(LinhaChave(shResumoDia, "P01U3"), 11).Value
     passo = 5
     Nm("gIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
     Nm("gFim").Value = DateSerial(2026, 9, 29) + TimeSerial(7, 0, 0)
     AtualizarResultados
-    lin = LinhaChave(shResultados, "P12U3")
+    lin = LinhaChave(shResultados, "P07U3")
     For jj = 0 To NSLOT_MAX - 1
         If ENumero(shResultados.Cells(lin, COL_SLOT1 + jj).Value) Then nv = nv + 1
     Next jj
@@ -109,13 +116,29 @@ Public Sub TesteLO()
     Nm("gFim").Value = CDate(CDbl(ag) + 3 / 24)
     AtualizarResultados
     AtualizarResultados
-    lin = LinhaChave(shResultados, "P12U3")
+    lin = LinhaChave(shResultados, "P07U3")
     For jj = 0 To 2
         If ENumero(shResultados.Cells(lin, COL_SLOT1 + jj).Value) Then cheias = cheias + 1
     Next jj
     vazia3 = Vazio(shResultados.Cells(lin, COL_SLOT1 + 2).Value)
     r = r & "|andamento_cheias=" & cheias & "|andamento_janela3vazia=" & vazia3 & _
         "|andamento_atual=" & Left$(Nm("gAtualizado").Value, 60)
+    passo = 58
+    ' Embarque (testes): consulta propria, uma linha por analise
+    Nm("eIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
+    Nm("eFim").Value = DateSerial(2026, 9, 28) + TimeSerial(19, 0, 0)
+    AtualizarEmbarque
+    nv = 0
+    lin = LinhaChave(shEmbarque, "P14U3")
+    For jj = 0 To 5
+        If ENumero(shEmbarque.Cells(lin, COL_SLOT1 + jj).Value) Then nv = nv + 1
+    Next jj
+    r = r & "|emb_FeSlots=" & nv & "|emb_FeMedia=" & shEmbarque.Cells(lin, 17).Text & _
+        "|emb_semUS4=" & (LinhaChave(shEmbarque, "P14U4") = 0) & _
+        "|emb_semFiltragem=" & (LinhaChave(shEmbarque, "P01U3") = 0) & _
+        "|emb_ultima=" & (LinhaChave(shEmbarque, "P" & Format$(NPARAM, "00") & "U3") > 0) & _
+        "|emb_col7oculta=" & shEmbarque.Columns(COL_SLOT1 + 6).Hidden & _
+        "|emb_atual=" & Left$(Nm("eAtualizado").Value, 45)
     passo = 6
     LimparSaidasMES
     r = r & "|limpo=" & Vazio(shDadosMES.Range("A9").Formula)
@@ -162,6 +185,9 @@ Public Sub DemoLO()
     Nm("gIni").Value = DateSerial(2026, 9, 1) + TimeSerial(7, 0, 0)
     Nm("gFim").Value = DateSerial(2026, 9, 2) + TimeSerial(7, 0, 0)
     AtualizarResultados
+    Nm("eIni").Value = DateSerial(2026, 9, 1) + TimeSerial(7, 0, 0)
+    Nm("eFim").Value = DateSerial(2026, 9, 1) + TimeSerial(19, 0, 0)
+    AtualizarEmbarque
 End Sub
 
 ' Grava os argumentos que o VBA monta para cada consulta (comparados com o Python no teste)

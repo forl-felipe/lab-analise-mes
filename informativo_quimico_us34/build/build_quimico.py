@@ -5,6 +5,7 @@ Estrutura simples, 4 abas visiveis:
   Resumo Dia / Noite - tudo do turno migrado por FORMULA + resultados quimicos do MES;
                        dois botoes: Atualizar dados do MES e Copiar imagem
   Resultados gerais  - resultados do MES de qualquer periodo de ate 24 h
+  Embarque           - quimica e fisica do embarque (testes), periodo de ate 24 h
 Consulta ao MES (Aspen IP.21) igual a do Informativo do Laboratorio Fisico (informativo_us34).
 
 Uso:  python3 build_quimico.py [--teste]
@@ -53,55 +54,97 @@ LARANJA_FUNDO = '#FDE6D8'
 FONTE = 'Segoe UI'
 
 # ---------------------------------------------------------------- analises quimicas
-# Pontos de amostragem no MES (mesmos da planilha padrao e do Informativo do Fisico):
-#   M650030010  = Pellet Feed (Mineroduto 03) - amostra unica para US3 e US4
-#   M710050020  = Linha de Mistura / Pelota US3      M4710050020 = Linha de Mistura / Pelota US4
-# Codigos de analise (sufixo -HHLQU = Laboratorio Quimico) CONFIRMADOS nas planilhas existentes:
-#   0004 SiO2 · 0006 CaO · 0013 PPC · 0018 B2 · 0084 kg carvao/t · 0493 Carbono fixo
-# As demais analises (FeT, Al2O3, MgO, P, Mn, TiO2, pH) ficam SEM TAG ate serem confirmadas no MES:
-# a linha fica oculta no relatorio e a analise nao entra na consulta.
-PF, LM3, LM4 = 'M650030010', 'M710050020', 'M4710050020'
+# Tags conforme o Plano Amostral do Laboratorio Fisico/Quimico de Ubu (rev. 06):
+#   tag = "M" & ponto & "-" & codigo (4 digitos) & "-" & fase (HH = bi-horario, TN = por embarque) & area
+# Filtragem (Pellet Feed):  US3 U03-02TP004 = M650030010    US4 U04-02TP006 = M4650060010
+# Pelota Queimada:          US3 U03-07TP002 = M710050020    US4 U04-07TP015 = M4710050020
+# So os resultados bi-horarios (HH). Fe e Al2O3 da Filtragem sao diarios (DD) e ficam fora do turno.
+# Pelota Queimada: no Plano Amostral as linhas de CaO (0115), MgO (0006), B2 (0122), Mn (0018) e PPC (0007)
+# divergem dos codigos usados em todos os outros pontos do plano e nas planilhas em uso (CaO 0006, MgO 0007,
+# B2 0018, Mn 0115, PPC 0013). Foram usados os codigos consistentes; as tags podem ser trocadas em Configuracoes.
+PF3, PF4, PQ3, PQ4 = 'M650030010', 'M4650060010', 'M710050020', 'M4710050020'
 MV, AM = 'IP_MESVALOR', 'IP_ANALOGMAP'
-G_PF = 'Pellet Feed - Mineroduto 03'
-G_LM = 'Linha de Mistura / Pelota'
+G_PF = 'Filtragem - Pellet Feed'
+G_LM = 'Pelota Queimada'
 
 
-def _pf(nome, un, dec, cod, tip):
-    tag = '%s-%s-HHLQU' % (PF, cod) if cod else ''
-    return (G_PF, nome, un, dec, 'Média', tag, MV, tag, MV, tip, tip, 'Q', True)
+def _us(grupo, p3, p4, nome, un, dec, cod, tip3, tip4, fase='HHLQU'):
+    """Analise com uma tag por usina (US3/US4)."""
+    t3 = '%s-%s-%s' % (p3, cod, fase) if cod else ''
+    t4 = '%s-%s-%s' % (p4, cod, fase) if cod else ''
+    return (grupo, nome, un, dec, 'Média', t3, MV, t4, MV, tip3, tip4, 'Q', False)
+
+
+def _pf(nome, un, dec, cod, tip3, tip4):
+    return _us(G_PF, PF3, PF4, nome, un, dec, cod, tip3, tip4)
 
 
 def _lm(nome, un, dec, cod, tip3, tip4):
-    t3 = '%s-%s-HHLQU' % (LM3, cod) if cod else ''
-    t4 = '%s-%s-HHLQU' % (LM4, cod) if cod else ''
-    return (G_LM, nome, un, dec, 'Média', t3, MV, t4, MV, tip3, tip4, 'Q', False)
+    return _us(G_LM, PQ3, PQ4, nome, un, dec, cod, tip3, tip4)
+
+
+# Embarque (aba Embarque, para testes): amostra unica por embarque (fase TN), consulta propria ('E')
+E_PQ, E_PF, E_PS = 'M620010000', 'M620020000', 'M620030000'
+G_EPQ = 'Embarque - Pelota Queimada (química)'
+G_EPQF = 'Embarque - Pelota Queimada (física)'
+G_EPF = 'Embarque - Pellet Feed'
+G_EPS = 'Embarque - Pellet Screening'
+
+
+def _emb(grupo, ponto, nome, un, dec, cod, sufixo, tip):
+    tag = '%s-%s-%s' % (ponto, cod, sufixo)
+    return (grupo, nome, un, dec, 'Média', tag, MV, tag, MV, tip, tip, 'E', True)
 
 
 # (grupo, analise, unidade, decimais, agregacao, tag US3, tipo, tag US4, tipo, tipico US3, tipico US4,
 #  consulta, amostra_unica)
 PARAMS = [
-    _pf('FeT', '%', 2, None, 67.50),
-    _pf('SiO2', '%', 2, '0004', 1.29),
-    _pf('Al2O3', '%', 2, None, 0.40),
-    _pf('CaO', '%', 2, '0006', 0.09),
-    _pf('MgO', '%', 2, None, 0.05),
-    _pf('P', '%', 3, None, 0.040),
-    _pf('Mn', '%', 3, None, 0.060),
-    _pf('TiO2', '%', 3, None, 0.050),
-    _pf('PPC', '%', 2, '0013', 3.66),
-    _pf('pH - Mineroduto', '-', 2, None, 10.5),
-    _lm('FeT', '%', 2, None, 65.50, 65.30),
-    _lm('SiO2', '%', 2, '0004', 1.82, 1.90),
-    _lm('Al2O3', '%', 2, None, 0.42, 0.44),
-    _lm('CaO', '%', 2, '0006', 0.82, 0.88),
-    _lm('MgO', '%', 2, None, 0.10, 0.11),
-    _lm('B2 (CaO/SiO2)', '-', 2, '0018', 0.45, 0.46),
-    _lm('Carvão', 'kg/t', 1, '0084', 12.7, 17.6),
-    _lm('Carbono Fixo', '%', 2, '0493', 1.07, 1.20),
-    _lm('P', '%', 3, None, 0.045, 0.046),
-    _lm('Mn', '%', 3, None, 0.070, 0.071),
-    _lm('TiO2', '%', 3, None, 0.055, 0.056),
+    _pf('SiO2', '%', 2, '0004', 1.29, 2.30),
+    _pf('P', '%', 3, '0008', 0.040, 0.050),
+    _pf('MgO', '%', 2, '0007', 0.05, 0.06),
+    _pf('CaO', '%', 2, '0006', 0.09, 0.10),
+    _pf('PPC', '%', 2, '0013', 3.66, 3.70),
+    _lm('Fe', '%', 2, '0002', 67.30, 65.60),
+    _lm('SiO2', '%', 2, '0004', 1.82, 2.90),
+    _lm('Al2O3', '%', 2, '0005', 0.42, 0.44),
+    _lm('CaO', '%', 2, '0006', 0.82, 1.40),
+    _lm('MgO', '%', 2, '0007', 0.10, 0.11),
+    _lm('B2 (CaO/SiO2)', '-', 2, '0018', 0.45, 0.48),
+    _lm('Mn', '%', 3, '0115', 0.070, 0.071),
+    _lm('PPC', '%', 2, '0013', 0.10, 0.12),
 ]
+PARAMS += [_emb(G_EPQ, E_PQ, n, u, d, c, 'TNLQU', t) for n, u, d, c, t in [
+    ('Fe', '%', 2, '0002', 65.60), ('SiO2', '%', 2, '0004', 2.90), ('Al2O3', '%', 2, '0005', 0.44),
+    ('CaO', '%', 2, '0006', 1.40), ('MgO', '%', 2, '0007', 0.11), ('P', '%', 3, '0008', 0.050),
+    ('Mn', '%', 3, '0115', 0.071), ('B2 (CaO/SiO2)', '-', 2, '0018', 0.48), ('PPC', '%', 2, '0013', 0.12)]]
+PARAMS += [_emb(G_EPQF, E_PQ, n, u, d, c, 'TNLFU', t) for n, u, d, c, t in [
+    ('Peneira > 19,0 mm', '%', 2, '0020', 0.5), ('Peneira > 16,0 mm', '%', 2, '0021', 12.0),
+    ('Peneira > 14,0 mm', '%', 2, '0496', 35.0), ('Peneira > 12,5 mm', '%', 2, '0022', 60.0),
+    ('Peneira > 9,0 mm', '%', 2, '0023', 95.0), ('Peneira > 8,0 mm', '%', 2, '0024', 97.0),
+    ('Peneira > 6,3 mm', '%', 2, '0025', 98.0), ('Peneira > 5,0 mm', '%', 2, '0544', 98.5),
+    ('Peneira > 0,5 mm', '%', 2, '0086', 99.0), ('Peneira < 0,5 mm', '%', 2, '0087', 1.0),
+    ('% > 6,3 mm', '%', 2, '2612', 98.0), ('% < 0,5 mm', '%', 2, '2615', 1.0),
+    ('Média (kg/pel)', 'kg/pel', 0, '0031', 330), ('% < 200 (kg/pel)', '%', 2, '0032', 5.0),
+    ('% < 150 (kg/pel)', '%', 2, '0033', 2.0), ('% < 100 (kg/pel)', '%', 2, '0257', 1.0),
+    ('DP (kg/pel)', 'kg/pel', 0, '2822', 80), ('Média (kgf/pel)', 'kgf/pel', 0, '0035', 330),
+    ('% < 200 (kgf/pel)', '%', 2, '2954', 5.0), ('% < 150 (kgf/pel)', '%', 2, '2947', 2.0),
+    ('% < 100 (kgf/pel)', '%', 2, '2948', 1.0), ('DP (kgf/pel)', 'kgf/pel', 0, '2949', 80)]]
+PARAMS += [_emb(G_EPF, E_PF, n, u, d, c, s, t) for n, u, d, c, s, t in [
+    ('SiO2', '%', 2, '0004', 'TNLQU', 2.30), ('Al2O3', '%', 2, '0005', 'TNLQU', 0.40),
+    ('P', '%', 3, '0008', 'TNLQU', 0.050), ('CaO', '%', 2, '0006', 'TNLQU', 0.10),
+    ('MgO', '%', 2, '0007', 'TNLQU', 0.06), ('Umidade (H2O)', '%', 2, '0001', 'TNCC', 9.5),
+    ('Superfície específica', 'cm²/g', 0, '0017', 'CGCC', 1800), ('% > 100#', '%', 2, '2674', 'CGCC', 0.5),
+    ('% > 200#', '%', 2, '2634', 'CGCC', 3.0), ('% > 325#', '%', 2, '2636', 'CGCC', 10.0),
+    ('% < 325#', '%', 2, '0016', 'CGCC', 87.0)]]
+PARAMS += [_emb(G_EPS, E_PS, n, u, d, c, s, t) for n, u, d, c, s, t in [
+    ('Fe', '%', 2, '0002', 'TNLQU', 64.5), ('SiO2', '%', 2, '0004', 'TNLQU', 3.20),
+    ('Al2O3', '%', 2, '0005', 'TNLQU', 0.45), ('P', '%', 3, '0008', 'TNLQU', 0.055),
+    ('CaO', '%', 2, '0006', 'TNLQU', 1.20), ('MgO', '%', 2, '0007', 'TNLQU', 0.10),
+    ('PPC', '%', 2, '0013', 'TNLQU', 0.20), ('Umidade (H2O)', '%', 2, '0001', 'TNCC', 3.0),
+    ('Peneira 9,5 mm', '%', 2, '0117', 'TNCC', 2.0), ('Peneira 6,3 mm', '%', 2, '2691', 'TNCC', 20.0),
+    ('Peneira 3,15 mm', '%', 2, '0437', 'TNCC', 40.0), ('Peneira 2,0 mm', '%', 2, '0438', 'TNCC', 15.0),
+    ('Peneira 1,0 mm', '%', 2, '0439', 'TNCC', 10.0), ('Peneira 0,5 mm', '%', 2, '0440', 'TNCC', 5.0),
+    ('Peneira 100#', '%', 2, '2701', 'TNCC', 4.0), ('Peneira < 100#', '%', 2, '0014', 'TNCC', 4.0)]]
 NPARAM = len(PARAMS)
 NSLOT = 6
 USINAS = ('US3', 'US4')
@@ -135,7 +178,7 @@ LIM_NLIN = 25         # linhas disponiveis (produtos novos podem ser acrescentad
 LIM_COL1 = 3          # coluna do 1o limite (D), 0-based
 # analise do relatorio -> chave de limite
 PARAM_LIM = {(G_PF, 'SiO2'): 'PF_SIO2', (G_PF, 'P'): 'PF_P', (G_PF, 'PPC'): 'PF_PPC',
-             (G_LM, 'FeT'): 'LM_FE', (G_LM, 'SiO2'): 'LM_SIO2', (G_LM, 'P'): 'LM_P', (G_LM, 'CaO'): 'LM_CAO',
+             (G_LM, 'Fe'): 'LM_FE', (G_LM, 'SiO2'): 'LM_SIO2', (G_LM, 'P'): 'LM_P', (G_LM, 'CaO'): 'LM_CAO',
              (G_LM, 'B2 (CaO/SiO2)'): 'LM_B2'}
 
 
@@ -145,9 +188,10 @@ def lim_col(chave, qual):
     return colname(LIM_COL1 + 2 * i + qual)
 
 
-# Consulta ao MES no mesmo formato da planilha de referencia (texto literal); uma consulta so,
-# com todas as analises quimicas (tipo de calculo "1" = media da janela de 2 h)
-BLOCOS = [('Q', 'Análises químicas', '1', 7)]
+# Consulta ao MES no mesmo formato da planilha de referencia (texto literal). Duas consultas
+# (tipo de calculo "1" = media da janela de 2 h): 'Q' = Filtragem/Pelota (Resumos e Resultados gerais)
+# e 'E' = Embarque (aba Embarque). Cada botao calcula so a sua consulta.
+BLOCOS = [('Q', 'Análises químicas', '1', 7), ('E', 'Embarque (testes)', '1', 22)]
 SERVIDOR_PADRAO = 'UBU'
 
 # Configuracoes: colunas (1-based) da tabela de tags
@@ -289,12 +333,14 @@ class Construtor:
         self.ws_res_d = wb.add_worksheet('Resumo Dia')
         self.ws_res_n = wb.add_worksheet('Resumo Noite')
         self.ws_ger = wb.add_worksheet('Resultados gerais')
+        self.ws_emb = wb.add_worksheet('Embarque')
         self.ws_lim = wb.add_worksheet('Limites')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
         self.ws_mapa = wb.add_worksheet('_Mapa')
         for ws, cn in [(self.ws_pre, 'shPreenchimento'), (self.ws_res_d, 'shResumoDia'),
                        (self.ws_res_n, 'shResumoNoite'), (self.ws_ger, 'shResultados'),
+                       (self.ws_emb, 'shEmbarque'),
                        (self.ws_lim, 'shLimites'), (self.ws_cfg, 'shConfig'), (self.ws_mes, 'shDadosMES'), (self.ws_mapa, 'shMapa')]:
             ws.set_vba_name(cn)
             ws.hide_gridlines(2)
@@ -302,6 +348,7 @@ class Construtor:
         self.ws_res_d.set_tab_color(AZUL)
         self.ws_res_n.set_tab_color(AZUL)
         self.ws_ger.set_tab_color(AZUL_ACINZ)
+        self.ws_emb.set_tab_color(AZUL_ACINZ)
         self.ws_cfg.set_tab_color(CINZA)
 
         self.aba_config()
@@ -311,6 +358,7 @@ class Construtor:
         self.aba_resumo(self.ws_res_d, 'd', 'Dia', 'Dia  07:00 – 19:00', 7)
         self.aba_resumo(self.ws_res_n, 'n', 'Noite', 'Noite  19:00 – 07:00', 19)
         self.aba_resultados()
+        self.aba_embarque()
         self.aba_mapa()
         self.ws_mes.hide()
         self.ws_cfg.hide()
@@ -362,7 +410,7 @@ class Construtor:
 
         ws.merge_range(14, 1, 14, 15,
                        'Análise sem tag não é consultada no MES e não aparece no relatório. '
-                       'Pellet Feed: amostra única (tag US4 = tag US3).',
+                       'Embarque: amostra única (tag US4 = tag US3). Tags: Plano Amostral rev. 06.',
                        self.f(font_size=9, italic=True, font_color=AZUL_ACINZ, text_wrap=True, indent=1))
         ws.set_row(14, 28)
         self.secao(ws, 15, 1, 15, 'Tags do MES')
@@ -514,7 +562,7 @@ class Construtor:
         ws.merge_range(6, LIM_COL1, 6, LIM_COL1 + 2 * npel - 1,
                        'PELOTA  |  PROCESSO (GPU), DADOS HORÁRIOS', hdr)
         ws.merge_range(6, LIM_COL1 + 2 * npel, 6, UC,
-                       'PELLET FEED (MD03)  |  POR CONCENTRADO', hdr)
+                       'PELLET FEED (FILTRAGEM)  |  POR CONCENTRADO', hdr)
         for i, (k, rotulo) in enumerate(LIM_ITENS):
             ws.write(7, LIM_COL1 + 2 * i, rotulo + ' mín.', hdr2)
             ws.write(7, LIM_COL1 + 2 * i + 1, rotulo + ' máx.', hdr2)
@@ -591,6 +639,7 @@ class Construtor:
         self.link(ws, self.link_pre_row, 4, "'Resumo Dia'!A1", 'Resumo Dia')
         self.link(ws, self.link_pre_row, 6, "'Resumo Noite'!A1", 'Resumo Noite')
         self.link(ws, self.link_pre_row, 8, "'Resultados gerais'!A1", 'Resultados gerais')
+        self.link(ws, self.link_pre_row, 10, "'Embarque'!A1", 'Embarque')
         ws.print_area(1, 1, fim, UC)
         ws.set_portrait()
         ws.set_paper(9)
@@ -739,7 +788,8 @@ class Construtor:
         return rr + 2
 
     # ------------------------------------------------------------ tabela de resultados (Resumo e Resultados gerais)
-    def tabela(self, ws, r, nslot, horas, nome_horas, tit_media, prod3, prod4, col_lim):
+    def tabela(self, ws, r, nslot, horas, nome_horas, tit_media, prod3, prod4, col_lim, cons='Q',
+               rot_unica='EMB'):
         """Tabela de analises: Amostra/analise | Un. | Usina | janelas de 2 h | Media | Min | Max.
         As janelas sao gravadas pelo VBA; media, minimo e maximo sao formulas.
         Chaves na coluna A (fonte branca): G1.. = grupo, P02U3 = analise/usina (usadas pelo VBA)."""
@@ -762,6 +812,8 @@ class Construtor:
         # colunas auxiliares (ocultas) com o limite minimo e maximo do produto de cada linha
         ws.set_column(col_lim, col_lim + 1, 8, None, {'hidden': True})
         for p, pr in enumerate(PARAMS, start=1):
+            if pr[11] != cons:
+                continue
             g, nome, un, dec = pr[:4]
             unica = pr[12]
             if g != grupo:
@@ -789,7 +841,7 @@ class Construtor:
                 rr = r + k
                 ws.set_row(rr, 17)
                 ws.write(rr, 0, 'P%02dU%d' % (p, 3 + k), chave_fmt)
-                ws.write(rr, 3, 'MD03' if unica else USINAS[k],
+                ws.write(rr, 3, rot_unica if unica else USINAS[k],
                          self.f(bold=True, font_size=9, font_color=AZUL if k == 0 else AZUL_ACINZ, align='center', **b))
                 vals = '%s:%s' % (rc(rr, CS), rc(rr, CM - 1))
                 for cc in range(CS, CM):
@@ -986,7 +1038,7 @@ class Construtor:
                            UC + 4)
         ws.set_row(r, 17)
         ws.merge_range(r, 1, r, UC, 'Verde: dentro do limite   |   Vermelho: fora do limite   |   '
-                       'Limites: SMIN-POP-GEA-001 rev. 12   |   MD03: Pellet Feed Mineroduto 03',
+                       'Limites: SMIN-POP-GEA-001 rev. 12   |   Tags: Plano Amostral rev. 06',
                        self.f(font_size=8.5, font_color=TEXTO_SEC, italic=True, indent=1))
         fim = r
         self.nome(t + 'Area', ws, 1, 1, fim, UC)
@@ -1006,7 +1058,15 @@ class Construtor:
     # ------------------------------------------------------------ Resultados gerais
     def aba_resultados(self):
         """Resultados quimicos de qualquer periodo de ate 24 h (inicio e fim escolhidos pelo tecnico)."""
-        ws = self.ws_ger
+        self.aba_periodo(self.ws_ger, 'g', 'Q', 'LABORATÓRIO QUÍMICO', 'AtualizarResultados',
+                         'CopiarImagemResultados', True)
+
+    def aba_embarque(self):
+        """Embarque (testes): quimica e fisica do embarque (U00-09TR002), periodo de ate 24 h."""
+        self.aba_periodo(self.ws_emb, 'e', 'E', 'LABORATÓRIO QUÍMICO  |  EMBARQUE (TESTES)', 'AtualizarEmbarque',
+                         'CopiarImagemEmbarque', False)
+
+    def aba_periodo(self, ws, x, cons, subtitulo, macro_atual, macro_copiar, com_produto):
         CS = 4
         CM = CS + NSLOT_INF
         UC = CM + 2
@@ -1020,7 +1080,7 @@ class Construtor:
         ws.set_column(CM + 1, UC, 9)
         ws.set_column(UC + 1, UC + 1, 3)
         ws.set_column(CB, CB, 28)
-        self.cabecalho(ws, UC, 'RELATÓRIO DE PASSAGEM DE TURNO', 'LABORATÓRIO QUÍMICO', col_logo_fim=3)
+        self.cabecalho(ws, UC, 'RELATÓRIO DE PASSAGEM DE TURNO', subtitulo, col_logo_fim=3)
         ws.set_row(4, 8)
         ws.set_row(5, 26)
         rot = self.f(font_size=9, bold=True, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO, indent=1,
@@ -1032,8 +1092,8 @@ class Construtor:
         ws.merge_range(5, CS, 5, CS + 2, '', sel)
         ws.write(5, CS + 3, 'Fim', self.f(font_size=9, font_color=TEXTO_SEC, align='center'))
         ws.merge_range(5, CS + 4, 5, CS + 6, '', sel)
-        self.nome('gIni', ws, 5, CS)
-        self.nome('gFim', ws, 5, CS + 4)
+        self.nome(x + 'Ini', ws, 5, CS)
+        self.nome(x + 'Fim', ws, 5, CS + 4)
         for cc in (CS, CS + 4):
             ws.data_validation(5, cc, 5, cc, {'validate': 'date', 'criteria': '>', 'value': dtm.date(2020, 1, 1),
                                               'error_message': 'Digite data e hora: dd/mm/aaaa hh:mm'})
@@ -1042,35 +1102,43 @@ class Construtor:
         ws.set_row(6, 6)
         prod = self.f(bold=True, font_size=10, font_color=AZUL_TITULO, align='center', bg_color=FUNDO_INPUT,
                       border=1, border_color=BORDA, locked=False)
-        for i, us in enumerate(('US3', 'US4')):
-            rr = 7 + i
-            ws.set_row(rr, 20)
-            ws.write(rr, 1, 'Produto ' + us, rot)
-            ws.merge_range(rr, 2, rr, 3, '', prod)
-            ws.write_formula(rr, 2, '=IF(dProd{u}="","",dProd{u})'.format(u=us), prod)
-            ws.data_validation(rr, 2, rr, 2, {'validate': 'list', 'source': '=lstProdutos'})
-            self.nome('gProd' + us, ws, rr, 2)
+        if com_produto:
+            for i, us in enumerate(('US3', 'US4')):
+                rr = 7 + i
+                ws.set_row(rr, 20)
+                ws.write(rr, 1, 'Produto ' + us, rot)
+                ws.merge_range(rr, 2, rr, 3, '', prod)
+                ws.write_formula(rr, 2, '=IF(dProd{u}="","",dProd{u})'.format(u=us), prod)
+                ws.data_validation(rr, 2, rr, 2, {'validate': 'list', 'source': '=lstProdutos'})
+                self.nome('gProd' + us, ws, rr, 2)
+            rodape = ('Verde: dentro do limite   |   Vermelho: fora do limite   |   '
+                      'Limites: SMIN-POP-GEA-001 rev. 12   |   Tags: Plano Amostral rev. 06')
+        else:
+            ws.set_row(7, 20)
+            ws.write(7, 1, 'Ponto de amostragem', rot)
+            ws.merge_range(7, 2, 7, UC, 'U00-09TR002  |  amostra por embarque (fase TN)  |  EMB: amostra única',
+                           self.f(font_size=9, font_color=TEXTO_SEC, indent=1))
+            ws.set_row(8, 6)
+            rodape = 'Aba de testes  |  Tags: Plano Amostral rev. 06  |  Sem farol (sem limites cadastrados)'
         ws.set_row(9, 15)
         ws.merge_range(9, 1, 9, UC, 'Resultados não atualizados', self.f(font_size=8, italic=True,
                                                                               font_color=TEXTO_SEC, indent=1))
-        self.nome('gAtualizado', ws, 9, 1)
+        self.nome(x + 'Atualizado', ws, 9, 1)
         r = 10
-        r, _ = self.tabela(ws, r, NSLOT_INF, ['—'] * NSLOT_INF, 'gHoras', 'Média do período', 'gProdUS3', 'gProdUS4',
-                           CB + 2)
+        r, _ = self.tabela(ws, r, NSLOT_INF, ['—'] * NSLOT_INF, x + 'Horas', 'Média do período', 'gProdUS3',
+                           'gProdUS4', CB + 2, cons)
         ws.set_row(r, 16)
-        ws.merge_range(r, 1, r, UC, 'Verde: dentro do limite   |   Vermelho: fora do limite   |   '
-                       'Limites: SMIN-POP-GEA-001 rev. 12   |   MD03: Pellet Feed Mineroduto 03',
-                       self.f(font_size=7.5, font_color=TEXTO_SEC, italic=True, indent=1))
+        ws.merge_range(r, 1, r, UC, rodape, self.f(font_size=7.5, font_color=TEXTO_SEC, italic=True, indent=1))
         fim = r
-        self.nome('gArea', ws, 1, 1, fim, UC)
+        self.nome(x + 'Area', ws, 1, 1, fim, UC)
         ws.print_area(1, 1, fim, UC)
         ws.set_landscape()
         ws.set_paper(9)
-        ws.fit_to_pages(1, 1)
+        ws.fit_to_pages(1, 0 if cons == 'E' else 1)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
         ws.center_horizontally()
-        self.botao(ws, 1, CB, 'Atualizar dados do MES', 'AtualizarResultados', 200, 36, 'primario', x=4, y=8)
-        self.botao(ws, 5, CB, 'Copiar imagem', 'CopiarImagemResultados', 200, 36, 'destaque', x=4, y=2)
+        self.botao(ws, 1, CB, 'Atualizar dados do MES', macro_atual, 200, 36, 'primario', x=4, y=8)
+        self.botao(ws, 5, CB, 'Copiar imagem', macro_copiar, 200, 36, 'destaque', x=4, y=2)
         self.link(ws, 9, CB, "'Preenchimento'!A1", 'Voltar ao Preenchimento', 10)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
@@ -1134,7 +1202,7 @@ def montar_vba(layout_code):
     # abas de Resumo: ao abrir, ocultam as linhas vazias (evento simples, sem outras macros)
     evento = ('Option Explicit\n\nPrivate Sub Worksheet_Activate()\n'
               '    On Error Resume Next\n    CompactarAba Me\nEnd Sub\n')
-    for cn in ['shPreenchimento', 'shResumoDia', 'shResumoNoite', 'shResultados', 'shLimites', 'shConfig', 'shDadosMES',
+    for cn in ['shPreenchimento', 'shResumoDia', 'shResumoNoite', 'shResultados', 'shEmbarque', 'shLimites', 'shConfig', 'shDadosMES',
                'shMapa']:
         mods.append({'name': cn, 'kind': 'sheet', 'code': evento if cn in ('shResumoDia', 'shResumoNoite') else ''})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModImagem']:

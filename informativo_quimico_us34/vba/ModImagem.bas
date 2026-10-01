@@ -32,6 +32,11 @@ Public Sub CopiarImagemResultados()
     CopiarArea shResultados, "gArea", "Resultados gerais"
 End Sub
 
+Public Sub CopiarImagemEmbarque()
+    CompactarAba shEmbarque
+    CopiarArea shEmbarque, "eArea", "Embarque"
+End Sub
+
 ' Chaves na coluna A:
 '   "T"   linha de lista: oculta quando vazia
 '   "W"   texto livre: altura conforme o tamanho do texto
