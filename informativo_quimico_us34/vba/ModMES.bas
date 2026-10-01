@@ -5,8 +5,7 @@ Option Explicit
 '  Botoes:
 '    AtualizarMESDia / AtualizarMESNoite  (abas Resumo Dia / Resumo Noite)
 '    AtualizarResultados                  (aba Resultados gerais, periodo livre)
-'    AtualizarEmbarque                    (aba Embarque, periodo livre - testes)
-'  Cada botao consulta so o seu bloco (Q = Filtragem/Pelota, E = Embarque).
+'  Tags recusadas pelo MES ("Tag Name ... is invalid") saem da consulta, com aviso.
 '  Os valores de 2 em 2 h sao gravados direto na tabela da propria aba
 '  (media, minimo e maximo sao formulas da planilha).
 ' ============================================================================
@@ -20,7 +19,7 @@ Private Const ESTAVEL_SEG As Double = 2
 Private Const SEM_DADOS_SEG As Double = 15
 ' Evita duas consultas ao mesmo tempo (clique repetido no botao durante a espera)
 Private mOcupado As Boolean
-' Bloco consultado no clique atual ("Q" ou "E"; vazio = todos)
+' Bloco consultado no clique atual (vazio = todos)
 Private mBloco As String
 ' Tags recusadas pelo MES ("Tag Name ... is invalid"), no formato |TAG1|TAG2|. Ficam fora das
 ' consultas seguintes (uma tag invalida derruba a consulta inteira no Aspen).
@@ -73,11 +72,6 @@ End Sub
 ' Aba Resultados gerais: periodo escolhido (inicio/fim, ate 24 h)
 Public Sub AtualizarResultados()
     AtualizarPeriodo shResultados, "g", "Q", "Resultados gerais"
-End Sub
-
-' Aba Embarque (testes): quimica e fisica do embarque, periodo escolhido (ate 24 h)
-Public Sub AtualizarEmbarque()
-    AtualizarPeriodo shEmbarque, "e", "E", "Embarque"
 End Sub
 
 Private Sub AtualizarPeriodo(ByVal ws As Worksheet, ByVal x As String, ByVal bloco As String, ByVal titulo As String)
@@ -484,7 +478,7 @@ Private Sub DesligarConsultas()
     LimparSaidasMES
 End Sub
 
-' A consulta dos outros blocos (ex.: Embarque ao atualizar o turno) vira texto antes de mudar o
+' A consulta dos outros blocos vira texto antes de mudar o
 ' periodo, para nao ser refeita a toa pelo Excel.
 Private Sub DesligarOutrosBlocos()
     Dim b As Long, c As Range

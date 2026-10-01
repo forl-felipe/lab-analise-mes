@@ -31,7 +31,6 @@ Public Sub TesteLO()
     ' estado apos a 1a consulta real: formula do Aspen desligada (texto), prefixo guardado
     Nm("mesPrefixo").Value = "'" & Left$(shDadosMES.Range("A7").Formula, InStr(shDadosMES.Range("A7").Formula, "("))
     shDadosMES.Range("A7").Value = "'Consulta concluída"
-    shDadosMES.Range("A22").Value = "'Consulta concluída"
     Nm("cfgFonte").Value = "SIMULAÇÃO"
     Nm("pData").Value = DateSerial(2026, 9, 28)
     Nm("dLetra").Value = "A"
@@ -57,7 +56,7 @@ Public Sub TesteLO()
         "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & "|dAtual=" & Left$(Nm("dAtualizado").Value, 40) & _
         "|FePelotaUS3=" & ws.Cells(LinhaChave(ws, "P06U3"), 11).Value & _
         "|SiO2PFvisivel=" & (Not ws.Rows(lin).Hidden) & _
-        "|embarqueNoResumo=" & (LinhaChave(ws, "P13U3") > 0) & "|semPPCpelota=" & (LinhaChave(ws, "P12U3") > 0 And CStr(ws.Cells(LinhaChave(ws, "P12U3"), 2).Value) = "Mn") & _
+        "|semPPCpelota=" & (LinhaChave(ws, "P12U3") > 0 And CStr(ws.Cells(LinhaChave(ws, "P12U3"), 2).Value) = "Mn") & _
         "|B2US4=" & ws.Cells(LinhaChave(ws, "P11U4"), 11).Value
     ' farol: limites do produto (colunas auxiliares Q=min, R=max)
     passo = 22
@@ -123,31 +122,11 @@ Public Sub TesteLO()
     vazia3 = Vazio(shResultados.Cells(lin, COL_SLOT1 + 2).Value)
     r = r & "|andamento_cheias=" & cheias & "|andamento_janela3vazia=" & vazia3 & _
         "|andamento_atual=" & Left$(Nm("gAtualizado").Value, 60)
-    passo = 58
-    ' Embarque (testes): consulta propria, uma linha por analise
-    Nm("eIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
-    Nm("eFim").Value = DateSerial(2026, 9, 28) + TimeSerial(19, 0, 0)
-    AtualizarEmbarque
-    nv = 0
-    lin = LinhaChave(shEmbarque, "P13U3")
-    For jj = 0 To 5
-        If ENumero(shEmbarque.Cells(lin, COL_SLOT1 + jj).Value) Then nv = nv + 1
-    Next jj
-    r = r & "|emb_FeSlots=" & nv & "|emb_FeMedia=" & shEmbarque.Cells(lin, 17).Text & _
-        "|emb_semUS4=" & (LinhaChave(shEmbarque, "P13U4") = 0) & "|emb_tag=" & shConfig.Cells(CFG_ROW1 + 12, CFG_COL_TAG3).Value & _
-        "|emb_semFiltragem=" & (LinhaChave(shEmbarque, "P01U3") = 0) & _
-        "|emb_ultima=" & (LinhaChave(shEmbarque, "P" & Format$(NPARAM, "00") & "U3") > 0) & _
-        "|emb_col7oculta=" & shEmbarque.Columns(COL_SLOT1 + 6).Hidden & _
-        "|emb_atual=" & Left$(Nm("eAtualizado").Value, 45)
     passo = 59
     ' tags recusadas pelo MES: o texto de erro do Aspen e lido e as tags saem da consulta
-    Nm("eFase").Value = "TN"
-    Application.Calculate
-    r = r & "|tagTN=" & shConfig.Cells(CFG_ROW1 + 12, CFG_COL_TAG3).Value
-    shDadosMES.Range("A22").Value = "'Erro:(M620010000-0002-TNLQU) Tag Name M620010000-0002-TNLQU is invalid(M620010000-0002-TNLQU) Tag Name M620010000-0004-TNLQU is invalid"
-    r = r & "|invalidas=" & Replace(TesteTagsInvalidas("E"), vbCrLf, "/")
-    shDadosMES.Range("A22").Value = "'Consulta concluída"
-    Nm("eFase").Value = "HH"
+    shDadosMES.Range("A7").Value = "'Erro:(M710050020-0002-HHLQU) Tag Name M710050020-0002-HHLQU is invalid(M710050020-0002-HHLQU) Tag Name M4710050020-0115-HHLQU is invalid"
+    r = r & "|invalidas=" & Replace(TesteTagsInvalidas("Q"), vbCrLf, "/")
+    shDadosMES.Range("A7").Value = "'Consulta concluída"
     passo = 6
     LimparSaidasMES
     r = r & "|limpo=" & Vazio(shDadosMES.Range("A9").Formula)
@@ -194,9 +173,6 @@ Public Sub DemoLO()
     Nm("gIni").Value = DateSerial(2026, 9, 1) + TimeSerial(7, 0, 0)
     Nm("gFim").Value = DateSerial(2026, 9, 2) + TimeSerial(7, 0, 0)
     AtualizarResultados
-    Nm("eIni").Value = DateSerial(2026, 9, 1) + TimeSerial(7, 0, 0)
-    Nm("eFim").Value = DateSerial(2026, 9, 1) + TimeSerial(19, 0, 0)
-    AtualizarEmbarque
 End Sub
 
 ' Grava os argumentos que o VBA monta para cada consulta (comparados com o Python no teste)

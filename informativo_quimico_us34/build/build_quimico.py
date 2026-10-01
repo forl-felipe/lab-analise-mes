@@ -5,7 +5,6 @@ Estrutura simples, 4 abas visiveis:
   Resumo Dia / Noite - tudo do turno migrado por FORMULA + resultados quimicos do MES;
                        dois botoes: Atualizar dados do MES e Copiar imagem
   Resultados gerais  - resultados do MES de qualquer periodo de ate 24 h
-  Embarque           - quimica e fisica do embarque (testes), periodo de ate 24 h
 Consulta ao MES (Aspen IP.21) igual a do Informativo do Laboratorio Fisico (informativo_us34).
 
 Uso:  python3 build_quimico.py [--teste]
@@ -55,7 +54,7 @@ FONTE = 'Segoe UI'
 
 # ---------------------------------------------------------------- analises quimicas
 # Tags conforme o Plano Amostral do Laboratorio Fisico/Quimico de Ubu (rev. 06):
-#   tag = "M" & ponto & "-" & codigo (4 digitos) & "-" & fase (HH = bi-horario, TN = por embarque) & area
+#   tag = "M" & ponto & "-" & codigo (4 digitos) & "-" & fase (HH = bi-horario) & area
 # Filtragem (Pellet Feed):  US3 U03-02TP004 = M650030010    US4 U04-02TP006 = M4650060010
 # Pelota Queimada:          US3 U03-07TP002 = M710050020    US4 U04-07TP015 = M4710050020
 # So os resultados bi-horarios (HH). Fe e Al2O3 da Filtragem sao diarios (DD) e ficam fora do turno.
@@ -85,25 +84,6 @@ def _lm(nome, un, dec, cod, tip3, tip4):
     return _us(G_LM, PQ3, PQ4, nome, un, dec, cod, tip3, tip4)
 
 
-# Embarque (aba Embarque, para testes): amostra unica por embarque (fase TN), consulta propria ('E')
-E_PQ, E_PF, E_PS = 'M620010000', 'M620020000', 'M620030000'
-G_EPQ = 'Embarque - Pelota Queimada (química)'
-G_EPQF = 'Embarque - Pelota Queimada (física)'
-G_EPF = 'Embarque - Pellet Feed'
-G_EPS = 'Embarque - Pellet Screening'
-
-
-# A fase da tag do embarque e escolhida na propria aba (eFase): o MES recusou a fase TN do Plano Amostral.
-FASES_EMB = ['HH', 'DD', 'TN', 'CG']
-
-
-def _emb(grupo, ponto, nome, un, dec, cod, sufixo, tip):
-    """sufixo = fase do plano + area (ex.: TNLQU); a fase e trocada pela escolhida em eFase."""
-    area = sufixo[2:]
-    tag = '%s-%s-HH%s' % (ponto, cod, area)
-    return (grupo, nome, un, dec, 'Média', tag, MV, tag, MV, tip, tip, 'E', True, (ponto, cod, area))
-
-
 # (grupo, analise, unidade, decimais, agregacao, tag US3, tipo, tag US4, tipo, tipico US3, tipico US4,
 #  consulta, amostra_unica)
 PARAMS = [
@@ -120,38 +100,6 @@ PARAMS = [
     _lm('B2 (CaO/SiO2)', '-', 2, '0018', 0.45, 0.48),
     _lm('Mn', '%', 3, '0115', 0.070, 0.071),
 ]
-PARAMS += [_emb(G_EPQ, E_PQ, n, u, d, c, 'TNLQU', t) for n, u, d, c, t in [
-    ('Fe', '%', 2, '0002', 65.60), ('SiO2', '%', 2, '0004', 2.90), ('Al2O3', '%', 2, '0005', 0.44),
-    ('CaO', '%', 2, '0006', 1.40), ('MgO', '%', 2, '0007', 0.11), ('P', '%', 3, '0008', 0.050),
-    ('Mn', '%', 3, '0115', 0.071), ('B2 (CaO/SiO2)', '-', 2, '0018', 0.48), ('PPC', '%', 2, '0013', 0.12)]]
-PARAMS += [_emb(G_EPQF, E_PQ, n, u, d, c, 'TNLFU', t) for n, u, d, c, t in [
-    ('Peneira > 19,0 mm', '%', 2, '0020', 0.5), ('Peneira > 16,0 mm', '%', 2, '0021', 12.0),
-    ('Peneira > 14,0 mm', '%', 2, '0496', 35.0), ('Peneira > 12,5 mm', '%', 2, '0022', 60.0),
-    ('Peneira > 9,0 mm', '%', 2, '0023', 95.0), ('Peneira > 8,0 mm', '%', 2, '0024', 97.0),
-    ('Peneira > 6,3 mm', '%', 2, '0025', 98.0), ('Peneira > 5,0 mm', '%', 2, '0544', 98.5),
-    ('Peneira > 0,5 mm', '%', 2, '0086', 99.0), ('Peneira < 0,5 mm', '%', 2, '0087', 1.0),
-    ('% > 6,3 mm', '%', 2, '2612', 98.0), ('% < 0,5 mm', '%', 2, '2615', 1.0),
-    ('Média (kg/pel)', 'kg/pel', 0, '0031', 330), ('% < 200 (kg/pel)', '%', 2, '0032', 5.0),
-    ('% < 150 (kg/pel)', '%', 2, '0033', 2.0), ('% < 100 (kg/pel)', '%', 2, '0257', 1.0),
-    ('DP (kg/pel)', 'kg/pel', 0, '2822', 80), ('Média (kgf/pel)', 'kgf/pel', 0, '0035', 330),
-    ('% < 200 (kgf/pel)', '%', 2, '2954', 5.0), ('% < 150 (kgf/pel)', '%', 2, '2947', 2.0),
-    ('% < 100 (kgf/pel)', '%', 2, '2948', 1.0), ('DP (kgf/pel)', 'kgf/pel', 0, '2949', 80)]]
-PARAMS += [_emb(G_EPF, E_PF, n, u, d, c, s, t) for n, u, d, c, s, t in [
-    ('SiO2', '%', 2, '0004', 'TNLQU', 2.30), ('Al2O3', '%', 2, '0005', 'TNLQU', 0.40),
-    ('P', '%', 3, '0008', 'TNLQU', 0.050), ('CaO', '%', 2, '0006', 'TNLQU', 0.10),
-    ('MgO', '%', 2, '0007', 'TNLQU', 0.06), ('Umidade (H2O)', '%', 2, '0001', 'TNCC', 9.5),
-    ('Superfície específica', 'cm²/g', 0, '0017', 'CGCC', 1800), ('% > 100#', '%', 2, '2674', 'CGCC', 0.5),
-    ('% > 200#', '%', 2, '2634', 'CGCC', 3.0), ('% > 325#', '%', 2, '2636', 'CGCC', 10.0),
-    ('% < 325#', '%', 2, '0016', 'CGCC', 87.0)]]
-PARAMS += [_emb(G_EPS, E_PS, n, u, d, c, s, t) for n, u, d, c, s, t in [
-    ('Fe', '%', 2, '0002', 'TNLQU', 64.5), ('SiO2', '%', 2, '0004', 'TNLQU', 3.20),
-    ('Al2O3', '%', 2, '0005', 'TNLQU', 0.45), ('P', '%', 3, '0008', 'TNLQU', 0.055),
-    ('CaO', '%', 2, '0006', 'TNLQU', 1.20), ('MgO', '%', 2, '0007', 'TNLQU', 0.10),
-    ('PPC', '%', 2, '0013', 'TNLQU', 0.20), ('Umidade (H2O)', '%', 2, '0001', 'TNCC', 3.0),
-    ('Peneira 9,5 mm', '%', 2, '0117', 'TNCC', 2.0), ('Peneira 6,3 mm', '%', 2, '2691', 'TNCC', 20.0),
-    ('Peneira 3,15 mm', '%', 2, '0437', 'TNCC', 40.0), ('Peneira 2,0 mm', '%', 2, '0438', 'TNCC', 15.0),
-    ('Peneira 1,0 mm', '%', 2, '0439', 'TNCC', 10.0), ('Peneira 0,5 mm', '%', 2, '0440', 'TNCC', 5.0),
-    ('Peneira 100#', '%', 2, '2701', 'TNCC', 4.0), ('Peneira < 100#', '%', 2, '0014', 'TNCC', 4.0)]]
 NPARAM = len(PARAMS)
 NSLOT = 6
 USINAS = ('US3', 'US4')
@@ -195,10 +143,9 @@ def lim_col(chave, qual):
     return colname(LIM_COL1 + 2 * i + qual)
 
 
-# Consulta ao MES no mesmo formato da planilha de referencia (texto literal). Duas consultas
-# (tipo de calculo "1" = media da janela de 2 h): 'Q' = Filtragem/Pelota (Resumos e Resultados gerais)
-# e 'E' = Embarque (aba Embarque). Cada botao calcula so a sua consulta.
-BLOCOS = [('Q', 'Análises químicas', '1', 7), ('E', 'Embarque (testes)', '1', 22)]
+# Consulta ao MES no mesmo formato da planilha de referencia (texto literal); uma consulta so,
+# com todas as analises quimicas (tipo de calculo "1" = media da janela de 2 h)
+BLOCOS = [('Q', 'Análises químicas', '1', 7)]
 SERVIDOR_PADRAO = 'UBU'
 
 # Configuracoes: colunas (1-based) da tabela de tags
@@ -340,14 +287,12 @@ class Construtor:
         self.ws_res_d = wb.add_worksheet('Resumo Dia')
         self.ws_res_n = wb.add_worksheet('Resumo Noite')
         self.ws_ger = wb.add_worksheet('Resultados gerais')
-        self.ws_emb = wb.add_worksheet('Embarque')
         self.ws_lim = wb.add_worksheet('Limites')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
         self.ws_mapa = wb.add_worksheet('_Mapa')
         for ws, cn in [(self.ws_pre, 'shPreenchimento'), (self.ws_res_d, 'shResumoDia'),
                        (self.ws_res_n, 'shResumoNoite'), (self.ws_ger, 'shResultados'),
-                       (self.ws_emb, 'shEmbarque'),
                        (self.ws_lim, 'shLimites'), (self.ws_cfg, 'shConfig'), (self.ws_mes, 'shDadosMES'), (self.ws_mapa, 'shMapa')]:
             ws.set_vba_name(cn)
             ws.hide_gridlines(2)
@@ -355,7 +300,6 @@ class Construtor:
         self.ws_res_d.set_tab_color(AZUL)
         self.ws_res_n.set_tab_color(AZUL)
         self.ws_ger.set_tab_color(AZUL_ACINZ)
-        self.ws_emb.set_tab_color(AZUL_ACINZ)
         self.ws_cfg.set_tab_color(CINZA)
 
         self.aba_config()
@@ -365,7 +309,6 @@ class Construtor:
         self.aba_resumo(self.ws_res_d, 'd', 'Dia', 'Dia  07:00 – 19:00', 7)
         self.aba_resumo(self.ws_res_n, 'n', 'Noite', 'Noite  19:00 – 07:00', 19)
         self.aba_resultados()
-        self.aba_embarque()
         self.aba_mapa()
         self.ws_mes.hide()
         self.ws_cfg.hide()
@@ -417,7 +360,7 @@ class Construtor:
 
         ws.merge_range(14, 1, 14, 15,
                        'Análise sem tag não é consultada no MES e não aparece no relatório. '
-                       'Embarque: amostra única (tag US4 = tag US3). Tags: Plano Amostral rev. 06.',
+                       'Pellet Feed: amostra única US3/4 (tag US4 = tag US3). Tags: Plano Amostral rev. 06.',
                        self.f(font_size=9, italic=True, font_color=AZUL_ACINZ, text_wrap=True, indent=1))
         ws.set_row(14, 28)
         self.secao(ws, 15, 1, 15, 'Tags do MES')
@@ -438,13 +381,7 @@ class Construtor:
             ws.write(r, 3, un, self.f_input(align='center'))
             ws.write(r, 4, dec, self.f_input(align='center'))
             ws.write(r, 5, agg, self.f_input(align='center'))
-            if len(pr) > 13:
-                # embarque: tag montada com a fase escolhida na aba Embarque (eFase)
-                ponto, cod, area = pr[13]
-                ws.write_formula(r, 6, '="%s-%s-"&eFase&"%s"' % (ponto, cod, area),
-                                 self.f_input(font_name='Consolas', font_size=9), t3)
-            else:
-                ws.write(r, 6, t3, self.f_input(font_name='Consolas', font_size=9))
+            ws.write(r, 6, t3, self.f_input(font_name='Consolas', font_size=9))
             ws.write(r, 7, ty3, self.f_input(font_size=9))
             if pr[12]:
                 # amostra unica (Pellet Feed): a tag US4 repete a US3
@@ -652,7 +589,6 @@ class Construtor:
         self.link(ws, self.link_pre_row, 4, "'Resumo Dia'!A1", 'Resumo Dia')
         self.link(ws, self.link_pre_row, 6, "'Resumo Noite'!A1", 'Resumo Noite')
         self.link(ws, self.link_pre_row, 8, "'Resultados gerais'!A1", 'Resultados gerais')
-        self.link(ws, self.link_pre_row, 10, "'Embarque'!A1", 'Embarque')
         ws.print_area(1, 1, fim, UC)
         ws.set_portrait()
         ws.set_paper(9)
@@ -801,8 +737,7 @@ class Construtor:
         return rr + 2
 
     # ------------------------------------------------------------ tabela de resultados (Resumo e Resultados gerais)
-    def tabela(self, ws, r, nslot, horas, nome_horas, tit_media, prod3, prod4, col_lim, cons='Q',
-               rot_unica='EMB'):
+    def tabela(self, ws, r, nslot, horas, nome_horas, tit_media, prod3, prod4, col_lim):
         """Tabela de analises: Amostra/analise | Un. | Usina | janelas de 2 h | Media | Min | Max.
         As janelas sao gravadas pelo VBA; media, minimo e maximo sao formulas.
         Chaves na coluna A (fonte branca): G1.. = grupo, P02U3 = analise/usina (usadas pelo VBA)."""
@@ -813,7 +748,7 @@ class Construtor:
         hdr = self.f(bold=True, font_size=9, font_color=BRANCO, bg_color=AZUL, align='center', text_wrap=True,
                      border=1, border_color=BRANCO)
         ws.set_row(r, 30)
-        cabs = ['Amostra / análise', 'Un.', 'Usina' if cons == 'Q' else 'Ponto'] + horas + [tit_media, 'Mín.', 'Máx.']
+        cabs = ['Amostra / análise', 'Un.', 'Usina'] + horas + [tit_media, 'Mín.', 'Máx.']
         for i, t in enumerate(cabs):
             ws.write(r, 1 + i, t, hdr)
         self.nome(nome_horas, ws, r, CS, r, CS + nslot - 1)
@@ -825,8 +760,6 @@ class Construtor:
         # colunas auxiliares (ocultas) com o limite minimo e maximo do produto de cada linha
         ws.set_column(col_lim, col_lim + 1, 8, None, {'hidden': True})
         for p, pr in enumerate(PARAMS, start=1):
-            if pr[11] != cons:
-                continue
             g, nome, un, dec = pr[:4]
             unica = pr[12]
             if g != grupo:
@@ -854,7 +787,7 @@ class Construtor:
                 rr = r + k
                 ws.set_row(rr, 17)
                 ws.write(rr, 0, 'P%02dU%d' % (p, 3 + k), chave_fmt)
-                ws.write(rr, 3, ('US3/4' if cons == 'Q' else rot_unica) if unica else USINAS[k],
+                ws.write(rr, 3, 'US3/4' if unica else USINAS[k],
                          self.f(bold=True, font_size=9, font_color=AZUL if k == 0 else AZUL_ACINZ, align='center', **b))
                 vals = '%s:%s' % (rc(rr, CS), rc(rr, CM - 1))
                 for cc in range(CS, CM):
@@ -1071,15 +1004,7 @@ class Construtor:
     # ------------------------------------------------------------ Resultados gerais
     def aba_resultados(self):
         """Resultados quimicos de qualquer periodo de ate 24 h (inicio e fim escolhidos pelo tecnico)."""
-        self.aba_periodo(self.ws_ger, 'g', 'Q', 'LABORATÓRIO QUÍMICO', 'AtualizarResultados',
-                         'CopiarImagemResultados', True)
-
-    def aba_embarque(self):
-        """Embarque (testes): quimica e fisica do embarque (U00-09TR002), periodo de ate 24 h."""
-        self.aba_periodo(self.ws_emb, 'e', 'E', 'LABORATÓRIO QUÍMICO  |  EMBARQUE (TESTES)', 'AtualizarEmbarque',
-                         'CopiarImagemEmbarque', False)
-
-    def aba_periodo(self, ws, x, cons, subtitulo, macro_atual, macro_copiar, com_produto):
+        ws = self.ws_ger
         CS = 4
         CM = CS + NSLOT_INF
         UC = CM + 2
@@ -1093,7 +1018,7 @@ class Construtor:
         ws.set_column(CM + 1, UC, 9)
         ws.set_column(UC + 1, UC + 1, 3)
         ws.set_column(CB, CB, 28)
-        self.cabecalho(ws, UC, 'RELATÓRIO DE PASSAGEM DE TURNO', subtitulo, col_logo_fim=3)
+        self.cabecalho(ws, UC, 'RELATÓRIO DE PASSAGEM DE TURNO', 'LABORATÓRIO QUÍMICO', col_logo_fim=3)
         ws.set_row(4, 8)
         ws.set_row(5, 26)
         rot = self.f(font_size=9, bold=True, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO, indent=1,
@@ -1105,8 +1030,8 @@ class Construtor:
         ws.merge_range(5, CS, 5, CS + 2, '', sel)
         ws.write(5, CS + 3, 'Fim', self.f(font_size=9, font_color=TEXTO_SEC, align='center'))
         ws.merge_range(5, CS + 4, 5, CS + 6, '', sel)
-        self.nome(x + 'Ini', ws, 5, CS)
-        self.nome(x + 'Fim', ws, 5, CS + 4)
+        self.nome('gIni', ws, 5, CS)
+        self.nome('gFim', ws, 5, CS + 4)
         for cc in (CS, CS + 4):
             ws.data_validation(5, cc, 5, cc, {'validate': 'date', 'criteria': '>', 'value': dtm.date(2020, 1, 1),
                                               'error_message': 'Digite data e hora: dd/mm/aaaa hh:mm'})
@@ -1115,50 +1040,35 @@ class Construtor:
         ws.set_row(6, 6)
         prod = self.f(bold=True, font_size=10, font_color=AZUL_TITULO, align='center', bg_color=FUNDO_INPUT,
                       border=1, border_color=BORDA, locked=False)
-        if com_produto:
-            for i, us in enumerate(('US3', 'US4')):
-                rr = 7 + i
-                ws.set_row(rr, 20)
-                ws.write(rr, 1, 'Produto ' + us, rot)
-                ws.merge_range(rr, 2, rr, 3, '', prod)
-                ws.write_formula(rr, 2, '=IF(dProd{u}="","",dProd{u})'.format(u=us), prod)
-                ws.data_validation(rr, 2, rr, 2, {'validate': 'list', 'source': '=lstProdutos'})
-                self.nome('gProd' + us, ws, rr, 2)
-            rodape = ('Verde: dentro do limite   |   Vermelho: fora do limite   |   '
-                      'Limites: SMIN-POP-GEA-001 rev. 12   |   Tags: Plano Amostral rev. 06')
-        else:
-            ws.set_row(7, 20)
-            ws.write(7, 1, 'Ponto de amostragem', rot)
-            ws.merge_range(7, 2, 7, UC, 'U00-09TR002  |  EMB: amostra única do embarque',
-                           self.f(font_size=9, font_color=TEXTO_SEC, indent=1))
-            ws.set_row(8, 20)
-            ws.write(8, 1, 'Fase da tag no MES', rot)
-            ws.merge_range(8, 2, 8, 3, 'HH', prod)
-            ws.data_validation(8, 2, 8, 2, {'validate': 'list', 'source': FASES_EMB})
-            self.nome('eFase', ws, 8, 2)
-            ws.merge_range(8, 4, 8, UC, 'Teste: escolha a fase (HH, DD, TN ou CG) e clique em Atualizar. '
-                           'Tags recusadas pelo MES são avisadas.',
-                           self.f(font_size=8.5, font_color=TEXTO_SEC, indent=1))
-            rodape = 'Aba de testes  |  Tags: Plano Amostral rev. 06  |  Sem farol (sem limites cadastrados)'
+        for i, us in enumerate(('US3', 'US4')):
+            rr = 7 + i
+            ws.set_row(rr, 20)
+            ws.write(rr, 1, 'Produto ' + us, rot)
+            ws.merge_range(rr, 2, rr, 3, '', prod)
+            ws.write_formula(rr, 2, '=IF(dProd{u}="","",dProd{u})'.format(u=us), prod)
+            ws.data_validation(rr, 2, rr, 2, {'validate': 'list', 'source': '=lstProdutos'})
+            self.nome('gProd' + us, ws, rr, 2)
+        rodape = ('Verde: dentro do limite   |   Vermelho: fora do limite   |   '
+                  'Limites: SMIN-POP-GEA-001 rev. 12   |   Tags: Plano Amostral rev. 06')
         ws.set_row(9, 15)
         ws.merge_range(9, 1, 9, UC, 'Resultados não atualizados', self.f(font_size=8, italic=True,
                                                                               font_color=TEXTO_SEC, indent=1))
-        self.nome(x + 'Atualizado', ws, 9, 1)
+        self.nome('gAtualizado', ws, 9, 1)
         r = 10
-        r, _ = self.tabela(ws, r, NSLOT_INF, ['—'] * NSLOT_INF, x + 'Horas', 'Média do período', 'gProdUS3',
-                           'gProdUS4', CB + 2, cons)
+        r, _ = self.tabela(ws, r, NSLOT_INF, ['—'] * NSLOT_INF, 'gHoras', 'Média do período', 'gProdUS3',
+                           'gProdUS4', CB + 2)
         ws.set_row(r, 16)
         ws.merge_range(r, 1, r, UC, rodape, self.f(font_size=7.5, font_color=TEXTO_SEC, italic=True, indent=1))
         fim = r
-        self.nome(x + 'Area', ws, 1, 1, fim, UC)
+        self.nome('gArea', ws, 1, 1, fim, UC)
         ws.print_area(1, 1, fim, UC)
         ws.set_landscape()
         ws.set_paper(9)
-        ws.fit_to_pages(1, 0 if cons == 'E' else 1)
+        ws.fit_to_pages(1, 1)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
         ws.center_horizontally()
-        self.botao(ws, 1, CB, 'Atualizar dados do MES', macro_atual, 200, 36, 'primario', x=4, y=8)
-        self.botao(ws, 5, CB, 'Copiar imagem', macro_copiar, 200, 36, 'destaque', x=4, y=2)
+        self.botao(ws, 1, CB, 'Atualizar dados do MES', 'AtualizarResultados', 200, 36, 'primario', x=4, y=8)
+        self.botao(ws, 5, CB, 'Copiar imagem', 'CopiarImagemResultados', 200, 36, 'destaque', x=4, y=2)
         self.link(ws, 9, CB, "'Preenchimento'!A1", 'Voltar ao Preenchimento', 10)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
@@ -1222,7 +1132,7 @@ def montar_vba(layout_code):
     # abas de Resumo: ao abrir, ocultam as linhas vazias (evento simples, sem outras macros)
     evento = ('Option Explicit\n\nPrivate Sub Worksheet_Activate()\n'
               '    On Error Resume Next\n    CompactarAba Me\nEnd Sub\n')
-    for cn in ['shPreenchimento', 'shResumoDia', 'shResumoNoite', 'shResultados', 'shEmbarque', 'shLimites', 'shConfig', 'shDadosMES',
+    for cn in ['shPreenchimento', 'shResumoDia', 'shResumoNoite', 'shResultados', 'shLimites', 'shConfig', 'shDadosMES',
                'shMapa']:
         mods.append({'name': cn, 'kind': 'sheet', 'code': evento if cn in ('shResumoDia', 'shResumoNoite') else ''})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModImagem']:

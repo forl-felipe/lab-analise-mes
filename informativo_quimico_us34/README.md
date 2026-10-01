@@ -5,7 +5,7 @@ Informativo do Laboratório Físico (`../informativo_us34`):
 
 - turnos de 12 horas (Dia 07h–19h, Noite 19h–07h) e letras A, B, C e D, com **um técnico por letra**;
 - **modelo diário**: um arquivo por dia, com os dois turnos;
-- **estrutura simples, 4 abas de trabalho e 1 de testes (Embarque)**: quase tudo funciona por fórmula. O VBA só busca o MES, copia a imagem e esconde as
+- **estrutura simples, 4 abas**: quase tudo funciona por fórmula. O VBA só busca o MES, copia a imagem e esconde as
   linhas vazias do resumo. Não há Painel nem "Finalizar turno".
 
 A ocorrência segue a planilha que o laboratório usa hoje (`01-09-26.xlsm`). As análises e as tags seguem o
@@ -18,11 +18,10 @@ A ocorrência segue a planilha que o laboratório usa hoje (`01-09-26.xlsm`). As
 | **Preenchimento** | A única aba em que o técnico escreve. No alto fica a **data do dia**; abaixo, o **Turno Dia** e, mais embaixo, o **Turno Noite**, com os mesmos campos: letra, técnico, letra que recebe, produto US3/US4, tarefas realizadas, solicitações, equipamentos, tarefas a realizar, **comentários por usina**, controle do laboratório, cadinhos de platina e observações |
 | **Resumo Dia** / **Resumo Noite** | Relatório técnico do turno (imagem para o e-mail), em formato paisagem e **no mesmo formato do Preenchimento**: identificação, ocorrências linha a linha (numeradas), comentários por usina, controle do laboratório, cadinhos, observações e resultados do MES por **horário de amostra (07:30, 09:30…)**. Tudo vem por fórmula. Botões: **Atualizar dados do MES** e **Copiar imagem** |
 | **Resultados gerais** | Resultados químicos de qualquer período de até 24 h: **Início** e **Fim** no alto, **Atualizar dados do MES** e **Copiar imagem** |
-| **Embarque** (testes) | Química e física do embarque (U00-09TR002: Pelota Queimada, Pellet Feed e Pellet Screening), período de até 24 h, janelas de 2 h. Consulta própria ao MES, separada da consulta do turno. Sem farol |
 | Limites (oculta) | **Farol por produto**: limites químicos de cada produto (SMIN-POP-GEA-001 rev. 12). Pode ser editada e ampliada à mão (botão direito numa guia → Reexibir → Limites) |
 | Configurações (oculta) | Fonte dos dados, servidor, **tags do MES**, LIE/LSE e faixa válida. Para abrir: botão direito numa guia → Reexibir |
 
-Navegação por hiperlinks (sem macro): "Ir para: Turno Noite / Resumo Dia / Resumo Noite / Resultados gerais / Embarque" e "Voltar ao Preenchimento".
+Navegação por hiperlinks (sem macro): "Ir para: Turno Noite / Resumo Dia / Resumo Noite / Resultados gerais" e "Voltar ao Preenchimento".
 
 ## Rotina do técnico
 
@@ -100,24 +99,6 @@ ficam fora.
 
 Toda tag pode ser alterada na aba **Configurações**. Análise sem tag fica oculta e fora da consulta.
 
-### Embarque (aba de testes)
-
-> **Atenção:** o MES recusou todas as tags de fase **TN** montadas pelo Plano Amostral (ex.: `M620010000-0002-TNLQU`).
-> Todas as tags que funcionam nas planilhas atuais usam a fase **HH**. Por isso, a aba Embarque tem o campo **Fase da tag
-> no MES** (HH, DD, TN ou CG; padrão HH): as tags são montadas com a fase escolhida (ponto + código + fase + área).
-> Para testar, troque a fase e clique em Atualizar. As tags recusadas são avisadas.
-
-Ponto `U00-09TR002` (amostra por embarque). Área da tag conforme o plano (LQU, LFU ou CC); a fase vem do campo da aba:
-
-| Produto | Ponto | Química (LQU) | Física |
-|---|---|---|---|
-| Pelota Queimada | `M620010000` | Fe, SiO2, Al2O3, CaO, MgO, P, Mn, B2, PPC | peneiras > 19 a < 0,5 mm, % > 6,3, % < 0,5, compressão (kg/pel e kgf/pel: média, % < 200/150/100, DP) (LFU) |
-| Pellet Feed | `M620020000` | SiO2, Al2O3, P, CaO, MgO | umidade, superfície específica e granulometria (CC) |
-| Pellet Screening | `M620030000` | Fe, SiO2, Al2O3, P, CaO, MgO, PPC | umidade e peneiras 9,5 mm a < 100# (CC) |
-
-O Fe do Pellet Feed do embarque está no plano com o código 0001, o mesmo da umidade (`M620020000-0001-TNCC`). Por isso,
-ficou de fora até ser confirmado.
-
 ## Consulta ao MES
 
 **Velocidade:**
@@ -127,7 +108,7 @@ ficou de fora até ser confirmado.
 
 **Imagem em alta resolução:** a área é copiada como figura vetorial, ampliada 2,2× num gráfico temporário e exportada como PNG; esse PNG vai para a área de transferência. Se algo falhar, é usada a cópia comum.
 
-Uma consulta `GetCalculationValues` para o turno (Filtragem e Pelota) e outra para o Embarque. Cada botão calcula só a sua: tipo de cálculo `"1"`, janelas de `"2h"` e listas em texto literal, no mesmo formato validado no Físico. A consulta inclui só as análises com as duas tags preenchidas.
+Uma única consulta `GetCalculationValues` com todas as análises configuradas: tipo de cálculo `"1"`, janelas de `"2h"` e listas em texto literal, no mesmo formato validado no Físico. A consulta inclui só as análises com as duas tags preenchidas.
 
 - **O botão pode ser usado a qualquer hora do turno**, para acompanhar os resultados:
   - consulta só até o fim da janela de 2 h atual e nunca pede horários futuros ao MES;
@@ -169,5 +150,5 @@ Validação no LibreOffice (modo simulação):
 - Resumo Dia e Resumo Noite independentes;
 - análises sem tag ocultas;
 - Resultados gerais de 24 h e de 10 h (colunas que sobram ficam ocultas);
-- aba Embarque com consulta própria (fórmula do VBA idêntica à do Python, também para o Embarque);
+- leitura das tags recusadas pelo MES a partir do texto de erro do Aspen;
 - limpeza e recriação das matrizes do MES.
