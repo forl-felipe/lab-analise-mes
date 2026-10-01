@@ -16,7 +16,7 @@ End Function
 Private Function LinhaTexto(ByVal ws As Worksheet, ByVal t As String) As Long
     Dim r As Long
     For r = 1 To 120
-        If ws.Cells(r, 3).Text = t Then
+        If ws.Cells(r, 2).Text = t Or ws.Cells(r, 3).Text = t Then
             LinhaTexto = r
             Exit Function
         End If
@@ -37,21 +37,22 @@ Public Sub TesteLO()
     Nm("dTecnico").Value = "Fulano"
     Nm("dReal").Cells(1, 1).Value = "Controle da Produção: PF 03 04X04h"
     Nm("dReal").Cells(2, 1).Value = " - Descarte das amostras bi-horárias;"
-    Nm("dSol").Cells(1, 1).Value = "sol. 1432026 PF"
+    Nm("dSol").Cells(1, 1).Value = "Solicitação 1632026 - Análise de carvão/coque - Us 03 e Us 04 - 21:30h. ( voltar periodicidade de análise a partir de hj 01/10 ) e priorizar andamento das amostras de alimentação, under e over do circuito de moagem da usina 4"
     Nm("dComUS3").Value = "Usina 03 estável." & vbLf & "Sílica da mistura acima do alvo às 11:30."
-    Nm("dRecebe").Value = "B"
     Nm("dH2Coque").Value = "0,45"
     Nm("dProdUS3").Value = "PDR/STD"
     Nm("dProdUS4").Value = "PBF/MB45"
     Nm("nLetra").Value = "C"
     Nm("nTecnico").Value = "Beltrano"
     Nm("nReal").Cells(1, 1).Value = "Tarefa da noite"
+    AjustarAlturas shPreenchimento, Nm("dSol").Cells(1, 1)
+    r = "altPreLonga=" & shPreenchimento.Rows(Nm("dSol").Cells(1, 1).Row).RowHeight & "|"
     passo = 2
     Set ws = shResumoDia
     AtualizarMESDia
     passo = 21
     lin = LinhaChave(ws, "P01U3")
-    r = "dSiO2PF_slot1=" & ws.Cells(lin, 5).Value & "|dSiO2PF_media=" & ws.Cells(lin, 11).Value & _
+    r = r & "dSiO2PF_slot1=" & ws.Cells(lin, 5).Value & "|dSiO2PF_media=" & ws.Cells(lin, 11).Value & _
         "|PF_umaLinha=" & (LinhaChave(ws, "P01U4") = 0) & "|PFrotulo=" & ws.Cells(lin, 4).Value & _
         "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & "|dAtual=" & Left$(Nm("dAtualizado").Value, 40) & _
         "|FePelotaUS3=" & ws.Cells(LinhaChave(ws, "P06U3"), 11).Value & _
@@ -72,16 +73,20 @@ Public Sub TesteLO()
         "|produtos=" & Application.WorksheetFunction.CountA(shLimites.Range("B9:B33")) & "|gProdUS3=" & Nm("gProdUS3").Text
     passo = 3
     ' migracao por formula
-    lin = LinhaTexto(ws, "Controle da Produção: PF 03 04X04h")
+    lin = LinhaTexto(ws, "1.   Controle da Produção: PF 03 04X04h")
     r = r & "|realLinha1=" & (lin > 0) & "|realVisivel=" & (Not ws.Rows(lin).Hidden) & _
-        "|real2=" & ws.Cells(lin + 1, 3).Value & "|real3oculta=" & ws.Rows(lin + 2).Hidden & _
-        "|equipVazio=" & (LinhaTexto(ws, "Sem registro") > 0) & _
-        "|data=" & ws.Cells(6, 3).Text & "|letra=" & ws.Cells(6, 10).Text & "|recebe=" & ws.Cells(6, 13).Text & _
+        "|real2=" & ws.Cells(lin + 1, 2).Value & "|real3oculta=" & ws.Rows(lin + 2).Hidden & _
+        "|altLinhaLonga=" & ws.Rows(LinhaTexto(ws, "1.   " & Nm("dSol").Cells(1, 1).Value)).RowHeight & _
+        "|equipTituloOculto=" & ws.Rows(LinhaTexto(ws, "3. Equipamentos")).Hidden & _
+        "|solTituloVisivel=" & (Not ws.Rows(LinhaTexto(ws, "2. Solicitações")).Hidden) & _
+        "|cadinhosOculto=" & ws.Rows(LinhaTexto(ws, "CADINHOS DE PLATINA")).Hidden & _
+        "|obsGeraisVisivel=" & (Not ws.Rows(LinhaTexto(ws, "OBSERVAÇÕES GERAIS")).Hidden) & _
+        "|data=" & ws.Cells(6, 3).Text & "|letra=" & ws.Cells(6, 11).Text & _
         "|tecnico=" & ws.Cells(7, 3).Text & "|prodUS3=" & ws.Cells(7, 10).Text
     For jj = 1 To 120
         If CStr(ws.Cells(jj, 2).Value) = "Comentário US3" Then r = r & "|comUS3=" & Replace(ws.Cells(jj, 3).Text, vbLf, "/") & _
             "|altComUS3=" & ws.Rows(jj).RowHeight
-        If CStr(ws.Cells(jj, 2).Value) = "Comentário US4" Then r = r & "|comUS4=" & ws.Cells(jj, 3).Text
+        If CStr(ws.Cells(jj, 2).Value) = "Comentário US4" Then r = r & "|comUS4oculto=" & ws.Rows(jj).Hidden
         If Left$(CStr(ws.Cells(jj, 2).Value), 11) = "Observações" Then r = r & "|obs=" & ws.Cells(jj, 3).Text
         If CStr(ws.Cells(jj, 2).Value) = "Programa em uso" Then r = r & "|prog=" & Left$(ws.Cells(jj, 3).Text, 12)
         If CStr(ws.Cells(jj, 2).Value) = "Sistema de ar utilizado" Then r = r & "|ar=" & ws.Cells(jj, 3).Text
@@ -91,7 +96,7 @@ Public Sub TesteLO()
     Set ws = shResumoNoite
     lin = LinhaChave(ws, "P01U3")
     r = r & "|nHora1=" & Nm("nHoras").Cells(1, 1).Value & "|nSiO2PF_media=" & ws.Cells(lin, 11).Value & _
-        "|nTecnico=" & ws.Cells(7, 3).Text & "|nReal=" & (LinhaTexto(ws, "Tarefa da noite") > 0) & _
+        "|nTecnico=" & ws.Cells(7, 3).Text & "|nReal=" & (LinhaTexto(ws, "1.   Tarefa da noite") > 0) & _
         "|dMediaIntacta=" & shResumoDia.Cells(LinhaChave(shResumoDia, "P01U3"), 11).Value
     passo = 5
     Nm("gIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
@@ -148,7 +153,7 @@ Public Sub DemoLO()
     Nm("dTecnico").Value = "Técnico da letra C"
     Nm("dProdUS3").Value = "PDR/MX"
     Nm("dProdUS4").Value = "PBF/MB45"
-    Nm("dReal").Cells(1, 1).Value = "***Controle da Produção: PF 03 04X04h e LM 03 02X02h (Mix Coque/Moinha de Carvão, Calcário e Aglomerante) - PDR/STD2"
+    Nm("dReal").Cells(1, 1).Value = "***Controle da Produção: PF 03/04 04X04h e LM 03 e 04 02X02h (Mix Coque/Moinha de Carvão, Calcário e Aglomerante) - PBF/STD as 02h no pátio, com acompanhamento das amostras de alimentação"
     Nm("dReal").Cells(2, 1).Value = " - Acompanhamento na Planilha do Batch - %SiO2, %P e PPC - Batch 242 - Mineroduto 03"
     Nm("dReal").Cells(3, 1).Value = " - Descarte das amostras bi-horárias;"
     Nm("dReal").Cells(4, 1).Value = " - Verificação da calibração Raio X, Leco SC832 e Leco CS230;"
@@ -163,12 +168,11 @@ Public Sub DemoLO()
     Nm("dArStatus").Value = "Desligado"
     Nm("dCompressor").Value = "Regular"
     Nm("dNitrogenio").Value = "Bom"
-    Nm("dRecebe").Value = "A"
-    Nm("dCadinhos").Value = "15 cadinhos: 9 p/ minérios, 3 p/ insumos e 3 retirados de uso"
     Nm("dComUS3").Value = "Produção estável. SiO2 da mistura acima do limite do PDR/MX a partir das 09:30; operação ciente."
     Nm("dComUS4").Value = "Sem desvios no turno."
     Nm("dH2Carvao").Value = "4,12"
     Nm("dObs").Value = "Linha de oxigênio fechada após os testes de PCS."
+    AjustarAlturas shPreenchimento, Nm("dReal")
     AtualizarMESDia
     Nm("gIni").Value = DateSerial(2026, 9, 1) + TimeSerial(7, 0, 0)
     Nm("gFim").Value = DateSerial(2026, 9, 2) + TimeSerial(7, 0, 0)

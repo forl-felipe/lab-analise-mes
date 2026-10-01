@@ -606,7 +606,8 @@ class Construtor:
         c = self.campos[t]
         num = self.f(font_size=8, font_color=TEXTO_SEC, align='center', bg_color=FUNDO_CLARO, border=1,
                      border_color=BORDA)
-        inp = self.f_input(indent=1, font_size=10)
+        # texto longo quebra a linha; a altura e ajustada pelo VBA (evento da aba Preenchimento)
+        inp = self.f_input(indent=1, font_size=10, text_wrap=True)
         rot = self.f(font_size=9, bold=True, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO, indent=1,
                      border=1, border_color=BORDA, text_wrap=True)
         # faixa do turno
@@ -623,13 +624,8 @@ class Construtor:
         self.nome(t + 'Letra', ws, r, 3)
         c['Letra'] = t + 'Letra'
         ws.write(r, 4, 'Técnico', rot)
-        ws.merge_range(r, 5, r, 7, '', self.f_input(bold=True, indent=1, font_size=11))
+        ws.merge_range(r, 5, r, UC, '', self.f_input(bold=True, indent=1, font_size=11))
         self.nome(t + 'Tecnico', ws, r, 5)
-        ws.merge_range(r, 8, r, 9, 'Letra que recebe', rot)
-        ws.write(r, UC, '', self.f_input(bold=True, align='center', font_size=11))
-        ws.data_validation(r, UC, r, UC, {'validate': 'list', 'source': '=lstTurma'})
-        self.nome(t + 'Recebe', ws, r, UC)
-        c['Recebe'] = t + 'Recebe'
         r += 1
         ws.set_row(r, 22)
         prod = self.f_input(bold=True, align='center', font_size=11, font_color=AZUL_TITULO)
@@ -881,8 +877,7 @@ class Construtor:
         campo(r, 1, 1, 'Data', 2, 3, '=IF(pData="","—",TEXT(DAY(pData),"00")&"/"&TEXT(MONTH(pData),"00")&"/"&'
                                      'YEAR(pData))', valc)
         campo(r, 4, 4, 'Turno', 5, 7, '="%s"' % sub_turno, valc)
-        campo(r, 8, 8, 'Letra', 9, 9, valor('Letra'), valc)
-        campo(r, 10, 11, 'Letra que recebe', 12, 12, valor('Recebe'), valc)
+        campo(r, 8, 9, 'Letra', 10, UC, valor('Letra'), valc)
         r += 1
         ws.set_row(r, 22)
         campo(r, 1, 1, 'Técnico', 2, 6, '=IF(%sTecnico="","—",%sTecnico)' % (t, t))
@@ -891,36 +886,44 @@ class Construtor:
         r += 2
 
         # ---- ocorrencias (listas linha a linha, como no Preenchimento)
+        # Chaves na coluna A (usadas pelo VBA para ocultar o que nao foi preenchido):
+        #   S1 = faixa de secao, S2 = subtitulo, E = espaco da secao, T = linha de lista (texto em B),
+        #   W = texto livre (texto em C), F/V = linha de campos preenchida/vazia (formula), Z = fim das secoes.
+        # Secao (ou subtitulo) sem nenhuma linha preenchida fica oculta inteira.
+        def espaco(r, altura=6):
+            ws.set_row(r, altura)
+            ws.write(r, 0, 'E', chave_fmt)
+
+        def chave_campos(r, nomes):
+            vazio = 'AND(%s)' % ','.join('%s=""' % c[n] for n in nomes)
+            ws.write_formula(r, 0, '=IF(%s,"V","F")' % vazio, chave_fmt, 'F')
+
         self.secao_faixa(ws, r, 1, UC, 'OCORRÊNCIAS DO TURNO')
+        ws.write(r, 0, 'S1', chave_fmt)
         r += 1
         sub = self.f(bold=True, font_size=10, font_color=AZUL_TITULO, bg_color=FUNDO_GRUPO, indent=1, **b)
-        num = self.f(font_size=9, font_color=TEXTO_SEC, align='right', left=1, right=1, border_color=BORDA)
-        lin = self.f(font_size=10, font_color=TEXTO, indent=1, left=1, right=1, border_color=BORDA)
-        vaz = self.f(font_size=10, italic=True, font_color=TEXTO_SEC, indent=1, left=1, right=1, border_color=BORDA)
+        lin = self.f(font_size=10, font_color=TEXTO, indent=1, text_wrap=True, valign='top', left=1, right=1,
+                     border_color=BORDA)
         for i, (titulo, nm) in enumerate((('Tarefas realizadas', 'Real'), ('Solicitações', 'Sol'),
                                           ('Equipamentos', 'Equip'), ('Tarefas a realizar (próximo turno)', 'AReal'))):
             ws.set_row(r, 18)
+            ws.write(r, 0, 'S2', chave_fmt)
             ws.merge_range(r, 1, r, UC, '%d. %s' % (i + 1, titulo), sub)
             r += 1
-            refs = c[nm]
-            for k, ref in enumerate(refs):
+            for k, ref in enumerate(c[nm]):
+                # numero junto com o texto (sem coluna larga so para a numeracao)
                 ws.set_row(r, 17)
                 ws.write(r, 0, 'T', chave_fmt)
-                ws.write_formula(r, 1, '=IF(%s="","",%d)' % (rc(r, 2), k + 1), num)
-                ws.merge_range(r, 2, r, UC, '', lin)
-                ws.write_formula(r, 2, '=IF(TRIM(%s%s)="","",TRIM(%s%s))' % (P, ref, P, ref), lin)
+                ws.merge_range(r, 1, r, UC, '', lin)
+                ws.write_formula(r, 1, '=IF(TRIM(%s%s)="","","%d.   "&TRIM(%s%s))' % (P, ref, k + 1, P, ref),
+                                 lin)
                 r += 1
-            ws.set_row(r, 17)
-            ws.write(r, 0, 'T', chave_fmt)
-            ws.write_blank(r, 1, None, num)
-            ws.merge_range(r, 2, r, UC, '', vaz)
-            ws.write_formula(r, 2, '=IF(COUNTA(%s%s:%s)=0,"Sem registro","")' % (P, refs[0], refs[-1]), vaz)
-            r += 1
-            ws.set_row(r, 4)
+            espaco(r, 4)
             r += 1
 
         # ---- comentarios por usina
         ws.set_row(r, 18)
+        ws.write(r, 0, 'S2', chave_fmt)
         ws.merge_range(r, 1, r, UC, '5. Comentários por usina', sub)
         r += 1
         for us in ('US3', 'US4'):
@@ -928,51 +931,67 @@ class Construtor:
             ws.write(r, 0, 'W', chave_fmt)
             ws.write(r, 1, 'Comentário ' + us, rot)
             ws.merge_range(r, 2, r, UC, '', txt)
-            ws.write_formula(r, 2, valor('Com' + us, 'Sem registro'), txt)
+            ws.write_formula(r, 2, valor('Com' + us, ''), txt)
             r += 1
+        espaco(r, 15)
         r += 1
 
         # ---- controle do laboratorio
         self.secao_faixa(ws, r, 1, UC, 'CONTROLE DO LABORATÓRIO')
+        ws.write(r, 0, 'S1', chave_fmt)
         r += 1
         ws.set_row(r, 30)
         ws.write(r, 0, 'W', chave_fmt)
-        campo(r, 1, 1, 'Programa em uso', 2, UC, valor('Prog'), txt)
+        campo(r, 1, 1, 'Programa em uso', 2, UC, valor('Prog', ''), txt)
         r += 1
         ws.set_row(r, 20)
+        chave_campos(r, ['Padroes', 'PadroesQuais'])
         campo(r, 1, 1, 'Foi necessário preparar padrões?', 2, 3, valor('Padroes'), valc)
         campo(r, 4, 5, 'Quais', 6, UC, valor('PadroesQuais'))
         r += 1
         ws.set_row(r, 20)
+        chave_campos(r, ['Ar', 'ArStatus', 'Compressor', 'Nitrogenio'])
         campo(r, 1, 1, 'Sistema de ar utilizado', 2, 3, valor('Ar'), valc)
         campo(r, 4, 5, 'Status do equipamento', 6, 7, valor('ArStatus'), valc)
         campo(r, 8, 9, 'Compressor', 10, 10, valor('Compressor'), valc)
         campo(r, 11, 11, 'Nitrogênio', 12, 12, valor('Nitrogenio'), valc)
-        r += 2
+        r += 1
+        espaco(r, 15)
+        r += 1
 
         # ---- cadinhos e observacoes
         self.secao_faixa(ws, r, 1, UC, 'CADINHOS DE PLATINA')
+        ws.write(r, 0, 'S1', chave_fmt)
         r += 1
         ws.set_row(r, 20)
-        campo(r, 1, 1, 'Repassados para o turno', 2, UC, valor('Cadinhos'))
+        chave_campos(r, ['Cadinhos'])
+        campo(r, 1, 1, 'Repassados para o turno', 2, UC, valor('Cadinhos'), txt)
         r += 1
         ws.set_row(r, 20)
-        campo(r, 1, 1, 'Retirado para reforma', 2, UC, valor('Reforma'))
-        r += 2
+        chave_campos(r, ['Reforma'])
+        campo(r, 1, 1, 'Retirado para reforma', 2, UC, valor('Reforma'), txt)
+        r += 1
+        espaco(r, 15)
+        r += 1
         self.secao_faixa(ws, r, 1, UC, 'OBSERVAÇÕES GERAIS')
+        ws.write(r, 0, 'S1', chave_fmt)
         r += 1
         ws.set_row(r, 20)
+        chave_campos(r, ['H2Carvao', 'H2Coque', 'Coque04'])
         campo(r, 1, 1, 'Hidrogênio no carvão', 2, 3, valor('H2Carvao'), valc)
         campo(r, 4, 5, 'Hidrogênio no coque', 6, 7, valor('H2Coque'), valc)
         campo(r, 8, 9, 'Coque Planta 04', 10, UC, valor('Coque04'))
         r += 1
         ws.set_row(r, 34)
         ws.write(r, 0, 'W', chave_fmt)
-        campo(r, 1, 1, 'Observações', 2, UC, valor('Obs'), txt)
-        r += 2
+        campo(r, 1, 1, 'Observações', 2, UC, valor('Obs', ''), txt)
+        r += 1
+        espaco(r, 15)
+        r += 1
 
         # ---- resultados quimicos
         self.secao_faixa(ws, r, 1, UC, 'INFORMATIVO DE QUALIDADE DO TURNO  |  RESULTADOS DO MES')
+        ws.write(r, 0, 'Z', chave_fmt)
         r += 1
         ws.set_row(r, 17)
         ws.merge_range(r, 1, r, UC, 'Resultados não atualizados',
@@ -1134,7 +1153,14 @@ def montar_vba(layout_code):
               '    On Error Resume Next\n    CompactarAba Me\nEnd Sub\n')
     for cn in ['shPreenchimento', 'shResumoDia', 'shResumoNoite', 'shResultados', 'shLimites', 'shConfig', 'shDadosMES',
                'shMapa']:
-        mods.append({'name': cn, 'kind': 'sheet', 'code': evento if cn in ('shResumoDia', 'shResumoNoite') else ''})
+        codigo = ''
+        if cn in ('shResumoDia', 'shResumoNoite'):
+            codigo = evento
+        elif cn == 'shPreenchimento':
+            # texto longo: a linha aumenta sozinha (celulas mescladas nao tem ajuste automatico no Excel)
+            codigo = ('Option Explicit\n\nPrivate Sub Worksheet_Change(ByVal Target As Range)\n'
+                      '    On Error Resume Next\n    AjustarAlturas Me, Target\nEnd Sub\n')
+        mods.append({'name': cn, 'kind': 'sheet', 'code': codigo})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModImagem']:
         mods.append({'name': m, 'kind': 'module', 'code': ler_vba(m + '.bas')})
     if TESTE:
