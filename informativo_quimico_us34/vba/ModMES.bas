@@ -22,6 +22,11 @@ Private Const SEM_DADOS_SEG As Double = 15
 Private mOcupado As Boolean
 ' Bloco consultado no clique atual ("Q" ou "E"; vazio = todos)
 Private mBloco As String
+' Tags recusadas pelo MES ("Tag Name ... is invalid"), no formato |TAG1|TAG2|. Ficam fora das
+' consultas seguintes (uma tag invalida derruba a consulta inteira no Aspen).
+Private mInvalidas As String
+' Rodadas maximas de "tirar tags invalidas e consultar de novo"
+Private Const MAX_RODADAS As Long = 20
 
 ' ---------------------------------------------------------------- botoes
 Public Sub AtualizarMESDia()
@@ -279,12 +284,98 @@ Private Function ParamsBloco(ByVal b As Long) As Variant
     Dim todos As Variant, i As Long, s As String
     todos = Split(BlocoInfo(b, 5), ",")
     For i = LBound(todos) To UBound(todos)
-        If ParamConfigurado(CLng(todos(i))) Then
+        If ParamConfigurado(CLng(todos(i))) And Not ParamInvalido(CLng(todos(i))) Then
             If s <> "" Then s = s & ","
             s = s & todos(i)
         End If
     Next i
     ParamsBloco = Split(s, ",")
+End Function
+
+' ---------------------------------------------------------------- tags recusadas pelo MES
+Private Function TagInvalida(ByVal t As Variant) As Boolean
+    If Vazio(t) Then Exit Function
+    TagInvalida = (InStr(1, mInvalidas, "|" & UCase$(Trim$(CStr(t))) & "|") > 0)
+End Function
+
+' Analise com alguma tag recusada pelo MES nesta sessao
+Public Function ParamInvalido(ByVal p As Long) As Boolean
+    If mInvalidas = "" Then Exit Function
+    ParamInvalido = TagInvalida(CfgCel(p, CFG_COL_TAG3)) Or TagInvalida(CfgCel(p, CFG_COL_TAG4))
+End Function
+
+' Bloco sem nenhuma analise para consultar (todas sem tag ou com tag recusada)
+Private Function BlocoVazio(ByVal b As Long) As Boolean
+    Dim ps As Variant
+    ps = ParamsBloco(b)
+    BlocoVazio = (UBound(ps) < LBound(ps))
+End Function
+
+' Texto de resposta do bloco (ancora + 1a celula da saida), onde o Aspen escreve os erros
+Private Function TextoResposta(ByVal b As Long) As String
+    Dim v As Variant
+    On Error Resume Next
+    v = shDadosMES.Range(BlocoInfo(b, 3)).Value
+    If Not IsError(v) Then TextoResposta = CStr(v)
+    v = shDadosMES.Range(BlocoInfo(b, 4)).Value
+    If Not IsError(v) Then TextoResposta = TextoResposta & " " & CStr(v)
+End Function
+
+Private Function RespostaTagInvalida(ByVal b As Long) As Boolean
+    RespostaTagInvalida = (InStr(1, TextoResposta(b), " is invalid", vbTextCompare) > 0)
+End Function
+
+' Le os nomes das tags recusadas ("Tag Name XXX is invalid") e guarda em mInvalidas.
+' Devolve quantas tags novas foram encontradas.
+Private Function ColetarInvalidas() As Long
+    Dim b As Long, t As String, i As Long, j As Long, tag As String
+    For b = 1 To NumBlocos()
+        If BlocoUsado(b) Then
+            t = TextoResposta(b)
+            i = InStr(1, t, "Tag Name ", vbTextCompare)
+            Do While i > 0
+                j = InStr(i + 9, t, " is invalid", vbTextCompare)
+                If j = 0 Then Exit Do
+                tag = UCase$(Trim$(Mid$(t, i + 9, j - i - 9)))
+                If tag <> "" And InStr(tag, " ") = 0 And Not TagInvalida(tag) Then
+                    If mInvalidas = "" Then mInvalidas = "|"
+                    mInvalidas = mInvalidas & tag & "|"
+                    ColetarInvalidas = ColetarInvalidas + 1
+                End If
+                i = InStr(j, t, "Tag Name ", vbTextCompare)
+            Loop
+        End If
+    Next b
+End Function
+
+' Usado so na validacao automatica: le as tags recusadas de um texto de erro gravado na ancora do bloco
+Public Function TesteTagsInvalidas(ByVal bloco As String) As String
+    mBloco = bloco
+    ColetarInvalidas
+    TesteTagsInvalidas = ListaInvalidas()
+    mInvalidas = ""
+    mBloco = ""
+End Function
+
+' Lista (uma por linha) das tags recusadas que pertencem ao bloco do clique atual
+Private Function ListaInvalidas() As String
+    Dim b As Long, todos As Variant, i As Long, p As Long, k As Long, t As Variant, r As String
+    For b = 1 To NumBlocos()
+        If BlocoUsado(b) Then
+            todos = Split(BlocoInfo(b, 5), ",")
+            For i = LBound(todos) To UBound(todos)
+                p = CLng(todos(i))
+                For k = 0 To 1
+                    If k = 0 Then t = CfgCel(p, CFG_COL_TAG3) Else t = CfgCel(p, CFG_COL_TAG4)
+                    If TagInvalida(t) And InStr(r, Trim$(CStr(t))) = 0 Then
+                        r = r & "  - " & CfgCel(p, CFG_COL_GRUPO) & " / " & CfgCel(p, CFG_COL_PARAM) & ": " & _
+                            Trim$(CStr(t)) & vbCrLf
+                    End If
+                Next k
+            Next i
+        End If
+    Next b
+    ListaInvalidas = r
 End Function
 
 ' Bloco b faz parte da consulta do clique atual?
@@ -340,7 +431,9 @@ Public Sub RegerarFormulasMES()
     Dim b As Long
     For b = 1 To NumBlocos()
         ' sempre reescreve (mesmo igual): o Excel recalcula a consulta uma unica vez
-        If BlocoUsado(b) Then shDadosMES.Range(BlocoInfo(b, 3)).Formula = PrefixoAspen(b) & ArgumentosBloco(b)
+        If BlocoUsado(b) And Not BlocoVazio(b) Then
+            shDadosMES.Range(BlocoInfo(b, 3)).Formula = PrefixoAspen(b) & ArgumentosBloco(b)
+        End If
     Next b
 End Sub
 
@@ -406,7 +499,7 @@ Private Sub CalcularConsultas()
     Dim b As Long
     If Application.Calculation <> -4105 Then
         For b = 1 To NumBlocos()
-            If BlocoUsado(b) Then shDadosMES.Range(BlocoInfo(b, 3)).Calculate
+            If BlocoUsado(b) And Not BlocoVazio(b) Then shDadosMES.Range(BlocoInfo(b, 3)).Calculate
         Next b
     End If
 End Sub
@@ -485,10 +578,12 @@ End Function
 Private Function EsperarBlocos(ByVal ini As Date, ByVal nb As Long, ByRef pronto() As Boolean, _
                                ByVal limite As Double) As Long
     Dim t0 As Single, tEstavel As Single, assin As String, assinAnt As String, b As Long, nOk As Long
-    Dim nUsados As Long
+    Dim nUsados As Long, erroTag As Boolean
     For b = 1 To nb
-        If BlocoUsado(b) Then nUsados = nUsados + 1
+        pronto(b) = Not (BlocoUsado(b) And Not BlocoVazio(b))
+        If Not pronto(b) Then nUsados = nUsados + 1
     Next b
+    If nUsados = 0 Then Exit Function
     t0 = Timer
     tEstavel = Timer
     Do
@@ -496,8 +591,10 @@ Private Function EsperarBlocos(ByVal ini As Date, ByVal nb As Long, ByRef pronto
         If Timer < t0 Then t0 = t0 - 86400
         If Timer < tEstavel Then tEstavel = tEstavel - 86400
         nOk = 0
+        erroTag = False
         For b = 1 To nb
-            If BlocoUsado(b) Then
+            If BlocoUsado(b) And Not BlocoVazio(b) Then
+                If RespostaTagInvalida(b) Then erroTag = True
                 pronto(b) = BlocoPronto(b, ini)
                 If Not pronto(b) And Timer - t0 >= SEM_DADOS_SEG Then pronto(b) = RespondeuSemDados(b)
                 If pronto(b) Then nOk = nOk + 1
@@ -511,6 +608,8 @@ Private Function EsperarBlocos(ByVal ini As Date, ByVal nb As Long, ByRef pronto
             tEstavel = Timer
         End If
         If nOk = nUsados And Timer - tEstavel >= ESTAVEL_SEG Then Exit Do
+        ' o MES recusou alguma tag: nao adianta esperar (a consulta e refeita sem ela)
+        If erroTag Then Exit Do
         If Timer - t0 > limite Then Exit Do
     Loop
     EsperarBlocos = nOk
@@ -521,7 +620,7 @@ Public Sub LimparSaidasMES()
     Dim b As Long, area As Range, c As Range
     On Error Resume Next
     For b = 1 To NumBlocos()
-        Set area = shDadosMES.Range(BlocoInfo(b, 4)).Resize(NSLOT + 1, LarguraSaida(b))
+        Set area = shDadosMES.Range(BlocoInfo(b, 4)).Resize(NSLOT + 1, LarguraMaxima(b))
         For Each c In area.Cells
             If c.HasArray Then c.CurrentArray.ClearContents
         Next c
@@ -546,6 +645,11 @@ Public Sub RestaurarSaidasMES()
     On Error GoTo 0
 End Sub
 
+' Largura com todas as analises do bloco (para limpar sobras de consultas maiores)
+Private Function LarguraMaxima(ByVal b As Long) As Long
+    LarguraMaxima = 1 + 2 * (UBound(Split(BlocoInfo(b, 5), ",")) + 1)
+End Function
+
 Private Function LarguraSaida(ByVal b As Long) As Long
     Dim ps As Variant
     ps = ParamsBloco(b)
@@ -563,6 +667,7 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     Dim limite As Double, msg As String, nb As Long, b As Long, nOk As Long
     Dim pronto() As Boolean, d() As Variant, arr As Variant, ps As Variant
     Dim i As Long, k As Long, s As Long, p As Long, falhas As String
+    Dim rodada As Long, invalidas As String
 
     ConsultarMES = False
     tIni = Timer
@@ -583,8 +688,24 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     CalcularConsultas
     nOk = EsperarBlocos(ini, nb, pronto, limite)
 
+    ' Tag recusada pelo MES: tira as tags invalidas e consulta de novo com as demais
+    rodada = 0
+    Do While ColetarInvalidas() > 0 And rodada < MAX_RODADAS
+        rodada = rodada + 1
+        Application.StatusBar = "MES: tags inválidas retiradas da consulta, consultando de novo (" & rodada & ")"
+        LimparSaidasMES
+        On Error GoTo FalhaFormula
+        RegerarFormulasMES
+        On Error GoTo 0
+        CalcularConsultas
+        nOk = EsperarBlocos(ini, nb, pronto, limite)
+    Loop
+    invalidas = ListaInvalidas()
+    shDadosMES.Range("D5").Value = "Tags inválidas"
+    shDadosMES.Range("E5").Value = "'" & Replace(Replace(invalidas, vbCrLf, " "), "  - ", "")
+
     ' Seguranca: se nada voltou, recria as matrizes de saida no formato original e tenta de novo
-    If nOk = 0 Then
+    If nOk = 0 And invalidas = "" Then
         RestaurarSaidasMES
         RegerarFormulasMES
         CalcularConsultas
@@ -598,6 +719,12 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
         End If
     Next b
 
+    If nOk = 0 And invalidas <> "" Then
+        Aviso "O MES não reconheceu as tags abaixo (Tag Name ... is invalid)." & vbCrLf & _
+              "Nenhuma tag válida restou para consultar." & vbCrLf & vbCrLf & invalidas & vbCrLf & _
+              "Corrigir as tags na aba Configurações.", vbExclamation, "MES - tags inválidas"
+        Exit Function
+    End If
     If nOk = 0 Then
         msg = "O MES não respondeu (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & vbCrLf & vbCrLf & _
               falhas & vbCrLf & _
@@ -608,6 +735,11 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     End If
     If falhas <> "" Then
         Aviso "Consultas sem resposta (ficam em branco):" & vbCrLf & falhas, vbExclamation, "MES"
+    End If
+    If invalidas <> "" Then
+        Aviso "Tags não reconhecidas pelo MES (ficam em branco):" & vbCrLf & vbCrLf & invalidas & vbCrLf & _
+              "As demais análises foram consultadas normalmente. Corrigir as tags na aba Configurações.", _
+              vbExclamation, "MES - tags inválidas"
     End If
 
     ReDim d(1 To NSLOT, 1 To 1 + 2 * NPARAM)

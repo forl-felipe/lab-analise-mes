@@ -139,6 +139,11 @@ Public Sub TesteLO()
         "|emb_ultima=" & (LinhaChave(shEmbarque, "P" & Format$(NPARAM, "00") & "U3") > 0) & _
         "|emb_col7oculta=" & shEmbarque.Columns(COL_SLOT1 + 6).Hidden & _
         "|emb_atual=" & Left$(Nm("eAtualizado").Value, 45)
+    passo = 59
+    ' tags recusadas pelo MES: o texto de erro do Aspen e lido e as tags saem da consulta
+    shDadosMES.Range("A22").Value = "'Erro:(M620010000-0002-TNLQU) Tag Name M620010000-0002-TNLQU is invalid(M620010000-0002-TNLQU) Tag Name M620010000-0004-TNLQU is invalid"
+    r = r & "|invalidas=" & Replace(TesteTagsInvalidas("E"), vbCrLf, "/")
+    shDadosMES.Range("A22").Value = "'Consulta concluída"
     passo = 6
     LimparSaidasMES
     r = r & "|limpo=" & Vazio(shDadosMES.Range("A9").Formula)

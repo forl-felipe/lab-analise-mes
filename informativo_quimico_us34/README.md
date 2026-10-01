@@ -102,6 +102,10 @@ Toda tag pode ser alterada na aba **Configurações**. Análise sem tag fica ocu
 
 ### Embarque (aba de testes)
 
+> **Atenção:** no primeiro teste, o MES recusou `M620010000-0002-TNLQU` ("Tag Name is invalid"). Ou seja, as tags de fase
+> **TN** montadas pelo Plano Amostral não existem no IP.21 com esse nome. Falta confirmar no Aspen Process Explorer o nome
+> real das tags do embarque (procurar por `M620010000*`).
+
 Ponto `U00-09TR002`, fase **TN** (amostra por embarque):
 
 | Produto | Ponto | Química (LQU) | Física |
@@ -131,6 +135,9 @@ Uma consulta `GetCalculationValues` para o turno (Filtragem e Pelota) e outra pa
   - no início do turno, sem análises ainda, a consulta termina em cerca de 15 s com o aviso "ainda não há resultados", sem erro;
   - um segundo clique durante a consulta é ignorado com um aviso.
 - Cada botão consulta 12 h (6 janelas). Os Resultados gerais fazem mais de uma consulta para períodos maiores.
+- **Tag recusada pelo MES** ("Tag Name … is invalid"): uma tag inválida derrubava a consulta inteira. Agora a planilha
+  lê o erro, tira as tags inválidas da consulta, consulta de novo com as demais e avisa quais tags foram recusadas.
+  A lista também fica em `Dados_MES!E5`. Basta corrigir as tags na aba Configurações.
 - Antes de cada consulta, as matrizes de resultado do Aspen são apagadas, para evitar o erro "Não é possível alterar parte de uma matriz".
 - A macro espera os valores estabilizarem antes de gravar.
 - Os valores de 2 em 2 h são gravados direto na tabela da aba. Média, mínimo e máximo são fórmulas, e o laranja vem de formatação condicional (LIE/LSE em Configurações).
