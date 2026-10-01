@@ -57,9 +57,9 @@ Public Sub TesteLO()
     lin = LinhaChave(ws, "P08U3")
     r = r & "SiO2PF_media=" & ws.Cells(lin, 11).Value & "|PF_umaLinha=" & (LinhaChave(ws, "P08U4") = 0) & _
         "|PFrotulo=" & ws.Cells(lin, 4).Value & "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & _
-        "|prodSoma=" & (Abs(ws.Cells(LinhaChave(ws, "P22U3"), 11).Value - _
-            Application.WorksheetFunction.Sum(ws.Range(ws.Cells(LinhaChave(ws, "P22U3"), 5), ws.Cells(LinhaChave(ws, "P22U3"), 10)))) < 0.001) & _
-        "|ritmoUltimo=" & ws.Cells(LinhaChave(ws, "P24U3"), 11).Value
+        "|prodSoma=" & (Abs(ws.Cells(LinhaChave(ws, "P21U3"), 11).Value - _
+            Application.WorksheetFunction.Sum(ws.Range(ws.Cells(LinhaChave(ws, "P21U3"), 5), ws.Cells(LinhaChave(ws, "P21U3"), 10)))) < 0.001) & _
+        "|ritmoUltimo=" & ws.Cells(LinhaChave(ws, "P23U3"), 11).Value
     passo = 22
     ws.Calculate
     r = r & "|limTambUS3=" & ws.Cells(LinhaChave(ws, "P17U3"), 17).Text & _

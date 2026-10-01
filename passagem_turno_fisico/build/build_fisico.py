@@ -88,7 +88,6 @@ PARAMS = [
     _p(G_PQ, 'Resistência à Compressão', 'kgf/pel', 0, 'Média', 'M710050020-0031-HHLFU', MV, 'M4710050020-0031-HHLFU', MV, 320, 334),
     _p(G_PQ, 'Compressão < 200 kgf/pel', '%', 0, 'Média', 'M710050020-0032-HHLFU', MV, 'M4710050020-0032-HHLFU', MV, 17, 16),
     _p(G_PQ, 'Finos -6,3 mm', '%', 1, 'Média', 'M710050020-0026-HHLFU', MV, 'M4710050020-0026-HHLFU', MV, 0.97, 1.17),
-    _p(G_PQ, 'SiO2', '%', 2, 'Média', 'M710050020-0004-HHLFU', MV, 'M4710050020-0004-HHLFU', MV, 1.90, 1.95),
     _p('Produção', 'Produção', 't', 0, 'Soma', 'M710050020-0150-HHCC', MV, 'M4710050020-0150-HHCC', MV, 700, 750, 'P'),
     _p('Produção', 'Ritmo (MES)', 't/dia', 0, 'Último valor', 'M710050031-0150-HHCC', MV, 'M4710050031-0150-HHCC', MV, 19000, 20600, 'P'),
     _p('Produção', 'Ritmo (processo)', 't/dia', 0, 'Último valor', '306GERAL-FIT003-R', AM, '406-RITMO', AM, 19000, 20600, 'R'),
@@ -131,7 +130,7 @@ LIM_COL1 = 3          # coluna do 1o limite (D), 0-based
 # analise do relatorio -> chave de limite
 PARAM_LIM = {(G_PF, 'SiO2'): 'PF_SIO2', (G_PF, 'PPC'): 'PF_PPC',
              (G_LM, 'SiO2'): 'LM_SIO2', (G_LM, 'CaO'): 'LM_CAO', (G_LM, 'B2 (CaO/SiO2)'): 'LM_B2',
-             (G_PQ, 'SiO2'): 'LM_SIO2', (G_PQ, 'Tamboramento'): 'PQ_TAMB', (G_PQ, 'Finos -6,3 mm'): 'PQ_FINOS',
+             (G_PQ, 'Tamboramento'): 'PQ_TAMB', (G_PQ, 'Finos -6,3 mm'): 'PQ_FINOS',
              (G_PQ, 'Relação Granulométrica'): 'PQ_RG'}
 
 

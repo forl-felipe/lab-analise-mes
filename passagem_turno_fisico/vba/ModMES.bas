@@ -328,8 +328,23 @@ Private Function TextoResposta(ByVal b As Long) As String
     If Not IsError(v) Then TextoResposta = TextoResposta & " " & CStr(v)
 End Function
 
+' True se a resposta do bloco recusa alguma tag AINDA NAO conhecida. Uma mensagem de erro antiga
+' (de tag ja retirada da consulta) pode continuar na celula ate o Aspen devolver a nova resposta:
+' nesse caso continua esperando, em vez de encerrar a consulta sem resultados.
 Private Function RespostaTagInvalida(ByVal b As Long) As Boolean
-    RespostaTagInvalida = (InStr(1, TextoResposta(b), " is invalid", vbTextCompare) > 0)
+    Dim t As String, i As Long, j As Long, tag As String
+    t = TextoResposta(b)
+    i = InStr(1, t, "Tag Name ", vbTextCompare)
+    Do While i > 0
+        j = InStr(i + 9, t, " is invalid", vbTextCompare)
+        If j = 0 Then Exit Do
+        tag = UCase$(Trim$(Mid$(t, i + 9, j - i - 9)))
+        If tag <> "" And Not TagInvalida(tag) Then
+            RespostaTagInvalida = True
+            Exit Function
+        End If
+        i = InStr(j, t, "Tag Name ", vbTextCompare)
+    Loop
 End Function
 
 ' Le os nomes das tags recusadas ("Tag Name XXX is invalid") e guarda em mInvalidas.

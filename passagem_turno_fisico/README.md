@@ -21,13 +21,13 @@ modelo diário (um arquivo por dia, turnos Dia 07h–19h e Noite 19h–07h), um 
 
 ## Resultados do MES
 
-As mesmas 24 análises e tags do Informativo de Turno do Físico (planilha padrão):
+As mesmas análises e tags do Informativo de Turno do Físico (planilha padrão):
 
 - Alimentação da grelha;
 - Prensa de rolos (SE, #325, H2O);
 - Pellet Feed (PPC, SiO2, CaO), em **uma linha US3/4**;
 - Mistura (SiO2, CaO, B2, carvão, carbono fixo);
-- Pelota queimada (+16 −8 mm, relação granulométrica, tamboramento, compressão, < 200 kgf, finos −6,3 mm, SiO2);
+- Pelota queimada (+16 −8 mm, relação granulométrica, tamboramento, compressão, < 200 kgf, finos −6,3 mm);
 - Produção e ritmo.
 
 Resultado do turno: média; Produção = soma; Ritmo = último valor.
