@@ -95,9 +95,13 @@ Private Sub AtualizarPeriodo(ByVal ws As Worksheet, ByVal x As String, ByVal blo
         Aviso "Período máximo: " & NSLOT_MAX * HORAS_SLOT & " horas.", vbExclamation, titulo
         Exit Sub
     End If
-    ' janelas de 2 h a partir do inicio (a ultima completa as 2 h)
+    ' janelas de 2 h alinhadas com as do turno (inicio 07:00, 09:00... -> amostras 07:30, 09:30...):
+    ' o inicio volta para o inicio da janela bi-horaria em que esta
+    ini = AlinharJanela(ini)
+    horas = (CDbl(fim) - CDbl(ini)) * 24
     n = Int((horas + 0.01) / HORAS_SLOT)
     If n * HORAS_SLOT < horas - 0.01 Then n = n + 1
+    If n > NSLOT_MAX Then n = NSLOT_MAX
     simulado = FonteSimulada()
     If Not simulado And CDbl(ini) > CDbl(Now) Then
         Aviso "Período ainda não iniciado.", vbExclamation, titulo
@@ -117,6 +121,15 @@ Private Sub AtualizarPeriodo(ByVal ws As Worksheet, ByVal x As String, ByVal blo
     ws.Activate
     Aviso "Período atualizado: " & qtd & " resultados.", vbInformation, titulo
 End Sub
+
+' Inicio da janela de 2 h (grade do turno: 07:00, 09:00... ou 19:00, 21:00...) que contem t
+Private Function AlinharJanela(ByVal t As Date) As Date
+    Dim passo As Double, b0 As Double, k As Double
+    passo = HORAS_SLOT / 24
+    b0 = HoraInicioDia() - Int(HoraInicioDia() / passo) * passo
+    k = Int((CDbl(t) - b0) / passo + 0.0000001)
+    AlinharJanela = CDate(Round((b0 + k * passo) * 1440, 0) / 1440)
+End Function
 
 Private Function FonteSimulada() As Boolean
     FonteSimulada = (Left$(UCase$(CfgTxt("cfgFonte")), 3) = "SIM")

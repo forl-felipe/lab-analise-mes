@@ -17,13 +17,14 @@ A ocorrência segue a planilha que o laboratório usa hoje (`01-09-26.xlsm`). As
 |---|---|
 | **Preenchimento** | A única aba em que o técnico escreve. No alto fica a **data do dia**; abaixo, o **Turno Dia** e, mais embaixo, o **Turno Noite**, com os mesmos campos: letra, técnico, produto US3/US4, tarefas realizadas, solicitações, equipamentos, tarefas a realizar, **comentários por usina**, controle do laboratório, cadinhos de platina e observações |
 | **Resumo Dia** / **Resumo Noite** | Relatório técnico do turno (imagem para o e-mail), em formato paisagem e **no mesmo formato do Preenchimento**: identificação, ocorrências linha a linha (numeradas, com o número junto do texto), comentários por usina, controle do laboratório, cadinhos, observações e resultados do MES por **horário de amostra (07:30, 09:30…)**. Tudo vem por fórmula. Botões: **Atualizar dados do MES** e **Copiar imagem** |
-| **Resultados gerais** | Resultados químicos de qualquer período de até 24 h: **Início** e **Fim** no alto, **Atualizar dados do MES** e **Copiar imagem** |
+| **Resultados gerais** | Resultados químicos de qualquer período de até 24 h, nas **mesmas janelas do turno (amostras 07:30, 09:30…)**; o início é ajustado para o começo da janela de 2 h em que está: **Início** e **Fim** no alto, **Atualizar dados do MES** e **Copiar imagem** |
 | Limites (oculta) | **Farol por produto**: limites químicos de cada produto (SMIN-POP-GEA-001 rev. 12). Pode ser editada e ampliada à mão (botão direito numa guia → Reexibir → Limites) |
 | Configurações (oculta) | Fonte dos dados, servidor, **tags do MES**, LIE/LSE e faixa válida. Para abrir: botão direito numa guia → Reexibir |
 
 **Texto longo:** no Preenchimento e no Resumo o texto quebra a linha, e a altura da linha se ajusta sozinha (macro).
 **O que não foi preenchido não vai para o Resumo:** linha vazia, campo vazio e assunto inteiro vazio (ex.: Cadinhos de
-platina, Equipamentos, Comentário US4) ficam ocultos, inclusive o título.
+platina, Equipamentos, Comentário US4, Controle do laboratório) ficam ocultos, inclusive o título. Os campos do
+Controle do laboratório não vêm mais pré-preenchidos.
 
 Navegação por hiperlinks (sem macro): "Ir para: Turno Noite / Resumo Dia / Resumo Noite / Resultados gerais" e "Voltar ao Preenchimento".
 

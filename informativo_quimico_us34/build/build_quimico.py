@@ -692,15 +692,15 @@ class Construtor:
                 'estufa e máquina de fusão')
         rr = r + 1
         ws.set_row(rr, 32)
-        campo(rr, 1, 3, 'Programa em uso', 4, UC, 'Prog', prog,
+        campo(rr, 1, 3, 'Programa em uso', 4, UC, 'Prog', '',
               fmt=self.f_input(indent=1, font_size=9, text_wrap=True))
         rr += 1
         ws.set_row(rr, 20)
-        campo(rr, 1, 3, 'Foi necessário preparar padrões?', 4, 5, 'Padroes', 'Não', '=lstSN')
+        campo(rr, 1, 3, 'Foi necessário preparar padrões?', 4, 5, 'Padroes', '', '=lstSN')
         campo(rr, 6, 6, 'Quais', 7, UC, 'PadroesQuais')
         rr += 1
         ws.set_row(rr, 20)
-        campo(rr, 1, 3, 'Sistema de ar utilizado', 4, 5, 'Ar', 'Compressor', '=lstAr')
+        campo(rr, 1, 3, 'Sistema de ar utilizado', 4, 5, 'Ar', '', '=lstAr')
         campo(rr, 6, 6, 'Status', 7, 8, 'ArStatus', '', '=lstLigado')
         rr += 1
         ws.set_row(rr, 20)

@@ -47,6 +47,8 @@ Public Sub TesteLO()
     Nm("nReal").Cells(1, 1).Value = "Tarefa da noite"
     AjustarAlturas shPreenchimento, Nm("dSol").Cells(1, 1)
     r = "altPreLonga=" & shPreenchimento.Rows(Nm("dSol").Cells(1, 1).Row).RowHeight & "|"
+    Nm("dProg").Value = "OREGON (RX), Carbono (Leco CS-230)"
+    Nm("dAr").Value = "Compressor"
     passo = 2
     Set ws = shResumoDia
     AtualizarMESDia
@@ -112,6 +114,13 @@ Public Sub TesteLO()
     AtualizarResultados
     r = r & "|g10h_col6visivel=" & (Not shResultados.Columns(COL_SLOT1 + 4).Hidden) & _
         "|g10h_col6oculta=" & shResultados.Columns(COL_SLOT1 + 5).Hidden
+    r = r & "|gH1_10h=" & Nm("gHoras").Cells(1, 1).Value
+    Nm("gIni").Value = DateSerial(2026, 9, 28) + TimeSerial(0, 0, 0)
+    Nm("gFim").Value = DateSerial(2026, 9, 29) + TimeSerial(0, 0, 0)
+    AtualizarResultados
+    r = r & "|gH1_00h=" & Nm("gHoras").Cells(1, 1).Value & "|gH2_00h=" & Nm("gHoras").Cells(1, 2).Value & _
+        "|gH12_00h=" & Nm("gHoras").Cells(1, 12).Value
+    r = r & "|controleOcultoNoite=" & shResumoNoite.Rows(LinhaTexto(shResumoNoite, "CONTROLE DO LABORATÓRIO")).Hidden
     passo = 55
     ' periodo em andamento (comecou ha 3 h, termina daqui a 3 h): janelas futuras em branco
     Dim ag As Date, cheias As Long, vazia3 As Boolean
