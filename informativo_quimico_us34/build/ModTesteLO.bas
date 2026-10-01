@@ -15,7 +15,7 @@ End Function
 ' Linha do Resumo cujo texto (coluna C) e igual a t
 Private Function LinhaTexto(ByVal ws As Worksheet, ByVal t As String) As Long
     Dim r As Long
-    For r = 1 To 80
+    For r = 1 To 120
         If ws.Cells(r, 3).Text = t Then
             LinhaTexto = r
             Exit Function
@@ -28,6 +28,9 @@ Public Sub TesteLO()
     On Error GoTo Erro
     gSilencioso = True
     passo = 1
+    ' estado apos a 1a consulta real: formula do Aspen desligada (texto), prefixo guardado
+    Nm("mesPrefixo").Value = "'" & Left$(shDadosMES.Range("A7").Formula, InStr(shDadosMES.Range("A7").Formula, "("))
+    shDadosMES.Range("A7").Value = "'Consulta concluída"
     Nm("cfgFonte").Value = "SIMULAÇÃO"
     Nm("pData").Value = DateSerial(2026, 9, 28)
     Nm("dLetra").Value = "A"
@@ -35,8 +38,7 @@ Public Sub TesteLO()
     Nm("dReal").Cells(1, 1).Value = "Controle da Produção: PF 03 04X04h"
     Nm("dReal").Cells(2, 1).Value = " - Descarte das amostras bi-horárias;"
     Nm("dSol").Cells(1, 1).Value = "sol. 1432026 PF"
-    Nm("dAus").Value = "Sim"
-    Nm("dAusQuem").Value = "Ciclano"
+    Nm("dComUS3").Value = "Usina 03 estável." & vbLf & "Sílica da mistura acima do alvo às 11:30."
     Nm("dRecebe").Value = "B"
     Nm("dH2Coque").Value = "0,45"
     Nm("dProdUS3").Value = "PDR/STD"
@@ -68,18 +70,22 @@ Public Sub TesteLO()
     r = r & "|realLinha1=" & (lin > 0) & "|realVisivel=" & (Not ws.Rows(lin).Hidden) & _
         "|real2=" & ws.Cells(lin + 1, 3).Value & "|real3oculta=" & ws.Rows(lin + 2).Hidden & _
         "|equipVazio=" & (LinhaTexto(ws, "Sem registro") > 0) & _
-        "|info=" & ws.Cells(6, 2).Value
-    For jj = 1 To 80
-        If Left$(CStr(ws.Cells(jj, 2).Value), 7) = "Pessoal" Then r = r & "|pessoal=" & ws.Cells(jj, 3).Text
+        "|data=" & ws.Cells(6, 3).Text & "|letra=" & ws.Cells(6, 10).Text & "|recebe=" & ws.Cells(6, 13).Text & _
+        "|tecnico=" & ws.Cells(7, 3).Text & "|prodUS3=" & ws.Cells(7, 10).Text
+    For jj = 1 To 120
+        If CStr(ws.Cells(jj, 2).Value) = "Comentário US3" Then r = r & "|comUS3=" & Replace(ws.Cells(jj, 3).Text, vbLf, "/") & _
+            "|altComUS3=" & ws.Rows(jj).RowHeight
+        If CStr(ws.Cells(jj, 2).Value) = "Comentário US4" Then r = r & "|comUS4=" & ws.Cells(jj, 3).Text
         If Left$(CStr(ws.Cells(jj, 2).Value), 11) = "Observações" Then r = r & "|obs=" & ws.Cells(jj, 3).Text
-        If Left$(CStr(ws.Cells(jj, 2).Value), 7) = "Control" Then r = r & "|lab=" & Replace(ws.Cells(jj, 3).Text, vbLf, "/")
+        If CStr(ws.Cells(jj, 2).Value) = "Programa em uso" Then r = r & "|prog=" & Left$(ws.Cells(jj, 3).Text, 12)
+        If CStr(ws.Cells(jj, 2).Value) = "Sistema de ar utilizado" Then r = r & "|ar=" & ws.Cells(jj, 3).Text
     Next jj
     passo = 4
     AtualizarMESNoite
     Set ws = shResumoNoite
     lin = LinhaChave(ws, "P02U3")
     r = r & "|nHora1=" & Nm("nHoras").Cells(1, 1).Value & "|nSiO2PF_media=" & ws.Cells(lin, 11).Value & _
-        "|nInfo=" & ws.Cells(6, 2).Value & "|nReal=" & (LinhaTexto(ws, "Tarefa da noite") > 0) & _
+        "|nTecnico=" & ws.Cells(7, 3).Text & "|nReal=" & (LinhaTexto(ws, "Tarefa da noite") > 0) & _
         "|dMediaIntacta=" & shResumoDia.Cells(LinhaChave(shResumoDia, "P02U3"), 11).Value
     passo = 5
     Nm("gIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
@@ -148,6 +154,10 @@ Public Sub DemoLO()
     Nm("dNitrogenio").Value = "Bom"
     Nm("dRecebe").Value = "A"
     Nm("dCadinhos").Value = "15 cadinhos: 9 p/ minérios, 3 p/ insumos e 3 retirados de uso"
+    Nm("dComUS3").Value = "Produção estável. SiO2 da mistura acima do limite do PDR/MX a partir das 09:30; operação ciente."
+    Nm("dComUS4").Value = "Sem desvios no turno."
+    Nm("dH2Carvao").Value = "4,12"
+    Nm("dObs").Value = "Linha de oxigênio fechada após os testes de PCS."
     AtualizarMESDia
     Nm("gIni").Value = DateSerial(2026, 9, 1) + TimeSerial(7, 0, 0)
     Nm("gFim").Value = DateSerial(2026, 9, 2) + TimeSerial(7, 0, 0)

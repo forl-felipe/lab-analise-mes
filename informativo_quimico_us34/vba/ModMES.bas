@@ -12,7 +12,7 @@ Option Explicit
 ' Coluna inicial da tabela de consultas ao MES na aba _Mapa (K)
 Private Const MAPA_COL_BLOCO As Long = 11
 ' Segundos sem mudanca nos resultados para considerar a consulta concluida
-Private Const ESTAVEL_SEG As Double = 3
+Private Const ESTAVEL_SEG As Double = 2
 ' Consulta que respondeu "Success" mas sem nenhuma linha (inicio do turno, sem analises ainda):
 ' depois deste tempo e tratada como "sem dados" (sem esperar o limite nem mostrar erro)
 Private Const SEM_DADOS_SEG As Double = 15
@@ -206,8 +206,8 @@ Private Function EscreverTabela(ByVal ws As Worksheet, ByVal dados As Variant, B
     Next r
     For s = 1 To nCols
         If s <= n Then
-            Nm(nomeHoras).Cells(1, s).Value = Format$(CDate(CDbl(ini) + (s - 1) * HORAS_SLOT / 24), "hh") & "h-" & _
-                                              Format$(CDate(CDbl(ini) + s * HORAS_SLOT / 24), "hh") & "h"
+            ' horario da amostra bi-horaria (meia hora apos o inicio da janela: 07:30, 09:30...)
+            Nm(nomeHoras).Cells(1, s).Value = "'" & Format$(CDate(CDbl(ini) + (s - 1) * HORAS_SLOT / 24 + 1 / 48), "hh:mm")
             ' janela em andamento: media parcial
             If Not simulado And CDbl(ini) + (s - 1) * HORAS_SLOT / 24 <= CDbl(Now) And _
                CDbl(ini) + s * HORAS_SLOT / 24 > CDbl(Now) Then
@@ -317,18 +317,64 @@ End Function
 ' Reescreve as formulas das consultas a partir da aba Configuracoes (texto literal).
 ' O nome da funcao (com ou sem _xll.) e preservado exatamente como o Excel o mostra.
 Public Sub RegerarFormulasMES()
-    Dim b As Long, c As Range, atual As String, prefixo As String, nova As String
+    Dim b As Long
+    For b = 1 To NumBlocos()
+        ' sempre reescreve (mesmo igual): o Excel recalcula a consulta uma unica vez
+        shDadosMES.Range(BlocoInfo(b, 3)).Formula = PrefixoAspen(b) & ArgumentosBloco(b)
+    Next b
+End Sub
+
+' Inicio da formula do Aspen ("=...GetCalculationValues("), exatamente como o Excel a mostra.
+' E lido da formula existente e guardado em Dados_MES (mesPrefixo), porque apos cada consulta
+' a formula e desligada (vira texto) para nao ser recalculada a toda edicao da planilha.
+Private Function PrefixoAspen(ByVal b As Long) As String
+    Dim atual As String
+    atual = shDadosMES.Range(BlocoInfo(b, 3)).Formula
+    If InStr(atual, "(") > 0 And InStr(1, atual, "GetCalculationValues", vbTextCompare) > 0 Then
+        PrefixoAspen = Left$(atual, InStr(atual, "("))
+        If CStr(Nm("mesPrefixo").Value) <> PrefixoAspen Then Nm("mesPrefixo").Value = "'" & PrefixoAspen
+    ElseIf Len(CfgTxt("mesPrefixo")) > 0 Then
+        PrefixoAspen = CfgTxt("mesPrefixo")
+    Else
+        PrefixoAspen = "=_xll.AspenTech.PME.ProcessData.Functions.GetCalculationValues("
+    End If
+End Function
+
+' Depois de ler os resultados: a formula da consulta vira texto e as matrizes sao apagadas,
+' para o Aspen nao refazer a consulta a cada recalculo do Excel (deixava tudo lento).
+Private Sub DesligarConsultas()
+    Dim b As Long, c As Range
+    On Error Resume Next
     For b = 1 To NumBlocos()
         Set c = shDadosMES.Range(BlocoInfo(b, 3))
-        atual = c.Formula
-        If InStr(atual, "(") > 0 And InStr(1, atual, "GetCalculationValues", vbTextCompare) > 0 Then
-            prefixo = Left$(atual, InStr(atual, "("))
-        Else
-            prefixo = "=_xll.AspenTech.PME.ProcessData.Functions.GetCalculationValues("
+        If c.HasFormula Then
+            Call PrefixoAspen(b)
+            c.Value = "'Consulta concluída em " & Format$(Now, "dd\/mm\/yyyy hh:mm:ss")
         End If
-        nova = prefixo & ArgumentosBloco(b)
-        If nova <> atual Then c.Formula = nova
     Next b
+    LimparSaidasMES
+End Sub
+
+' True se alguma consulta do Aspen ainda esta como formula (antes da 1a atualizacao ou apos falha)
+Public Function ConsultaAspenAtiva() As Boolean
+    Dim b As Long
+    On Error Resume Next
+    For b = 1 To NumBlocos()
+        If InStr(1, shDadosMES.Range(BlocoInfo(b, 3)).Formula, "GetCalculationValues", vbTextCompare) > 0 Then
+            ConsultaAspenAtiva = True
+            Exit Function
+        End If
+    Next b
+End Function
+
+' Faz o Excel calcular a consulta (no modo automatico, escrever a formula ja basta)
+Private Sub CalcularConsultas()
+    Dim b As Long
+    If Application.Calculation <> -4105 Then
+        For b = 1 To NumBlocos()
+            shDadosMES.Range(BlocoInfo(b, 3)).Calculate
+        Next b
+    End If
 End Sub
 
 Private Function SaidaBloco(ByVal b As Long) As Range
@@ -442,15 +488,12 @@ End Sub
 
 ' Recria as matrizes ShowCalculationValues no formato original (NSLOT linhas)
 Public Sub RestaurarSaidasMES()
-    Dim b As Long, anc As Range, prefixo As String, atual As String, ender As String
+    Dim b As Long, anc As Range, prefixo As String, ender As String
     On Error Resume Next
     For b = 1 To NumBlocos()
         Set anc = shDadosMES.Range(BlocoInfo(b, 3))
-        atual = anc.Formula
-        prefixo = "=_xll.AspenTech.PME.ProcessData.Functions."
-        If InStr(1, atual, "GetCalculationValues", vbTextCompare) > 0 Then
-            prefixo = Left$(atual, InStr(1, atual, "GetCalculationValues", vbTextCompare) - 1)
-        End If
+        prefixo = PrefixoAspen(b)
+        prefixo = Left$(prefixo, InStr(1, prefixo, "GetCalculationValues", vbTextCompare) - 1)
         ender = "Dados_MES!" & anc.Address(False, False)
         shDadosMES.Range(BlocoInfo(b, 4)).Resize(NSLOT, LarguraSaida(b)).FormulaArray = _
             prefixo & "ShowCalculationValues(ADDRESS(ROW(" & ender & "),COLUMN(" & ender & "),1,,""Dados_MES""),"  & _
@@ -465,13 +508,20 @@ Private Function LarguraSaida(ByVal b As Long) As Long
     LarguraSaida = 1 + 2 * (UBound(ps) - LBound(ps) + 1)
 End Function
 
+Private Function SegundosDesde(ByVal t0 As Single) As Double
+    SegundosDesde = Timer - t0
+    If SegundosDesde < 0 Then SegundosDesde = SegundosDesde + 86400
+End Function
+
 ' Escreve o periodo, regera as formulas, recalcula e espera o retorno de cada consulta
 Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados As Variant) As Boolean
+    Dim tIni As Single
     Dim limite As Double, msg As String, nb As Long, b As Long, nOk As Long
     Dim pronto() As Boolean, d() As Variant, arr As Variant, ps As Variant
     Dim i As Long, k As Long, s As Long, p As Long, falhas As String
 
     ConsultarMES = False
+    tIni = Timer
     nb = NumBlocos()
     ReDim pronto(1 To nb)
     limite = 60
@@ -485,13 +535,14 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     On Error GoTo FalhaFormula
     RegerarFormulasMES
     On Error GoTo 0
-    Application.CalculateFull
+    CalcularConsultas
     nOk = EsperarBlocos(ini, nb, pronto, limite)
 
     ' Seguranca: se nada voltou, recria as matrizes de saida no formato original e tenta de novo
     If nOk = 0 Then
         RestaurarSaidasMES
-        Application.CalculateFull
+        RegerarFormulasMES
+        CalcularConsultas
         nOk = EsperarBlocos(ini, nb, pronto, limite)
     End If
 
@@ -530,6 +581,9 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
         End If
     Next b
     dados = d
+    DesligarConsultas
+    Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & "  -  " & _
+        Format$(SegundosDesde(tIni), "0") & " s"
     ConsultarMES = True
     Exit Function
 

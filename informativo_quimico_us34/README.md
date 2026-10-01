@@ -15,8 +15,8 @@ A ocorrência segue a planilha que o laboratório usa hoje (`01-09-26.xlsm`). As
 
 | Aba | Para que serve |
 |---|---|
-| **Preenchimento** | A única aba em que o técnico escreve. No alto fica a **data do dia**; abaixo, o **Turno Dia** e, mais embaixo, o **Turno Noite**, com os mesmos campos: letra e técnico, tarefas realizadas, solicitações, equipamentos, tarefas a realizar, controle do laboratório, pessoal, cadinhos de platina e observações |
-| **Resumo Dia** / **Resumo Noite** | Página pronta para o e-mail. As ocorrências vêm **sozinhas, por fórmula**, do Preenchimento. Tem **2 botões**: **Atualizar dados do MES** (busca os resultados químicos do período do turno na data do Preenchimento) e **Copiar imagem**. Linhas vazias ficam ocultas ao abrir a aba e antes de copiar |
+| **Preenchimento** | A única aba em que o técnico escreve. No alto fica a **data do dia**; abaixo, o **Turno Dia** e, mais embaixo, o **Turno Noite**, com os mesmos campos: letra, técnico, letra que recebe, produto US3/US4, tarefas realizadas, solicitações, equipamentos, tarefas a realizar, **comentários por usina**, controle do laboratório, cadinhos de platina e observações |
+| **Resumo Dia** / **Resumo Noite** | Relatório técnico do turno (imagem para o e-mail), em formato paisagem e **no mesmo formato do Preenchimento**: identificação, ocorrências linha a linha (numeradas), comentários por usina, controle do laboratório, cadinhos, observações e resultados do MES por **horário de amostra (07:30, 09:30…)**. Tudo vem por fórmula. Botões: **Atualizar dados do MES** e **Copiar imagem** |
 | **Resultados gerais** | Resultados químicos de qualquer período de até 24 h: **Início** e **Fim** no alto, **Atualizar dados do MES** e **Copiar imagem** |
 | Limites (oculta) | **Farol por produto**: limites químicos de cada produto (SMIN-POP-GEA-001 rev. 12). Pode ser editada e ampliada à mão (botão direito numa guia → Reexibir → Limites) |
 | Configurações (oculta) | Fonte dos dados, servidor, **tags do MES**, LIE/LSE e faixa válida. Para abrir: botão direito numa guia → Reexibir |
@@ -93,6 +93,13 @@ Códigos de análise (sufixo `-HHLQU` = Laboratório Químico) **já confirmados
 Essas análises já estão no relatório, mas ficam **ocultas** e **fora da consulta** até a tag ser preenchida na aba Configurações (célula em laranja). Não foi colocada nenhuma tag "chutada". Quando o código for confirmado no MES, basta digitar a tag (ex.: `M710050020-00xx-HHLQU`) e atualizar. A linha aparece sozinha no relatório.
 
 ## Consulta ao MES
+
+**Velocidade:**
+- A consulta é calculada uma única vez por clique (antes o Excel a recalculava mais de uma vez).
+- Depois de ler os resultados, a fórmula do Aspen vira texto e as matrizes são apagadas, para o MES não ser consultado de novo a cada edição da planilha.
+- O início da fórmula (como o Excel a mostra) fica guardado em `Dados_MES!E3`, e o tempo da última consulta em `Dados_MES!E4`.
+
+**Imagem em alta resolução:** a área é copiada como figura vetorial, ampliada 2,2× num gráfico temporário e exportada como PNG; esse PNG vai para a área de transferência. Se algo falhar, é usada a cópia comum.
 
 Uma única consulta `GetCalculationValues` com todas as análises configuradas: tipo de cálculo `"1"`, janelas de `"2h"` e listas em texto literal, no mesmo formato validado no Físico. A consulta inclui só as análises com as duas tags preenchidas.
 
