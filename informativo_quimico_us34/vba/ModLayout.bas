@@ -1,7 +1,7 @@
 Option Explicit
 
 ' Gerado por build_quimico.py - posicoes fixas das abas (nao editar a mao)
-Public Const NPARAM As Long = 71
+Public Const NPARAM As Long = 70
 Public Const NSLOT As Long = 6
 Public Const NSLOT_MAX As Long = 12
 Public Const HORAS_SLOT As Double = 2

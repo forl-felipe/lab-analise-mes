@@ -53,11 +53,11 @@ Public Sub TesteLO()
     passo = 21
     lin = LinhaChave(ws, "P01U3")
     r = "dSiO2PF_slot1=" & ws.Cells(lin, 5).Value & "|dSiO2PF_media=" & ws.Cells(lin, 11).Value & _
-        "|dSiO2PF_US4=" & ws.Cells(LinhaChave(ws, "P01U4"), 11).Value & _
+        "|PF_umaLinha=" & (LinhaChave(ws, "P01U4") = 0) & "|PFrotulo=" & ws.Cells(lin, 4).Value & _
         "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & "|dAtual=" & Left$(Nm("dAtualizado").Value, 40) & _
         "|FePelotaUS3=" & ws.Cells(LinhaChave(ws, "P06U3"), 11).Value & _
         "|SiO2PFvisivel=" & (Not ws.Rows(lin).Hidden) & _
-        "|embarqueNoResumo=" & (LinhaChave(ws, "P14U3") > 0) & _
+        "|embarqueNoResumo=" & (LinhaChave(ws, "P13U3") > 0) & "|semPPCpelota=" & (LinhaChave(ws, "P12U3") > 0 And CStr(ws.Cells(LinhaChave(ws, "P12U3"), 2).Value) = "Mn") & _
         "|B2US4=" & ws.Cells(LinhaChave(ws, "P11U4"), 11).Value
     ' farol: limites do produto (colunas auxiliares Q=min, R=max)
     passo = 22
@@ -68,7 +68,7 @@ Public Sub TesteLO()
         "|limCaOUS3min=" & ws.Cells(LinhaChave(ws, "P09U3"), 17).Text & _
         "|limCaOUS4=" & ws.Cells(LinhaChave(ws, "P09U4"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P09U4"), 18).Text & _
         "|limB2US4max=" & ws.Cells(LinhaChave(ws, "P11U4"), 18).Text & _
-        "|limSiO2PF_US3=" & ws.Cells(LinhaChave(ws, "P01U3"), 18).Text & "|limSiO2PF_US4=" & ws.Cells(LinhaChave(ws, "P01U4"), 18).Text & _
+        "|limSiO2PF_US3=" & ws.Cells(LinhaChave(ws, "P01U3"), 18).Text & "|limSiO2PF_US4=n/a" & _
         "|limP_PF_US3=" & ws.Cells(LinhaChave(ws, "P02U3"), 18).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P05U3"), 18).Text & _
         "|produtos=" & Application.WorksheetFunction.CountA(shLimites.Range("B9:B33")) & "|gProdUS3=" & Nm("gProdUS3").Text
     passo = 3
@@ -129,21 +129,25 @@ Public Sub TesteLO()
     Nm("eFim").Value = DateSerial(2026, 9, 28) + TimeSerial(19, 0, 0)
     AtualizarEmbarque
     nv = 0
-    lin = LinhaChave(shEmbarque, "P14U3")
+    lin = LinhaChave(shEmbarque, "P13U3")
     For jj = 0 To 5
         If ENumero(shEmbarque.Cells(lin, COL_SLOT1 + jj).Value) Then nv = nv + 1
     Next jj
     r = r & "|emb_FeSlots=" & nv & "|emb_FeMedia=" & shEmbarque.Cells(lin, 17).Text & _
-        "|emb_semUS4=" & (LinhaChave(shEmbarque, "P14U4") = 0) & _
+        "|emb_semUS4=" & (LinhaChave(shEmbarque, "P13U4") = 0) & "|emb_tag=" & shConfig.Cells(CFG_ROW1 + 12, CFG_COL_TAG3).Value & _
         "|emb_semFiltragem=" & (LinhaChave(shEmbarque, "P01U3") = 0) & _
         "|emb_ultima=" & (LinhaChave(shEmbarque, "P" & Format$(NPARAM, "00") & "U3") > 0) & _
         "|emb_col7oculta=" & shEmbarque.Columns(COL_SLOT1 + 6).Hidden & _
         "|emb_atual=" & Left$(Nm("eAtualizado").Value, 45)
     passo = 59
     ' tags recusadas pelo MES: o texto de erro do Aspen e lido e as tags saem da consulta
+    Nm("eFase").Value = "TN"
+    Application.Calculate
+    r = r & "|tagTN=" & shConfig.Cells(CFG_ROW1 + 12, CFG_COL_TAG3).Value
     shDadosMES.Range("A22").Value = "'Erro:(M620010000-0002-TNLQU) Tag Name M620010000-0002-TNLQU is invalid(M620010000-0002-TNLQU) Tag Name M620010000-0004-TNLQU is invalid"
     r = r & "|invalidas=" & Replace(TesteTagsInvalidas("E"), vbCrLf, "/")
     shDadosMES.Range("A22").Value = "'Consulta concluída"
+    Nm("eFase").Value = "HH"
     passo = 6
     LimparSaidasMES
     r = r & "|limpo=" & Vazio(shDadosMES.Range("A9").Formula)

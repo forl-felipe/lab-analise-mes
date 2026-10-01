@@ -357,6 +357,22 @@ Public Function TesteTagsInvalidas(ByVal bloco As String) As String
     mBloco = ""
 End Function
 
+' Ate 10 linhas da lista (a lista completa fica em Dados_MES!E5)
+Private Function ResumoLista(ByVal lista As String) As String
+    Dim linhas As Variant, i As Long, r As String
+    linhas = Split(lista, vbCrLf)
+    For i = LBound(linhas) To UBound(linhas)
+        If Len(linhas(i)) > 0 Then
+            If i < 10 Then
+                r = r & linhas(i) & vbCrLf
+            ElseIf i = 10 Then
+                r = r & "  ... e mais " & (UBound(linhas) - 10) & " (lista completa em Dados_MES, célula E5)" & vbCrLf
+            End If
+        End If
+    Next i
+    ResumoLista = r
+End Function
+
 ' Lista (uma por linha) das tags recusadas que pertencem ao bloco do clique atual
 Private Function ListaInvalidas() As String
     Dim b As Long, todos As Variant, i As Long, p As Long, k As Long, t As Variant, r As String
@@ -721,7 +737,7 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
 
     If nOk = 0 And invalidas <> "" Then
         Aviso "O MES não reconheceu as tags abaixo (Tag Name ... is invalid)." & vbCrLf & _
-              "Nenhuma tag válida restou para consultar." & vbCrLf & vbCrLf & invalidas & vbCrLf & _
+              "Nenhuma tag válida restou para consultar." & vbCrLf & vbCrLf & ResumoLista(invalidas) & vbCrLf & _
               "Corrigir as tags na aba Configurações.", vbExclamation, "MES - tags inválidas"
         Exit Function
     End If
@@ -737,7 +753,7 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
         Aviso "Consultas sem resposta (ficam em branco):" & vbCrLf & falhas, vbExclamation, "MES"
     End If
     If invalidas <> "" Then
-        Aviso "Tags não reconhecidas pelo MES (ficam em branco):" & vbCrLf & vbCrLf & invalidas & vbCrLf & _
+        Aviso "Tags não reconhecidas pelo MES (ficam em branco):" & vbCrLf & vbCrLf & ResumoLista(invalidas) & vbCrLf & _
               "As demais análises foram consultadas normalmente. Corrigir as tags na aba Configurações.", _
               vbExclamation, "MES - tags inválidas"
     End If

@@ -45,7 +45,7 @@ O farol vale para as janelas de 2 h e para a média do turno. Nos Resultados ger
 Limites usados, conforme o padrão **SMIN-POP-GEA-001 rev. 12**:
 
 - **Pelota Queimada US3/US4:** colunas Máx./Mín. do **Processo (GPU), dados horários** (itens 10.4.1 e 10.4.2). Fe mín., SiO2 máx., P máx., CaO mín. (PDR) e B2 (PBF). Nas revisões com seta, vale o valor novo (ex.: Fe PDR/STD 67,10 → **67,19**).
-- **Pellet Feed (Filtragem US3/US4):** limites do **concentrado** do produto de cada usina (CLS, CNS, CHS ou CSP):
+- **Pellet Feed (Filtragem, linha US3/4):** limites do **concentrado** do produto da US3 (ou da US4, se a US3 estiver sem produto). Concentrados: CLS, CNS, CHS ou CSP.
   - SiO2 máx. bi-horário do concentrador III (item 10.2);
   - P e PPC máx. diários do batch (item 10.1).
 
@@ -78,13 +78,13 @@ ficam fora.
 
 | Amostra | US3 | US4 |
 |---|---|---|
-| Filtragem, Pellet Feed | `M650030010` (U03-02TP004) | `M4650060010` (U04-02TP006) |
+| Filtragem, Pellet Feed | `M650030010` (U03-02TP004), **uma linha só "US3/4"** (mesmo material nas duas usinas) | – |
 | Pelota Queimada | `M710050020` (U03-07TP002) | `M4710050020` (U04-07TP015) |
 
 | Amostra | Análises (código) |
 |---|---|
 | Filtragem | SiO2 (0004), P (0008), MgO (0007), CaO (0006), PPC (0013) |
-| Pelota Queimada | Fe (0002), SiO2 (0004), Al2O3 (0005), CaO (0006), MgO (0007), B2 (0018), Mn (0115), PPC (0013) |
+| Pelota Queimada | Fe (0002), SiO2 (0004), Al2O3 (0005), CaO (0006), MgO (0007), B2 (0018), Mn (0115). Sem PPC (não é feito na pelota) |
 
 **Pontos de atenção (conferir no MES):**
 
@@ -102,17 +102,18 @@ Toda tag pode ser alterada na aba **Configurações**. Análise sem tag fica ocu
 
 ### Embarque (aba de testes)
 
-> **Atenção:** no primeiro teste, o MES recusou `M620010000-0002-TNLQU` ("Tag Name is invalid"). Ou seja, as tags de fase
-> **TN** montadas pelo Plano Amostral não existem no IP.21 com esse nome. Falta confirmar no Aspen Process Explorer o nome
-> real das tags do embarque (procurar por `M620010000*`).
+> **Atenção:** o MES recusou todas as tags de fase **TN** montadas pelo Plano Amostral (ex.: `M620010000-0002-TNLQU`).
+> Todas as tags que funcionam nas planilhas atuais usam a fase **HH**. Por isso, a aba Embarque tem o campo **Fase da tag
+> no MES** (HH, DD, TN ou CG; padrão HH): as tags são montadas com a fase escolhida (ponto + código + fase + área).
+> Para testar, troque a fase e clique em Atualizar. As tags recusadas são avisadas.
 
-Ponto `U00-09TR002`, fase **TN** (amostra por embarque):
+Ponto `U00-09TR002` (amostra por embarque). Área da tag conforme o plano (LQU, LFU ou CC); a fase vem do campo da aba:
 
 | Produto | Ponto | Química (LQU) | Física |
 |---|---|---|---|
-| Pelota Queimada | `M620010000` | Fe, SiO2, Al2O3, CaO, MgO, P, Mn, B2, PPC | peneiras > 19 a < 0,5 mm, % > 6,3, % < 0,5, compressão (kg/pel e kgf/pel: média, % < 200/150/100, DP) – `TNLFU` |
-| Pellet Feed | `M620020000` | SiO2, Al2O3, P, CaO, MgO | umidade (`TNCC`), superfície específica e granulometria (`CGCC`) |
-| Pellet Screening | `M620030000` | Fe, SiO2, Al2O3, P, CaO, MgO, PPC | umidade e peneiras 9,5 mm a < 100# (`TNCC`) |
+| Pelota Queimada | `M620010000` | Fe, SiO2, Al2O3, CaO, MgO, P, Mn, B2, PPC | peneiras > 19 a < 0,5 mm, % > 6,3, % < 0,5, compressão (kg/pel e kgf/pel: média, % < 200/150/100, DP) (LFU) |
+| Pellet Feed | `M620020000` | SiO2, Al2O3, P, CaO, MgO | umidade, superfície específica e granulometria (CC) |
+| Pellet Screening | `M620030000` | Fe, SiO2, Al2O3, P, CaO, MgO, PPC | umidade e peneiras 9,5 mm a < 100# (CC) |
 
 O Fe do Pellet Feed do embarque está no plano com o código 0001, o mesmo da umidade (`M620020000-0001-TNCC`). Por isso,
 ficou de fora até ser confirmado.

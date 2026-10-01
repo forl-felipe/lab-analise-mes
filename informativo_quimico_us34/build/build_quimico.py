@@ -75,8 +75,10 @@ def _us(grupo, p3, p4, nome, un, dec, cod, tip3, tip4, fase='HHLQU'):
     return (grupo, nome, un, dec, 'Média', t3, MV, t4, MV, tip3, tip4, 'Q', False)
 
 
-def _pf(nome, un, dec, cod, tip3, tip4):
-    return _us(G_PF, PF3, PF4, nome, un, dec, cod, tip3, tip4)
+def _pf(nome, un, dec, cod, tip):
+    """Pellet Feed: mesmo material para as duas usinas -> uma linha so (US3/4), tag do ponto M650030010."""
+    tag = '%s-%s-HHLQU' % (PF3, cod)
+    return (G_PF, nome, un, dec, 'Média', tag, MV, tag, MV, tip, tip, 'Q', True)
 
 
 def _lm(nome, un, dec, cod, tip3, tip4):
@@ -91,19 +93,25 @@ G_EPF = 'Embarque - Pellet Feed'
 G_EPS = 'Embarque - Pellet Screening'
 
 
+# A fase da tag do embarque e escolhida na propria aba (eFase): o MES recusou a fase TN do Plano Amostral.
+FASES_EMB = ['HH', 'DD', 'TN', 'CG']
+
+
 def _emb(grupo, ponto, nome, un, dec, cod, sufixo, tip):
-    tag = '%s-%s-%s' % (ponto, cod, sufixo)
-    return (grupo, nome, un, dec, 'Média', tag, MV, tag, MV, tip, tip, 'E', True)
+    """sufixo = fase do plano + area (ex.: TNLQU); a fase e trocada pela escolhida em eFase."""
+    area = sufixo[2:]
+    tag = '%s-%s-HH%s' % (ponto, cod, area)
+    return (grupo, nome, un, dec, 'Média', tag, MV, tag, MV, tip, tip, 'E', True, (ponto, cod, area))
 
 
 # (grupo, analise, unidade, decimais, agregacao, tag US3, tipo, tag US4, tipo, tipico US3, tipico US4,
 #  consulta, amostra_unica)
 PARAMS = [
-    _pf('SiO2', '%', 2, '0004', 1.29, 2.30),
-    _pf('P', '%', 3, '0008', 0.040, 0.050),
-    _pf('MgO', '%', 2, '0007', 0.05, 0.06),
-    _pf('CaO', '%', 2, '0006', 0.09, 0.10),
-    _pf('PPC', '%', 2, '0013', 3.66, 3.70),
+    _pf('SiO2', '%', 2, '0004', 1.29),
+    _pf('P', '%', 3, '0008', 0.040),
+    _pf('MgO', '%', 2, '0007', 0.05),
+    _pf('CaO', '%', 2, '0006', 0.09),
+    _pf('PPC', '%', 2, '0013', 3.66),
     _lm('Fe', '%', 2, '0002', 67.30, 65.60),
     _lm('SiO2', '%', 2, '0004', 1.82, 2.90),
     _lm('Al2O3', '%', 2, '0005', 0.42, 0.44),
@@ -111,7 +119,6 @@ PARAMS = [
     _lm('MgO', '%', 2, '0007', 0.10, 0.11),
     _lm('B2 (CaO/SiO2)', '-', 2, '0018', 0.45, 0.48),
     _lm('Mn', '%', 3, '0115', 0.070, 0.071),
-    _lm('PPC', '%', 2, '0013', 0.10, 0.12),
 ]
 PARAMS += [_emb(G_EPQ, E_PQ, n, u, d, c, 'TNLQU', t) for n, u, d, c, t in [
     ('Fe', '%', 2, '0002', 65.60), ('SiO2', '%', 2, '0004', 2.90), ('Al2O3', '%', 2, '0005', 0.44),
@@ -431,7 +438,13 @@ class Construtor:
             ws.write(r, 3, un, self.f_input(align='center'))
             ws.write(r, 4, dec, self.f_input(align='center'))
             ws.write(r, 5, agg, self.f_input(align='center'))
-            ws.write(r, 6, t3, self.f_input(font_name='Consolas', font_size=9))
+            if len(pr) > 13:
+                # embarque: tag montada com a fase escolhida na aba Embarque (eFase)
+                ponto, cod, area = pr[13]
+                ws.write_formula(r, 6, '="%s-%s-"&eFase&"%s"' % (ponto, cod, area),
+                                 self.f_input(font_name='Consolas', font_size=9), t3)
+            else:
+                ws.write(r, 6, t3, self.f_input(font_name='Consolas', font_size=9))
             ws.write(r, 7, ty3, self.f_input(font_size=9))
             if pr[12]:
                 # amostra unica (Pellet Feed): a tag US4 repete a US3
@@ -800,7 +813,7 @@ class Construtor:
         hdr = self.f(bold=True, font_size=9, font_color=BRANCO, bg_color=AZUL, align='center', text_wrap=True,
                      border=1, border_color=BRANCO)
         ws.set_row(r, 30)
-        cabs = ['Amostra / análise', 'Un.', 'Usina'] + horas + [tit_media, 'Mín.', 'Máx.']
+        cabs = ['Amostra / análise', 'Un.', 'Usina' if cons == 'Q' else 'Ponto'] + horas + [tit_media, 'Mín.', 'Máx.']
         for i, t in enumerate(cabs):
             ws.write(r, 1 + i, t, hdr)
         self.nome(nome_horas, ws, r, CS, r, CS + nslot - 1)
@@ -841,7 +854,7 @@ class Construtor:
                 rr = r + k
                 ws.set_row(rr, 17)
                 ws.write(rr, 0, 'P%02dU%d' % (p, 3 + k), chave_fmt)
-                ws.write(rr, 3, rot_unica if unica else USINAS[k],
+                ws.write(rr, 3, ('US3/4' if cons == 'Q' else rot_unica) if unica else USINAS[k],
                          self.f(bold=True, font_size=9, font_color=AZUL if k == 0 else AZUL_ACINZ, align='center', **b))
                 vals = '%s:%s' % (rc(rr, CS), rc(rr, CM - 1))
                 for cc in range(CS, CM):
@@ -1116,9 +1129,16 @@ class Construtor:
         else:
             ws.set_row(7, 20)
             ws.write(7, 1, 'Ponto de amostragem', rot)
-            ws.merge_range(7, 2, 7, UC, 'U00-09TR002  |  amostra por embarque (fase TN)  |  EMB: amostra única',
+            ws.merge_range(7, 2, 7, UC, 'U00-09TR002  |  EMB: amostra única do embarque',
                            self.f(font_size=9, font_color=TEXTO_SEC, indent=1))
-            ws.set_row(8, 6)
+            ws.set_row(8, 20)
+            ws.write(8, 1, 'Fase da tag no MES', rot)
+            ws.merge_range(8, 2, 8, 3, 'HH', prod)
+            ws.data_validation(8, 2, 8, 2, {'validate': 'list', 'source': FASES_EMB})
+            self.nome('eFase', ws, 8, 2)
+            ws.merge_range(8, 4, 8, UC, 'Teste: escolha a fase (HH, DD, TN ou CG) e clique em Atualizar. '
+                           'Tags recusadas pelo MES são avisadas.',
+                           self.f(font_size=8.5, font_color=TEXTO_SEC, indent=1))
             rodape = 'Aba de testes  |  Tags: Plano Amostral rev. 06  |  Sem farol (sem limites cadastrados)'
         ws.set_row(9, 15)
         ws.merge_range(9, 1, 9, UC, 'Resultados não atualizados', self.f(font_size=8, italic=True,
