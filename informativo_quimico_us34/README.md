@@ -21,7 +21,7 @@ A ocorrência segue a planilha que o laboratório usa hoje (`01-09-26.xlsm`). As
 | Limites (oculta) | **Farol por produto**: limites químicos de cada produto (SMIN-POP-GEA-001 rev. 12). Pode ser editada e ampliada à mão (botão direito numa guia → Reexibir → Limites) |
 | Configurações (oculta) | Fonte dos dados, servidor, **tags do MES**, LIE/LSE e faixa válida. Para abrir: botão direito numa guia → Reexibir |
 
-Navegação: links "▶ Resumo Dia", "▶ Resumo Noite", "▼ Ir para o Turno Noite" e "◀ Voltar ao preenchimento" (hiperlinks, sem macro).
+Navegação por hiperlinks (sem macro): "Ir para: Turno Noite / Resumo Dia / Resumo Noite / Resultados gerais" e "Voltar ao Preenchimento".
 
 ## Rotina do técnico
 

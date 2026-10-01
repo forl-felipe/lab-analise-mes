@@ -204,7 +204,7 @@ class Construtor:
     def __init__(self, caminho):
         self.wb = xlsxwriter.Workbook(caminho)
         self.wb.set_vba_name('ThisWorkbook')
-        self.wb.set_properties({'title': 'Relatório de Turno - Laboratório Químico - US3/US4',
+        self.wb.set_properties({'title': 'Relatório de Passagem de Turno - Laboratório Químico - US3/US4',
                                 'company': 'Samarco - Laboratório Químico'})
         self._fmts = {}
 
@@ -224,25 +224,24 @@ class Construtor:
 
     # ----------------------------------------------------------- blocos visuais
     def cabecalho(self, ws, ultima_col, titulo, subtitulo, col_logo_fim=2, col_ini=1, r0=0):
-        """Faixa Azul Samarco com o logo (versao para fundo escuro) e filete amarelo,
-        como no kit visual Samarco."""
-        ws.set_row(r0, 6)
-        ws.set_row(r0 + 1, 26)
-        ws.set_row(r0 + 2, 20)
-        ws.set_row(r0 + 3, 4)
+        """Faixa Azul Samarco alta, com logo, titulo em caixa alta e filete amarelo."""
+        ws.set_row(r0, 12)
+        ws.set_row(r0 + 1, 34)
+        ws.set_row(r0 + 2, 24)
+        ws.set_row(r0 + 3, 6)
         faixa = self.f(bg_color=AZUL)
-        for r in (r0 + 1, r0 + 2):
-            for c in range(col_ini, col_logo_fim + 1):
+        for r in (r0, r0 + 1, r0 + 2):
+            for c in range(col_ini, ultima_col + 1):
                 ws.write_blank(r, c, None, faixa)
         ws.merge_range(r0 + 1, col_logo_fim + 1, r0 + 1, ultima_col, titulo,
-                       self.f(bold=True, font_size=15, font_color=BRANCO, bg_color=AZUL, indent=1, valign='bottom'))
+                       self.f(bold=True, font_size=19, font_color=BRANCO, bg_color=AZUL, indent=1, valign='bottom'))
         ws.merge_range(r0 + 2, col_logo_fim + 1, r0 + 2, ultima_col, subtitulo,
-                       self.f(font_size=9, font_color='#CFE0EA', bg_color=AZUL, indent=1, valign='top'))
+                       self.f(bold=True, font_size=11, font_color=AMARELO, bg_color=AZUL, indent=1, valign='top'))
         for c in range(col_ini, ultima_col + 1):
             ws.write_blank(r0 + 3, c, None, self.f(bg_color=AMARELO))
-        ws.insert_image(r0 + 1, col_ini, LOGO_ESCURO, {'x_scale': 0.16, 'y_scale': 0.16, 'x_offset': 10,
-                                                  'y_offset': 6, 'object_position': 3,
-                                                  'description': 'Samarco'})
+        ws.insert_image(r0 + 1, col_ini, LOGO_ESCURO, {'x_scale': 0.21, 'y_scale': 0.21, 'x_offset': 12,
+                                                      'y_offset': 8, 'object_position': 3,
+                                                      'description': 'Samarco'})
 
     def secao(self, ws, row, c1, c2, texto, cor=None):
         """Titulo de secao: texto Azul Titulo sobre branco, com linha azul embaixo."""
@@ -309,8 +308,8 @@ class Construtor:
         self.aba_limites()
         self.aba_dados_mes()
         self.aba_preenchimento()
-        self.aba_resumo(self.ws_res_d, 'd', 'Dia', 'Turno Dia  ·  07h às 19h', 7)
-        self.aba_resumo(self.ws_res_n, 'n', 'Noite', 'Turno Noite  ·  19h às 07h', 19)
+        self.aba_resumo(self.ws_res_d, 'd', 'Dia', 'TURNO DIA 07:00–19:00', 7)
+        self.aba_resumo(self.ws_res_n, 'n', 'Noite', 'TURNO NOITE 19:00–07:00', 19)
         self.aba_resultados()
         self.aba_mapa()
         self.ws_mes.hide()
@@ -332,15 +331,15 @@ class Construtor:
         for c, w in larg.items():
             ws.set_column(c, c, w)
         ws.set_column(18, 24, 17)
-        self.cabecalho(ws, 15, 'Configurações', 'Parâmetros gerais, tags do MES e limites de especificação')
+        self.cabecalho(ws, 15, 'CONFIGURAÇÕES', 'LABORATÓRIO QUÍMICO  |  MES E TAGS')
         self.secao(ws, 4, 1, 15, 'Parâmetros gerais')
         gerais = [
-            ('cfgFonte', 'Fonte dos dados', 'MES', 'MES = busca no Aspen/IP.21  ·  SIMULAÇÃO = dados fictícios (treinamento e teste)'),
-            ('cfgServidor', 'Servidor do MES', 'UBU', 'Fonte de dados do suplemento Aspen'),
-            ('cfgInicioDia', 'Início do turno Dia', dtm.time(7, 0), 'Turno Noite começa 12 h depois (Dia 07h-19h · Noite 19h-07h)'),
-            ('cfgTimeout', 'Espera máxima pelo MES (s)', 60, 'Tempo de espera pela resposta das fórmulas do Aspen'),
+            ('cfgFonte', 'Fonte dos dados', 'MES', 'MES ou SIMULAÇÃO (dados fictícios, para treino)'),
+            ('cfgServidor', 'Servidor do MES', 'UBU', 'Servidor do suplemento Aspen'),
+            ('cfgInicioDia', 'Início do turno Dia', dtm.time(7, 0), 'O turno Noite inicia 12 h depois'),
+            ('cfgTimeout', 'Espera máxima pelo MES (s)', 60, 'Tempo máximo de resposta do Aspen'),
             ('cfgFormatoData', 'Formato da data para o MES', 'Texto dd/mm/aaaa',
-             'Texto dd/mm/aaaa (padrão, validado no MES) · Data do Excel · Texto mm/dd/aaaa'),
+             'Padrão: Texto dd/mm/aaaa'),
         ]
         for i, (nm, rot, val, desc) in enumerate(gerais):
             r = 5 + i
@@ -362,12 +361,11 @@ class Construtor:
         self.botao(ws, 7, 11, 'Ver dados brutos do MES', 'MostrarDadosMES', 230, 30, 'claro', x=5)
 
         ws.merge_range(14, 1, 14, 15,
-                       'Análise SEM TAG = fica fora da consulta ao MES e oculta no relatório. Preencha a tag '
-                       '(ex.: M710050020-00xx-HHLQU) quando confirmada no MES. Pellet Feed: amostra única, a tag US4 '
-                       'repete a US3. LIE/LSE = especificação (vazio = sem avaliação).',
+                       'Análise sem tag não é consultada no MES e não aparece no relatório. '
+                       'Pellet Feed: amostra única (tag US4 = tag US3).',
                        self.f(font_size=9, italic=True, font_color=AZUL_ACINZ, text_wrap=True, indent=1))
         ws.set_row(14, 28)
-        self.secao(ws, 15, 1, 15, 'Tags do MES e limites - Análises químicas US3 e US4')
+        self.secao(ws, 15, 1, 15, 'Tags do MES')
         cab = ['Amostra', 'Análise', 'Unidade', 'Dec.', 'Resultado do turno', 'Tag US3', 'Tipo US3',
                'Tag US4', 'Tipo US4', 'LIE', 'LSE', 'Válido mín.', 'Válido máx.', 'Típico US3 (simul.)',
                'Típico US4 (simul.)']
@@ -410,7 +408,7 @@ class Construtor:
         ws.freeze_panes(17, 3)
         semtag = self.wb.add_format({'bg_color': LARANJA_FUNDO})
         ws.conditional_format(r1, 6, r2, 6, {'type': 'blanks', 'format': semtag})
-        ws.write(CFG_ROW1 - 1 + NPARAM + 1, 2, 'Tags em laranja: análise ainda sem tag no MES (confirmar com a TI / MES).',
+        ws.write(CFG_ROW1 - 1 + NPARAM + 1, 2, 'Laranja: análise sem tag.',
                  self.f(font_size=9, bold=True, font_color=LARANJA))
         ws.set_landscape()
         ws.set_paper(9)
@@ -428,7 +426,7 @@ class Construtor:
                   ('lstSN', 'Sim/Não', ['Sim', 'Não']),
                   ('lstTipo', 'Tipo de tag', [MV, AM]),
                   ('lstFormatoData', 'Formato data MES', ['Data do Excel', 'Texto dd/mm/aaaa', 'Texto mm/dd/aaaa'])]
-        ws.merge_range(4, 18, 4, 27, 'LISTAS (usadas nas caixas de seleção)',
+        ws.merge_range(4, 18, 4, 27, 'Listas',
                        self.f(bold=True, font_color=BRANCO, bg_color=AZUL_ACINZ, indent=1))
         for i, (nm, tit, itens) in enumerate(listas):
             c = 18 + i
@@ -490,15 +488,13 @@ class Construtor:
         ws.set_column(2, 2, 12)
         ws.set_column(LIM_COL1, UC, 8.5)
         ws.set_column(UC + 1, UC + 1, 3)
-        self.cabecalho(ws, UC, 'Limites por Produto - Farol', 'SMIN-POP-GEA-001 rev. 12 (24/03/2025)  ·  '
-                       'Processo (GPU), limites para dados horários', col_logo_fim=2)
+        self.cabecalho(ws, UC, 'LIMITES DE PROCESSO POR PRODUTO', 'LABORATÓRIO QUÍMICO  |  SMIN-POP-GEA-001 REV. 12',
+                       col_logo_fim=3)
         ws.set_row(4, 8)
-        ws.set_row(5, 44)
+        ws.set_row(5, 30)
         ws.merge_range(5, 1, 5, UC,
-                       'Como funciona: no Preenchimento o técnico escolhe o PRODUTO da US3 e da US4. Cada resultado é '
-                       'comparado com a linha do produto: VERDE = dentro (igual ou acima do mínimo e igual ou abaixo do '
-                       'máximo) · VERMELHO = fora. Célula vazia = sem limite. Para atualizar, edite os valores; para '
-                       'um produto novo, use uma linha vazia (a lista de seleção inclui o produto sozinha).',
+                       'Verde: dentro do limite (igual ou acima do mínimo, igual ou abaixo do máximo). '
+                       'Vermelho: fora do limite. Célula vazia: sem limite. Produto novo: usar uma linha livre.',
                        self.f(font_size=9, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1,
                               bg_color=FUNDO_CLARO, border=1, border_color=BORDA))
         hdr = self.f(bold=True, font_size=9, font_color=BRANCO, bg_color=AZUL, align='center', text_wrap=True,
@@ -510,9 +506,9 @@ class Construtor:
         ws.merge_range(6, 2, 7, 2, 'Concentrado', hdr)
         npel = sum(1 for k, _ in LIM_ITENS if k.startswith('LM'))
         ws.merge_range(6, LIM_COL1, 6, LIM_COL1 + 2 * npel - 1,
-                       'PELOTA (Linha de Mistura US3/US4)  ·  Processo GPU, dados horários', hdr)
+                       'PELOTA  |  PROCESSO (GPU), DADOS HORÁRIOS', hdr)
         ws.merge_range(6, LIM_COL1 + 2 * npel, 6, UC,
-                       'PELLET FEED - MD03  ·  pelo concentrado (SiO2 bi-horário; P e PPC máx. diário)', hdr)
+                       'PELLET FEED (MD03)  |  POR CONCENTRADO', hdr)
         for i, (k, rotulo) in enumerate(LIM_ITENS):
             ws.write(7, LIM_COL1 + 2 * i, rotulo + ' mín.', hdr2)
             ws.write(7, LIM_COL1 + 2 * i + 1, rotulo + ' máx.', hdr2)
@@ -538,10 +534,8 @@ class Construtor:
                         ws.write_number(r, LIM_COL1 + 2 * i + q, v, fm)
         r = LIM_ROW1 + LIM_NLIN + 1
         ws.merge_range(r, 1, r + 2, UC,
-                       'Observações do padrão: quando houver incorporações de terceiros/internas, os alvos e limites de '
-                       'SiO2 do concentrado devem ser reduzidos em 0,10 p.p. Pelota para Mercado Interno: limites '
-                       'químicos de acordo com o produto a ser entregue (não incluída). Fe e P aparecem no relatório '
-                       'quando as tags forem configuradas.',
+                       'Incorporações de terceiros/internas: reduzir alvos e limites de SiO2 do concentrado em 0,10 p.p. '
+                       '(item 10.2). Pellet Feed: SiO2 bi-horário; P e PPC máximo diário do batch.',
                        self.f(font_size=8, italic=True, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1))
         # lista de produtos para a selecao (cresce sozinha com linhas novas)
         self.wb.define_name('lstProdutos', "=OFFSET('Limites'!$B$%d,0,0,MAX(1,COUNTA('Limites'!$B$%d:$B$%d)),1)"
@@ -565,8 +559,8 @@ class Construtor:
         ws.set_column(2, UC, 10.3)
         ws.set_column(UC + 1, UC + 1, 3)
         ws.set_column(UC + 2, UC + 2, 30)
-        self.cabecalho(ws, UC, 'Passagem de Turno - Laboratório Químico',
-                       'Usinas 3 e 4  ·  preencha os campos amarelos do seu turno', col_logo_fim=3)
+        self.cabecalho(ws, UC, 'RELATÓRIO DE PASSAGEM DE TURNO', 'LABORATÓRIO QUÍMICO  |  USINAS 3 E 4',
+                       col_logo_fim=4)
         rot = self.f(font_size=9, bold=True, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO, indent=1,
                      border=1, border_color=BORDA, text_wrap=True)
         ws.set_row(4, 8)
@@ -577,21 +571,21 @@ class Construtor:
         self.nome('pData', ws, 5, 4)
         ws.data_validation(5, 4, 5, 4, {'validate': 'date', 'criteria': '>', 'value': dtm.date(2020, 1, 1),
                                         'error_message': 'Digite uma data válida (dd/mm/aaaa).'})
-        ws.merge_range(5, 6, 5, UC, 'Turno Dia 07h às 19h  ·  Turno Noite 19h às 07h do dia seguinte  ·  '
-                                    'um arquivo por dia', self.f(font_size=8, font_color=TEXTO_SEC, indent=1))
+        ws.merge_range(5, 6, 5, UC, 'Turno Dia 07:00 às 19:00   |   Turno Noite 19:00 às 07:00',
+                       self.f(font_size=9, font_color=TEXTO_SEC, indent=1))
         self.campos = {'d': {}, 'n': {}}
         r = 7
         ws.set_row(r, 18)
         self.link_pre_row = r
-        r = self._bloco_turno(ws, 'd', 'TURNO DIA  ·  07h às 19h', r + 2)
-        r = self._bloco_turno(ws, 'n', 'TURNO NOITE  ·  19h às 07h', r + 2)
+        r = self._bloco_turno(ws, 'd', 'TURNO DIA   07:00 – 19:00', r + 2)
+        r = self._bloco_turno(ws, 'n', 'TURNO NOITE   19:00 – 07:00', r + 2)
         fim = r
         # atalhos (hiperlinks, sem macro)
-        self.link(ws, self.link_pre_row, 1, "'Preenchimento'!B%d" % (self.bloco_row['n'] + 1),
-                  '▼ Ir para o Turno Noite')
-        self.link(ws, self.link_pre_row, 5, "'Resumo Dia'!A1", '▶ Resumo Dia')
-        self.link(ws, self.link_pre_row, 7, "'Resumo Noite'!A1", '▶ Resumo Noite')
-        self.link(ws, self.link_pre_row, 9, "'Resultados gerais'!A1", '▶ Resultados gerais')
+        ws.write(self.link_pre_row, 1, 'Ir para:', self.f(font_size=9, bold=True, font_color=TEXTO_SEC))
+        self.link(ws, self.link_pre_row, 2, "'Preenchimento'!B%d" % (self.bloco_row['n'] + 1), 'Turno Noite')
+        self.link(ws, self.link_pre_row, 4, "'Resumo Dia'!A1", 'Resumo Dia')
+        self.link(ws, self.link_pre_row, 6, "'Resumo Noite'!A1", 'Resumo Noite')
+        self.link(ws, self.link_pre_row, 8, "'Resultados gerais'!A1", 'Resultados gerais')
         ws.print_area(1, 1, fim, UC)
         ws.set_portrait()
         ws.set_paper(9)
@@ -617,7 +611,7 @@ class Construtor:
         ws.merge_range(r, 1, r, UC, titulo, self.f(bold=True, font_size=13, font_color=BRANCO, bg_color=AZUL,
                                                    indent=1, bottom=3, bottom_color=AMARELO))
         self.link(ws, r, UC + 2, "'Resumo %s'!A1" % ('Dia' if t == 'd' else 'Noite'),
-                  '▶ Ver Resumo %s' % ('Dia' if t == 'd' else 'Noite'), 10)
+                  'Resumo %s' % ('Dia' if t == 'd' else 'Noite'), 10)
         r += 1
         ws.set_row(r, 22)
         ws.merge_range(r, 1, r, 2, 'Letra', rot)
@@ -642,10 +636,8 @@ class Construtor:
 
         def lista(r, titulo, nome, n, dica):
             ws.set_row(r, 20)
-            ws.merge_range(r, 1, r, UC - 4, titulo, self.f(bold=True, font_size=11, font_color=AZUL_TITULO,
-                                                           valign='bottom', bottom=2, bottom_color=AZUL))
-            ws.merge_range(r, UC - 3, r, UC, dica, self.f(font_size=8, italic=True, font_color=TEXTO_SEC,
-                                                          align='right', valign='bottom', bottom=2, bottom_color=AZUL))
+            ws.merge_range(r, 1, r, UC, titulo, self.f(bold=True, font_size=11, font_color=AZUL_TITULO,
+                                                       valign='bottom', bottom=2, bottom_color=AZUL))
             for k in range(n):
                 rr = r + 1 + k
                 ws.set_row(rr, 19)
@@ -680,7 +672,7 @@ class Construtor:
                 'estufa e máquina de fusão')
         rr = r + 1
         ws.set_row(rr, 32)
-        campo(rr, 1, 3, 'Programas / equipamentos em uso', 4, UC, 'Prog', prog,
+        campo(rr, 1, 3, 'Programa em uso', 4, UC, 'Prog', prog,
               fmt=self.f_input(indent=1, font_size=9, text_wrap=True))
         rr += 1
         ws.set_row(rr, 20)
@@ -692,14 +684,14 @@ class Construtor:
         campo(rr, 6, 6, 'Status', 7, 8, 'ArStatus', '', '=lstLigado')
         rr += 1
         ws.set_row(rr, 20)
-        campo(rr, 1, 3, 'Condição do compressor', 4, 5, 'Compressor', '', '=lstCond')
+        campo(rr, 1, 3, 'Compressor', 4, 5, 'Compressor', '', '=lstCond')
         campo(rr, 6, 6, 'Nitrogênio', 7, 8, 'Nitrogenio', '', '=lstCond')
         r = rr + 2
 
-        self.secao(ws, r, 1, UC, '6. Pessoal (ausências, trocas e hora extra)')
+        self.secao(ws, r, 1, UC, '6. Ausências, trocas e hora extra')
         rr = r + 1
         for rotulo, nm in (('Houve ausência no turno?', 'Aus'), ('Houve troca combinada?', 'Troca'),
-                           ('Houve hora extra?', 'HE')):
+                           ('Houve hora extra realizada?', 'HE')):
             ws.set_row(rr, 20)
             campo(rr, 1, 3, rotulo, 4, 5, nm, 'Não', '=lstSN')
             campo(rr, 6, 6, 'Quem', 7, UC, nm + 'Quem')
@@ -714,7 +706,7 @@ class Construtor:
         campo(rr, 1, 3, 'Repassados para o turno', 4, UC, 'Cadinhos')
         rr += 1
         ws.set_row(rr, 20)
-        campo(rr, 1, 3, 'Retirados para reforma', 4, UC, 'Reforma')
+        campo(rr, 1, 3, 'Retirado para reforma', 4, UC, 'Reforma')
         r = rr + 2
 
         self.secao(ws, r, 1, UC, '8. Observações gerais')
@@ -846,20 +838,21 @@ class Construtor:
         chave_fmt = self.f(font_color=BRANCO, font_size=6)
         P = "'Preenchimento'!"
 
-        self.cabecalho(ws, UC, 'Relatório de Turno - Laboratório Químico', 'Usinas 3 e 4  ·  ' + sub_turno)
+        self.cabecalho(ws, UC, 'RELATÓRIO DE PASSAGEM DE TURNO', 'LABORATÓRIO QUÍMICO  |  USINAS 3 E 4  |  ' + sub_turno,
+                       col_logo_fim=3)
         ws.set_row(4, 6)
         ws.set_row(5, 22)
         info = self.f(bold=True, font_size=10, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO, indent=1,
                       border=1, border_color=BORDA)
         ws.merge_range(5, 1, 5, UC, '', info)
-        ws.write_formula(5, 1, '=IF(pData="","Preencha a DATA na aba Preenchimento",TEXT(DAY(pData),"00")&"/"&'
-                               'TEXT(MONTH(pData),"00")&"/"&YEAR(pData))&"   ·   Turno %s"&IF(%sLetra="","",'
-                               '"   ·   Letra "&%sLetra)&IF(%sTecnico="","","   ·   Técnico: "&%sTecnico)'
+        ws.write_formula(5, 1, '="Data: "&IF(pData="","—",TEXT(DAY(pData),"00")&"/"&'
+                               'TEXT(MONTH(pData),"00")&"/"&YEAR(pData))&"     |     Turno %s"&IF(%sLetra="","",'
+                               '"     |     Letra "&%sLetra)&IF(%sTecnico="","","     |     Técnico: "&%sTecnico)'
                          % (nome_turno, t, t, t, t), info)
         ws.set_row(6, 6)
 
         # ---- ocorrencias (formulas)
-        self.secao(ws, 7, 1, UC, 'Ocorrências do turno')
+        self.secao(ws, 7, 1, UC, 'OCORRÊNCIAS DO TURNO')
         sub = self.f(bold=True, font_size=9, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO, indent=1,
                      border=1, border_color=BORDA)
         txt = self.f(font_size=9, text_wrap=True, indent=1, left=1, right=1, border_color=BORDA)
@@ -884,31 +877,31 @@ class Construtor:
             ws.write(r, 0, 'T', chave_fmt)
             ws.write_blank(r, 1, None, bul)
             ws.merge_range(r, 2, r, UC, '', vaz)
-            ws.write_formula(r, 2, '=IF(COUNTA(%s%s:%s)=0,"— nada registrado","")' % (P, refs[0], refs[-1]), vaz)
+            ws.write_formula(r, 2, '=IF(COUNTA(%s%s:%s)=0,"Sem registro","")' % (P, refs[0], refs[-1]), vaz)
             r += 1
 
         def v(nm, vazio='-'):
             return 'IF(%s="","%s",%s)' % (c[nm], vazio, c[nm])
 
-        sep = '"   ·   "'
+        sep = '"   |   "'
         linhas = [
-            ('Controle do laboratório', 30,
-             '=IF(%s="","","Em uso: "&%s&CHAR(10))&"Padrões preparados: "&%s&IF(%s="",""," ("&%s&")")&%s&'
-             '"Sistema de ar: "&%s&IF(%s="",""," - "&%s)&IF(%s="","",%s&"Compressor: "&%s)&'
+            ('Controle do laboratório', 42,
+             '=IF(%s="","","Programa em uso: "&%s&CHAR(10))&"Preparo de padrões: "&%s&IF(%s="",""," ("&%s&")")&%s&'
+             '"Sistema de ar: "&%s&IF(%s="",""," ("&%s&")")&IF(%s="","",%s&"Compressor: "&%s)&'
              'IF(%s="","",%s&"Nitrogênio: "&%s)'
              % (c['Prog'], c['Prog'], v('Padroes'), c['PadroesQuais'], c['PadroesQuais'], sep, v('Ar'),
                 c['ArStatus'], c['ArStatus'], c['Compressor'], sep, c['Compressor'], c['Nitrogenio'], sep,
                 c['Nitrogenio'])),
-            ('Pessoal', 16,
+            ('Ausências / trocas', 16,
              '="Ausência: "&%s&IF(%s="",""," ("&%s&")")&%s&"Troca combinada: "&%s&IF(%s="",""," ("&%s&")")&%s&'
              '"Hora extra: "&%s&IF(%s="",""," ("&%s&")")&IF(%s="","",%s&"Letra que recebe: "&%s)'
              % (v('Aus'), c['AusQuem'], c['AusQuem'], sep, v('Troca'), c['TrocaQuem'], c['TrocaQuem'], sep,
                 v('HE'), c['HEQuem'], c['HEQuem'], c['Recebe'], sep, c['Recebe'])),
             ('Cadinhos de platina', 16,
-             '="Repassados: "&%s&%s&"Retirados para reforma: "&%s' % (v('Cadinhos'), sep, v('Reforma'))),
+             '="Repassados: "&%s&%s&"Retirado para reforma: "&%s' % (v('Cadinhos'), sep, v('Reforma'))),
             ('Observações', 40,
-             '=IF({a}&{b}&{c}&{o}="","-",TRIM(IF({a}="","","Hidrogênio no carvão: "&{a}&"     ")&'
-             'IF({b}="","","Hidrogênio no coque: "&{b}&"     ")&IF({c}="","","Coque Planta 04: "&{c}))&'
+             '=IF({a}&{b}&{c}&{o}="","-",TRIM(IF({a}="","","Hidrogênio no carvão: "&{a}&"   |   ")&'
+             'IF({b}="","","Hidrogênio no coque: "&{b}&"   |   ")&IF({c}="","","Coque Planta 04: "&{c}))&'
              'IF(AND({a}&{b}&{c}<>"",{o}<>""),CHAR(10),"")&{o})'
              .format(a=c['H2Carvao'], b=c['H2Coque'], c=c['Coque04'], o=c['Obs'])),
         ]
@@ -925,10 +918,10 @@ class Construtor:
         # ---- resultados quimicos
         ws.set_row(r, 8)
         r += 1
-        self.secao(ws, r, 1, UC, 'Informativo de qualidade do turno  ·  resultados químicos do MES de 2 em 2 h')
+        self.secao(ws, r, 1, UC, 'INFORMATIVO DE QUALIDADE DO TURNO')
         r += 1
         ws.set_row(r, 15)
-        ws.merge_range(r, 1, r, UC, 'Resultados ainda não atualizados  ·  botão "Atualizar dados do MES"',
+        ws.merge_range(r, 1, r, UC, 'Resultados não atualizados',
                        self.f(font_size=8, italic=True, font_color=TEXTO_SEC, indent=1))
         self.nome(t + 'Atualizado', ws, r, 1)
         r += 1
@@ -936,16 +929,15 @@ class Construtor:
         pf = self.f(bold=True, font_size=9, font_color=AZUL_TITULO, bg_color=FUNDO_AZUL_CLARO, indent=1,
                     border=1, border_color=BORDA)
         ws.merge_range(r, 1, r, UC, '', pf)
-        ws.write_formula(r, 1, '="Produto US3: "&IF({p3}="","— não selecionado",{p3})&"     ·     Produto US4: "&'
-                               'IF({p4}="","— não selecionado",{p4})'.format(p3=t + 'ProdUS3', p4=t + 'ProdUS4'), pf)
+        ws.write_formula(r, 1, '="Produto US3: "&IF({p3}="","não informado",{p3})&"          Produto US4: "&'
+                               'IF({p4}="","não informado",{p4})'.format(p3=t + 'ProdUS3', p4=t + 'ProdUS4'), pf)
         r += 1
         horas = ['%02dh-%02dh' % ((hora_ini + 2 * i) % 24, (hora_ini + 2 * i + 2) % 24) for i in range(NSLOT)]
         r, _ = self.tabela(ws, r, NSLOT, horas, t + 'Horas', 'Média do turno', t + 'ProdUS3', t + 'ProdUS4',
                            UC + 4)
-        ws.set_row(r, 26)
-        ws.merge_range(r, 1, r, UC, 'Farol pelo produto selecionado (limites SMIN-POP-GEA-001 rev. 12, Processo GPU, '
-                       'dados horários): VERDE = dentro do limite · VERMELHO = fora. Média do turno = média das janelas '
-                       'de 2 h. MD03 = Pellet Feed do Mineroduto 03 (limite pelo concentrado do produto da US3).',
+        ws.set_row(r, 16)
+        ws.merge_range(r, 1, r, UC, 'Verde: dentro do limite   |   Vermelho: fora do limite   |   '
+                       'Limites: SMIN-POP-GEA-001 rev. 12   |   MD03: Pellet Feed Mineroduto 03',
                        self.f(font_size=7.5, font_color=TEXTO_SEC, italic=True, indent=1, text_wrap=True, valign='top'))
         fim = r
         self.nome(t + 'Area', ws, 1, 1, fim, UC)
@@ -957,14 +949,9 @@ class Construtor:
         ws.center_horizontally()
 
         T = nome_turno
-        self.botao(ws, 1, CB, 'Atualizar dados do MES\n(turno %s)' % T, 'AtualizarMES' + T, 200, 44, 'primario',
-                   x=4, y=2)
-        self.botao(ws, 5, CB, 'Copiar imagem\n(para o e-mail)', 'CopiarImagem' + T, 200, 44, 'destaque', x=4)
-        self.link(ws, 9, CB, "'Preenchimento'!B%d" % (self.bloco_row[t] + 1), '◀ Voltar ao preenchimento', 10)
-        ws.merge_range(11, CB, 16, CB, 'As ocorrências vêm sozinhas da aba Preenchimento (Turno %s).\n'
-                       'Os resultados do MES são do período do turno, na data do Preenchimento.\n'
-                       'Para print: Windows + Shift + S.' % T,
-                       self.f(font_size=8, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1))
+        self.botao(ws, 1, CB, 'Atualizar dados do MES', 'AtualizarMES' + T, 200, 36, 'primario', x=4, y=8)
+        self.botao(ws, 5, CB, 'Copiar imagem', 'CopiarImagem' + T, 200, 36, 'destaque', x=4, y=2)
+        self.link(ws, 9, CB, "'Preenchimento'!B%d" % (self.bloco_row[t] + 1), 'Voltar ao Preenchimento', 10)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
     # ------------------------------------------------------------ Resultados gerais
@@ -984,15 +971,15 @@ class Construtor:
         ws.set_column(CM + 1, UC, 7)
         ws.set_column(UC + 1, UC + 1, 3)
         ws.set_column(CB, CB, 28)
-        self.cabecalho(ws, UC, 'Resultados Gerais - Laboratório Químico',
-                       'Usinas 3 e 4  ·  resultados químicos do MES de 2 em 2 horas, no período escolhido')
+        self.cabecalho(ws, UC, 'RELATÓRIO DE PASSAGEM DE TURNO',
+                       'LABORATÓRIO QUÍMICO  |  USINAS 3 E 4  |  RESULTADOS DO PERÍODO', col_logo_fim=3)
         ws.set_row(4, 8)
         ws.set_row(5, 26)
         rot = self.f(font_size=9, bold=True, font_color=AZUL_TITULO, bg_color=FUNDO_CLARO, indent=1,
                      border=1, border_color=BORDA)
         sel = self.f(font_size=11, bold=True, font_color=AZUL_TITULO, num_format='dd/mm/yyyy hh:mm', align='center',
                      bg_color=FUNDO_INPUT, border=1, border_color=AMARELO, locked=False)
-        ws.write(5, 1, 'Período (até 24 h)', rot)
+        ws.write(5, 1, 'Período (máx. 24 h)', rot)
         ws.merge_range(5, 2, 5, 3, 'Início', self.f(font_size=9, font_color=TEXTO_SEC, align='right'))
         ws.merge_range(5, CS, 5, CS + 2, '', sel)
         ws.write(5, CS + 3, 'Fim', self.f(font_size=9, font_color=TEXTO_SEC, align='center'))
@@ -1002,32 +989,29 @@ class Construtor:
         for cc in (CS, CS + 4):
             ws.data_validation(5, cc, 5, cc, {'validate': 'date', 'criteria': '>', 'value': dtm.date(2020, 1, 1),
                                               'error_message': 'Digite data e hora: dd/mm/aaaa hh:mm'})
-        ws.merge_range(5, CS + 7, 5, UC, 'Ex.: 01/09/2026 07:00  →  02/09/2026 07:00; depois clique em '
-                       'Atualizar dados do MES.', self.f(font_size=8, font_color=TEXTO_SEC, indent=1, text_wrap=True))
+        ws.merge_range(5, CS + 7, 5, UC, 'Formato: dd/mm/aaaa hh:mm', self.f(font_size=8, font_color=TEXTO_SEC,
+                                                                              indent=1))
         ws.set_row(6, 6)
         prod = self.f(bold=True, font_size=10, font_color=AZUL_TITULO, align='center', bg_color=FUNDO_INPUT,
                       border=1, border_color=BORDA, locked=False)
         for i, us in enumerate(('US3', 'US4')):
             rr = 7 + i
             ws.set_row(rr, 20)
-            ws.write(rr, 1, 'Produto ' + us + ' (farol)', rot)
+            ws.write(rr, 1, 'Produto ' + us, rot)
             ws.merge_range(rr, 2, rr, 3, '', prod)
             ws.write_formula(rr, 2, '=IF(dProd{u}="","",dProd{u})'.format(u=us), prod)
             ws.data_validation(rr, 2, rr, 2, {'validate': 'list', 'source': '=lstProdutos'})
             self.nome('gProd' + us, ws, rr, 2)
-        ws.merge_range(7, 4, 8, 9, 'Vem do Turno Dia do Preenchimento; pode ser trocado aqui.',
-                       self.f(font_size=8, font_color=TEXTO_SEC, indent=1, text_wrap=True))
         ws.set_row(9, 15)
-        ws.merge_range(9, 1, 9, UC, 'Resultados ainda não atualizados', self.f(font_size=8, italic=True,
+        ws.merge_range(9, 1, 9, UC, 'Resultados não atualizados', self.f(font_size=8, italic=True,
                                                                               font_color=TEXTO_SEC, indent=1))
         self.nome('gAtualizado', ws, 9, 1)
         r = 10
         r, _ = self.tabela(ws, r, NSLOT_INF, ['—'] * NSLOT_INF, 'gHoras', 'Média do período', 'gProdUS3', 'gProdUS4',
                            CB + 2)
         ws.set_row(r, 16)
-        ws.merge_range(r, 1, r, UC, 'Farol pelo produto selecionado (SMIN-POP-GEA-001 rev. 12): VERDE = dentro do '
-                       'limite · VERMELHO = fora. Média do período = média das janelas de 2 h. Análises sem tag no MES '
-                       'ficam ocultas.',
+        ws.merge_range(r, 1, r, UC, 'Verde: dentro do limite   |   Vermelho: fora do limite   |   '
+                       'Limites: SMIN-POP-GEA-001 rev. 12   |   MD03: Pellet Feed Mineroduto 03',
                        self.f(font_size=7.5, font_color=TEXTO_SEC, italic=True, indent=1))
         fim = r
         self.nome('gArea', ws, 1, 1, fim, UC)
@@ -1037,10 +1021,9 @@ class Construtor:
         ws.fit_to_pages(1, 1)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
         ws.center_horizontally()
-        self.botao(ws, 1, CB, 'Atualizar dados do MES\n(período escolhido)', 'AtualizarResultados', 200, 44,
-                   'primario', x=4, y=2)
-        self.botao(ws, 5, CB, 'Copiar imagem\n(para o e-mail)', 'CopiarImagemResultados', 200, 44, 'destaque', x=4)
-        self.link(ws, 9, CB, "'Preenchimento'!A1", '◀ Voltar ao preenchimento', 10)
+        self.botao(ws, 1, CB, 'Atualizar dados do MES', 'AtualizarResultados', 200, 36, 'primario', x=4, y=8)
+        self.botao(ws, 5, CB, 'Copiar imagem', 'CopiarImagemResultados', 200, 36, 'destaque', x=4, y=2)
+        self.link(ws, 9, CB, "'Preenchimento'!A1", 'Voltar ao Preenchimento', 10)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
     # ------------------------------------------------------------ _Mapa

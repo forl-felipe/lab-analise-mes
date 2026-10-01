@@ -76,16 +76,13 @@ Private Sub CopiarArea(ByVal ws As Worksheet, ByVal nomeArea As String, ByVal ti
     On Error GoTo Falha
     DoEvents
     ActiveWindow.Zoom = zoomAnt
-    Aviso titulo & " copiado como imagem." & vbCrLf & vbCrLf & _
-          "Abra o e-mail (ou Teams) e cole com Ctrl+V." & vbCrLf & _
-          "A imagem sai em alta resolução: se ficar grande, reduza pelos cantos." & vbCrLf & _
-          "Se preferir, use Windows + Shift + S e recorte a tela.", vbInformation, "Copiar imagem"
+    Aviso titulo & " copiado. Cole no e-mail com Ctrl+V.", vbInformation, "Copiar imagem"
     Exit Sub
 Falha:
     msgErro = Err.Description
     On Error Resume Next
     If Not IsEmpty(zoomAnt) Then ActiveWindow.Zoom = zoomAnt
     On Error GoTo 0
-    Aviso "Não foi possível copiar a imagem: " & msgErro & vbCrLf & _
-          "Use Windows + Shift + S e recorte a tela.", vbExclamation, "Copiar imagem"
+    Aviso "Não foi possível copiar a imagem (" & msgErro & ")." & vbCrLf & _
+          "Use Windows + Shift + S.", vbExclamation, "Copiar imagem"
 End Sub

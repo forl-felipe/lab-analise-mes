@@ -33,7 +33,7 @@ Private Sub AtualizarTurno(ByVal ws As Worksheet, ByVal t As String, ByVal noite
     Dim v As Variant, ini As Date, dados As Variant, n As Long, simulado As Boolean, nome As String, obs As String
     v = Nm("pData").Value
     If Not (VarType(v) = vbDate Or ENumero(v)) Then
-        Aviso "Preencha a DATA do dia no alto da aba Preenchimento.", vbExclamation, "MES"
+        Aviso "Informe a data na aba Preenchimento.", vbExclamation, "MES"
         Exit Sub
     End If
     ini = CDate(Int(CDbl(v)) + HoraInicioDia())
@@ -41,8 +41,8 @@ Private Sub AtualizarTurno(ByVal ws As Worksheet, ByVal t As String, ByVal noite
     If noite Then nome = "Noite" Else nome = "Dia"
     simulado = FonteSimulada()
     If Not simulado And CDbl(ini) > CDbl(Now) Then
-        Aviso "O turno " & nome & " de " & Format$(ini, "dd\/mm\/yyyy") & " ainda não começou (" & _
-              Format$(ini, "hh:mm") & ")." & vbCrLf & "Os resultados ficam em branco até lá.", vbInformation, "MES"
+        Aviso "Turno " & nome & " de " & Format$(ini, "dd\/mm\/yyyy") & " ainda não iniciado (" & _
+              Format$(ini, "hh:mm") & ").", vbInformation, "MES"
         Exit Sub
     End If
     If Not BuscarMES(ini, NSLOT, dados) Then Exit Sub
@@ -50,14 +50,13 @@ Private Sub AtualizarTurno(ByVal ws As Worksheet, ByVal t As String, ByVal noite
     CompactarAba ws
     ws.Activate
     If CDbl(ini) + NSLOT * HORAS_SLOT / 24 > CDbl(Now) And Not simulado Then
-        obs = vbCrLf & vbCrLf & "Turno em andamento: resultados até agora (" & Format$(Now, "hh:mm") & ")." & _
-              vbCrLf & "Os horários seguintes ficam em branco; clique em Atualizar quando quiser acompanhar."
+        obs = vbCrLf & "Turno em andamento: resultados até " & Format$(Now, "hh:mm") & "."
     End If
     If n = 0 And Not simulado Then
-        Aviso "Ainda não há resultados no MES para o turno " & nome & "." & obs, vbInformation, "MES"
+        Aviso "Sem resultados no MES para o turno " & nome & "." & obs, vbInformation, "MES"
     Else
-        Aviso n & " resultados do turno " & nome & " (" & Format$(ini, "dd\/mm\/yyyy") & ") atualizados." & obs & _
-              IIf(simulado, vbCrLf & vbCrLf & "Atenção: DADOS SIMULADOS (Fonte dos dados = SIMULAÇÃO).", ""), _
+        Aviso "Turno " & nome & " atualizado: " & n & " resultados." & obs & _
+              IIf(simulado, vbCrLf & "Fonte: SIMULAÇÃO.", ""), _
               vbInformation, "MES"
     End If
 End Sub
@@ -70,19 +69,18 @@ Public Sub AtualizarResultados()
     vi = Nm("gIni").Value
     vf = Nm("gFim").Value
     If Not DataHoraValida(vi) Or Not DataHoraValida(vf) Then
-        Aviso "Preencha o INÍCIO e o FIM do período no alto da aba" & vbCrLf & _
-              "(data e hora, por exemplo 01/09/2026 07:00).", vbExclamation, "Resultados gerais"
+        Aviso "Informe início e fim do período (dd/mm/aaaa hh:mm).", vbExclamation, "Resultados gerais"
         Exit Sub
     End If
     ini = CDate(Round(CDbl(CDate(vi)) * 1440, 0) / 1440)
     fim = CDate(Round(CDbl(CDate(vf)) * 1440, 0) / 1440)
     horas = (CDbl(fim) - CDbl(ini)) * 24
     If horas <= 0 Then
-        Aviso "O FIM precisa ser depois do INÍCIO.", vbExclamation, "Resultados gerais"
+        Aviso "O fim deve ser posterior ao início.", vbExclamation, "Resultados gerais"
         Exit Sub
     End If
     If horas > NSLOT_MAX * HORAS_SLOT + 0.01 Then
-        Aviso "O período pode ter no máximo " & NSLOT_MAX * HORAS_SLOT & " horas.", vbExclamation, "Resultados gerais"
+        Aviso "Período máximo: " & NSLOT_MAX * HORAS_SLOT & " horas.", vbExclamation, "Resultados gerais"
         Exit Sub
     End If
     ' janelas de 2 h a partir do inicio (a ultima completa as 2 h)
@@ -90,7 +88,7 @@ Public Sub AtualizarResultados()
     If n * HORAS_SLOT < horas - 0.01 Then n = n + 1
     simulado = FonteSimulada()
     If Not simulado And CDbl(ini) > CDbl(Now) Then
-        Aviso "O período escolhido ainda não começou.", vbExclamation, "Resultados gerais"
+        Aviso "Período ainda não iniciado.", vbExclamation, "Resultados gerais"
         Exit Sub
     End If
     If Not BuscarMES(ini, n, dados) Then Exit Sub
@@ -105,9 +103,7 @@ Public Sub AtualizarResultados()
     On Error GoTo 0
     CompactarAba shResultados
     shResultados.Activate
-    Aviso qtd & " resultados carregados para " & Format$(ini, "dd\/mm hh:mm") & " a " & _
-          Format$(CDate(CDbl(ini) + n * HORAS_SLOT / 24), "dd\/mm hh:mm") & "." & vbCrLf & vbCrLf & _
-          "Use 'Copiar imagem' para colar no e-mail.", vbInformation, "Resultados gerais"
+    Aviso "Período atualizado: " & qtd & " resultados.", vbInformation, "Resultados gerais"
 End Sub
 
 Private Function FonteSimulada() As Boolean
@@ -123,7 +119,7 @@ Private Function BuscarMES(ByVal ini As Date, ByVal n As Long, ByRef dados As Va
     Dim d() As Variant
     BuscarMES = False
     If mOcupado Then
-        Aviso "Uma consulta ao MES já está em andamento. Aguarde terminar.", vbInformation, "MES"
+        Aviso "Consulta ao MES em andamento. Aguarde.", vbInformation, "MES"
         Exit Function
     End If
     mOcupado = True
@@ -144,8 +140,8 @@ Private Function BuscarMES(ByVal ini As Date, ByVal n As Long, ByRef dados As Va
                 If nAgora > NSLOT Then nAgora = NSLOT
                 fimParte = CDate(CDbl(a) + nAgora * HORAS_SLOT / 24)
             End If
-            Application.StatusBar = "Consultando o MES (" & Format$(a, "dd\/mm hh:mm") & " a " & _
-                                    Format$(fimParte, "dd\/mm hh:mm") & ")... aguarde"
+            Application.StatusBar = "Consultando MES: " & Format$(a, "dd\/mm hh:mm") & " a " & _
+                                    Format$(fimParte, "dd\/mm hh:mm")
             If simulado Then
                 bloco = DadosSimulados()
                 ok = True
@@ -222,11 +218,11 @@ Private Function EscreverTabela(ByVal ws As Worksheet, ByVal dados As Variant, B
             Nm(nomeHoras).Cells(1, s).Value = "—"
         End If
     Next s
-    Nm(nomeAtual).Value = "Resultados de " & Format$(ini, "dd\/mm\/yyyy hh:mm") & " a " & _
-        Format$(CDate(CDbl(ini) + n * HORAS_SLOT / 24), "dd\/mm\/yyyy hh:mm") & "   ·   atualizado em " & _
-        Format$(Now, "dd\/mm\/yyyy hh:mm") & "   ·   fonte: " & IIf(simulado, "SIMULAÇÃO (dados fictícios)", _
+    Nm(nomeAtual).Value = "Período: " & Format$(ini, "dd\/mm\/yyyy hh:mm") & " a " & _
+        Format$(CDate(CDbl(ini) + n * HORAS_SLOT / 24), "dd\/mm\/yyyy hh:mm") & "     |     Atualizado: " & _
+        Format$(Now, "dd\/mm\/yyyy hh:mm") & "     |     Fonte: " & IIf(simulado, "SIMULAÇÃO", _
         "MES - servidor " & CfgTxt("cfgServidor"))
-    If emAndamento Then Nm(nomeAtual).Value = Nm(nomeAtual).Value & "   ·   * janela em andamento (parcial)"
+    If emAndamento Then Nm(nomeAtual).Value = Nm(nomeAtual).Value & "     |     * janela em andamento"
     ws.Calculate
     Proteger ws
     EscreverTabela = qtd
@@ -507,20 +503,15 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     Next b
 
     If nOk = 0 Then
-        msg = "O MES não retornou dados para " & Format$(ini, "dd\/mm\/yyyy hh:mm") & "." & vbCrLf & vbCrLf & _
-              "Resposta de cada consulta:" & vbCrLf & falhas & vbCrLf & _
-              "Verifique:" & vbCrLf & _
-              "  - Suplemento Aspen Process Data ativo (#NOME? = suplemento ausente);" & vbCrLf & _
-              "  - Fonte de dados '" & CfgTxt("cfgServidor") & "' (aba Configurações);" & vbCrLf & _
-              "  - Tags e mapas na aba Configurações;" & vbCrLf & _
-              "  - Formato incorreto de data = troque Formato da data para o MES em Configurações." & vbCrLf & vbCrLf & _
-              "Deseja abrir a aba Dados_MES para conferir?"
+        msg = "O MES não respondeu (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & vbCrLf & vbCrLf & _
+              falhas & vbCrLf & _
+              "Verificar: suplemento Aspen ativo, servidor '" & CfgTxt("cfgServidor") & "', tags e formato da data " & _
+              "(aba Configurações)." & vbCrLf & vbCrLf & "Abrir a aba Dados_MES?"
         If Aviso(msg, vbExclamation + vbYesNo, "MES sem resposta") = vbYes Then MostrarDadosMES
         Exit Function
     End If
     If falhas <> "" Then
-        Aviso "Algumas consultas do MES não responderam e ficarão em branco:" & vbCrLf & falhas, _
-              vbExclamation, "MES - resposta parcial"
+        Aviso "Consultas sem resposta (ficam em branco):" & vbCrLf & falhas, vbExclamation, "MES"
     End If
 
     ReDim d(1 To NSLOT, 1 To 1 + 2 * NPARAM)
@@ -543,8 +534,8 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
     Exit Function
 
 FalhaFormula:
-    Aviso "Não foi possível montar as fórmulas de consulta ao MES:" & vbCrLf & Err.Description & vbCrLf & _
-          "Confira as tags na aba Configurações.", vbExclamation, "MES"
+    Aviso "Erro na fórmula de consulta ao MES (" & Err.Description & ")." & vbCrLf & _
+          "Verificar as tags na aba Configurações.", vbExclamation, "MES"
 End Function
 
 ' Gera valores ficticios em torno do "valor tipico" (modo de treinamento/teste)

@@ -67,7 +67,7 @@ Public Sub TesteLO()
     lin = LinhaTexto(ws, "Controle da Produção: PF 03 04X04h")
     r = r & "|realLinha1=" & (lin > 0) & "|realVisivel=" & (Not ws.Rows(lin).Hidden) & _
         "|real2=" & ws.Cells(lin + 1, 3).Value & "|real3oculta=" & ws.Rows(lin + 2).Hidden & _
-        "|equipVazio=" & (LinhaTexto(ws, "— nada registrado") > 0) & _
+        "|equipVazio=" & (LinhaTexto(ws, "Sem registro") > 0) & _
         "|info=" & ws.Cells(6, 2).Value
     For jj = 1 To 80
         If Left$(CStr(ws.Cells(jj, 2).Value), 7) = "Pessoal" Then r = r & "|pessoal=" & ws.Cells(jj, 3).Text
