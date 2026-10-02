@@ -68,7 +68,7 @@ for tag, cm, cs, r0, r1, nome in [("66TA05","C","D",6,14,"Q"),("66TA08","H","I",
 
 # ---------------- Alpine (calibração, 87,4–89,4 %)
 for tag, col, pen in [("66AG09","B","66PN670"),("66AG10","D","66PN671"),("66AG11","F","66PN671")]:
-    for r in range(7, 22):
+    for r in range(7, 25):          # v2: linhas 7 a 24 (a planilha de setembro ganhou 3 linhas no Alpine)
         add(A="Gran. Fina Alpine", B="Calibração", C=F(dt("%s!$A$%d" % (ALP, r))), D=tag,
             E="Passante (peneira %s)" % pen, F="%", G=F(num("%s!$%s$%d" % (ALP, col, r))), H=F(lim("ALP","D")),
             I="DIF", J=F(lim("ALP","E")), K=F(lim("ALP","F")), M="LIM",
