@@ -43,6 +43,7 @@ Public Sub TesteLO()
     Nm("dProdUS3").Value = "PDR/STD"
     Nm("dProdUS4").Value = "PBF/MB45"
     Nm("dBatch").Value = 267
+    Nm("dDragas").Cells(1, 1).Value = "Draga 01: parada disponível;"
     Nm("dBatchSiO2").Value = 1.83
     Nm("dBatchP").Value = 0.06
     Nm("dFiltragem").Cells(2, 1).Value = "Filtro prensa Matec em operação."
@@ -85,10 +86,12 @@ Public Sub TesteLO()
         "|altLinhaLonga=" & ws.Rows(LinhaTexto(ws, "1.   " & Nm("dSol").Cells(1, 1).Value)).RowHeight & _
         "|equipTituloOculto=" & ws.Rows(LinhaTexto(ws, "3. Equipamentos")).Hidden & _
         "|solTituloVisivel=" & (Not ws.Rows(LinhaTexto(ws, "2. Solicitações")).Hidden) & _
-        "|batch=" & ws.Cells(LinhaTexto(ws, "5. Mineroduto 03") + 1, 2).Text & _
-        "|filtragem=" & ws.Cells(LinhaTexto(ws, "6. Filtragem") + 2, 2).Text & _
-        "|filtragem1oculta=" & ws.Rows(LinhaTexto(ws, "6. Filtragem") + 1).Hidden & _
-        "|nMinerodutoOculto=" & shResumoNoite.Rows(LinhaTexto(shResumoNoite, "5. Mineroduto 03")).Hidden & _
+        "|draga1=" & ws.Cells(LinhaTexto(ws, "5. Dragas") + 1, 2).Text & _
+        "|nDragasOculto=" & shResumoNoite.Rows(LinhaTexto(shResumoNoite, "5. Dragas")).Hidden & _
+        "|batch=" & ws.Cells(LinhaTexto(ws, "6. Mineroduto 03") + 1, 2).Text & _
+        "|filtragem=" & ws.Cells(LinhaTexto(ws, "7. Filtragem") + 2, 2).Text & _
+        "|filtragem1oculta=" & ws.Rows(LinhaTexto(ws, "7. Filtragem") + 1).Hidden & _
+        "|nMinerodutoOculto=" & shResumoNoite.Rows(LinhaTexto(shResumoNoite, "6. Mineroduto 03")).Hidden & _
         "|cadinhosOculto=" & ws.Rows(LinhaTexto(ws, "CADINHOS DE PLATINA")).Hidden & _
         "|obsGeraisVisivel=" & (Not ws.Rows(LinhaTexto(ws, "OBSERVAÇÕES GERAIS")).Hidden) & _
         "|data=" & ws.Cells(6, 3).Text & "|letra=" & ws.Cells(6, 11).Text & _
@@ -188,6 +191,8 @@ Public Sub DemoLO()
     Nm("dComUS3").Value = "Produção estável. SiO2 da mistura acima do limite do PDR/MX a partir das 09:30; operação ciente."
     Nm("dComUS4").Value = "Sem desvios no turno."
     Nm("dH2Carvao").Value = "4,12"
+    Nm("dDragas").Cells(1, 1).Value = "Draga 01: parada disponível;"
+    Nm("dDragas").Cells(2, 1).Value = "Draga 02: operando;"
     Nm("dBatch").Value = 271
     Nm("dBatchFe").Value = 67.3
     Nm("dBatchSiO2").Value = 1.83

@@ -658,9 +658,11 @@ class Construtor:
         r = lista(r, '3. Equipamentos', 'Equip', 4, 'falhas, vazamentos, manutenção')
         r = lista(r, '4. Tarefas a realizar (próximo turno)', 'AReal', 8, 'uma tarefa por linha')
 
-        # 5. Mineroduto 03: batch e teores (como no Fisico)
+        r = lista(r, '5. Dragas', 'Dragas', 3, '')
+
+        # 6. Mineroduto 03: batch e teores (como no Fisico)
         ws.set_row(r, 20)
-        ws.merge_range(r, 1, r, UC, '5. Mineroduto 03', self.f(bold=True, font_size=11, font_color=AZUL_TITULO,
+        ws.merge_range(r, 1, r, UC, '6. Mineroduto 03', self.f(bold=True, font_size=11, font_color=AZUL_TITULO,
                                                                  valign='bottom', bottom=2, bottom_color=AZUL))
         rr = r + 1
         cen = self.f_input(align='center', font_size=10)
@@ -682,9 +684,9 @@ class Construtor:
         c['Mineroduto'] = [rc(rr - 1 + k, 2, True, True) for k in range(2)]
         r = rr + 2
 
-        r = lista(r, '6. Filtragem', 'Filtragem', 6, '')
+        r = lista(r, '7. Filtragem', 'Filtragem', 6, '')
 
-        self.secao(ws, r, 1, UC, '7. Comentários por usina')
+        self.secao(ws, r, 1, UC, '8. Comentários por usina')
         rr = r + 1
         for us in ('US3', 'US4'):
             ws.set_row(rr, 19)
@@ -699,7 +701,7 @@ class Construtor:
             rr += 3
         r = rr + 1
 
-        self.secao(ws, r, 1, UC, '8. Controle do laboratório')
+        self.secao(ws, r, 1, UC, '9. Controle do laboratório')
         prog = ('OREGON (RX), Carbono (Leco CS-230), PCS (Calorímetro), mufla 1000 ºC, fotômetro, balanças, '
                 'estufa e máquina de fusão')
         rr = r + 1
@@ -720,7 +722,7 @@ class Construtor:
         campo(rr, 6, 6, 'Nitrogênio', 7, 8, 'Nitrogenio', '', '=lstCond')
         r = rr + 2
 
-        self.secao(ws, r, 1, UC, '9. Cadinhos de platina')
+        self.secao(ws, r, 1, UC, '10. Cadinhos de platina')
         rr = r + 1
         ws.set_row(rr, 20)
         campo(rr, 1, 3, 'Repassados para o turno', 4, UC, 'Cadinhos')
@@ -729,7 +731,7 @@ class Construtor:
         campo(rr, 1, 3, 'Retirado para reforma', 4, UC, 'Reforma')
         r = rr + 2
 
-        self.secao(ws, r, 1, UC, '10. Observações gerais')
+        self.secao(ws, r, 1, UC, '11. Observações gerais')
         rr = r + 1
         ws.set_row(rr, 20)
         campo(rr, 1, 3, 'Hidrogênio no carvão', 4, 5, 'H2Carvao')
@@ -939,10 +941,21 @@ class Construtor:
             ws.merge_range(r, 1, r, UC, '', lin)
             ws.write_formula(r, 1, formula, lin)
 
-        # ---- mineroduto: "1.   Processando batch 267 com teores: Fe: ...; SiO2: ...; ..."
+        # ---- dragas
         ws.set_row(r, 18)
         ws.write(r, 0, 'S2', chave_fmt)
-        ws.merge_range(r, 1, r, UC, '5. Mineroduto 03', sub)
+        ws.merge_range(r, 1, r, UC, '5. Dragas', sub)
+        r += 1
+        for k, ref in enumerate(c['Dragas']):
+            linha_t(r, '=IF(TRIM(%s%s)="","","%d.   "&TRIM(%s%s))' % (P, ref, k + 1, P, ref))
+            r += 1
+        espaco(r, 4)
+        r += 1
+
+        # ---- mineroduto: "Processando batch 267 com teores: Fe: ...; SiO2: ...; ..."
+        ws.set_row(r, 18)
+        ws.write(r, 0, 'S2', chave_fmt)
+        ws.merge_range(r, 1, r, UC, '6. Mineroduto 03', sub)
         r += 1
         teores = [('BatchFe', 'Fe'), ('BatchSiO2', 'SiO2'), ('BatchAl2O3', 'Al2O3'), ('BatchP', 'P'),
                   ('BatchPPC', 'PPC')]
@@ -959,7 +972,7 @@ class Construtor:
         # ---- filtragem
         ws.set_row(r, 18)
         ws.write(r, 0, 'S2', chave_fmt)
-        ws.merge_range(r, 1, r, UC, '6. Filtragem', sub)
+        ws.merge_range(r, 1, r, UC, '7. Filtragem', sub)
         r += 1
         for k, ref in enumerate(c['Filtragem']):
             linha_t(r, '=IF(TRIM(%s%s)="","","%d.   "&TRIM(%s%s))' % (P, ref, k + 1, P, ref))
@@ -970,7 +983,7 @@ class Construtor:
         # ---- comentarios por usina
         ws.set_row(r, 18)
         ws.write(r, 0, 'S2', chave_fmt)
-        ws.merge_range(r, 1, r, UC, '7. Comentários por usina', sub)
+        ws.merge_range(r, 1, r, UC, '8. Comentários por usina', sub)
         r += 1
         for us in ('US3', 'US4'):
             ws.set_row(r, 34)
