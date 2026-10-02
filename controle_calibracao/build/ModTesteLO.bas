@@ -82,6 +82,13 @@ Public Sub PreencherExemplo()
     E("FIS", 1).Value = 1900: E("FIS", 2).Value = 2150
 End Sub
 
+Public Sub PreencherObs()
+    Nm("obs_BLA").Value = "Blaine automático recalibrado."
+    Nm("obs_TAM").Value = "Tambor 66TA06 com correia patinando."
+    Nm("obs_UMI").Value = "Analisador 66AN11 em verificação."
+    Nm("obs_PEN").Value = "Peneirador com vibração anormal."
+End Sub
+
 Public Sub TesteLO()
     Dim r As String, passo As Long, n0 As Long, n1 As Long, nsel As Long, i As Long, lin As Long
     On Error GoTo Erro
@@ -108,13 +115,18 @@ Public Sub TesteLO()
     Next i
     r = r & "|aRegistrar=" & nsel
     passo = 3
+    ' nao conforme sem observacao: registro bloqueado
+    RegistrarLancamento
+    r = r & "|bloqueado=" & (ContaBD() - n0) & "|msgBloq=" & Left$(Replace(gUltimaMsg, vbCrLf, "/"), 120)
+    PreencherObs
+    Nm("resp_TAM").Value = "Anderson"
     RegistrarLancamento
     n1 = ContaBD()
     r = r & "|registrados=" & (n1 - n0) & "|id=" & Nm("cfgUltimoID").Value & "|cntBLApos=" & Nm("cnt_BLA").Value & _
         "|pDataMantida=" & Format$(Nm("pData").Value, "dd/mm/yyyy")
     ' conferencia de algumas linhas gravadas
     Dim a As Variant, achou As String
-    a = shBD.Range("A" & (n0 + 2) & ":Q" & (n1 + 1)).Value
+    a = shBD.Range("A" & (n0 + 2) & ":U" & (n1 + 1)).Value
     For i = 1 To UBound(a, 1)
         If a(i, 4) = "66TA06" Then achou = achou & "|TA06=" & a(i, 13) & "/" & Format$(a(i, 7), "0.0")
         If a(i, 5) = "Blaine Automático" Then achou = achou & "|BLAA=" & a(i, 13) & "/obs:" & a(i, 16)
@@ -124,6 +136,9 @@ Public Sub TesteLO()
         If a(i, 4) = "PN0482" Then achou = achou & "|PN0482=" & a(i, 7) & "/" & a(i, 8) & "/" & a(i, 13) & "/obs:" & a(i, 16)
         If a(i, 4) = "PN0423" Then achou = achou & "|PN0423=" & a(i, 13) & "/obs:" & a(i, 16)
         If a(i, 5) = "+6,3 mm" Then achou = achou & "|T515=" & Format$(a(i, 9), "0.00") & "/" & a(i, 13)
+        If a(i, 4) = "66TA05" Then achou = achou & "|respTA05=" & a(i, 14)
+        If a(i, 4) = "66AG09" Then achou = achou & "|respAG09=" & a(i, 14)
+        If i = 1 Then achou = achou & "|turno=" & a(i, 18) & "|regEm=" & Format$(a(i, 19), "dd/mm hh:mm") & "|turnoReg=" & a(i, 20) & "|fora=" & a(i, 21)
         If i = 1 Then achou = achou & "|origem=" & a(i, 17) & "|data=" & Format$(a(i, 3), "dd/mm/yyyy") & "|resp=" & a(i, 14) & "|letra=" & a(i, 15)
     Next i
     r = r & achou
@@ -146,6 +161,7 @@ Public Sub TesteLO()
     passo = 5
     ' duplicado (mesma data/turno) com resposta "sim" no modo silencioso, depois desfazer
     PreencherExemplo
+    PreencherObs
     RegistrarLancamento
     r = r & "|dup=" & (ContaBD() - n1) & "|id2=" & Nm("cfgUltimoID").Value
     DesfazerUltimo
@@ -194,6 +210,7 @@ Public Sub DemoLO()
         E("ALP", 1).Value = 88 + d * 0.1: E("ALP", 2).Value = 88.6 - d * 0.1: E("ALP", 3).Value = 88.3
         E("UMI", 5).Value = 9 + d * 0.01: E("UMI", 6).Value = 9.04 - d * 0.01: E("UMI", 7).Value = 8.97
         E("COM", 4).Value = 352 + d: E("COM", 7).Value = 368 - d: E("COM", 12).Value = 361
+        PreencherObs
         RegistrarLancamento
     Next d
     PreencherExemplo

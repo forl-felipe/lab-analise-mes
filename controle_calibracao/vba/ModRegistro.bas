@@ -9,7 +9,7 @@ Option Explicit
 ' ============================================================================
 
 Private Const COL_REG As Long = 18      ' _Staging: 1 = linha a registrar
-Private Const NCOL As Long = 17         ' colunas da base
+Private Const NCOL As Long = 21         ' colunas da base (17 originais + Turno, Registrado em, Turno do registro, Fora do turno)
 
 ' ---------------------------------------------------------------- registrar
 Public Sub RegistrarLancamento()
@@ -17,7 +17,7 @@ Public Sub RegistrarLancamento()
     Dim arr As Variant, i As Long, j As Long, ns As Long, k As Long
     Dim sel() As Long, saida() As Variant, origem As String, id As Long, lin As Long
     Dim ensaios As String, dup As String, erros As String, nc As String, nConf As Long, nNC As Long, nInfo As Long
-    Dim e As Variant, partes As Variant
+    Dim e As Variant, partes As Variant, sem As String, dReal As Date, tReal As String, fora As Boolean
 
     d = Nm("pData").Value
     turno = Trim$(CStr(Nm("pTurno").Value))
@@ -50,7 +50,7 @@ Public Sub RegistrarLancamento()
         If IsError(arr(i, COL_REG)) Then
             erros = AdicionaUnico(erros, CStr(arr(i, COL_REG + 1)))
         ElseIf NumOu(arr(i, COL_REG), 0) = 1 Then
-            For j = 1 To NCOL
+            For j = 1 To 17
                 If IsError(arr(i, j)) Then
                     erros = AdicionaUnico(erros, CStr(arr(i, 1)))
                     Exit For
@@ -71,6 +71,31 @@ Public Sub RegistrarLancamento()
         Exit Sub
     End If
 
+    ' resultado Nao conforme exige observacao no ensaio
+    For k = 1 To ns
+        i = sel(k)
+        If CStr(arr(i, 13)) = "Não conforme" Then
+            If Trim$(CStr(ObservacaoEnsaio(CStr(arr(i, COL_REG + 1))))) = "" Then sem = AdicionaUnico(sem, CStr(arr(i, 1)))
+        End If
+    Next k
+    If sem <> "" Then
+        Aviso "Há resultado NÃO CONFORME sem observação em:" & vbCrLf & "  - " & _
+              Replace(Mid$(sem, 2), "|", vbCrLf & "  - ") & vbCrLf & vbCrLf & _
+              "Escreva no campo Observação do ensaio o motivo ou a ação tomada (campo em vermelho) e registre de novo.", _
+              vbExclamation, "Observação obrigatória"
+        Exit Sub
+    End If
+
+    ' lancamento fora do turno atual (fica marcado na base)
+    TurnoAtual dReal, tReal
+    fora = (CLng(Int(CDbl(d))) <> CLng(Int(CDbl(dReal)))) Or (turno <> tReal)
+    If fora Then
+        If Aviso("Este lançamento é de " & Format$(CDate(d), "dd\/mm\/yyyy") & " " & turno & ", mas o turno atual é " & _
+                 Format$(dReal, "dd\/mm\/yyyy") & " " & tReal & "." & vbCrLf & vbCrLf & _
+                 "Ele será registrado como FORA DO TURNO. Continuar?", vbYesNo + vbQuestion, "Lançamento fora do turno", _
+                 vbYes) <> vbYes Then Exit Sub
+    End If
+
     ' lancamento repetido (mesmo ensaio, data e turno)
     partes = Split(Mid$(ensaios, 2), "|")
     For Each e In partes
@@ -86,11 +111,15 @@ Public Sub RegistrarLancamento()
     ReDim saida(1 To ns, 1 To NCOL)
     For k = 1 To ns
         i = sel(k)
-        For j = 1 To NCOL
+        For j = 1 To 17
             If Vazio(arr(i, j)) Then saida(k, j) = Empty Else saida(k, j) = arr(i, j)
         Next j
         saida(k, 3) = CDate(Int(CDbl(d)))
         saida(k, 17) = origem
+        saida(k, 18) = turno
+        saida(k, 19) = Now
+        saida(k, 20) = tReal
+        saida(k, 21) = IIf(fora, "Sim", "Não")
         Select Case CStr(arr(i, 13))
             Case "Conforme": nConf = nConf + 1
             Case "Não conforme"
@@ -105,6 +134,7 @@ Public Sub RegistrarLancamento()
     lin = UltimaLinhaBD() + 1
     shBD.Range("A" & lin).Resize(ns, NCOL).Value = saida
     shBD.Range("C" & lin).Resize(ns, 1).NumberFormat = "dd/mm/yyyy"
+    shBD.Range("S" & lin).Resize(ns, 1).NumberFormat = "dd/mm/yyyy hh:mm"
     AjustarTabela
     Nm("cfgUltimoID").Value = id
     Nm("cfgUltimoLanc").Value = "LCP-" & Format$(id, "000000") & "  ·  " & Format$(CDate(d), "dd\/mm\/yyyy") & " " & _
@@ -121,6 +151,20 @@ Falha:
     Ampulheta False
     Aviso "Erro ao gravar na base: " & Err.Description, vbCritical
 End Sub
+
+' Observacao digitada no ensaio (codigo BLA, TAM...), pelo mapa da aba Config
+Private Function ObservacaoEnsaio(ByVal cod As String) As Variant
+    Dim m As Variant, i As Long
+    m = Nm("mapaInputs").Value
+    For i = 1 To UBound(m, 1)
+        If CStr(m(i, 1)) = cod Then
+            ObservacaoEnsaio = shLancamento.Range(CStr(m(i, 4))).Cells(1, 1).Value
+            If IsError(ObservacaoEnsaio) Then ObservacaoEnsaio = ""
+            Exit Function
+        End If
+    Next i
+    ObservacaoEnsaio = ""
+End Function
 
 Private Function AdicionaUnico(ByVal lista As String, ByVal item As String) As String
     If InStr(1, lista & "|", "|" & item & "|") = 0 Then lista = lista & "|" & item
@@ -186,7 +230,7 @@ Public Sub AjustarTabela()
     ult = UltimaLinhaBD()
     If ult < 2 Then ult = 2
     Set lo = shBD.ListObjects("tbl_Afericoes")
-    If Not lo Is Nothing Then lo.Resize shBD.Range("A1:Q" & ult)
+    If Not lo Is Nothing Then lo.Resize shBD.Range("A1:U" & ult)
 End Sub
 
 ' ---------------------------------------------------------------- limpar
@@ -276,7 +320,7 @@ End Sub
 
 Public Function ImportarDe(ByVal caminho As String) As Long
     Dim wbO As Workbook, ws As Worksheet, a As Variant, i As Long, j As Long, c As Long
-    Dim col(1 To 17) As Long, cab As String, chaves As String, k As String, n As Long
+    Dim col(1 To 21) As Long, cab As String, chaves As String, k As String, n As Long
     Dim saida() As Variant, lin As Long, ult As Long, b As Variant, nomeArq As String
     ImportarDe = -1
     On Error GoTo Falha
@@ -296,7 +340,7 @@ Public Function ImportarDe(ByVal caminho As String) As Long
     wbO.Close False
     Set wbO = Nothing
     ' colunas pelo nome do cabecalho
-    For j = 1 To 17
+    For j = 1 To 21
         cab = CStr(shBD.Cells(1, j).Value)
         For c = 1 To UBound(a, 2)
             If StrComp(Trim$(CStr(a(1, c))), cab, vbTextCompare) = 0 Then col(j) = c
@@ -316,7 +360,7 @@ Public Function ImportarDe(ByVal caminho As String) As Long
         Next i
     End If
     chaves = chaves & "|"
-    ReDim saida(1 To UBound(a, 1), 1 To 17)
+    ReDim saida(1 To UBound(a, 1), 1 To 21)
     For i = 2 To UBound(a, 1)
         If (VarType(a(i, col(3))) = vbDate Or ENumero(a(i, col(3)))) And _
            (Not Vazio(a(i, col(7))) Or (col(13) > 0 And Not Vazio(Valor(a, i, col(13))))) Then
@@ -325,19 +369,21 @@ Public Function ImportarDe(ByVal caminho As String) As Long
             If InStr(1, chaves, "|" & k & "|") = 0 Then
                 chaves = chaves & k & "|"
                 n = n + 1
-                For j = 1 To 17
+                For j = 1 To 21
                     If col(j) > 0 Then
                         If Vazio(a(i, col(j))) Then saida(n, j) = Empty Else saida(n, j) = a(i, col(j))
                     End If
                 Next j
                 saida(n, 3) = CDate(Int(CDbl(a(i, col(3)))))
                 saida(n, 17) = "Importado: " & nomeArq & IIf(Vazio(saida(n, 17)), "", " | " & saida(n, 17))
+                If Vazio(saida(n, 18)) Then saida(n, 18) = TurnoDaLinha("", saida(n, 16))
+                If Vazio(saida(n, 18)) Then saida(n, 18) = Empty
             End If
         End If
     Next i
     If n > 0 Then
         lin = UltimaLinhaBD() + 1
-        shBD.Range("A" & lin).Resize(n, 17).Value = Recorta(saida, n)
+        shBD.Range("A" & lin).Resize(n, 21).Value = Recorta(saida, n)
         shBD.Range("C" & lin).Resize(n, 1).NumberFormat = "dd/mm/yyyy"
         AjustarTabela
     End If
@@ -364,9 +410,9 @@ End Function
 
 Private Function Recorta(ByVal a As Variant, ByVal n As Long) As Variant
     Dim r() As Variant, i As Long, j As Long
-    ReDim r(1 To n, 1 To 17)
+    ReDim r(1 To n, 1 To 21)
     For i = 1 To n
-        For j = 1 To 17
+        For j = 1 To 21
             r(i, j) = a(i, j)
         Next j
     Next i

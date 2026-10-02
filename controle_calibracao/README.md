@@ -16,7 +16,11 @@ Umidade, Tamb Kg x Tamb 15,0Kg, Resultados, Controle).
 
 ## Como usar
 
-1. Confira data, turno, letra e responsável. Ao abrir, a data e o turno vêm pelo relógio.
+1. Confira data, turno, letra e responsável.
+   - Ao abrir, a data e o turno do cabeçalho voltam para o turno atual. Eles podem ser alterados.
+   - Ao lado dos botões, o **relógio** mostra a data/hora e o turno reais. Esse campo não pode ser alterado.
+   - Com data ou turno diferente do atual, o cabeçalho fica laranja e o registro sai marcado como **fora do turno**.
+   - Cada ensaio tem o seu campo **Responsável**. Vazio = responsável do cabeçalho.
 2. Preencha só os ensaios feitos no turno. Os cálculos são automáticos:
    - rpm pelo tempo e número de voltas de cada tambor;
    - umidade da estufa pelas pesagens;
@@ -25,6 +29,7 @@ Umidade, Tamb Kg x Tamb 15,0Kg, Resultados, Controle).
 3. Clique em **Registrar lançamento**. Os resultados vão para a base, com o número do lançamento (`LCP-000123`), e a tela é limpa.
    - Ensaio sem dados não é registrado.
    - Se o mesmo ensaio já foi registrado na mesma data e turno, a planilha pergunta antes.
+   - **Resultado Não conforme exige observação** no ensaio: o campo fica vermelho e o registro só é feito depois de preenchido.
 4. **Desfazer último lançamento** apaga da base o último registro, se algo foi lançado errado.
 5. Peneiradores: o botão **Marcar itens vazios como OK** preenche os itens ainda vazios. Valores aceitos: OK, NÃO OK e SEM TAG; "nao ok" digitado vira NÃO OK.
 
@@ -51,7 +56,15 @@ Voltas: 188 (66TA05, 66TA08, 66TA09) e 200 (66TA06, 66TA07), conforme a BD_Limit
 ## Power BI
 
 `tbl_Afericoes` e `tbl_Limites` mantêm nomes, colunas e ordem. A coluna **Origem** passa a identificar o lançamento:
-`LCP-000123 | 19x07 | registrado em dd/mm/aaaa hh:mm`. A base já vem com os 26 resultados lançados em outubro na
+`LCP-000123 | 19x07 | registrado em dd/mm/aaaa hh:mm`.
+
+No fim da tabela há 4 colunas novas para auditar o lançamento:
+- **Turno**: turno do ensaio;
+- **Registrado em**: data e hora reais do registro;
+- **Turno do registro**: turno real no momento do registro;
+- **Fora do turno**: Sim ou Não.
+
+No Power BI, atualize a consulta para que as colunas novas apareçam. As 17 colunas anteriores não mudam. A base já vem com os 26 resultados lançados em outubro na
 planilha anterior.
 
 **Importar planilha antiga** (no Painel): lê a aba BD_Afericoes de uma planilha mensal anterior e acrescenta os
@@ -66,3 +79,8 @@ cd build
 python3 build_calibracao.py           # ../Controle_Calibracao_LCP.xlsm
 python3 build_calibracao.py --teste   # versão com teste automático (LibreOffice)
 ```
+
+## SharePoint e Excel Online
+
+A planilha pode ficar no SharePoint, mas **as macros só rodam no aplicativo Excel** (Abrir no aplicativo da área de
+trabalho). No Excel para a Web, os botões não funcionam. Recomendação: uma pessoa por vez com o arquivo aberto.

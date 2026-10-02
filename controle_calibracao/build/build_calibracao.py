@@ -117,6 +117,8 @@ CHAVES = [l[0] for l in LIMITES[1:]]
 BD_COLS = ['Ensaio', 'Tipo', 'Data', 'Equipamento', 'Parâmetro', 'Unidade', 'Valor', 'Referência', 'Diferença',
            'Lim. Inferior', 'Lim. Superior', 'Tolerância', 'Resultado', 'Responsável', 'Letra', 'Observação',
            'Origem']
+# colunas acrescentadas no fim da tabela (as 17 anteriores nao mudam): rastreio do lancamento
+BD_EXTRA = ['Turno', 'Registrado em', 'Turno do registro', 'Fora do turno']
 
 
 def crit(chave, campo):
@@ -143,6 +145,9 @@ class Construtor:
         self.secoes = {}        # codigo -> linha do titulo da secao
         self.combos = []        # (ensaio, equipamento, parametro, unidade, criterio, dec) para o Painel
         self.series = {}        # graficos: codigo -> lista de (equipamento, parametro)
+        self.extras = {}        # codigo -> entradas que nao contam como "preenchido" (observacao, responsavel)
+        self.obs_ref = {}
+        self.resp_ref = {}
 
     # ----------------------------------------------------------- formatos
     def f(self, **kw):
@@ -244,6 +249,14 @@ class Construtor:
             'fill': {'color': fundo},
             'line': {'color': borda, 'width': 1} if borda else {'none': True},
             'description': 'macro:' + macro, 'object_position': 3})
+
+    def recortar(self, ws, ultima_col, ultima_lin):
+        """Visual de painel: oculta as colunas depois da area util e as linhas abaixo do fim."""
+        ws.set_column(ultima_col + 1, 16383, None, None, {'hidden': True})
+        for rr in range(ultima_lin + 1):
+            if rr not in ws.set_rows:
+                ws.set_row(rr, 15)
+        ws.set_default_row(hide_unused_rows=True)
 
     def nome(self, nome, ws, r1, c1, r2=None, c2=None):
         ref = rc(r1, c1, True, True)
@@ -397,8 +410,10 @@ class Construtor:
         r += 1
         ws.set_row(r, 18)
         ws.merge_range(r, 2, r, UC, '', self.f(font_size=8.5, italic=True, font_color=TEXTO_SEC, indent=1))
-        ws.write_formula(r, 2, '=IF(cfgUltimoLanc="","Nenhum lançamento registrado nesta planilha.",'
-                               '"Último lançamento: "&cfgUltimoLanc)',
+        ws.write_formula(r, 2, '=IF(OR(AND(ISNUMBER(pData),pData<>relDataAtual),AND(pTurno<>"",pTurno<>relTurnoAtual)),'
+                               '"Atenção: data/turno diferente do turno atual. O lançamento será registrado como fora do turno.",'
+                               'IF(cfgUltimoLanc="","Nenhum lançamento registrado nesta planilha.",'
+                               '"Último lançamento: "&cfgUltimoLanc))',
                          self.f(font_size=8.5, italic=True, font_color=TEXTO_SEC, indent=1), '')
         ws.freeze_panes(r + 1, 0)
         # botoes (area congelada, a direita)
@@ -406,6 +421,20 @@ class Construtor:
         self.botao(ws, 1, UC + 3, 'Ver painel', 'IrPainel', 190, 44, 'primario', x=4, y=4)
         self.botao(ws, 4, UC + 2, 'Limpar tela', 'LimparLancamento', 190, 30, 'claro', x=4, y=6)
         self.botao(ws, 4, UC + 3, 'Desfazer último lançamento', 'DesfazerUltimo', 190, 30, 'alerta', x=4, y=6)
+        # relogio: data/hora e turno reais (formula, nao editavel); a data e o turno do cabecalho sao os do ensaio
+        h = 'MOD(NOW(),1)'
+        atual_d = 'IF(%s<7/24,INT(NOW())-1,INT(NOW()))' % h
+        atual_t = 'IF(AND(%s>=7/24,%s<19/24),"07x19","19x07")' % (h, h)
+        ws.merge_range(6, UC + 2, 6, UC + 3, '', self.f())
+        ws.write_formula(6, UC + 2, '="Agora: "&TEXT(NOW(),"dd/mm/yyyy hh:mm")&"   |   turno atual: "&TEXT(%s,"dd/mm/yyyy")'
+                                    '&" "&%s' % (atual_d, atual_t),
+                         self.f(font_size=9, bold=True, font_color=BRANCO, bg_color=AZUL_ACINZ, align='center'), '')
+        self.wb.define_name('relDataAtual', '=%s' % atual_d)
+        self.wb.define_name('relTurnoAtual', '=%s' % atual_t)
+        fora = self.wb.add_format({'bg_color': LAR_FUNDO, 'font_color': LAR_TXT, 'border': 2, 'border_color': LARANJA})
+        cond = '=OR(AND(ISNUMBER(pData),pData<>relDataAtual),AND(pTurno<>"",pTurno<>relTurnoAtual))'
+        ws.conditional_format(5, 3, 5, 4, {'type': 'formula', 'criteria': cond, 'format': fora})
+        ws.conditional_format(5, 6, 5, 6, {'type': 'formula', 'criteria': cond, 'format': fora})
 
         # ---- agenda do turno
         r += 2
@@ -442,6 +471,7 @@ class Construtor:
         ws.set_paper(9)
         ws.fit_to_pages(1, 0)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
+        self.recortar(ws, UC + 3, r + 2)
         ws.protect('', {'format_columns': True, 'format_rows': True, 'select_locked_cells': True,
                         'select_unlocked_cells': True})
 
@@ -482,10 +512,30 @@ class Construtor:
         return rc(r, c1, True, True)
 
     def obs(self, ws, cod, r):
-        ws.set_row(r, 22)
+        """Linha final da secao: observacao (obrigatoria se houver Nao conforme) e responsavel do ensaio."""
+        ws.set_row(r, 24)
         self.cel(ws, r, 2, 3, 'Observação', self.flbl())
-        ref = self.entrada(ws, cod, r, 4, self.UC, self.fin(align='left', bold=False, font_size=10, indent=1,
-                                                          text_wrap=True))
+        ref = self.entrada(ws, cod, r, 4, 10, self.fin(align='left', bold=False, font_size=10, indent=1,
+                                                     text_wrap=True))
+        self.cel(ws, r, 11, 12, 'Responsável', self.flbl())
+        resp = self.entrada(ws, cod, r, 13, self.UC, self.fin(align='left', font_size=10, indent=1))
+        ws.data_validation(r, 13, r, 13, {'validate': 'list', 'source': '=lstResp', 'error_type': 'information',
+                                          'input_title': 'Responsável pelo ensaio',
+                                          'input_message': 'Vazio = responsável do cabeçalho.',
+                                          'error_message': 'Nome fora da lista: confirme para usar mesmo assim.'})
+        self.extras.setdefault(cod, []).extend([self.inputs[cod][-2], self.inputs[cod][-1]])
+        self.obs_ref[cod] = ref
+        self.resp_ref[cod] = resp
+        self.nome('obs_' + cod, ws, r, 4)
+        self.nome('resp_' + cod, ws, r, 13)
+        # observacao vazia com resultado Nao conforme: campo em vermelho (o registro e bloqueado)
+        nc = '+'.join('COUNTIF(%s,"Não conforme")' % x for x in self.resultados[cod]) or '0'
+        ws.conditional_format(r, 4, r, 10, {
+            'type': 'formula', 'criteria': '=AND((%s)>0,TRIM(%s)="")' % (nc, ref),
+            'format': self.wb.add_format({'bg_color': VERM_FUNDO, 'border': 2, 'border_color': VERM_TXT})})
+        ws.conditional_format(r, 2, r, 3, {
+            'type': 'formula', 'criteria': '=AND((%s)>0,TRIM(%s)="")' % (nc, ref),
+            'format': self.wb.add_format({'font_color': VERM_TXT})})
         return ref
 
     @staticmethod
@@ -1022,16 +1072,14 @@ class Construtor:
         for i, cod in enumerate(COD):
             rr = r + 1 + i
             ws.write(rr, c0, cod, self.f(bold=True))
-            partes = ','.join(QL + a for a in self.inputs[cod] if not self.eh_obs(cod, a))
+            partes = ','.join(QL + a for a in self.inputs[cod] if a not in self.extras.get(cod, []))
             ws.write_formula(rr, c0 + 1, '=COUNTA(%s)' % partes, self.f(), 0)
             self.nome('cnt_' + cod, ws, rr, c0 + 1)
-            # enderecos a limpar (texto lido pelo VBA)
+            # enderecos a limpar, observacao e responsavel (lidos pelo VBA)
             ws.write_string(rr, c0 + 2, ';'.join(self.inputs[cod]))
-        self.nome('mapaInputs', ws, r + 1, c0, r + len(COD), c0 + 2)
-
-    def eh_obs(self, cod, a):
-        # observacao: ultima entrada da secao, larga (coluna E ate P)
-        return a.startswith('$E$') and ':$P$' in a
+            ws.write_string(rr, c0 + 3, self.obs_ref[cod])
+            ws.write_string(rr, c0 + 4, NOME[cod])
+        self.nome('mapaInputs', ws, r + 1, c0, r + len(COD), c0 + 4)
 
     # ------------------------------------------------------------ _Staging
     def aba_staging(self):
@@ -1043,7 +1091,9 @@ class Construtor:
         for i, s in enumerate(self.stg):
             r = 1 + i
             campos = [s['ensaio'], s['tipo'], 'IF(pData="","",pData)', s['equip'], s['param'], s['unid'], s['valor'],
-                      s['refv'], s['dif'], s['li'], s['ls'], s['tol'], s['res'], 'TRIM(pResp)', 'pLetra', s['obs'],
+                      s['refv'], s['dif'], s['li'], s['ls'], s['tol'], s['res'],
+                      'IF(TRIM(%s)<>"",TRIM(%s),TRIM(pResp))' % (QL + self.resp_ref[s['cod']], QL + self.resp_ref[s['cod']]),
+                      'pLetra', s['obs'],
                       '""']
             for c, fml in enumerate(campos):
                 if c in (6, 7, 8, 9, 10, 11) and not fml.startswith('IF') and fml != '""':
@@ -1056,7 +1106,7 @@ class Construtor:
     # ------------------------------------------------------------ BD_Afericoes
     def aba_bd(self):
         ws = self.ws_bd
-        larg = [22, 12, 11, 26, 30, 9, 10, 11, 10, 11, 11, 10, 14, 14, 7, 40, 46]
+        larg = [22, 12, 11, 26, 30, 9, 10, 11, 10, 11, 11, 10, 14, 14, 7, 40, 46, 8, 16, 12, 10]
         for i, w in enumerate(larg):
             ws.set_column(i, i, w)
         fdata = self.wb.add_format({'num_format': 'dd/mm/yyyy'})
@@ -1064,11 +1114,17 @@ class Construtor:
         for v in DADOS['afericoes']:
             v = list(v)
             v[2] = dtm.datetime.strptime(v[2], '%Y-%m-%d')
-            dados.append(v)
-        ws.add_table(0, 0, len(dados), 16, {
+            obs = str(v[15] or '')
+            turno = obs[:5] if obs[:5] in ('07x19', '19x07') else None
+            dados.append(v + [turno, None, None, None])
+        fdh = self.wb.add_format({'num_format': 'dd/mm/yyyy hh:mm'})
+        ws.add_table(0, 0, len(dados), 20, {
             'name': 'tbl_Afericoes', 'style': 'Table Style Medium 2',
-            'columns': [{'header': h, 'format': fdata} if h == 'Data' else {'header': h} for h in BD_COLS],
+            'columns': [{'header': h, 'format': fdata} if h == 'Data' else
+                        {'header': h, 'format': fdh} if h == 'Registrado em' else {'header': h}
+                        for h in BD_COLS + BD_EXTRA],
             'data': dados})
+        ws.set_column(18, 18, 16, fdh)
         ws.set_column(2, 2, 11, fdata)
         ws.freeze_panes(1, 0)
 
@@ -1275,6 +1331,7 @@ class Construtor:
         ws.set_paper(9)
         ws.fit_to_pages(1, 0)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
+        self.recortar(ws, UC + 2, r + 2)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
     def graficos_painel(self, ws, r):

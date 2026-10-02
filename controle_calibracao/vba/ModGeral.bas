@@ -24,24 +24,31 @@ Public Sub Inicializar()
     shConfig.Visible = XL_HIDDEN
     shStaging.Visible = XL_VERYHIDDEN
     shGraficos.Visible = XL_VERYHIDDEN
-    If Vazio(Nm("pData").Value) Or Vazio(Nm("pTurno").Value) Then DefinirTurnoAtual
+    ' ao abrir, o cabecalho volta para o turno atual (pode ser alterado; o relogio ao lado nao)
+    DefinirTurnoAtual
     shLancamento.Activate
 End Sub
 
 ' Data e turno pelo relogio (antes das 07h ainda e o turno Noite do dia anterior)
 Public Sub DefinirTurnoAtual()
-    Dim h As Double, hoje As Date
+    Dim d As Date, t As String
+    TurnoAtual d, t
+    Nm("pData").Value = d
+    Nm("pTurno").Value = t
+End Sub
+
+' Turno real (relogio do computador)
+Public Sub TurnoAtual(ByRef d As Date, ByRef t As String)
+    Dim h As Double
     h = CDbl(Now) - Int(CDbl(Now))
-    hoje = CDate(Int(CDbl(Now)))
+    d = CDate(Int(CDbl(Now)))
     If h >= 7 / 24 And h < 19 / 24 Then
-        Nm("pData").Value = hoje
-        Nm("pTurno").Value = "07x19"
+        t = "07x19"
     ElseIf h >= 19 / 24 Then
-        Nm("pData").Value = hoje
-        Nm("pTurno").Value = "19x07"
+        t = "19x07"
     Else
-        Nm("pData").Value = CDate(CDbl(hoje) - 1)
-        Nm("pTurno").Value = "19x07"
+        d = CDate(CDbl(d) - 1)
+        t = "19x07"
     End If
 End Sub
 
