@@ -42,6 +42,10 @@ Public Sub TesteLO()
     Nm("dH2Coque").Value = "0,45"
     Nm("dProdUS3").Value = "PDR/STD"
     Nm("dProdUS4").Value = "PBF/MB45"
+    Nm("dBatch").Value = 267
+    Nm("dBatchSiO2").Value = 1.83
+    Nm("dBatchP").Value = 0.06
+    Nm("dFiltragem").Cells(2, 1).Value = "Filtro prensa Matec em operação."
     Nm("nLetra").Value = "C"
     Nm("nTecnico").Value = "Beltrano"
     Nm("nReal").Cells(1, 1).Value = "Tarefa da noite"
@@ -54,24 +58,24 @@ Public Sub TesteLO()
     AtualizarMESDia
     passo = 21
     lin = LinhaChave(ws, "P01U3")
-    r = r & "dSiO2PF_slot1=" & ws.Cells(lin, 5).Value & "|dSiO2PF_media=" & ws.Cells(lin, 11).Value & _
+    r = r & "dSiO2PF_slot1=" & ws.Cells(lin, 5).Value & "|dSiO2PF_media=" & ws.Cells(lin, 12).Value & _
         "|PF_umaLinha=" & (LinhaChave(ws, "P01U4") = 0) & "|PFrotulo=" & ws.Cells(lin, 4).Value & _
-        "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & "|dAtual=" & Left$(Nm("dAtualizado").Value, 40) & _
-        "|FePelotaUS3=" & ws.Cells(LinhaChave(ws, "P06U3"), 11).Value & _
+        "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & "|dHora7=" & Nm("dHoras").Cells(1, 7).Value & "|dAtual=" & Left$(Nm("dAtualizado").Value, 40) & _
+        "|FePelotaUS3=" & ws.Cells(LinhaChave(ws, "P06U3"), 12).Value & _
         "|SiO2PFvisivel=" & (Not ws.Rows(lin).Hidden) & _
         "|semPPCpelota=" & (LinhaChave(ws, "P12U3") > 0 And CStr(ws.Cells(LinhaChave(ws, "P12U3"), 2).Value) = "Mn") & _
-        "|B2US4=" & ws.Cells(LinhaChave(ws, "P11U4"), 11).Value
+        "|B2US4=" & ws.Cells(LinhaChave(ws, "P11U4"), 12).Value
     ' farol: limites do produto (colunas auxiliares Q=min, R=max)
     passo = 22
     ws.Calculate
-    r = r & "|limSiO2US3=" & ws.Cells(LinhaChave(ws, "P07U3"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P07U3"), 18).Text & _
-        "|limSiO2US4=" & ws.Cells(LinhaChave(ws, "P07U4"), 18).Text & _
-        "|limFeUS3min=" & ws.Cells(LinhaChave(ws, "P06U3"), 17).Text & _
-        "|limCaOUS3min=" & ws.Cells(LinhaChave(ws, "P09U3"), 17).Text & _
-        "|limCaOUS4=" & ws.Cells(LinhaChave(ws, "P09U4"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P09U4"), 18).Text & _
-        "|limB2US4max=" & ws.Cells(LinhaChave(ws, "P11U4"), 18).Text & _
-        "|limSiO2PF_US3=" & ws.Cells(LinhaChave(ws, "P01U3"), 18).Text & "|limSiO2PF_US4=n/a" & _
-        "|limP_PF_US3=" & ws.Cells(LinhaChave(ws, "P02U3"), 18).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P05U3"), 18).Text & _
+    r = r & "|limSiO2US3=" & ws.Cells(LinhaChave(ws, "P07U3"), 18).Text & "/" & ws.Cells(LinhaChave(ws, "P07U3"), 19).Text & _
+        "|limSiO2US4=" & ws.Cells(LinhaChave(ws, "P07U4"), 19).Text & _
+        "|limFeUS3min=" & ws.Cells(LinhaChave(ws, "P06U3"), 18).Text & _
+        "|limCaOUS3min=" & ws.Cells(LinhaChave(ws, "P09U3"), 18).Text & _
+        "|limCaOUS4=" & ws.Cells(LinhaChave(ws, "P09U4"), 18).Text & "/" & ws.Cells(LinhaChave(ws, "P09U4"), 19).Text & _
+        "|limB2US4max=" & ws.Cells(LinhaChave(ws, "P11U4"), 19).Text & _
+        "|limSiO2PF_US3=" & ws.Cells(LinhaChave(ws, "P01U3"), 19).Text & "|limSiO2PF_US4=n/a" & _
+        "|limP_PF_US3=" & ws.Cells(LinhaChave(ws, "P02U3"), 19).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P05U3"), 19).Text & _
         "|produtos=" & Application.WorksheetFunction.CountA(shLimites.Range("B9:B33")) & "|gProdUS3=" & Nm("gProdUS3").Text
     passo = 3
     ' migracao por formula
@@ -81,6 +85,10 @@ Public Sub TesteLO()
         "|altLinhaLonga=" & ws.Rows(LinhaTexto(ws, "1.   " & Nm("dSol").Cells(1, 1).Value)).RowHeight & _
         "|equipTituloOculto=" & ws.Rows(LinhaTexto(ws, "3. Equipamentos")).Hidden & _
         "|solTituloVisivel=" & (Not ws.Rows(LinhaTexto(ws, "2. Solicitações")).Hidden) & _
+        "|batch=" & ws.Cells(LinhaTexto(ws, "5. Mineroduto 03") + 1, 2).Text & _
+        "|filtragem=" & ws.Cells(LinhaTexto(ws, "6. Filtragem") + 2, 2).Text & _
+        "|filtragem1oculta=" & ws.Rows(LinhaTexto(ws, "6. Filtragem") + 1).Hidden & _
+        "|nMinerodutoOculto=" & shResumoNoite.Rows(LinhaTexto(shResumoNoite, "5. Mineroduto 03")).Hidden & _
         "|cadinhosOculto=" & ws.Rows(LinhaTexto(ws, "CADINHOS DE PLATINA")).Hidden & _
         "|obsGeraisVisivel=" & (Not ws.Rows(LinhaTexto(ws, "OBSERVAÇÕES GERAIS")).Hidden) & _
         "|data=" & ws.Cells(6, 3).Text & "|letra=" & ws.Cells(6, 11).Text & _
@@ -97,9 +105,9 @@ Public Sub TesteLO()
     AtualizarMESNoite
     Set ws = shResumoNoite
     lin = LinhaChave(ws, "P01U3")
-    r = r & "|nHora1=" & Nm("nHoras").Cells(1, 1).Value & "|nSiO2PF_media=" & ws.Cells(lin, 11).Value & _
+    r = r & "|nHora1=" & Nm("nHoras").Cells(1, 1).Value & "|nHora7=" & Nm("nHoras").Cells(1, 7).Value & "|nSiO2PF_media=" & ws.Cells(lin, 12).Value & _
         "|nTecnico=" & ws.Cells(7, 3).Text & "|nReal=" & (LinhaTexto(ws, "1.   Tarefa da noite") > 0) & _
-        "|dMediaIntacta=" & shResumoDia.Cells(LinhaChave(shResumoDia, "P01U3"), 11).Value
+        "|dMediaIntacta=" & shResumoDia.Cells(LinhaChave(shResumoDia, "P01U3"), 12).Value
     passo = 5
     Nm("gIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
     Nm("gFim").Value = DateSerial(2026, 9, 29) + TimeSerial(7, 0, 0)
@@ -180,6 +188,14 @@ Public Sub DemoLO()
     Nm("dComUS3").Value = "Produção estável. SiO2 da mistura acima do limite do PDR/MX a partir das 09:30; operação ciente."
     Nm("dComUS4").Value = "Sem desvios no turno."
     Nm("dH2Carvao").Value = "4,12"
+    Nm("dBatch").Value = 271
+    Nm("dBatchFe").Value = 67.3
+    Nm("dBatchSiO2").Value = 1.83
+    Nm("dBatchAl2O3").Value = 0.42
+    Nm("dBatchP").Value = 0.06
+    Nm("dBatchPPC").Value = 3.64
+    Nm("dFiltragem").Cells(1, 1).Value = "Filtro prensa Matec e demais filtros em operação."
+    Nm("dFiltragem").Cells(2, 1).Value = "Não filtrou para o pátio durante o turno;"
     Nm("dObs").Value = "Linha de oxigênio fechada após os testes de PCS."
     AjustarAlturas shPreenchimento, Nm("dReal")
     AtualizarMESDia

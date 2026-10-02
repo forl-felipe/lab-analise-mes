@@ -15,8 +15,8 @@ A ocorrência segue a planilha que o laboratório usa hoje (`01-09-26.xlsm`). As
 
 | Aba | Para que serve |
 |---|---|
-| **Preenchimento** | A única aba em que o técnico escreve. No alto fica a **data do dia**; abaixo, o **Turno Dia** e, mais embaixo, o **Turno Noite**, com os mesmos campos: letra, técnico, produto US3/US4, tarefas realizadas, solicitações, equipamentos, tarefas a realizar, **comentários por usina**, controle do laboratório, cadinhos de platina e observações |
-| **Resumo Dia** / **Resumo Noite** | Relatório técnico do turno (imagem para o e-mail), em formato paisagem e **no mesmo formato do Preenchimento**: identificação, ocorrências linha a linha (numeradas, com o número junto do texto), comentários por usina, controle do laboratório, cadinhos, observações e resultados do MES por **horário de amostra (07:30, 09:30…)**. Tudo vem por fórmula. Botões: **Atualizar dados do MES** e **Copiar imagem** |
+| **Preenchimento** | A única aba em que o técnico escreve. No alto fica a **data do dia**; abaixo, o **Turno Dia** e, mais embaixo, o **Turno Noite**, com os mesmos campos: letra, técnico, produto US3/US4, tarefas realizadas, solicitações, equipamentos, tarefas a realizar, **Mineroduto 03 (batch e teores)**, **Filtragem**, **comentários por usina**, controle do laboratório, cadinhos de platina e observações |
+| **Resumo Dia** / **Resumo Noite** | Relatório técnico do turno (imagem para o e-mail), em formato paisagem e **no mesmo formato do Preenchimento**: identificação, ocorrências linha a linha (numeradas, com o número junto do texto), comentários por usina, controle do laboratório, cadinhos, observações e resultados do MES por **horário de amostra: Dia 07:30 a 19:30, Noite 19:30 a 07:30** (o resultado das 19:30 aparece nos dois turnos). Tudo vem por fórmula. Botões: **Atualizar dados do MES** e **Copiar imagem** |
 | **Resultados gerais** | Resultados químicos de qualquer período de até 24 h, nas **mesmas janelas do turno (amostras 07:30, 09:30…)**; o início é ajustado para o começo da janela de 2 h em que está: **Início** e **Fim** no alto, **Atualizar dados do MES** e **Copiar imagem** |
 | Limites (oculta) | **Farol por produto**: limites químicos de cada produto (SMIN-POP-GEA-001 rev. 12). Pode ser editada e ampliada à mão (botão direito numa guia → Reexibir → Limites) |
 | Configurações (oculta) | Fonte dos dados, servidor, **tags do MES**, LIE/LSE e faixa válida. Para abrir: botão direito numa guia → Reexibir |
@@ -111,7 +111,7 @@ Toda tag pode ser alterada na aba **Configurações**. Análise sem tag fica ocu
 - Depois de ler os resultados, a fórmula do Aspen vira texto e as matrizes são apagadas, para o MES não ser consultado de novo a cada edição da planilha.
 - O início da fórmula (como o Excel a mostra) fica guardado em `Dados_MES!E3`, e o tempo da última consulta em `Dados_MES!E4`.
 
-**Imagem em alta resolução:** a área é copiada como figura vetorial, ampliada 2,2× num gráfico temporário e exportada como PNG; esse PNG vai para a área de transferência. Se algo falhar, é usada a cópia comum.
+**Imagem em alta resolução:** com zoom em 100%, a área é copiada como figura vetorial (aparência de impressão), ampliada num gráfico temporário até cerca de 3600 px de largura e exportada como PNG; esse PNG vai para a área de transferência. Se algo falhar, é usada a cópia comum.
 
 Uma única consulta `GetCalculationValues` com todas as análises configuradas: tipo de cálculo `"1"`, janelas de `"2h"` e listas em texto literal, no mesmo formato validado no Físico. A consulta inclui só as análises com as duas tags preenchidas.
 
@@ -121,7 +121,7 @@ Uma única consulta `GetCalculationValues` com todas as análises configuradas: 
   - as janelas seguintes ficam em branco;
   - no início do turno, sem análises ainda, a consulta termina em cerca de 15 s com o aviso "ainda não há resultados", sem erro;
   - um segundo clique durante a consulta é ignorado com um aviso.
-- Cada botão consulta 12 h (6 janelas). Os Resultados gerais fazem mais de uma consulta para períodos maiores.
+- Cada botão do turno consulta 7 janelas de 2 h (14 h). Os Resultados gerais fazem mais de uma consulta para períodos maiores.
 - **Tag recusada pelo MES** ("Tag Name … is invalid"): uma tag inválida derrubava a consulta inteira. Agora a planilha
   lê o erro, tira as tags inválidas da consulta, consulta de novo com as demais e avisa quais tags foram recusadas.
   A lista também fica em `Dados_MES!E5`. Basta corrigir as tags na aba Configurações.

@@ -101,7 +101,7 @@ PARAMS = [
     _lm('Mn', '%', 3, '0115', 0.070, 0.071),
 ]
 NPARAM = len(PARAMS)
-NSLOT = 6
+NSLOT = 7               # janelas do turno no Resumo: 07:30 ... 19:30 (Dia) e 19:30 ... 07:30 (Noite)
 USINAS = ('US3', 'US4')
 
 
@@ -329,7 +329,7 @@ class Construtor:
         for c, w in larg.items():
             ws.set_column(c, c, w)
         ws.set_column(18, 24, 17)
-        self.cabecalho(ws, 15, 'CONFIGURAÇÕES', 'LABORATÓRIO QUÍMICO  |  MES E TAGS')
+        self.cabecalho(ws, 15, 'CONFIGURAÇÕES', '')
         self.secao(ws, 4, 1, 15, 'Parâmetros gerais')
         gerais = [
             ('cfgFonte', 'Fonte dos dados', 'MES', 'MES ou SIMULAÇÃO (dados fictícios, para treino)'),
@@ -358,11 +358,6 @@ class Construtor:
         self.botao(ws, 5, 11, 'Voltar ao preenchimento', 'IrPreenchimento', 230, 30, 'primario', x=5)
         self.botao(ws, 7, 11, 'Ver dados brutos do MES', 'MostrarDadosMES', 230, 30, 'claro', x=5)
 
-        ws.merge_range(14, 1, 14, 15,
-                       'Análise sem tag não é consultada no MES e não aparece no relatório. '
-                       'Pellet Feed: amostra única US3/4 (tag US4 = tag US3). Tags: Plano Amostral rev. 06.',
-                       self.f(font_size=9, italic=True, font_color=AZUL_ACINZ, text_wrap=True, indent=1))
-        ws.set_row(14, 28)
         self.secao(ws, 15, 1, 15, 'Tags do MES')
         cab = ['Amostra', 'Análise', 'Unidade', 'Dec.', 'Resultado do turno', 'Tag US3', 'Tipo US3',
                'Tag US4', 'Tipo US4', 'LIE', 'LSE', 'Válido mín.', 'Válido máx.', 'Típico US3 (simul.)',
@@ -492,15 +487,10 @@ class Construtor:
         ws.set_column(2, 2, 12)
         ws.set_column(LIM_COL1, UC, 8.5)
         ws.set_column(UC + 1, UC + 1, 3)
-        self.cabecalho(ws, UC, 'LIMITES DE PROCESSO POR PRODUTO', 'LABORATÓRIO QUÍMICO  |  SMIN-POP-GEA-001 REV. 12',
+        self.cabecalho(ws, UC, 'LIMITES DE PROCESSO', '',
                        col_logo_fim=3)
         ws.set_row(4, 8)
         ws.set_row(5, 30)
-        ws.merge_range(5, 1, 5, UC,
-                       'Verde: dentro do limite (igual ou acima do mínimo, igual ou abaixo do máximo). '
-                       'Vermelho: fora do limite. Célula vazia: sem limite. Produto novo: usar uma linha livre.',
-                       self.f(font_size=9, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1,
-                              bg_color=FUNDO_CLARO, border=1, border_color=BORDA))
         hdr = self.f(bold=True, font_size=9, font_color=BRANCO, bg_color=AZUL, align='center', text_wrap=True,
                      border=1, border_color=BRANCO)
         hdr2 = self.f(bold=True, font_size=8, font_color=AZUL_TITULO, bg_color=FUNDO_GRUPO, align='center',
@@ -526,7 +516,7 @@ class Construtor:
             else:
                 prod, conc, lim = '', '', {}
             ws.write(r, 1, prod, self.f(bold=True, indent=1, **inp))
-            ws.write(r, 2, conc, self.f(**inp))
+            ws.write_blank(r, 2, None, self.f(**inp))
             for i, (k, _) in enumerate(LIM_ITENS):
                 mn, mx = lim.get(k, (None, None))
                 dec = 3 if k in ('LM_P', 'PF_P') else 2
@@ -537,10 +527,6 @@ class Construtor:
                     else:
                         ws.write_number(r, LIM_COL1 + 2 * i + q, v, fm)
         r = LIM_ROW1 + LIM_NLIN + 1
-        ws.merge_range(r, 1, r + 2, UC,
-                       'Incorporações de terceiros/internas: reduzir alvos e limites de SiO2 do concentrado em 0,10 p.p. '
-                       '(item 10.2). Pellet Feed: SiO2 bi-horário; P e PPC máximo diário do batch.',
-                       self.f(font_size=8, italic=True, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1))
         # lista de produtos para a selecao (cresce sozinha com linhas novas)
         self.wb.define_name('lstProdutos', "=OFFSET('Limites'!$B$%d,0,0,MAX(1,COUNTA('Limites'!$B$%d:$B$%d)),1)"
                             % (LIM_ROW1 + 1, LIM_ROW1 + 1, LIM_ROW1 + LIM_NLIN))
@@ -672,7 +658,33 @@ class Construtor:
         r = lista(r, '3. Equipamentos', 'Equip', 4, 'falhas, vazamentos, manutenção')
         r = lista(r, '4. Tarefas a realizar (próximo turno)', 'AReal', 8, 'uma tarefa por linha')
 
-        self.secao(ws, r, 1, UC, '5. Comentários por usina')
+        # 5. Mineroduto 03: batch e teores (como no Fisico)
+        ws.set_row(r, 20)
+        ws.merge_range(r, 1, r, UC, '5. Mineroduto 03', self.f(bold=True, font_size=11, font_color=AZUL_TITULO,
+                                                                 valign='bottom', bottom=2, bottom_color=AZUL))
+        rr = r + 1
+        cen = self.f_input(align='center', font_size=10)
+        ws.set_row(rr, 20)
+        campo(rr, 1, 2, 'Batch', 3, 4, 'Batch', '', fmt=self.f_input(align='center', bold=True, font_size=10))
+        campo(rr, 5, 5, 'Fe', 6, 6, 'BatchFe', '', fmt=cen)
+        campo(rr, 7, 7, 'SiO2', 8, 8, 'BatchSiO2', '', fmt=cen)
+        campo(rr, 9, 9, 'Al2O3', 10, 10, 'BatchAl2O3', '', fmt=cen)
+        rr += 1
+        ws.set_row(rr, 20)
+        campo(rr, 1, 2, 'P', 3, 4, 'BatchP', '', fmt=cen)
+        campo(rr, 5, 5, 'PPC', 6, 6, 'BatchPPC', '', fmt=cen)
+        for k in range(2):
+            rr += 1
+            ws.set_row(rr, 19)
+            ws.write(rr, 1, k + 1, num)
+            ws.merge_range(rr, 2, rr, UC, '', inp)
+        self.nome(t + 'Mineroduto', ws, rr - 1, 2, rr, 2)
+        c['Mineroduto'] = [rc(rr - 1 + k, 2, True, True) for k in range(2)]
+        r = rr + 2
+
+        r = lista(r, '6. Filtragem', 'Filtragem', 6, '')
+
+        self.secao(ws, r, 1, UC, '7. Comentários por usina')
         rr = r + 1
         for us in ('US3', 'US4'):
             ws.set_row(rr, 19)
@@ -687,7 +699,7 @@ class Construtor:
             rr += 3
         r = rr + 1
 
-        self.secao(ws, r, 1, UC, '6. Controle do laboratório')
+        self.secao(ws, r, 1, UC, '8. Controle do laboratório')
         prog = ('OREGON (RX), Carbono (Leco CS-230), PCS (Calorímetro), mufla 1000 ºC, fotômetro, balanças, '
                 'estufa e máquina de fusão')
         rr = r + 1
@@ -708,7 +720,7 @@ class Construtor:
         campo(rr, 6, 6, 'Nitrogênio', 7, 8, 'Nitrogenio', '', '=lstCond')
         r = rr + 2
 
-        self.secao(ws, r, 1, UC, '7. Cadinhos de platina')
+        self.secao(ws, r, 1, UC, '9. Cadinhos de platina')
         rr = r + 1
         ws.set_row(rr, 20)
         campo(rr, 1, 3, 'Repassados para o turno', 4, UC, 'Cadinhos')
@@ -717,7 +729,7 @@ class Construtor:
         campo(rr, 1, 3, 'Retirado para reforma', 4, UC, 'Reforma')
         r = rr + 2
 
-        self.secao(ws, r, 1, UC, '8. Observações gerais')
+        self.secao(ws, r, 1, UC, '10. Observações gerais')
         rr = r + 1
         ws.set_row(rr, 20)
         campo(rr, 1, 3, 'Hidrogênio no carvão', 4, 5, 'H2Carvao')
@@ -882,7 +894,7 @@ class Construtor:
         ws.set_row(r, 22)
         campo(r, 1, 1, 'Técnico', 2, 6, '=IF(%sTecnico="","—",%sTecnico)' % (t, t))
         campo(r, 7, 8, 'Produto US3', 9, 9, '=IF(%sProdUS3="","—",%sProdUS3)' % (t, t), valc)
-        campo(r, 10, 11, 'Produto US4', 12, 12, '=IF(%sProdUS4="","—",%sProdUS4)' % (t, t), valc)
+        campo(r, 10, 11, 'Produto US4', 12, UC, '=IF(%sProdUS4="","—",%sProdUS4)' % (t, t), valc)
         r += 2
 
         # ---- ocorrencias (listas linha a linha, como no Preenchimento)
@@ -921,10 +933,44 @@ class Construtor:
             espaco(r, 4)
             r += 1
 
+        def linha_t(r, formula):
+            ws.set_row(r, 17)
+            ws.write(r, 0, 'T', chave_fmt)
+            ws.merge_range(r, 1, r, UC, '', lin)
+            ws.write_formula(r, 1, formula, lin)
+
+        # ---- mineroduto: "1.   Processando batch 267 com teores: Fe: ...; SiO2: ...; ..."
+        ws.set_row(r, 18)
+        ws.write(r, 0, 'S2', chave_fmt)
+        ws.merge_range(r, 1, r, UC, '5. Mineroduto 03', sub)
+        r += 1
+        teores = [('BatchFe', 'Fe'), ('BatchSiO2', 'SiO2'), ('BatchAl2O3', 'Al2O3'), ('BatchP', 'P'),
+                  ('BatchPPC', 'PPC')]
+        partes = '&'.join('IF(%s="","","%s: "&%s&"; ")' % (c[k], rotulo, c[k]) for k, rotulo in teores)
+        sem_teor = 'AND(%s)' % ','.join('%s=""' % c[k] for k, _ in teores)
+        linha_t(r, '=IF(AND(%s="",%s),"","Processando batch "&%s&IF(%s,""," com teores: "&LEFT(%s,LEN(%s)-2)))'
+                % (c['Batch'], sem_teor, c['Batch'], sem_teor, partes, partes))
+        r += 1
+        for ref in c['Mineroduto']:
+            linha_t(r, '=IF(TRIM(%s%s)="","",TRIM(%s%s))' % (P, ref, P, ref))
+            r += 1
+        espaco(r, 4)
+        r += 1
+        # ---- filtragem
+        ws.set_row(r, 18)
+        ws.write(r, 0, 'S2', chave_fmt)
+        ws.merge_range(r, 1, r, UC, '6. Filtragem', sub)
+        r += 1
+        for k, ref in enumerate(c['Filtragem']):
+            linha_t(r, '=IF(TRIM(%s%s)="","","%d.   "&TRIM(%s%s))' % (P, ref, k + 1, P, ref))
+            r += 1
+        espaco(r, 4)
+        r += 1
+
         # ---- comentarios por usina
         ws.set_row(r, 18)
         ws.write(r, 0, 'S2', chave_fmt)
-        ws.merge_range(r, 1, r, UC, '5. Comentários por usina', sub)
+        ws.merge_range(r, 1, r, UC, '7. Comentários por usina', sub)
         r += 1
         for us in ('US3', 'US4'):
             ws.set_row(r, 34)
@@ -954,7 +1000,7 @@ class Construtor:
         campo(r, 1, 1, 'Sistema de ar utilizado', 2, 3, valor('Ar'), valc)
         campo(r, 4, 5, 'Status do equipamento', 6, 7, valor('ArStatus'), valc)
         campo(r, 8, 9, 'Compressor', 10, 10, valor('Compressor'), valc)
-        campo(r, 11, 11, 'Nitrogênio', 12, 12, valor('Nitrogenio'), valc)
+        campo(r, 11, 11, 'Nitrogênio', 12, UC, valor('Nitrogenio'), valc)
         r += 1
         espaco(r, 15)
         r += 1

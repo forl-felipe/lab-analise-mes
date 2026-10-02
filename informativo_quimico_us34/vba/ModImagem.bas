@@ -4,7 +4,7 @@ Option Explicit
 '  ModImagem - copia os resumos / resultados como imagem (Ctrl+V no e-mail)
 '  e oculta as linhas vazias para a imagem ficar compacta.
 '
-'  Alta resolucao: a area e copiada como figura vetorial, ampliada ESCALA vezes
+'  Alta resolucao: a area e copiada como figura vetorial, ampliada (~3600 px de largura)
 '  dentro de um grafico temporario e exportada como PNG; o PNG e copiado para a
 '  area de transferencia. Se algo falhar, usa a copia comum (bitmap da tela).
 ' ============================================================================
@@ -12,8 +12,11 @@ Option Explicit
 Private Const XL_SCREEN As Long = 1
 Private Const XL_BITMAP As Long = 2
 Private Const XL_PICTURE As Long = -4147
-' Ampliacao da imagem exportada (2 = o dobro de pixels da tela)
-Private Const ESCALA As Double = 2.2
+Private Const XL_PRINTER As Long = 2
+' Largura alvo da imagem exportada (pixels); a ampliacao e calculada pela largura da area
+Private Const LARGURA_PX As Double = 3600
+' Maior lado do grafico temporario (pontos), abaixo do limite do Excel
+Private Const LADO_MAX As Double = 4000
 
 Public Sub CopiarImagemDia()
     CompactarAba shResumoDia
@@ -215,22 +218,36 @@ End Sub
 ' Copia a area como PNG em alta resolucao. Devolve False se nao conseguir.
 Private Function CopiarAltaResolucao(ByVal ws As Worksheet, ByVal area As Range) As Boolean
     Dim co As Object, fig As Object, img As Object, arq As String, tentativa As Long
+    Dim escala As Double, zoomAnt As Variant
     CopiarAltaResolucao = False
     On Error GoTo Falha
+    ' Zoom em 100% durante a copia: com zoom reduzido o Excel gera a figura com o texto mal posicionado
+    zoomAnt = ActiveWindow.Zoom
+    ActiveWindow.Zoom = 100
+    ' Ampliacao para a imagem ficar com ~LARGURA_PX pixels de largura (1 pt = 4/3 px)
+    escala = LARGURA_PX / (area.Width * 4 / 3)
+    If escala < 2 Then escala = 2
+    If area.Width * escala > LADO_MAX Then escala = LADO_MAX / area.Width
+    If area.Height * escala > LADO_MAX Then escala = LADO_MAX / area.Height
     arq = Environ$("TEMP") & "\resumo_quimico_" & Format$(Now, "hhnnss") & ".png"
     Desproteger ws
-    ' 1) figura vetorial da area (texto continua nitido ao ampliar)
+    ' 1) figura vetorial da area (texto continua nitido ao ampliar). Aparencia de impressao
+    '    (independe do zoom e da tela); sem impressora instalada, usa a aparencia de tela.
     On Error Resume Next
-    For tentativa = 1 To 3
+    For tentativa = 1 To 4
         Err.Clear
-        area.CopyPicture Appearance:=XL_SCREEN, Format:=XL_PICTURE
+        If tentativa <= 2 Then
+            area.CopyPicture Appearance:=XL_PRINTER, Format:=XL_PICTURE
+        Else
+            area.CopyPicture Appearance:=XL_SCREEN, Format:=XL_PICTURE
+        End If
         If Err.Number = 0 Then Exit For
         DoEvents
     Next tentativa
     If Err.Number <> 0 Then GoTo Falha
     On Error GoTo Falha
     ' 2) grafico temporario ampliado, com a figura ocupando todo o espaco
-    Set co = ws.ChartObjects.Add(area.Left, area.Top, area.Width * ESCALA, area.Height * ESCALA)
+    Set co = ws.ChartObjects.Add(area.Left, area.Top, area.Width * escala, area.Height * escala)
     co.Activate
     co.Chart.Paste
     Set fig = co.Chart.Shapes(co.Chart.Shapes.Count)
@@ -240,6 +257,7 @@ Private Function CopiarAltaResolucao(ByVal ws As Worksheet, ByVal area As Range)
     fig.Width = co.Chart.ChartArea.Width
     fig.Height = co.Chart.ChartArea.Height
     co.Chart.ChartArea.Format.Line.Visible = 0
+    co.Chart.ChartArea.Format.Fill.Visible = 0
     ' 3) exporta PNG e copia a imagem
     co.Chart.Export arq, "PNG"
     co.Delete
@@ -251,11 +269,13 @@ Private Function CopiarAltaResolucao(ByVal ws As Worksheet, ByVal area As Range)
     On Error Resume Next
     Kill arq
     ws.Range("A1").Select
+    ActiveWindow.Zoom = zoomAnt
     Proteger ws
     CopiarAltaResolucao = True
     Exit Function
 Falha:
     On Error Resume Next
+    If Not IsEmpty(zoomAnt) Then ActiveWindow.Zoom = zoomAnt
     If Not co Is Nothing Then co.Delete
     If Not img Is Nothing Then img.Delete
     Kill arq

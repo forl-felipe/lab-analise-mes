@@ -2,7 +2,7 @@ Option Explicit
 
 ' Gerado por build_quimico.py - posicoes fixas das abas (nao editar a mao)
 Public Const NPARAM As Long = 12
-Public Const NSLOT As Long = 6
+Public Const NSLOT As Long = 7
 Public Const NSLOT_MAX As Long = 12
 Public Const HORAS_SLOT As Double = 2
 ' 1a coluna das janelas de 2 h nas tabelas de resultados (E)
