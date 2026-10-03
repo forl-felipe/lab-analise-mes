@@ -173,6 +173,19 @@ Public Sub TesteLO()
     Recalcular
     r = r & "|limpoBLA=" & Nm("cnt_BLA").Value & "|limpoPEN=" & Nm("cnt_PEN").Value & "|tagMantida=" & _
         shLancamento.Cells(E("PEN", 1).Row, 6).Value
+    passo = 65
+    ' envio de um ensaio so: Blaine vai, Tambor fica na tela
+    PreencherExemplo
+    PreencherObs
+    n1 = ContaBD()
+    EnviarBLA
+    r = r & "|soBLA=" & (ContaBD() - n1) & "|blaLimpo=" & Nm("cnt_BLA").Value & "|tamFica=" & Nm("cnt_TAM").Value
+    EnviarTAM
+    r = r & "|maisTAM=" & (ContaBD() - n1) & "|tamLimpo=" & Nm("cnt_TAM").Value
+    EnviarFIS
+    r = r & "|fis=" & (ContaBD() - n1)
+    LimparTela
+    n1 = ContaBD()
     passo = 7
     ' sem dados -> nada registrado
     RegistrarLancamento

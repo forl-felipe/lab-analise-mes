@@ -13,6 +13,49 @@ Private Const NCOL As Long = 21         ' colunas da base (17 originais + Turno,
 
 ' ---------------------------------------------------------------- registrar
 Public Sub RegistrarLancamento()
+    RegistrarEnsaios ""
+End Sub
+
+' Botoes "Enviar so este ensaio" de cada secao
+Public Sub EnviarBLA()
+    RegistrarEnsaios "BLA"
+End Sub
+
+Public Sub EnviarTAM()
+    RegistrarEnsaios "TAM"
+End Sub
+
+Public Sub EnviarALP()
+    RegistrarEnsaios "ALP"
+End Sub
+
+Public Sub EnviarUMI()
+    RegistrarEnsaios "UMI"
+End Sub
+
+Public Sub EnviarCOM()
+    RegistrarEnsaios "COM"
+End Sub
+
+Public Sub EnviarGRA()
+    RegistrarEnsaios "GRA"
+End Sub
+
+Public Sub EnviarT515()
+    RegistrarEnsaios "T515"
+End Sub
+
+Public Sub EnviarPEN()
+    RegistrarEnsaios "PEN"
+End Sub
+
+Public Sub EnviarFIS()
+    RegistrarEnsaios "FIS"
+End Sub
+
+
+' filtro = codigo do ensaio (BLA, TAM...) ou "" para todos os ensaios preenchidos
+Public Sub RegistrarEnsaios(ByVal filtro As String)
     Dim d As Variant, turno As String, resp As String, letra As String
     Dim arr As Variant, i As Long, j As Long, ns As Long, k As Long
     Dim sel() As Long, saida() As Variant, origem As String, id As Long, lin As Long
@@ -31,10 +74,6 @@ Public Sub RegistrarLancamento()
         Aviso "Informe o turno (07x19 ou 19x07).", vbExclamation
         Exit Sub
     End If
-    If resp = "" Then
-        Aviso "Informe o responsável.", vbExclamation
-        Exit Sub
-    End If
     If letra = "" Then
         Aviso "Informe a letra.", vbExclamation
         Exit Sub
@@ -47,7 +86,9 @@ Public Sub RegistrarLancamento()
     arr = shStaging.Range("A2").Resize(NSTG, COL_REG + 1).Value
     ReDim sel(1 To NSTG)
     For i = 1 To NSTG
-        If IsError(arr(i, COL_REG)) Then
+        If filtro <> "" And CStr(arr(i, COL_REG + 1)) <> filtro Then
+            ' outro ensaio: fica na tela para ser enviado depois
+        ElseIf IsError(arr(i, COL_REG)) Then
             erros = AdicionaUnico(erros, CStr(arr(i, COL_REG + 1)))
         ElseIf NumOu(arr(i, COL_REG), 0) = 1 Then
             For j = 1 To 17
@@ -67,9 +108,20 @@ Public Sub RegistrarLancamento()
         Exit Sub
     End If
     If ns = 0 Then
-        Aviso "Nenhum resultado preenchido para registrar.", vbInformation
+        If filtro = "" Then
+            Aviso "Nenhum resultado preenchido para registrar.", vbInformation
+        Else
+            Aviso "Este ensaio não tem resultado preenchido.", vbInformation
+        End If
         Exit Sub
     End If
+    ' responsavel: o do ensaio ou, se vazio, o do cabecalho
+    For k = 1 To ns
+        If Trim$(CStr(arr(sel(k), 14))) = "" Then
+            Aviso "Informe o responsável (no campo Responsável do ensaio ou no cabeçalho).", vbExclamation
+            Exit Sub
+        End If
+    Next k
 
     ' resultado Nao conforme exige observacao no ensaio
     For k = 1 To ns
@@ -139,7 +191,7 @@ Public Sub RegistrarLancamento()
     Nm("cfgUltimoID").Value = id
     Nm("cfgUltimoLanc").Value = "LCP-" & Format$(id, "000000") & "  ·  " & Format$(CDate(d), "dd\/mm\/yyyy") & " " & _
         turno & "  ·  " & resp & "  ·  " & ns & " resultado(s)"
-    LimparTela
+    If filtro = "" Then LimparTela Else LimparSecao filtro
     Ampulheta False
     On Error GoTo 0
     Aviso "Lançamento LCP-" & Format$(id, "000000") & " registrado: " & ns & " resultado(s)." & vbCrLf & vbCrLf & _
@@ -238,6 +290,25 @@ Public Sub LimparLancamento()
     If Aviso("Apagar os valores digitados na tela? (o que já foi registrado não é alterado)", _
              vbYesNo + vbQuestion, , vbYes) <> vbYes Then Exit Sub
     LimparTela
+End Sub
+
+' Apaga as entradas de um ensaio (depois de enviado sozinho)
+Public Sub LimparSecao(ByVal cod As String)
+    Dim m As Variant, i As Long, enderecos As Variant, k As Long
+    On Error Resume Next
+    Application.EnableEvents = False
+    Desproteger shLancamento
+    m = Nm("mapaInputs").Value
+    For i = 1 To UBound(m, 1)
+        If CStr(m(i, 1)) = cod Then
+            enderecos = Split(CStr(m(i, 3)), ";")
+            For k = LBound(enderecos) To UBound(enderecos)
+                If Len(enderecos(k)) > 0 Then shLancamento.Range(enderecos(k)).ClearContents
+            Next k
+        End If
+    Next i
+    Proteger shLancamento
+    Application.EnableEvents = True
 End Sub
 
 ' Apaga as entradas dos ensaios (mantem data, turno, letra, responsavel e as tags)

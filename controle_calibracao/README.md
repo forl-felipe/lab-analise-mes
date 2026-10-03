@@ -18,15 +18,15 @@ Umidade, Tamb Kg x Tamb 15,0Kg, Resultados, Controle).
 
 1. Confira data, turno, letra e responsável.
    - Ao abrir, a data e o turno do cabeçalho voltam para o turno atual. Eles podem ser alterados.
-   - Ao lado dos botões, o **relógio** mostra a data/hora e o turno reais. Esse campo não pode ser alterado.
-   - Com data ou turno diferente do atual, o cabeçalho fica laranja e o registro sai marcado como **fora do turno**.
+   - Com data ou turno diferente do turno real (relógio do computador no momento do envio), a planilha avisa e o registro sai marcado como **fora do turno**.
    - Cada ensaio tem o seu campo **Responsável**. Vazio = responsável do cabeçalho.
 2. Preencha só os ensaios feitos no turno. Os cálculos são automáticos:
    - rpm pelo tempo e número de voltas de cada tambor;
    - umidade da estufa pelas pesagens;
    - frações, −6,3 mm, RG e diâmetro médio da granulometria;
    - % do tamboramento 5 x 15 kg.
-3. Clique em **Registrar lançamento**. Os resultados vão para a base, com o número do lançamento (`LCP-000123`), e a tela é limpa.
+3. Cada ensaio tem o botão **Enviar só este ensaio**, ao lado do título. Ele registra só aquele ensaio e limpa só ele; cada laboratorista envia o seu. **Registrar todos os ensaios** envia de uma vez tudo o que estiver preenchido.
+   Ao registrar, Os resultados vão para a base, com o número do lançamento (`LCP-000123`), e a tela é limpa.
    - Ensaio sem dados não é registrado.
    - Se o mesmo ensaio já foi registrado na mesma data e turno, a planilha pergunta antes.
    - **Resultado Não conforme exige observação** no ensaio: o campo fica vermelho e o registro só é feito depois de preenchido.

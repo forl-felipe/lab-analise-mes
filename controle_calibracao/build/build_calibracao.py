@@ -410,31 +410,15 @@ class Construtor:
         r += 1
         ws.set_row(r, 18)
         ws.merge_range(r, 2, r, UC, '', self.f(font_size=8.5, italic=True, font_color=TEXTO_SEC, indent=1))
-        ws.write_formula(r, 2, '=IF(OR(AND(ISNUMBER(pData),pData<>relDataAtual),AND(pTurno<>"",pTurno<>relTurnoAtual)),'
-                               '"Atenção: data/turno diferente do turno atual. O lançamento será registrado como fora do turno.",'
-                               'IF(cfgUltimoLanc="","Nenhum lançamento registrado nesta planilha.",'
-                               '"Último lançamento: "&cfgUltimoLanc))',
+        ws.write_formula(r, 2, '=IF(cfgUltimoLanc="","Nenhum lançamento registrado nesta planilha.",'
+                               '"Último lançamento: "&cfgUltimoLanc)',
                          self.f(font_size=8.5, italic=True, font_color=TEXTO_SEC, indent=1), '')
         ws.freeze_panes(r + 1, 0)
         # botoes (area congelada, a direita)
-        self.botao(ws, 1, UC + 2, 'Registrar lançamento', 'RegistrarLancamento', 190, 44, 'destaque', x=4, y=4)
+        self.botao(ws, 1, UC + 2, 'Registrar todos os ensaios', 'RegistrarLancamento', 190, 44, 'destaque', x=4, y=4)
         self.botao(ws, 1, UC + 3, 'Ver painel', 'IrPainel', 190, 44, 'primario', x=4, y=4)
         self.botao(ws, 4, UC + 2, 'Limpar tela', 'LimparLancamento', 190, 30, 'claro', x=4, y=6)
         self.botao(ws, 4, UC + 3, 'Desfazer último lançamento', 'DesfazerUltimo', 190, 30, 'alerta', x=4, y=6)
-        # relogio: data/hora e turno reais (formula, nao editavel); a data e o turno do cabecalho sao os do ensaio
-        h = 'MOD(NOW(),1)'
-        atual_d = 'IF(%s<7/24,INT(NOW())-1,INT(NOW()))' % h
-        atual_t = 'IF(AND(%s>=7/24,%s<19/24),"07x19","19x07")' % (h, h)
-        ws.merge_range(6, UC + 2, 6, UC + 3, '', self.f())
-        ws.write_formula(6, UC + 2, '="Agora: "&TEXT(NOW(),"dd/mm/yyyy hh:mm")&"   |   turno atual: "&TEXT(%s,"dd/mm/yyyy")'
-                                    '&" "&%s' % (atual_d, atual_t),
-                         self.f(font_size=9, bold=True, font_color=BRANCO, bg_color=AZUL_ACINZ, align='center'), '')
-        self.wb.define_name('relDataAtual', '=%s' % atual_d)
-        self.wb.define_name('relTurnoAtual', '=%s' % atual_t)
-        fora = self.wb.add_format({'bg_color': LAR_FUNDO, 'font_color': LAR_TXT, 'border': 2, 'border_color': LARANJA})
-        cond = '=OR(AND(ISNUMBER(pData),pData<>relDataAtual),AND(pTurno<>"",pTurno<>relTurnoAtual))'
-        ws.conditional_format(5, 3, 5, 4, {'type': 'formula', 'criteria': cond, 'format': fora})
-        ws.conditional_format(5, 6, 5, 6, {'type': 'formula', 'criteria': cond, 'format': fora})
 
         # ---- agenda do turno
         r += 2
@@ -489,6 +473,8 @@ class Construtor:
         ws.merge_range(r + 1, 2, r + 1, self.UC, e[3], self.f(font_size=8.5, italic=True, font_color=TEXTO_SEC,
                                                               indent=1, bg_color=FUNDO_CLARO))
         self.nome('sec_' + cod, ws, r, 2)
+        self.botao(ws, r, self.UC + 2, 'Enviar só este ensaio', 'Enviar' + cod, 190, 26, 'destaque', x=4, y=1,
+                   tamanho=10)
         self.inputs.setdefault(cod, [])
         self.resultados.setdefault(cod, [])
         return r + 2
@@ -1365,23 +1351,28 @@ class Construtor:
             for j, nomeLim in enumerate(('Lim. inferior', 'Lim. superior')):
                 c.add_series({'name': ['_Graficos', r0 + 1, 1 + nser + j], 'categories': ['_Graficos', a, 0, z, 0],
                               'values': ['_Graficos', a, 1 + nser + j, z, 1 + nser + j],
-                              'line': {'color': '#D9534F', 'width': 1.25, 'dash_type': 'dash'},
+                              'line': {'color': '#D9534F', 'width': 1.5, 'dash_type': 'dash'},
                               'marker': {'type': 'none'}})
             c.show_blanks_as('gap')
-            self.estilo_grafico(c, tit, un)
+            self.estilo_grafico(c, tit, un, dec)
             rr, cc = pos[k]
             ws.insert_chart(rr, cc, c, {'x_offset': 4, 'y_offset': 6, 'object_position': 1,
                                         'width': 560, 'height': 300})
 
-    def estilo_grafico(self, ch, titulo, un):
+    def estilo_grafico(self, ch, titulo, un, dec=2):
         ch.set_title({'name': titulo, 'name_font': {'size': 10.5, 'bold': True, 'color': AZUL_TITULO, 'name': FONTE}})
         ch.set_legend({'position': 'bottom', 'font': {'size': 8, 'name': FONTE}})
         ch.set_chartarea({'border': {'color': BORDA}, 'fill': {'color': BRANCO}})
         ch.set_plotarea({'fill': {'color': BRANCO}})
         if un:
             ch.set_x_axis({'num_font': {'size': 7.5, 'name': FONTE, 'rotation': -45}})
-            ch.set_y_axis({'num_font': {'size': 8, 'name': FONTE},
-                           'major_gridlines': {'visible': True, 'line': {'color': '#E5E9EC'}}})
+            ch.set_y_axis({'num_font': {'size': 8, 'name': FONTE}, 'num_format': nf(dec),
+                           'name': un, 'name_font': {'size': 8, 'name': FONTE, 'color': TEXTO_SEC, 'bold': False},
+                           'major_gridlines': {'visible': True, 'line': {'color': '#E5E9EC'}},
+                           'line': {'none': True}})
+            ch.set_x_axis({'num_font': {'size': 7.5, 'name': FONTE, 'rotation': -45},
+                           'line': {'color': BORDA}, 'major_tick_mark': 'none', 'label_position': 'low'})
+            ch.set_plotarea({'fill': {'color': '#FBFCFD'}, 'border': {'none': True}})
 
     # ------------------------------------------------------------ VBA: posicoes
     def modulo_layout(self):

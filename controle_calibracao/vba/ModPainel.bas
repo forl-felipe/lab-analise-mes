@@ -433,6 +433,7 @@ Private Sub PreencherGraficos(ByVal a As Variant, ByVal ini As Long, ByVal fim A
         Next o
         ws.Range(ws.Cells(r0 + 2, 1), ws.Cells(r0 + 1 + npt, ns + 3)).ClearContents
         ws.Range(ws.Cells(r0 + 2, 1), ws.Cells(r0 + 1 + npt, ns + 3)).Value = vals
+        AjustarGrafico b, r0, ns, nocc - primeiro + 1, vals
     Next b
 End Sub
 
@@ -449,3 +450,42 @@ Private Function IndiceCodigo(ByVal cod As String) As Long
         Case "FIS": IndiceCodigo = 9
     End Select
 End Function
+
+' Grafico b do Painel (1o grafico = conformidade; tendencias a partir do 2o): so os pontos do periodo
+' e escala do eixo Y ajustada aos dados e aos limites (Excel; no LibreOffice nada muda)
+Private Sub AjustarGrafico(ByVal b As Long, ByVal r0 As Long, ByVal ns As Long, ByVal n As Long, ByVal vals As Variant)
+    Dim co As Object, s As Long, o As Long, mn As Double, mx As Double, tem As Boolean, pad As Double
+    Dim ws As Worksheet, ult As Long
+    On Error Resume Next
+    Set ws = shGraficos
+    Set co = shPainel.ChartObjects(b + 1)
+    If co Is Nothing Then Exit Sub
+    If n < 1 Then ult = r0 + 2 Else ult = r0 + 1 + n
+    For s = 1 To ns + 2
+        co.Chart.SeriesCollection(s).Values = ws.Range(ws.Cells(r0 + 2, 1 + s), ws.Cells(ult, 1 + s))
+        co.Chart.SeriesCollection(s).XValues = ws.Range(ws.Cells(r0 + 2, 1), ws.Cells(ult, 1))
+    Next s
+    For o = 1 To n
+        For s = 2 To ns + 3
+            If ENumero(vals(o, s)) Then
+                If Not tem Then
+                    mn = CDbl(vals(o, s)): mx = mn: tem = True
+                Else
+                    If CDbl(vals(o, s)) < mn Then mn = CDbl(vals(o, s))
+                    If CDbl(vals(o, s)) > mx Then mx = CDbl(vals(o, s))
+                End If
+            End If
+        Next s
+    Next o
+    With co.Chart.Axes(2)
+        If tem Then
+            pad = (mx - mn) * 0.15
+            If pad = 0 Then pad = Abs(mx) * 0.02 + 0.01
+            .MinimumScale = mn - pad
+            .MaximumScale = mx + pad
+        Else
+            .MinimumScaleIsAuto = True
+            .MaximumScaleIsAuto = True
+        End If
+    End With
+End Sub
