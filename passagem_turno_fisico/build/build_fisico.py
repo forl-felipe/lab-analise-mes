@@ -146,7 +146,9 @@ PARAM_LIM = {(G_PF, 'SiO2'): 'PF_SIO2', (G_PF, 'PPC'): 'PF_PPC',
 
 # Regra entre analises: (grupo, analise) fica VERMELHA quando >= a referencia (mesma usina e mesma janela),
 # VERDE quando menor. Umidade da pelota crua tem que ser menor que a umidade de saida da prensa de rolos.
-REGRA_MENOR_QUE = {(G_PC, 'Umidade'): (G_PFF, 'H2O - Saída RP')}
+REGRA_MENOR_QUE = {(G_PC, 'Umidade'): (G_PFF, 'H2O - Saída RP')}   # margem: limCruaDif (aba Limites)
+# Maximo que vale para todos os produtos (nome definido na aba Limites)
+LIMITE_MAX_GERAL = {(G_FP, 'Umidade'): 'limPatioMax'}
 
 
 def lim_col(chave, qual):
@@ -553,11 +555,31 @@ class Construtor:
                        'Incorporações de terceiros/internas: reduzir alvos e limites de SiO2 do concentrado em 0,10 p.p. '
                        '(item 10.2). Pellet Feed: SiO2 bi-horário; PPC máximo diário do batch. Relação granulométrica: referência.',
                        self.f(font_size=8, italic=True, font_color=TEXTO_SEC, text_wrap=True, valign='top', indent=1))
+        # limites que valem para todos os produtos (editaveis)
+        r += 4
+        ws.set_row(r, 22)
+        ws.merge_range(r, 1, r, UC, 'LIMITES GERAIS (VALEM PARA TODOS OS PRODUTOS)', hdr)
+        gerais = [('limCruaDif', 'Pelota Crua · Umidade',
+                   'Fica vermelha quando for maior ou igual à H2O - Saída RP (mesma usina e mesmo horário) + o valor ao '
+                   'lado (p.p.). 0 = tem que ser menor que a H2O de saída da prensa de rolos.', 0, 2),
+                  ('limPatioMax', 'Filtrado para o pátio · Umidade',
+                   'Máximo (%). Acima deste valor fica vermelha.', 11.30, 2)]
+        for i, (nm, rot, desc, val, dec) in enumerate(gerais):
+            rr = r + 1 + i
+            ws.set_row(rr, 30)
+            ws.merge_range(rr, 1, rr, 2, rot, self.f(bold=True, font_size=9, indent=1, bg_color=FUNDO_CLARO,
+                                                    border=1, border_color=BORDA))
+            ws.merge_range(rr, LIM_COL1, rr, LIM_COL1 + 1, '', self.f(num_format=fmt_dec(dec), **inp))
+            ws.write_number(rr, LIM_COL1, val, self.f(num_format=fmt_dec(dec), **inp))
+            self.wb.define_name(nm, "='Limites'!%s" % rc(rr, LIM_COL1, True, True))
+            ws.merge_range(rr, LIM_COL1 + 2, rr, UC, desc, self.f(font_size=8.5, font_color=TEXTO_SEC, text_wrap=True,
+                                                                  indent=1, border=1, border_color=BORDA))
+        self.lim_fim = r + len(gerais)
         # lista de produtos para a selecao (cresce sozinha com linhas novas)
         self.wb.define_name('lstProdutos', "=OFFSET('Limites'!$B$%d,0,0,MAX(1,COUNTA('Limites'!$B$%d:$B$%d)),1)"
                             % (LIM_ROW1 + 1, LIM_ROW1 + 1, LIM_ROW1 + LIM_NLIN))
         ws.freeze_panes(8, 3)
-        ws.print_area(1, 1, LIM_ROW1 + LIM_NLIN + 3, UC)
+        ws.print_area(1, 1, self.lim_fim, UC)
         ws.set_landscape()
         ws.set_paper(9)
         ws.fit_to_pages(1, 0)
@@ -842,12 +864,23 @@ class Construtor:
                     c1 = rc(linhas[(ref[0], ref[1], k)], CS, False, False)
                     dr = PARAMS[[x[:2] for x in PARAMS].index(ref)][3]
                     a, b_ = 'ROUND(%s,%d)' % (c0, dec), 'ROUND(%s,%d)' % (c1, dr)
+                    b_ = '%s+N(limCruaDif)' % b_
                     ws.conditional_format(rr, CS, rr, CM, {
                         'type': 'formula', 'format': vermelho,
                         'criteria': '=AND(ISNUMBER(%s),ISNUMBER(%s),%s>=%s)' % (c0, c1, a, b_)})
                     ws.conditional_format(rr, CS, rr, CM, {
                         'type': 'formula', 'format': verde,
                         'criteria': '=AND(ISNUMBER(%s),ISNUMBER(%s),%s<%s)' % (c0, c1, a, b_)})
+                lmax = LIMITE_MAX_GERAL.get((g, nome))
+                if lmax:
+                    c0 = rc(rr, CS, False, False)
+                    a = 'ROUND(%s,%d)' % (c0, dec)
+                    ws.conditional_format(rr, CS, rr, CM, {
+                        'type': 'formula', 'format': vermelho,
+                        'criteria': '=AND(ISNUMBER(%s),ISNUMBER(%s),%s>%s)' % (c0, lmax, a, lmax)})
+                    ws.conditional_format(rr, CS, rr, CM, {
+                        'type': 'formula', 'format': verde,
+                        'criteria': '=AND(ISNUMBER(%s),ISNUMBER(%s),%s<=%s)' % (c0, lmax, a, lmax)})
             r += nlin
         return r, UC
 
@@ -1009,7 +1042,7 @@ class Construtor:
                            UC + 4)
         ws.set_row(r, 17)
         ws.merge_range(r, 1, r, UC, 'Verde: dentro do limite   |   Vermelho: fora do limite   |   Limites: SMIN-POP-GEA-001 rev. 12   |   '
-                       'Resultado: média (Produção = soma; Ritmo = último valor)   |   Umidade pelota crua: vermelho se >= H2O saída RP',
+                       'Resultado: média (Produção = soma; Ritmo = último valor)   |   Umidade: pelota crua < H2O saída RP; pátio <= máx. (aba Limites)',
                        self.f(font_size=8.5, font_color=TEXTO_SEC, italic=True, indent=1))
         fim = r
         self.nome(t + 'Area', ws, 1, 1, fim, UC)
@@ -1074,7 +1107,7 @@ class Construtor:
             ws.data_validation(rr, 2, rr, 2, {'validate': 'list', 'source': '=lstProdutos'})
             self.nome('gProd' + us, ws, rr, 2)
         rodape = ('Verde: dentro do limite   |   Vermelho: fora do limite   |   Limites: SMIN-POP-GEA-001 rev. 12   |   '
-                  'Resultado: média (Produção = soma; Ritmo = último valor)   |   Umidade pelota crua: vermelho se >= H2O saída RP')
+                  'Resultado: média (Produção = soma; Ritmo = último valor)   |   Umidade: pelota crua < H2O saída RP; pátio <= máx. (aba Limites)')
         ws.set_row(9, 15)
         ws.merge_range(9, 1, 9, UC, 'Resultados não atualizados', self.f(font_size=8, italic=True,
                                                                               font_color=TEXTO_SEC, indent=1))

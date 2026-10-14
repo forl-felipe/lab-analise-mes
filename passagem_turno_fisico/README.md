@@ -27,8 +27,8 @@ Análises e tags:
 - Alimentação da grelha;
 - Prensa de rolos (SE, #325, H2O);
 - Pellet Feed (PPC, SiO2, CaO), em **uma linha US3/4**;
-- **Filtrado para o pátio**: umidade (`M0650030020-0001-HHLFU`), em uma linha US3/4;
-- **Pelota Crua** (US3 `M690025000`, US4 `M4690025000`): umidade (0001), resiliência (0120), compressão seca (0095) e compressão úmida (0094). **Regra:** a umidade da pelota crua fica vermelha quando é maior ou igual à H2O de saída da prensa de rolos (mesma usina e mesmo horário) e verde quando é menor;
+- **Filtrado para o pátio**: umidade (`M0650030020-0001-HHLFU`), em uma linha US3/4; vermelha acima de 11,30 % (máximo editável na aba Limites, Limites gerais);
+- **Pelota Crua** (US3 `M690025000`, US4 `M4690025000`): umidade (0001), resiliência (0120), compressão seca (0095) e compressão úmida (0094). **Regra:** a umidade da pelota crua fica vermelha quando é maior ou igual à H2O de saída da prensa de rolos (mesma usina e mesmo horário) e verde quando é menor. A margem fica na aba Limites (Limites gerais, padrão 0);
 - Mistura (SiO2, CaO, B2, carvão, carbono fixo);
 - Pelota queimada (+16 −8 mm, relação granulométrica, tamboramento, compressão, < 200 kgf, finos −6,3 mm);
 - Produção e ritmo.
