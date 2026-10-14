@@ -29,7 +29,6 @@ Public Sub Inicializar()
     On Error Resume Next
     shDadosMES.Visible = XL_HIDDEN
     shGraf.Visible = XL_HIDDEN
-    shImportar.Visible = XL_HIDDEN
     gAlterado = False
     AjustarGraficos
     shPainel.Activate
@@ -205,7 +204,6 @@ End Sub
 Public Sub IrBatch()
     On Error Resume Next
     shBatch.Activate
-    shImportar.Visible = XL_HIDDEN
     shDadosMES.Visible = XL_HIDDEN
 End Sub
 
@@ -214,12 +212,6 @@ Public Sub IrEnviar()
     shEnviar.Activate
 End Sub
 
-Public Sub IrImportar()
-    On Error Resume Next
-    shImportar.Visible = XL_VISIBLE
-    shImportar.Activate
-    shImportar.Range("B7").Select
-End Sub
 
 Public Sub MostrarDadosMES()
     On Error Resume Next

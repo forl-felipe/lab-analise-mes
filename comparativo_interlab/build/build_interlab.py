@@ -32,7 +32,7 @@ VBA_DIR = os.path.join(RAIZ, 'vba')
 TESTE = '--teste' in sys.argv
 SAIDA = os.path.join(RAIZ, 'Comparativo_Interlab_Germano_Ubu%s.xlsm' % ('_TESTE' if TESTE else ''))
 LOGO = os.path.join(AQUI, 'assets', 'logo_branco.png')
-HIST_INICIAL = os.path.join(AQUI, 'historico_inicial.json')
+HIST_USUARIO = os.path.join(AQUI, 'historico.json')
 
 # ---------------------------------------------------------------- paleta do painel HTML
 NAVY = '#14253D'
@@ -83,12 +83,13 @@ SERVIDOR_PADRAO = 'UBU'
 # Correcoes (revisao de 14/10/2026):
 #   S.E. Germano: M250010000-17-ABLQ (informada pelo laboratorio; as tags de Germano nao tem zeros a esquerda)
 #   S.E. Ubu estava na US3 (M650060010); as demais da Alimentacao 04 estao na US4 (M4650060010)
+#   P e PPC de Ubu: M650030010-0008/-0013-HHLQU (corrigidas pelo laboratorio na planilha de 14/10/2026)
 #   Tags de Ubu (HHL...) usam o codigo com 4 digitos, como todas as tags ja validadas no MES (-0016-, -0008-, -0013-)
 TAGS = {('SE', 0): 'M250010000-17-ABLQ', ('SE', 1): 'M4650060010-0017-HHLFU',
         ('325', 0): 'M250010000-16-ABLF', ('325', 1): 'M4650060010-0016-HHLFU',
         ('SiO2', 0): 'M250010000-4-ABLQ', ('SiO2', 1): 'M650030010-0004-HHLQU',
-        ('P', 0): 'M250010000-8-ABLQ', ('P', 1): 'M4650060010-0008-HHLQU',
-        ('PPC', 0): 'M250010000-13-ABLQ', ('PPC', 1): 'M4650060010-0013-HHLQU'}
+        ('P', 0): 'M250010000-8-ABLQ', ('P', 1): 'M650030010-0008-HHLQU',
+        ('PPC', 0): 'M250010000-13-ABLQ', ('PPC', 1): 'M650030010-0013-HHLQU'}
 MAPA_PADRAO = 'IP_MESVALOR'
 
 
@@ -114,7 +115,7 @@ B_COL_TG = 3              # D  data/hora Germano
 B_COL_V1 = 4              # E  1o valor (SE A); valor (p, lab) em B_COL_V1 + 2p + lab
 B_COL_D1 = 15             # P  1a diferenca
 B_COL_R1 = 20             # U  1o "rank" (par A/B para os graficos)
-B_ROW_G0 = 44             # 1a linha de leituras
+B_ROW_G0 = 16             # 1a linha de leituras
 B_ROW_MED = B_ROW_G0 + NMAX
 B_ROW_CNT = B_ROW_MED + 1
 
@@ -162,8 +163,6 @@ class Construtor:
                                 'company': 'Samarco - Laboratório'})
         self.wb.set_calc_mode('auto')
         self._fmts = {}
-        with open(HIST_INICIAL, encoding='utf-8') as fh:
-            self.hist = json.load(fh)
         # batch aberto ao gerar: o mais completo do historico importado
         # a planilha abre com um batch em branco (o historico importado fica na aba Historico)
         self.atual = None
@@ -251,12 +250,11 @@ class Construtor:
         self.ws_env = wb.add_worksheet('Enviar')
         self.ws_his = wb.add_worksheet('Histórico')
         self.ws_bdl = wb.add_worksheet('BD_Leituras')
-        self.ws_imp = wb.add_worksheet('Importar')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
         self.ws_gra = wb.add_worksheet('_Graf')
         for ws, cn in [(self.ws_pai, 'shPainel'), (self.ws_bat, 'shBatch'), (self.ws_env, 'shEnviar'),
-                       (self.ws_his, 'shHist'), (self.ws_bdl, 'shLeituras'), (self.ws_imp, 'shImportar'),
+                       (self.ws_his, 'shHist'), (self.ws_bdl, 'shLeituras'),
                        (self.ws_cfg, 'shConfig'),
                        (self.ws_mes, 'shDadosMES'), (self.ws_gra, 'shGraf')]:
             ws.set_vba_name(cn)
@@ -276,9 +274,7 @@ class Construtor:
         self.aba_enviar()
         self.aba_historico()
         self.aba_dados_mes()
-        self.aba_importar()
         self.ws_mes.hide()
-        self.ws_imp.hide()
         self.ws_gra.hide()
         self.ws_pai.activate()
 
@@ -341,8 +337,10 @@ class Construtor:
              'Janela de 2 h que começa às 11:00 aparece como 11:30 (início + 30 min)'),
             ('cfgGradeU', 'Grade das janelas de Ubu (hora)', dtm.time(7, 0),
              'Janelas de 2 h a partir desta hora (07:00, 09:00, 11:00...). 1ª janela = 1ª completa após o início'),
-            ('cfgGradeG', 'Grade das janelas de Germano (hora)', dtm.time(7, 0),
-             'Idem para Germano (a partir do início do bombeamento)'),
+            ('cfgGradeG', 'Grade das janelas de Germano (hora)', dtm.time(0, 0),
+             'Horas pares (00:00, 02:00...): os resultados de Germano (01:00, 03:00...) caem no meio da janela'),
+            ('cfgMinG', 'Horário de Germano após o início da janela (min)', 60,
+             'Janela 00:00-02:00 aparece como 01:00 (horário do resultado em Germano; só referência)'),
             ('cfgCalc', 'Tipo de cálculo do Aspen', '1', '1 = média da janela (como nos relatórios do físico)'),
             ('cfgFaseG', 'Fase de Germano no evento do MES', 'EB06', 'Linha usada ao colar as Fases do Evento'),
             ('cfgFaseU', 'Fase de Ubu no evento do MES', 'UBU', 'Começo do código (UBU3, UBU1...)'),
@@ -441,132 +439,87 @@ class Construtor:
         ws.set_column(20, 24, 6, None, {'hidden': True})
         ws.set_column(25, 25, 2)
         ws.set_default_row(18)
-        self.faixa(ws, 1, 1, 19, 'DADOS DO BATCH',
-                   'Só 3 passos: ① número do batch  ② colar as fases do evento do MES  ③ nível dos tanques  '
-                   '→  Buscar no MES  →  Salvar no histórico')
-        fv = self.fi(align='center')
+        ws.set_row(1, 34)
+        ws.merge_range(1, 1, 1, 19, 'DADOS DO BATCH', self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY,
+                                                           indent=1))
         fdt = self.fi(align='center', num_format='dd/mm/yyyy hh:mm')
-        frot = self.f(font_size=9.5, font_color=INK2, indent=1, bottom=1, bottom_color=LINE2)
-        # campos que a planilha preenche sozinha (dá para corrigir): fundo claro
-        fauto_dt = self.f(align='center', num_format='dd/mm/yyyy hh:mm', bg_color='#F3F7FC', border=1,
-                          border_color=LINE2, locked=False)
-        fauto_v = self.f(align='center', bg_color='#F3F7FC', border=1, border_color=LINE2, locked=False)
+        fauto_dt = self.f(align='center', num_format='dd/mm/yy hh:mm', bg_color='#F3F7FC', border=1,
+                          border_color=LINE2, locked=False, font_size=9.5)
+        fauto_v = self.f(align='center', bg_color='#F3F7FC', border=1, border_color=LINE2, locked=False,
+                         font_size=9.5)
         fcalc_h = self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, num_format='0.0" h"',
-                         font_color=INK2)
-
-        def linha(r, rot, nome, valor, fmt, altura=21):
-            ws.merge_range(r, 1, r, 2, rot, frot)
-            self.entrada(ws, r, 3, 5, valor, fmt, nome)
-            ws.set_row(r, altura)
-
-        def calc(r, rot, nome, formula, fmt):
-            ws.merge_range(r, 1, r, 2, rot, frot)
-            ws.merge_range(r, 3, r, 5, '', fmt)
-            ws.write_formula(r, 3, formula, fmt)
-            self.nome(nome, ws, r, 3)
-            ws.set_row(r, 21)
-
-        # ① numero do batch
-        self.secao(ws, 4, 1, 5, '①  NÚMERO DO BATCH (ID DO EVENTO NO MES)')
-        linha(5, 'Batch Nº', 'bId', b['id'] if b else None, self.fi(align='center', bold=True, font_size=13), 24)
-        ws.set_row(6, 8)
-        # ② colar as fases
-        self.secao(ws, 7, 1, 5, '②  COLE AQUI AS FASES DO EVENTO (TELA DO MES)')
-        ws.merge_range(8, 1, 8, 5, 'No MES, selecione as linhas da grade Fases do Evento (EB06 … UBU3), Ctrl+C; clique '
-                       'na 1ª célula amarela e Ctrl+V.', self.f(font_size=8.5, font_color=INK2, text_wrap=True,
-                                                               valign='top'))
-        ws.set_row(8, 26)
-        fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4, border_color='#C9A227')
-        for r in range(9, 14):
-            for c in range(1, 6):
-                ws.write_blank(r, c, None, fpaste)
-        self.nome('bFases', ws, 9, 1, 13, 5)
-        ws.merge_range(14, 1, 14, 5, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True,
-                                               valign='top'))
-        self.nome('bFasesMsg', ws, 14, 1)
-        ws.set_row(14, 30)
-        # ③ nivel dos tanques
-        self.secao(ws, 15, 1, 5, '③  NÍVEL DOS TANQUES EM UBU')
-        linha(16, 'Nível dos tanques', 'bNivel', (b.get('nivel') or '').capitalize() or None if b else None,
-              self.fi(align='center', bold=True), 22)
-        ws.data_validation(16, 3, 16, 3, {'validate': 'list', 'source': '=lstNivel'})
-        calc(17, 'Atraso até prevalecer no processo', 'bAtraso',
-             '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),IF(bNivel<>"",gAtrasoNivel,""))',
-             fcalc_h)
-        ws.set_row(18, 8)
-        # conferencia
-        self.secao(ws, 19, 1, 5, 'CONFERÊNCIA  (PREENCHIDO SOZINHO — DÁ PARA CORRIGIR)')
-        linha(20, 'Germano · início do bombeamento', 'bIniG', None, fauto_dt)
-        linha(21, 'Germano · término do bombeamento', 'bFimG', None, fauto_dt)
-        linha(22, 'Ubu · chegada (UBU3)', 'bIniU', None, fauto_dt)
-        linha(23, 'Ubu · término (UBU3)', 'bFimU', None, fauto_dt)
-        ws.merge_range(24, 1, 24, 2, '►  Início considerado no processo',
-                       self.f(font_size=9.5, bold=True, font_color=OK, indent=1))
-        fip = self.f(align='center', bold=True, font_color=OK, bg_color=OK_BG, border=1, border_color='#B9DEC9',
-                     num_format='dd/mm/yyyy hh:mm')
-        ws.merge_range(24, 3, 24, 5, '', fip)
-        ws.write_formula(24, 3, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
-        self.nome('bIniP', ws, 24, 3)
-        ws.set_row(24, 22)
-        linha(25, 'Nº de bi-horários (os de Germano)', 'bNHor',
-              len(b['rows']) if b else '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))', fauto_v)
-        ws.data_validation(25, 3, 25, 3, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
-                                          'maximum': NMAX, 'error_message': 'Entre 1 e %d horários.' % NMAX})
-        calc(26, 'Defasagem Ubu − Germano', 'bDef',
-             '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fcalc_h)
-        linha(27, 'Data do report', 'bData', None, self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC',
-                                                          border=1, border_color=LINE2, locked=False))
+                         font_color=INK2, font_size=9.5)
+        # ① ② ③ lado a lado
+        ws.set_row(2, 8)
+        self.secao(ws, 3, 1, 2, '①  BATCH Nº')
+        self.secao(ws, 3, 3, 7, '②  COLE AS FASES DO EVENTO (MES)')
+        self.secao(ws, 3, 8, 11, '③  NÍVEL DOS TANQUES')
+        ws.merge_range(4, 1, 5, 2, '', self.fi(align='center', bold=True, font_size=16))
         if b:
-            dchg = b.get('chegada') or b['rows'][0]['data']
-            ws.write_datetime(27, 3, dtm.datetime.strptime(dchg, '%Y-%m-%d'),
-                              self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC', border=1,
-                                     border_color=LINE2, locked=False))
+            ws.write_number(4, 1, b['id'], self.fi(align='center', bold=True, font_size=16))
+        self.nome('bId', ws, 4, 1)
+        fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4, border_color='#C9A227')
+        for r in range(4, 9):
+            for c in range(3, 8):
+                ws.write_blank(r, c, None, fpaste)
+        self.nome('bFases', ws, 4, 3, 8, 7)
+        ws.merge_range(9, 3, 9, 7, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True))
+        self.nome('bFasesMsg', ws, 9, 3)
+        ws.merge_range(4, 8, 5, 11, '', self.fi(align='center', bold=True, font_size=13))
+        if b and b.get('nivel'):
+            ws.write_string(4, 8, b['nivel'].capitalize(), self.fi(align='center', bold=True, font_size=13))
+        self.nome('bNivel', ws, 4, 8)
+        ws.data_validation(4, 8, 4, 8, {'validate': 'list', 'source': '=lstNivel'})
+        ws.merge_range(6, 8, 6, 9, 'Atraso no processo', self.f(font_size=8.5, font_color=MUTED, indent=1))
+        ws.merge_range(6, 10, 6, 11, '', fcalc_h)
+        ws.write_formula(6, 10, '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),'
+                                'IF(bNivel<>"",gAtrasoNivel,""))', fcalc_h)
+        self.nome('bAtraso', ws, 6, 10)
+        for r in range(4, 9):
+            ws.set_row(r, 17)
+        ws.set_row(9, 16)
+        # conferencia (preenchida sozinha; da para corrigir)
+        ws.set_row(10, 6)
+        fl = self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom')
+        conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
+                (4, 5, 'Ubu · chegada (UBU3)', 'bIniU', fauto_dt), (6, 7, 'Ubu · término', 'bFimU', fauto_dt)]
+        for c1, c2, rot, nm, fmt in conf:
+            if c2 > c1:
+                ws.merge_range(11, c1, 11, c2, rot.upper(), fl)
+            else:
+                ws.write(11, c1, rot.upper(), fl)
+            self.entrada(ws, 12, c1, c2, None, fmt, nm)
+        ws.merge_range(11, 8, 11, 9, '► INÍCIO NO PROCESSO', self.f(bold=True, font_size=7.5, font_color=OK,
+                                                                   valign='bottom'))
+        fip = self.f(align='center', bold=True, font_color=OK, bg_color=OK_BG, border=1, border_color='#B9DEC9',
+                     num_format='dd/mm/yy hh:mm', font_size=9.5)
+        ws.merge_range(12, 8, 12, 9, '', fip)
+        ws.write_formula(12, 8, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
+        self.nome('bIniP', ws, 12, 8)
+        ws.merge_range(11, 10, 11, 11, 'BI-HORÁRIOS', fl)
+        self.entrada(ws, 12, 10, 11, len(b['rows']) if b else
+                     '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))', fauto_v, 'bNHor')
+        ws.data_validation(12, 10, 12, 10, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
+                                            'maximum': NMAX, 'error_message': 'Entre 1 e %d horários.' % NMAX})
+        ws.merge_range(11, 12, 11, 13, 'DEFASAGEM', fl)
+        ws.merge_range(12, 12, 12, 13, '', fcalc_h)
+        ws.write_formula(12, 12, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fcalc_h)
+        self.nome('bDef', ws, 12, 12)
+        fdata = self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC', border=1, border_color=LINE2,
+                       locked=False, font_size=9.5)
+        ws.merge_range(11, 15, 11, 16, 'DATA DO REPORT', fl)
+        ws.merge_range(12, 15, 12, 16, '', fdata)
+        if b:
+            ws.write_datetime(12, 15, dtm.datetime.strptime(b.get('chegada') or b['rows'][0]['data'], '%Y-%m-%d'), fdata)
         else:
-            ws.write_formula(27, 3, '=TODAY()', self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC',
-                                                      border=1, border_color=LINE2, locked=False))
-        linha(28, 'Mineroduto', 'bMin', '03', fauto_v)
-        ws.data_validation(28, 3, 28, 3, {'validate': 'list', 'source': '=lstMin'})
-        ws.merge_range(29, 1, 29, 5, '', self.f(font_size=8.5, font_color=NAVY2, bold=True, text_wrap=True,
-                                               valign='top'))
-        ws.write_formula(29, 1, '=gResumoHor', self.f(font_size=8.5, font_color=NAVY2, bold=True, text_wrap=True,
-                                                    valign='top'))
-        ws.set_row(29, 30)
-
-        ws.merge_range(4, 7, 14, 13, 'Como usar\n\n'
-                       '①  Digite o número do batch.\n\n'
-                       '②  No MES, tela de eventos do batch: selecione as linhas das Fases do Evento '
-                       '(EB06, EB07, UBU3), Ctrl+C, e cole na caixa amarela. Germano (EB06) e Ubu (UBU3) são '
-                       'preenchidos sozinhos.\n\n'
-                       '③  Escolha o nível dos tanques: Alto = 8 h, Médio = 6 h, Baixo = 4 h até o batch prevalecer '
-                       'no processo (tabela em Configurações).\n\n'
-                       'Depois: Buscar no MES → conferir as leituras → Salvar no histórico.\n'
-                       'O nº de bi-horários é o de Germano; em Ubu entram os mesmos.',
-                       self.f(font_size=9, font_color=INK2, text_wrap=True, valign='top', bg_color='#F5F8FD',
-                              left=5, left_color=NAVY2))
-
-        # --- comentarios
-        self.secao(ws, 31, 1, 13, 'COMENTÁRIOS (CADA LINHA VIRA UM TÓPICO NO REPORT)')
-        fauto = self.f(italic=True, font_size=9.5, font_color=INK2, bg_color=SEC, border=1, border_color=LINE2,
-                       text_wrap=True)
-        for r, rot, ref, nm, nm_inc in [(32, 'Frase automática', rc(G_ROW_X, 6, True, True), 'bFrase', 'bIncFrase'),
-                                        (33, 'Acompanhamento', None, 'bAcomp', 'bIncAcomp')]:
-            ws.merge_range(r, 1, r, 2, rot, self.f(bold=True, font_size=9, font_color=MUTED))
-            ws.merge_range(r, 3, r, 11, '', fauto)
-            ws.write_formula(r, 3, ("=_Graf!%s" % ref) if ref else '=gAcomp', fauto)
-            self.nome(nm, ws, r, 3)
-            ws.write(r, 12, 'No report?', self.f(bold=True, font_size=8, font_color=MUTED, align='right'))
-            ws.write_string(r, 13, 'Sim', self.fi(align='center'))
-            self.nome(nm_inc, ws, r, 13)
-            ws.data_validation(r, 13, r, 13, {'validate': 'list', 'source': '=lstSimNao'})
-            ws.set_row(r, 30)
-        com = self.comentarios(b)
-        for i in range(6):
-            r = 34 + i
-            ws.merge_range(r, 1, r, 2, 'Tópico %d' % (i + 1), self.f(bold=True, font_size=9, font_color=MUTED))
-            ws.merge_range(r, 3, r, 13, '', self.fi(text_wrap=True))
-            if i < len(com):
-                ws.write_string(r, 3, com[i], self.fi(text_wrap=True))
-            self.nome('bCom%d' % (i + 1), ws, r, 3)
+            ws.write_formula(12, 15, '=TODAY()', fdata)
+        self.nome('bData', ws, 12, 15)
+        ws.merge_range(11, 17, 11, 18, 'MINERODUTO', fl)
+        self.entrada(ws, 12, 17, 18, '03', fauto_v, 'bMin')
+        ws.data_validation(12, 17, 12, 17, {'validate': 'list', 'source': '=lstMin'})
+        ws.set_row(11, 14)
+        ws.set_row(12, 22)
+        ws.set_row(13, 8)
 
         # --- leituras
         self.secao(ws, B_ROW_G0 - 2, 1, 19, 'LEITURAS POR HORÁRIO  (em branco = sem análise no laboratório)')
@@ -660,9 +613,34 @@ class Construtor:
         self.nome('bValores', ws, g1, B_COL_V1, g2, B_COL_V1 + 2 * NP - 1)
         self.nome('bHorasU', ws, g1, B_COL_TU, g2, B_COL_TU)
 
-        # --- ajustes do report (opcional)
+        # --- comentarios
         r = B_ROW_CNT + 2
-        self.secao(ws, r, 1, 13, '⑥  AJUSTES DO REPORT (OPCIONAL — JÁ VÊM DOS PADRÕES DA ABA CONFIGURAÇÕES)')
+        self.secao(ws, r, 1, 13, 'COMENTÁRIOS (CADA LINHA VIRA UM TÓPICO NO REPORT)')
+        fauto = self.f(italic=True, font_size=9.5, font_color=INK2, bg_color=SEC, border=1, border_color=LINE2,
+                       text_wrap=True)
+        for rr, rot, ref, nm, nm_inc in [(r + 1, 'Frase automática', rc(G_ROW_X, 6, True, True), 'bFrase', 'bIncFrase'),
+                                         (r + 2, 'Acompanhamento', None, 'bAcomp', 'bIncAcomp')]:
+            ws.merge_range(rr, 1, rr, 2, rot, self.f(bold=True, font_size=9, font_color=MUTED))
+            ws.merge_range(rr, 3, rr, 11, '', fauto)
+            ws.write_formula(rr, 3, ("=_Graf!%s" % ref) if ref else '=gAcomp', fauto)
+            self.nome(nm, ws, rr, 3)
+            ws.write(rr, 12, 'No report?', self.f(bold=True, font_size=8, font_color=MUTED, align='right'))
+            ws.write_string(rr, 13, 'Sim', self.fi(align='center'))
+            self.nome(nm_inc, ws, rr, 13)
+            ws.data_validation(rr, 13, rr, 13, {'validate': 'list', 'source': '=lstSimNao'})
+            ws.set_row(rr, 28)
+        com = self.comentarios(b)
+        for i in range(6):
+            rr = r + 3 + i
+            ws.merge_range(rr, 1, rr, 2, 'Tópico %d' % (i + 1), self.f(bold=True, font_size=9, font_color=MUTED))
+            ws.merge_range(rr, 3, rr, 13, '', self.fi(text_wrap=True))
+            if i < len(com):
+                ws.write_string(rr, 3, com[i], self.fi(text_wrap=True))
+            self.nome('bCom%d' % (i + 1), ws, rr, 3)
+
+        # --- ajustes do report (opcional)
+        r = r + 10
+        self.secao(ws, r, 1, 13, 'AJUSTES DO REPORT (OPCIONAL — JÁ VÊM DOS PADRÕES DA ABA CONFIGURAÇÕES)')
         fv = self.fi(align='center')
         campos = [
             (r + 1, 1, 2, 'Laboratório A (azul)', '=padLabA', fv, 'bLabA'),
@@ -681,8 +659,6 @@ class Construtor:
                          self.f(align='center', font_color=INK2, font_size=9, bold=True))
         self.rotulo(ws, r + 1, 8, 10, 'Início no processo (ajuste manual)')
         self.entrada(ws, r + 2, 8, 10, None, self.fi(align='center', num_format='dd/mm/yyyy hh:mm'), 'bIniPMan')
-        ws.merge_range(r + 1, 11, r + 2, 13, 'Vale no lugar de chegada + atraso do nível (deixe em branco no dia a dia).',
-                       self.f(font_size=8, font_color=MUTED, text_wrap=True, valign='top'))
         self.rotulo(ws, r + 5, 1, 13, 'Tolerâncias deste batch (|diferença| máxima aceita) — critério OK/NOK do farol')
         pos_tol = [(1, 2), (3, 3), (4, 5), (6, 7), (8, 9)]
         for p, pr in enumerate(PARAMS):
@@ -692,13 +668,12 @@ class Construtor:
                          'bTol_%s' % pr[0])
         self.b_fim = r + 7
 
-        # botoes
-        self.botao(ws, 4, 15, 'Buscar no MES', 'BuscarMES', 186, 38, 'p', x=4, y=6)
-        self.botao(ws, 7, 15, 'Salvar no histórico', 'SalvarHistorico', 186, 38, 'g', x=4, y=4)
-        self.botao(ws, 10, 15, 'Ver painel →', 'IrPainel', 186, 32, 'n', x=4, y=4)
-        self.botao(ws, 13, 15, '＋ Novo batch em branco', 'NovoBatch', 186, 30, 's', x=4, y=4)
-        self.botao(ws, 15, 15, 'Limpar leituras', 'LimparLeituras', 186, 28, 'd', x=4, y=8)
-        self.botao(ws, 17, 15, 'Importar da planilha antiga', 'IrImportar', 186, 28, 's', x=4, y=12)
+        # botoes (na faixa do topo e ao lado dos passos)
+        self.botao(ws, 3, 13, 'Buscar no MES', 'BuscarMES', 165, 40, 'p', x=6, y=4)
+        self.botao(ws, 3, 17, 'Salvar no histórico', 'SalvarHistorico', 170, 40, 'g', x=4, y=4)
+        self.botao(ws, 6, 13, '＋ Novo batch', 'NovoBatch', 104, 26, 's', x=6, y=4)
+        self.botao(ws, 6, 15, 'Limpar leituras', 'LimparLeituras', 118, 26, 'd', x=26, y=4)
+        self.botao(ws, 6, 17, 'Ver painel →', 'IrPainel', 106, 26, 'n', x=68, y=4)
         ws.print_area(0, 0, self.b_fim, 19)
         ws.fit_to_pages(1, 0)
         ws.set_paper(9)
@@ -715,7 +690,7 @@ class Construtor:
     @staticmethod
     def f_hora_g(i, cel_u):
         """Horario da linha i em Germano: 1a janela de Germano + i x 2 h (ate o termino); sem inicio = Ubu."""
-        return ('=IF(ISNUMBER(%s),IF(ISNUMBER(gJanG),IF(%d<=gNG,gJanG+%d/12+cfgMinAntes/1440,""),%s),"")'
+        return ('=IF(ISNUMBER(%s),IF(ISNUMBER(gJanG),IF(%d<=gNG,gJanG+%d/12+cfgMinG/1440,""),%s),"")'
                 % (cel_u, i + 1, i, cel_u))
 
     # ------------------------------------------------------------ _Graf (series e farol)
@@ -757,7 +732,7 @@ class Construtor:
             ws.write_formula(r, G_COL['DTXT'], '=IF(ISNUMBER(%s),IF(%s>0,"+",IF(%s<0,"−",""))&FIXED(ABS(%s),%d),"—")'
                              % (d, cell('DR'), cell('DR'), cell('DR'), dec))
             ws.write_formula(r, G_COL['TTXT'], '=FIXED(%s,%d)' % (cell('TOL'), dec))
-            ws.write_formula(r, G_COL['NOKITEM'], '="%s (dif "&%s&" | tol ±"&%s&")"' % (pr[1], cell('DTXT'), cell('TTXT')))
+            ws.write_formula(r, G_COL['NOKITEM'], '="%s (dif "&%s&", tol ±"&%s&")"' % (pr[1], cell('DTXT'), cell('TTXT')))
             ws.write_formula(r, G_COL['OKITEM'], '="%s"' % pr[1])
             ws.write(r, G_COL['NOME'], pr[2])
             self.st[k] = {key: self.ref(ws, r, G_COL[key]) for key in G_COL}
@@ -854,7 +829,7 @@ class Construtor:
         ws.write_formula(X + 18, 1, '=IF(ISNUMBER(gJanU),"→ Ubu: "&bNHor&" horários a partir de "&%s&IF(ISNUMBER(gJanG),'
                                     '"   ·   Germano: "&gNG&" a partir de "&%s,"   ·   Germano: mesmos horários"),'
                                     '"→ Cole as fases do evento (passo ②) para calcular os horários.")'
-                         % (dt('gJanU+cfgMinAntes/1440'), dt('gJanG+cfgMinAntes/1440')))
+                         % (dt('gJanU+cfgMinAntes/1440'), dt('gJanG+cfgMinG/1440')))
         self.nome('gResumoHor', ws, X + 18, 1)
         self.nome('gJanU', ws, X + 8, 1)
         self.nome('gJanG', ws, X + 9, 1)
@@ -923,10 +898,7 @@ class Construtor:
         self.botao(ws, 1, 4, '✎ Editar batch', 'IrBatch', 118, 30, 's', x=40, y=4)
         self.botao(ws, 1, 8, 'Atualizar painel', 'AtualizarPainel', 120, 30, 's', x=6, y=4)
         self.botao(ws, 1, 10, 'Copiar imagem', 'CopiarImagemPainel', 116, 30, 'p', x=10, y=4)
-        self.botao(ws, 1, 10, 'Salvar PNG', 'SalvarPNG', 100, 30, 'p', x=132, y=4)
-        self.botao(ws, 1, 12, 'PDF', 'SalvarPDF', 58, 30, 'p', x=4, y=4)
-        self.botao(ws, 1, 12, '✉ E-mail', 'CriarEmail', 102, 30, 'n', x=68, y=4)
-        self.botao(ws, 1, 13, 'Resumo ➜', 'IrEnviar', 76, 30, 's', x=116, y=4)
+        self.botao(ws, 1, 10, 'Copiar resumo', 'CopiarResumo', 116, 30, 'n', x=132, y=4)
 
         R = self.P_R0
         last = len(self.P_COLS) - 2     # N
@@ -1140,36 +1112,25 @@ class Construtor:
         ws.set_column(1, 1, 92)
         ws.set_column(2, 2, 2)
         ws.set_column(3, 3, 34)
-        self.faixa(ws, 1, 1, 3, 'ENVIAR REPORTE',
-                   'Material pronto para o e-mail gerencial (gerentes, encarregados, supervisores)')
-        self.secao(ws, 4, 1, 1, 'RESUMO PARA O CORPO DO E-MAIL (GERADO DO FAROL)')
-        partes = ['"Report Gerencial — Interlaboratorial "&bLabA&" × "&bLabB',
-                  '"Batch "&bId&" · "&gDataTxt&IF(bMin<>""," · Mineroduto "&bMin,"")',
-                  '"Referência: "&gRefNome&" (avalia se "&gAvalNome&" atende)."',
-                  '""',
-                  '"Farol: "&gOk&" de "&gAval&" parâmetro(s) dentro da tolerância."',
-                  'IF(gNok>0,"Fora de tolerância (NOK): "&gNokDet&"."&CHAR(10)&"Dentro (OK): "&IF(gOk>0,gOkLista,"—")&".",'
-                  'IF(gAval>0,"Todos os parâmetros dentro da tolerância.","Sem pares Germano/Ubu para avaliar."))']
-        f = '=' + '&CHAR(10)&'.join(partes) + '&IF(gTopicos<>"",CHAR(10)&CHAR(10)&"Comentários:"&CHAR(10)&LEFT(gTopicos,LEN(gTopicos)-1),"")'
-        fbox = self.f(font_name='Consolas', font_size=10, font_color=INK2, text_wrap=True, valign='top',
-                      bg_color='#F8F9FB', border=1, border_color=LINE)
-        ws.merge_range(5, 1, 24, 1, '', fbox)
+        self.faixa(ws, 1, 1, 3, 'ENVIAR REPORTE')
+        self.secao(ws, 4, 1, 1, 'RESUMO PARA O CORPO DO E-MAIL')
+        coments = ''.join('&IF(TRIM(bCom%d&"")<>"",CHAR(10)&"•  "&TRIM(bCom%d&""),"")' % (i, i) for i in range(1, 7))
+        f = ('="Comparativo "&bLabA&" × "&bLabB&" — Batch "&bId&IF(bMin<>""," (mineroduto "&bMin&")","")'
+             '&" · "&gDataTxt&CHAR(10)'
+             '&IF(gAval=0,"Sem pares "&bLabA&"/"&bLabB&" para avaliar.",'
+             'IF(gNok=0,"Todos os parâmetros dentro da tolerância.",'
+             'gNok&" de "&gAval&" fora da tolerância: "&gNokDet&"."))' + coments)
+        fbox = self.f(font_size=10.5, font_color=INK2, text_wrap=True, valign='top', bg_color='#F8F9FB', border=1,
+                      border_color=LINE)
+        ws.merge_range(5, 1, 14, 1, '', fbox)
         ws.write_formula(5, 1, f, fbox)
         self.nome('eResumo', ws, 5, 1)
-        ws.write_formula(26, 1, '="Report Gerencial — Batch "&bId&" — "&gDataTxt',
+        ws.write(16, 1, 'ASSUNTO DO E-MAIL', self.f(bold=True, font_size=8, font_color=MUTED))
+        ws.write_formula(17, 1, '="Comparativo Germano × Ubu — Batch "&bId&" — "&gDataTxt',
                          self.f(bold=True, font_color=INK2))
-        ws.write(25, 1, 'ASSUNTO DO E-MAIL', self.f(bold=True, font_size=8, font_color=MUTED))
-        self.nome('eAssunto', ws, 26, 1)
-        self.botao(ws, 5, 3, 'Copiar resumo', 'CopiarResumo', 220, 34, 's', x=6)
-        self.botao(ws, 7, 3, '✉ Criar e-mail no Outlook', 'CriarEmail', 220, 40, 'n', x=6, y=6)
-        self.botao(ws, 10, 3, 'Copiar imagem do painel', 'CopiarImagemPainel', 220, 34, 'p', x=6)
-        self.botao(ws, 12, 3, 'Salvar PNG', 'SalvarPNG', 220, 34, 'p', x=6, y=4)
-        self.botao(ws, 14, 3, 'Imprimir / Salvar PDF', 'SalvarPDF', 220, 34, 'p', x=6, y=8)
-        self.botao(ws, 17, 3, '← Painel', 'IrPainel', 220, 30, 's', x=6)
-        ws.merge_range(19, 3, 24, 3, 'Fluxo sugerido: Criar e-mail no Outlook (o painel vai no corpo do e-mail e '
-                       'como anexo PNG) → conferir destinatários → enviar. Sem Outlook: Salvar PNG, Copiar resumo '
-                       'e montar o e-mail.', self.f(font_size=8.5, font_color=INK2, text_wrap=True, valign='top',
-                                                    bg_color='#F5F8FD', left=5, left_color=NAVY2))
+        self.nome('eAssunto', ws, 17, 1)
+        self.botao(ws, 5, 3, 'Copiar resumo', 'CopiarResumo', 220, 40, 'n', x=6)
+        self.botao(ws, 8, 3, 'Copiar painel (imagem)', 'CopiarImagemPainel', 220, 40, 'p', x=6)
         ws.protect('', {'format_columns': True, 'format_rows': True})
 
     # ------------------------------------------------------------ Histórico + BD_Leituras
@@ -1207,40 +1168,17 @@ class Construtor:
                  self.f(font_size=8.5, italic=True, font_color=MUTED))
         ws.set_row(3, 22)
         ws.set_row(4, 18)
-        dados = []
-        leituras = []
-        agora = dtm.datetime(2026, 10, 14, 12, 0)
-        for b in sorted(self.hist, key=lambda x: x['id']):
-            t0 = dtm.datetime.strptime(b['rows'][0]['data'] + ' ' + b['rows'][0]['hora'], '%Y-%m-%d %H:%M')
-            drep = dtm.datetime.strptime(b.get('chegada') or b['rows'][0]['data'], '%Y-%m-%d')
-            st = self.stats_batch(b)
-            v = {'bId': b['id'], 'bData': drep, 'bMin': '03', 'bIniPMan': t0 - dtm.timedelta(minutes=30),
-                 'bNivel': (b.get('nivel') or '').capitalize() or None,
-                 'bNHor': len(b['rows']), 'bLabA': 'Germano', 'bLabB': 'Ubu', 'bRef': 'Germano',
-                 'bTit': 'COMPARATIVO DE MEDIÇÕES DE QUALIDADE', 'bSub': 'Batch bombeado e pellet feed recebido',
-                 'bIncFrase': 'Sim', 'bIncAcomp': 'Sim'}
-            for pr in PARAMS:
-                v['bTol_%s' % pr[0]] = pr[5]
-            for k, c in enumerate(self.comentarios(b), start=1):
-                v['bCom%d' % k] = c
-            linha = [v.get(nm) for nm, _ in CAMPOS]
-            nok = 0
-            for pr in PARAMS:
-                ma, mb, d, s = st[pr[0]]
-                linha += [ma, mb, d, s]
-                nok += s == 'NOK'
-            linha += [t0 - dtm.timedelta(minutes=30), None, nok, len(b['rows']), agora, 'importação']
-            dados.append(linha)
-            for i, row in enumerate(b['rows']):
-                t = dtm.datetime.strptime(row['data'] + ' ' + row['hora'], '%Y-%m-%d %H:%M')
-                for pr in PARAMS:
-                    a = row.get('%s_G' % pr[0])
-                    u = row.get('%s_U' % pr[0])
-                    if a is None and u is None:
-                        continue
-                    d = (u - a) if (a is not None and u is not None) else None
-                    s = '' if d is None else ('OK' if abs(round(d, pr[4])) <= pr[5] + 1e-9 else 'NOK')
-                    leituras.append([b['id'], i + 1, t, None, pr[1], a, u, d, pr[5], s])
+        # historico salvo pelo laboratorio (planilha de 14/10/2026), mapeado pelo nome das colunas
+        with open(HIST_USUARIO, encoding='utf-8') as fh:
+            hu = json.load(fh)
+
+        def val(v):
+            if isinstance(v, dict) and 'dt' in v:
+                return dtm.datetime.fromisoformat(v['dt'])
+            return v
+        dados = [[val(b.get(h)) for h in H_COLS] for b in hu['batches']]
+        lmap = [hu['colunas_leituras'].index(h) if h in hu['colunas_leituras'] else None for h in L_COLS]
+        leituras = [[val(r[k]) if k is not None else None for k in lmap] for r in hu['leituras']]
         self.hist_dados = dados
         n = len(dados)
         fdate = self.wb.add_format({'num_format': 'dd/mm/yyyy', 'font_name': FONTE, 'font_size': 9.5,
@@ -1295,25 +1233,6 @@ class Construtor:
         wl.add_table(0, 0, max(len(leituras), 1), len(L_COLS) - 1,
                      {'name': 'tbl_Leituras', 'columns': lcols, 'data': leituras, 'style': 'Table Style Light 1'})
         wl.freeze_panes(1, 0)
-
-    # ------------------------------------------------------------ Importar (oculta; aberta pelo botao)
-    def aba_importar(self):
-        ws = self.ws_imp
-        ws.set_column(0, 0, 2)
-        ws.set_column(1, 1, 30)
-        ws.set_column(2, 40, 9)
-        self.faixa(ws, 1, 1, 18, 'IMPORTAR DA PLANILHA ANTIGA',
-                   'Cole a partir da célula B7 os blocos "S.E e 325" e/ou "SiO2 e P" de um batch '
-                   '(linhas Batch, Data, Inicio aproximado no processo, <Análise> Germano, <Análise> Alimentação 04)')
-        self.botao(ws, 3, 1, 'Importar para o Batch', 'ImportarColado', 200, 32, 'g', y=4)
-        self.botao(ws, 3, 2, 'Limpar a área', 'LimparImportacao', 130, 32, 's', x=40, y=4)
-        self.botao(ws, 3, 6, '← Batch', 'IrBatch', 100, 32, 's', x=20, y=4)
-        ws.set_row(3, 26)
-        ws.set_row(4, 14)
-        ws.write(5, 1, 'COLE AQUI ↓  (as linhas "Diferença", "RETORNO" e a coluna "Média" são ignoradas; dá para colar '
-                 'os dois blocos, um embaixo do outro)', self.f(bold=True, font_size=8.5, font_color=MUTED))
-        ws.conditional_format(6, 1, 80, 40, {'type': 'no_blanks', 'format': self.wb.add_format({'bg_color': INPUT})})
-        self.nome('impArea', ws, 6, 1, 80, 40)
 
     # ------------------------------------------------------------ Dados_MES (oculta)
     def aba_dados_mes(self):
@@ -1462,7 +1381,7 @@ def montar_vba(layout_code):
                     '    If gCarregando Then Exit Sub\n'
                     '    If Not Intersect(Target, Nm("bFases")) Is Nothing Then LerFases\nEnd Sub\n'),
     }
-    for cn in ['shPainel', 'shBatch', 'shEnviar', 'shHist', 'shLeituras', 'shImportar', 'shConfig', 'shDadosMES',
+    for cn in ['shPainel', 'shBatch', 'shEnviar', 'shHist', 'shLeituras', 'shConfig', 'shDadosMES',
                'shGraf']:
         mods.append({'name': cn, 'kind': 'sheet', 'code': eventos.get(cn, '')})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModBatch', 'ModPainel']:

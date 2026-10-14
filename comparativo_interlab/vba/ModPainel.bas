@@ -182,49 +182,9 @@ Falha:
     ExportarPNG = ""
 End Function
 
-Private Function PastaPadrao() As String
-    Dim p As String
-    p = ThisWorkbook.Path
-    If p = "" Or LCase$(Left$(p, 4)) = "http" Then p = Environ$("USERPROFILE") & "\Desktop"
-    PastaPadrao = p
-End Function
 
-Private Function NomeArquivo(ByVal ext As String) As String
-    Dim d As String
-    If EData(Nm("bData").Value) Then d = "_" & Format$(CDate(Nm("bData").Value), "yyyymmdd")
-    NomeArquivo = "Report_Batch_" & CfgTxt("bId") & d & "." & ext
-End Function
 
-Public Sub SalvarPNG()
-    Dim arq As Variant, r As String
-    AtualizarPainel
-    arq = Application.GetSaveAsFilename(PastaPadrao() & "\" & NomeArquivo("png"), "Imagem PNG (*.png), *.png", , _
-                                        "Salvar painel como PNG")
-    If VarType(arq) = vbBoolean Then Exit Sub
-    On Error Resume Next
-    If Dir$(CStr(arq)) <> "" Then Kill CStr(arq)
-    On Error GoTo 0
-    r = ExportarPNG(CStr(arq))
-    If r = "" Then
-        Aviso "Não foi possível gerar a imagem.", vbExclamation, "Salvar PNG"
-    Else
-        Aviso "PNG salvo:" & vbCrLf & r, vbInformation, "Salvar PNG"
-    End If
-End Sub
 
-Public Sub SalvarPDF()
-    Dim arq As Variant
-    AtualizarPainel
-    arq = Application.GetSaveAsFilename(PastaPadrao() & "\" & NomeArquivo("pdf"), "PDF (*.pdf), *.pdf", , _
-                                        "Salvar painel como PDF")
-    If VarType(arq) = vbBoolean Then Exit Sub
-    On Error GoTo Falha
-    shPainel.ExportAsFixedFormat Type:=0, Filename:=CStr(arq), Quality:=0, IncludeDocProperties:=False, _
-                                 IgnorePrintAreas:=False, OpenAfterPublish:=True
-    Exit Sub
-Falha:
-    Aviso "Não foi possível salvar o PDF: " & Err.Description, vbExclamation, "Salvar PDF"
-End Sub
 
 ' ---------------------------------------------------------------- resumo e e-mail
 Public Function TextoResumo() As String
@@ -257,75 +217,6 @@ Private Function CopiarTexto(ByVal t As String) As Boolean
     CopiarTexto = (Err.Number = 0)
 End Function
 
-Private Function Html(ByVal t As String) As String
-    t = Replace(t, "&", "&amp;")
-    t = Replace(t, "<", "&lt;")
-    t = Replace(t, ">", "&gt;")
-    t = Replace(t, vbCrLf, "<br>")
-    t = Replace(t, vbLf, "<br>")
-    Html = t
-End Function
 
-Public Sub CriarEmail()
-    Dim ol As Object, mail As Object, arq As String, nome As String, corpo As String, assunto As String
-    AtualizarPainel
-    assunto = CfgTxt("eAssunto")
-    On Error Resume Next
-    Set ol = CreateObject("Outlook.Application")
-    On Error GoTo 0
-    If ol Is Nothing Then
-        ' sem Outlook: abre o e-mail padrao com assunto e resumo; a imagem vai pela area de transferencia
-        CopiarImagemPainel
-        On Error Resume Next
-        ThisWorkbook.FollowHyperlink "mailto:?subject=" & UrlTexto(assunto) & "&body=" & UrlTexto(TextoResumo())
-        Exit Sub
-    End If
-    arq = ExportarPNG()
-    On Error GoTo Falha
-    Set mail = ol.CreateItem(0)
-    nome = Mid$(arq, InStrRev(arq, "\") + 1)
-    corpo = "<div style=""font-family:Segoe UI,Calibri,Arial;font-size:10.5pt;color:#1a2744"">" & _
-            Html(TextoResumo()) & "</div>"
-    If arq <> "" Then
-        mail.Attachments.Add arq, 1, 0
-        On Error Resume Next
-        mail.Attachments(1).PropertyAccessor.SetProperty "http://schemas.microsoft.com/mapi/proptag/0x3712001F", nome
-        On Error GoTo Falha
-        corpo = corpo & "<p><img src=""cid:" & nome & """ style=""max-width:100%""></p>"
-    End If
-    mail.Subject = assunto
-    mail.HTMLBody = corpo & mail.HTMLBody
-    mail.Display
-    On Error Resume Next
-    If arq <> "" Then Kill arq
-    Exit Sub
-Falha:
-    Aviso "Não foi possível criar o e-mail no Outlook: " & Err.Description, vbExclamation, "E-mail"
-End Sub
 
-Private Function UrlTexto(ByVal t As String) As String
-    Dim i As Long, ch As String, r As String, b() As Byte, j As Long
-    For i = 1 To Len(t)
-        ch = Mid$(t, i, 1)
-        If ch Like "[A-Za-z0-9.-]" Then
-            r = r & ch
-        ElseIf ch = " " Then
-            r = r & "%20"
-        ElseIf AscW(ch) < 128 And AscW(ch) >= 0 Then
-            r = r & "%" & Right$("0" & Hex$(AscW(ch)), 2)
-        Else
-            r = r & Utf8Pct(AscW(ch))
-        End If
-    Next i
-    UrlTexto = r
-End Function
 
-Private Function Utf8Pct(ByVal cp As Long) As String
-    If cp < 0 Then cp = cp + 65536
-    If cp < &H800& Then
-        Utf8Pct = "%" & Hex$(&HC0 Or (cp \ &H40)) & "%" & Hex$(&H80 Or (cp And &H3F))
-    Else
-        Utf8Pct = "%" & Hex$(&HE0 Or (cp \ &H1000)) & "%" & Hex$(&H80 Or ((cp \ &H40) And &H3F)) & _
-                  "%" & Hex$(&H80 Or (cp And &H3F))
-    End If
-End Function

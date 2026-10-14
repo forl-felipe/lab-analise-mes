@@ -33,16 +33,17 @@ Public Sub TesteLO()
     pSi = PIndice("SiO2")
     Recalcular
 
-    ' --- abre em branco; o 288 vem do historico importado
+    ' --- abre em branco; o 284 vem do historico do laboratorio
     Ok Vazio(V("bId")) And Not ENumero(Celula(1, PIndice("SE"), 0)), "abre com batch em branco"
-    AbrirBatch 288
+    AbrirBatch 284
     Recalcular
-    Ok CStr(V("bId")) = "288", "batch 288 aberto do historico (" & V("bId") & ")"
-    Ok Celula(1, pSE, 0) = 2052 And Celula(1, pSE, 1) = 1787, "1a leitura S.E. 2052/1787"
+    Ok CStr(V("bId")) = "284", "batch 284 aberto do historico (" & V("bId") & ")"
+    Ok Celula(2, pSE, 0) = 1933 And Celula(2, pSE, 1) = 1780, "2a leitura S.E. 1933/1780"
     Ok CStr(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_ST).Value) = "NOK", "S.E. NOK no farol"
-    Ok LinhaHistorico(288) > 0 And LinhaHistorico(290) > 0, "historico inicial com 288 e 290"
-    Ok InStr(CStr(V("bFrase")), "Superfície Específica") > 0, "frase NOK automatica: " & V("bFrase")
-    Ok InStr(CStr(V("eResumo")), "Farol: 4 de 5") > 0, "resumo do e-mail (4 de 5 OK)"
+    Ok LinhaHistorico(284) > 0, "historico do laboratorio com o 284"
+    Ok CStr(V("bNivel")) = "Baixo", "284 com nivel baixo"
+    Ok InStr(CStr(V("bFrase")), "Superfície Específica, Sílica e PPC") > 0, "frase NOK automatica: " & V("bFrase")
+    Ok InStr(CStr(V("eResumo")), "3 de 5 fora da tolerância") > 0, "resumo enxuto: " & V("eResumo")
     Ok PRotulo(pSi) = "SiO" & ChrW(8322), "rotulo SiO2 com subscrito"
 
     ' --- simulacao: novo batch + buscar no MES
@@ -50,7 +51,7 @@ Public Sub TesteLO()
     Nm("cfgFonte").Value = "SIMULAÇÃO"
     NovoBatch
     id = CLng(V("bId"))
-    Ok id = 291, "novo batch = 291 (" & id & ")"
+    Ok id = 285, "novo batch = 285 (" & id & ")"
     Ok Not ENumero(Celula(1, pSE, 0)), "novo batch sem leituras"
     Nm("bIniU").Value = DateSerial(2026, 10, 10) + TimeSerial(7, 30, 0)
     Nm("bFimU").Value = DateSerial(2026, 10, 11) + TimeSerial(8, 10, 0)
@@ -59,13 +60,13 @@ Public Sub TesteLO()
     Recalcular
     Ok CLng(V("bNHor")) = 7, "Nº de horarios = bi-horarios de Germano = 7 (" & V("bNHor") & ")"
     Ok CLng(V("gNG")) = 7, "janelas de Germano pelo termino = 7 (" & V("gNG") & ")"
-    Ok Abs(CDbl(V("bDef")) - 50) < 0.01, "defasagem 50 h (" & V("bDef") & ")"
+    Ok Abs(CDbl(V("bDef")) - 51) < 0.01, "defasagem 51 h (" & V("bDef") & ")"
     Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value) - CDbl(DateSerial(2026, 10, 10) + TimeSerial(9, 30, 0))) < 0.0001, _
        "1o horario Ubu 10/10 09:30 (1a janela completa 09:00)"
     Ok Abs(CDbl(shBatch.Cells(B_ROW_G0 + 1, B_COL_TU).Value) - CDbl(DateSerial(2026, 10, 10) + TimeSerial(11, 30, 0))) < 0.0001, _
        "2o horario Ubu 11:30"
-    Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TG).Value) - CDbl(DateSerial(2026, 10, 8) + TimeSerial(7, 30, 0))) < 0.0001, _
-       "1o horario Germano 08/10 07:30"
+    Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TG).Value) - CDbl(DateSerial(2026, 10, 8) + TimeSerial(7, 0, 0))) < 0.0001, _
+       "1o horario Germano 08/10 07:00 (janela 06:00-08:00, grade par)"
     Ok shBatch.Cells(B_ROW_G0 + 7, B_COL_TG).Text = "", "8o horario Germano vazio (fim do bombeamento)"
     Ok shBatch.Cells(B_ROW_G0 + 7, B_COL_TU).Text = "", "8o horario Ubu vazio (mesmo Nº de Germano)"
     BuscarMES
@@ -94,18 +95,18 @@ Public Sub TesteLO()
     Ok CStr(shHist.Cells(r, H_COL1 + 2).Value) = "03", "mineroduto gravado como texto 03 (" & shHist.Cells(r, H_COL1 + 2).Value & ")"
 
     ' --- abrir outro batch e voltar
-    AbrirBatch 288
-    Ok CStr(V("bId")) = "288" And Celula(1, pSE, 0) = 2052, "abrir 288"
+    AbrirBatch 284
+    Ok CStr(V("bId")) = "284" And Celula(2, pSE, 0) = 1933, "abrir 284"
     Ok CStr(V("bMin")) = "03", "mineroduto aberto como 03 (" & V("bMin") & ")"
-    Ok CStr(V("pSel")) = "288", "painel em exibicao = 288"
+    Ok CStr(V("pSel")) = "284", "painel em exibicao = 284"
     AbrirBatch id
     Ok Celula(3, pSi, 0) = salvo1 And Celula(5, pSE, 1) = salvo2, "reabrir 291 com os mesmos valores"
-    Ok Abs(CDbl(V("bDef")) - 50) < 0.01, "reabrir 291 com a defasagem"
+    Ok Abs(CDbl(V("bDef")) - 51) < 0.01, "reabrir 291 com a defasagem"
     ' selecao pelo painel
-    Nm("pSel").Value = 290
+    Nm("pSel").Value = 284
     SelecionarBatch
-    Ok CStr(V("bId")) = "290", "selecionar 290 pelo painel"
-    Ok ENumero(Celula(14, pSE, 1)), "290 com 14 horarios"
+    Ok CStr(V("bId")) = "284", "selecionar 284 pelo painel"
+    Ok ENumero(Celula(12, pSE, 1)), "284 com 12 horarios"
 
     ' --- excluir
     ExcluirDoHistorico id
@@ -116,55 +117,6 @@ Public Sub TesteLO()
         If CLng(shLeituras.Cells(i, 1).Value) = id Then nL = nL + 1
     Next i
     Ok nL = 0, "leituras do 291 excluidas"
-
-    ' --- importar da planilha antiga
-    LimparImportacao
-    With Nm("impArea")
-        .Cells(1, 1).Value = "Batch"
-        .Cells(1, 2).Value = 295
-        .Cells(2, 1).Value = "Data"
-        .Cells(3, 1).Value = "Inicio aproximado no processo"
-        .Cells(4, 1).Value = "S.E Germano"
-        .Cells(5, 1).Value = "S.E Alimentação 04"
-        .Cells(6, 1).Value = "Diferença"
-        .Cells(7, 1).Value = "< 325 # Germano"
-        .Cells(8, 1).Value = "< 325 # Alimentação 04"
-        For i = 1 To 4
-            .Cells(2, 1 + i).Value = DateSerial(2026, 10, 12) + IIf(i = 4, 1, 0)
-            .Cells(3, 1 + i).Value = TimeSerial(IIf(i = 4, 1, 17 + 2 * i), 30, 0)
-            .Cells(4, 1 + i).Value = 2000 + i
-            .Cells(5, 1 + i).Value = 1900 + i
-            .Cells(6, 1 + i).Value = -100
-            .Cells(7, 1 + i).Value = 86 + i / 10
-        Next i
-        .Cells(8, 2).Value = 85.5
-        .Cells(10, 1).Value = "Batch"
-        .Cells(10, 2).Value = 295
-        .Cells(11, 1).Value = "Data"
-        .Cells(12, 1).Value = "Inicio aproximado no processo"
-        .Cells(13, 1).Value = "SiO2 Germano"
-        .Cells(14, 1).Value = "SiO2 Alimentação 04"
-        .Cells(15, 1).Value = "P Germano"
-        .Cells(16, 1).Value = "PPC Alimentação 04"
-        For i = 1 To 4
-            .Cells(11, 1 + i).Value = DateSerial(2026, 10, 12) + IIf(i = 4, 1, 0)
-            .Cells(12, 1 + i).Value = TimeSerial(IIf(i = 4, 1, 17 + 2 * i), 30, 0)
-            .Cells(13, 1 + i).Value = 1.8 + i / 100
-            .Cells(15, 1 + i).Value = 0.06
-        Next i
-        .Cells(14, 3).Value = 1.95
-        .Cells(16, 5).Value = 3.5
-    End With
-    ImportarColado
-    Recalcular
-    Ok CStr(V("bId")) = "295", "importado como batch 295"
-    Ok CLng(V("bNHor")) = 4, "importado com 4 horarios (" & V("bNHor") & ")"
-    Ok Celula(1, pSE, 0) = 2001 And Celula(4, pSE, 1) = 1904, "importado S.E."
-    Ok Celula(1, PIndice("325"), 1) = 85.5, "importado <325# Ubu"
-    Ok Celula(2, pSi, 1) = 1.95 And Celula(4, PIndice("PPC"), 1) = 3.5, "importado SiO2/PPC Ubu"
-    Ok Abs(CDbl(shBatch.Cells(B_ROW_G0 + 3, B_COL_TU).Value) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(1, 30, 0))) < 0.0001, _
-       "importado 4o horario 13/10 01:30"
-    Ok ENumero(Celula(1, PIndice("P"), 0)) And Not ENumero(Celula(1, PIndice("P"), 1)), "importado P so Germano"
 
     ' --- MES: formula e tags recusadas
     shConfig.Cells(C_ROW_TAG0 + 1, C_COL_TAG).Value = "TAG-UBU-SE"
@@ -205,9 +157,9 @@ Public Sub TesteLO()
     Ok CStr(V("bMin")) = "03", "mineroduto pela fase UBU3 = 03"
     Ok Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(11, 0, 0))) < 0.0001, _
        "285: 1a janela Ubu 13/10 11:00 (sem nivel = sem atraso)"
-    Ok Abs(CDbl(V("gJanG")) - CDbl(DateSerial(2026, 10, 11) + TimeSerial(1, 0, 0))) < 0.0001, "285: 1a janela Germano 11/10 01:00"
+    Ok Abs(CDbl(V("gJanG")) - CDbl(DateSerial(2026, 10, 11))) < 0.0001, "285: 1a janela Germano 11/10 00:00"
     Ok CLng(V("bNHor")) = 12 And CLng(V("gNG")) = 12, "285: 12 horarios Ubu e 12 Germano (" & V("bNHor") & "/" & V("gNG") & ")"
-    Ok Abs(CDbl(V("bDef")) - 58) < 0.01, "285: defasagem 58 h (" & V("bDef") & ")"
+    Ok Abs(CDbl(V("bDef")) - 59) < 0.01, "285: defasagem 59 h (" & V("bDef") & ")"
     ' nivel dos tanques: atraso da tabela de Configuracoes
     Nm("cfgAtrasoH").Cells(2, 1).Value = 4
     Nm("bNivel").Value = "Médio"
@@ -229,8 +181,9 @@ Public Sub TesteLO()
     Ok CStr(V("bNivel")) = "Médio", "nivel continua"
     Ok Abs(CDbl(shHist.Cells(r, H_COL1 + H_COL_STAT1 - 1 + 4 * NP).Value) - CDbl(V("bIniP"))) < 0.0001, _
        "inicio no processo gravado no historico"
-    AbrirBatch 288
-    AbrirBatch V("pSel")
+    id = CLng(V("bId"))
+    AbrirBatch 284
+    AbrirBatch id
     Ok CStr(V("bNivel")) = "Médio", "nivel reaberto"
 
     ' --- MES sem o suplemento Aspen (LibreOffice): #NOME? avisado uma vez, sem esperar
