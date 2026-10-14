@@ -26,6 +26,8 @@ As mesmas análises e tags do Informativo de Turno do Físico (planilha padrão)
 - Alimentação da grelha;
 - Prensa de rolos (SE, #325, H2O);
 - Pellet Feed (PPC, SiO2, CaO), em **uma linha US3/4**;
+- **Filtrado para o pátio**: umidade (`M650030020-0001-HHLFU`), em uma linha US3/4;
+- **Pelota Crua** (US3 `M690025000`, US4 `M4690025000`): umidade (0001), resiliência (0094), compressão seca (0095) e compressão úmida (0120);
 - Mistura (SiO2, CaO, B2, carvão, carbono fixo);
 - Pelota queimada (+16 −8 mm, relação granulométrica, tamboramento, compressão, < 200 kgf, finos −6,3 mm);
 - Produção e ritmo.

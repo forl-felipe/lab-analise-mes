@@ -57,18 +57,20 @@ Public Sub TesteLO()
     lin = LinhaChave(ws, "P08U3")
     r = r & "SiO2PF_media=" & ws.Cells(lin, 11).Value & "|PF_umaLinha=" & (LinhaChave(ws, "P08U4") = 0) & _
         "|PFrotulo=" & ws.Cells(lin, 4).Value & "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & _
-        "|prodSoma=" & (Abs(ws.Cells(LinhaChave(ws, "P21U3"), 11).Value - _
-            Application.WorksheetFunction.Sum(ws.Range(ws.Cells(LinhaChave(ws, "P21U3"), 5), ws.Cells(LinhaChave(ws, "P21U3"), 10)))) < 0.001) & _
-        "|ritmoUltimo=" & ws.Cells(LinhaChave(ws, "P23U3"), 11).Value
+        "|prodSoma=" & (Abs(ws.Cells(LinhaChave(ws, "P26U3"), 11).Value - _
+            Application.WorksheetFunction.Sum(ws.Range(ws.Cells(LinhaChave(ws, "P26U3"), 5), ws.Cells(LinhaChave(ws, "P26U3"), 10)))) < 0.001) & _
+        "|ritmoUltimo=" & ws.Cells(LinhaChave(ws, "P28U3"), 11).Value & _
+        "|filtradoUmaLinha=" & (LinhaChave(ws, "P10U4") = 0) & "/" & ws.Cells(LinhaChave(ws, "P10U3"), 4).Value & "/" & Format$(ws.Cells(LinhaChave(ws, "P10U3"), 11).Value, "0.00") & _
+        "|crua=" & ws.Cells(LinhaChave(ws, "P16U3"), 2).Value & ":" & Format$(ws.Cells(LinhaChave(ws, "P16U3"), 11).Value, "0.00") & "/" & ws.Cells(LinhaChave(ws, "P19U4"), 2).Value & ":" & Format$(ws.Cells(LinhaChave(ws, "P19U4"), 11).Value, "0.00")
     passo = 22
     ws.Calculate
-    r = r & "|limTambUS3=" & ws.Cells(LinhaChave(ws, "P17U3"), 17).Text & _
-        "|limTambUS4=" & ws.Cells(LinhaChave(ws, "P17U4"), 17).Text & _
-        "|limFinosUS4=" & ws.Cells(LinhaChave(ws, "P20U4"), 18).Text & _
-        "|limRG=" & ws.Cells(LinhaChave(ws, "P16U3"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P16U3"), 18).Text & _
-        "|limSiO2MistUS3=" & ws.Cells(LinhaChave(ws, "P10U3"), 18).Text & _
+    r = r & "|limTambUS3=" & ws.Cells(LinhaChave(ws, "P22U3"), 17).Text & _
+        "|limTambUS4=" & ws.Cells(LinhaChave(ws, "P22U4"), 17).Text & _
+        "|limFinosUS4=" & ws.Cells(LinhaChave(ws, "P25U4"), 18).Text & _
+        "|limRG=" & ws.Cells(LinhaChave(ws, "P21U3"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P21U3"), 18).Text & _
+        "|limSiO2MistUS3=" & ws.Cells(LinhaChave(ws, "P11U3"), 18).Text & _
         "|limSiO2PF=" & ws.Cells(LinhaChave(ws, "P08U3"), 18).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P07U3"), 18).Text & _
-        "|limB2US4=" & ws.Cells(LinhaChave(ws, "P12U4"), 18).Text
+        "|limB2US4=" & ws.Cells(LinhaChave(ws, "P13U4"), 18).Text
     passo = 3
     r = r & "|batch=" & ws.Cells(LinhaTexto(ws, "Mineroduto 03") + 1, 2).Text & _
         "|dragasVisivel=" & (Not ws.Rows(LinhaTexto(ws, "Dragas")).Hidden) & _
@@ -90,7 +92,7 @@ Public Sub TesteLO()
     Nm("gIni").Value = DateSerial(2026, 9, 28) + TimeSerial(7, 0, 0)
     Nm("gFim").Value = DateSerial(2026, 9, 29) + TimeSerial(7, 0, 0)
     AtualizarResultados
-    lin = LinhaChave(shResultados, "P17U3")
+    lin = LinhaChave(shResultados, "P22U3")
     For jj = 0 To NSLOT_MAX - 1
         If ENumero(shResultados.Cells(lin, COL_SLOT1 + jj).Value) Then nv = nv + 1
     Next jj

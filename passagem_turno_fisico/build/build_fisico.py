@@ -61,6 +61,8 @@ MV, AM = 'IP_MESVALOR', 'IP_ANALOGMAP'
 G_PF = 'Pellet Feed'
 G_LM = 'Mistura'
 G_PQ = 'Pelota Queimada'
+G_FP = 'Filtrado para o pátio'
+G_PC = 'Pelota Crua'
 
 
 def _p(g, nome, un, dec, agg, t3, ty3, t4, ty4, tip3, tip4, cons='Q'):
@@ -77,11 +79,16 @@ PARAMS = [
     _p(G_PF, 'PPC', '%', 2, 'Média', 'M650030010-0013-HHLQU', MV, 'M650030010-0013-HHLQU', MV, 3.66, 3.66),
     _p(G_PF, 'SiO2', '%', 2, 'Média', 'M650030010-0004-HHLQU', MV, 'M650030010-0004-HHLQU', MV, 1.29, 1.29),
     _p(G_PF, 'CaO', '%', 2, 'Média', 'M650030010-0006-HHLQU', MV, 'M650030010-0006-HHLQU', MV, 0.09, 0.09),
+    _p(G_FP, 'Umidade', '%', 2, 'Média', 'M650030020-0001-HHLFU', MV, 'M650030020-0001-HHLFU', MV, 9.6, 9.6),
     _p(G_LM, 'SiO2', '%', 2, 'Média', 'M710050020-0004-HHLQU', MV, 'M4710050020-0004-HHLQU', MV, 1.82, 2.90),
     _p(G_LM, 'CaO', '%', 2, 'Média', 'M710050020-0006-HHLQU', MV, 'M4710050020-0006-HHLQU', MV, 0.82, 1.40),
     _p(G_LM, 'B2 (CaO/SiO2)', '-', 2, 'Média', 'M710050020-0018-HHLQU', MV, 'M4710050020-0018-HHLQU', MV, 0.45, 0.48),
     _p(G_LM, 'Dosagem de Carvão', 'kg/t', 1, 'Média', 'M710050020-0084-HHLQU', MV, 'M4710050020-0084-HHLQU', MV, 12.7, 17.6),
     _p(G_LM, 'Carbono Fixo', '%', 2, 'Média', 'M710050020-0493-HHLQU', MV, 'M4710050020-0493-HHLQU', MV, 1.07, 1.20),
+    _p(G_PC, 'Umidade', '%', 2, 'Média', 'M690025000-0001-HHLFU', MV, 'M4690025000-0001-HHLFU', MV, 9.4, 9.5),
+    _p(G_PC, 'Resiliência', 'nº quedas', 1, 'Média', 'M690025000-0094-HHLFU', MV, 'M4690025000-0094-HHLFU', MV, 5.5, 5.8),
+    _p(G_PC, 'Compressão seca', 'kgf/pel', 2, 'Média', 'M690025000-0095-HHLFU', MV, 'M4690025000-0095-HHLFU', MV, 6.2, 6.5),
+    _p(G_PC, 'Compressão úmida', 'kgf/pel', 2, 'Média', 'M690025000-0120-HHLFU', MV, 'M4690025000-0120-HHLFU', MV, 1.6, 1.7),
     _p(G_PQ, 'Faixa +16,0 -8,0 mm', '%', 1, 'Média', 'M710050020-0028-HHLFU', MV, 'M4710050020-0028-HHLFU', MV, 92.5, 90.9),
     _p(G_PQ, 'Relação Granulométrica', '-', 2, 'Média', 'M710050020-2021-HHLFU', MV, 'M4710050020-2021-HHLFU', MV, 0.73, 0.80),
     _p(G_PQ, 'Tamboramento', '%', 1, 'Média', 'M710050020-0029-HHLFU', MV, 'M4710050020-0029-HHLFU', MV, 94.0, 93.9),
