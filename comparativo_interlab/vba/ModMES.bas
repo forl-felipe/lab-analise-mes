@@ -163,7 +163,7 @@ End Function
 Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As Long, ByRef res As Variant) As Boolean
     Dim anc As Range, sai As Range, ps As String, rodada As Long, limite As Double, nJan As Long
     Dim fim As Date, t0 As Single, d() As Variant, lst As Variant, i As Long, r As Long, s As Long, v As Variant
-    Dim estado As Long, nomeLab As String, invalidas As String
+    Dim estado As Long, nomeLab As String, invalidas As String, tj As Date, x As Double, resp As String
 
     ReDim d(1 To n, 1 To NP)
     res = d
@@ -222,10 +222,14 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
         Aviso "O MES não reconheceu estas tags de " & nomeLab & " (ficam em branco):" & vbCrLf & vbCrLf & _
               invalidas & vbCrLf & "Corrigir na aba Configurações.", vbExclamation, "MES - tags inválidas"
     End If
+    resp = Left$(Trim$(anc.Text) & "  |  1a célula: " & Trim$(sai.Cells(1, 1).Text) & "  " & _
+                 Trim$(sai.Cells(1, 2).Text), 250)
+    Nm(IIf(lab = 0, "mesRespG", "mesRespU")).Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & resp
     If estado = 0 Then
-        DesligarConsulta anc, sai
+        ' a formula fica em Dados_MES para conferencia (a proxima consulta certa desliga)
         If Aviso("O MES não respondeu à consulta de " & nomeLab & " (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & _
-                 vbCrLf & vbCrLf & "Verificar: suplemento Aspen ativo, servidor, tags e formato da data " & _
+                 vbCrLf & vbCrLf & "Resposta do Aspen: " & resp & vbCrLf & vbCrLf & _
+                 "Verificar: suplemento Aspen ativo, servidor, tags e formato da data " & _
                  "(aba Configurações)." & vbCrLf & vbCrLf & "Abrir a aba Dados_MES?", vbExclamation + vbYesNo, _
                  "MES sem resposta", 7) = vbYes Then MostrarDadosMES
         Exit Function
@@ -235,13 +239,14 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
     lst = Split(ParamsLab(lab), ",")
     If estado = 1 Then
         For r = 1 To NMAX + 2
-            v = sai.Cells(r, 1).Value
-            If Not EData(v) Then Exit For
-            s = CLng((CDbl(CDate(v)) - CDbl(ini)) * 24 / HORAS_SLOT) + 1
+            If Not ComoData(sai.Cells(r, 1).Value, tj, ini) Then Exit For
+            s = CLng((CDbl(tj) - CDbl(ini)) * 24 / HORAS_SLOT) + 1
             If s >= 1 And s <= n Then
                 For i = LBound(lst) To UBound(lst)
                     v = sai.Cells(r, 2 + i - LBound(lst)).Value
-                    If ValorValido(CLng(lst(i)), lab, v) Then d(s, CLng(lst(i))) = CDbl(v)
+                    If ComoNumero(v, x) Then
+                        If ValorValido(CLng(lst(i)), lab, x) Then d(s, CLng(lst(i))) = x
+                    End If
                 Next i
             End If
         Next r
@@ -253,7 +258,7 @@ End Function
 
 ' 0 = sem resposta, 1 = resultados prontos, 2 = respondeu sem dados, 3 = tag recusada
 Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Date, ByVal limite As Double) As Long
-    Dim t0 As Single, tEst As Single, assin As String, ant As String, v As Variant, pronto As Boolean
+    Dim t0 As Single, tEst As Single, assin As String, ant As String, v As Variant, pronto As Boolean, tj As Date
     t0 = Timer
     tEst = Timer
     Do
@@ -266,7 +271,7 @@ Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Da
         End If
         v = sai.Cells(1, 1).Value
         pronto = False
-        If EData(v) Then pronto = (Abs(CDbl(CDate(v)) - CDbl(ini)) <= HORAS_SLOT / 24 + 1 / 1440)
+        If ComoData(v, tj, ini) Then pronto = (Abs(CDbl(tj) - CDbl(ini)) <= HORAS_SLOT / 24 + 1 / 1440)
         assin = Assinatura(anc, sai)
         If assin <> ant Then
             ant = assin
@@ -294,9 +299,9 @@ Private Function Assinatura(ByVal anc As Range, ByVal sai As Range) As String
     arr = sai.Resize(NMAX + 1, NP + 1).Value
     For i = 1 To UBound(arr, 1)
         For j = 1 To UBound(arr, 2)
-            If ENumero(arr(i, j)) Then
+            If Not Vazio(arr(i, j)) Then
                 n = n + 1
-                soma = soma + CDbl(arr(i, j))
+                If ENumero(arr(i, j)) Then soma = soma + CDbl(arr(i, j)) Else soma = soma + Len(CStr(arr(i, j)))
             End If
         Next j
     Next i

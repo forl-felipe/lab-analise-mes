@@ -583,8 +583,8 @@ class Construtor:
                      border_color=BRANCO)
         ws.set_row(r0 - 1, 28)
         ws.write(r0 - 1, B_COL_N, 'Nº', fgh)
-        ws.write(r0 - 1, B_COL_TU, 'Data/hora Ubu\n(processo)', fgh)
-        ws.write(r0 - 1, B_COL_TG, 'Data/hora Germano', fgh)
+        ws.write(r0 - 1, B_COL_TU, 'Horário oficial\n(Ubu)', fgh)
+        ws.write(r0 - 1, B_COL_TG, 'Origem em Germano\n(só referência)', fgh)
         for p, pr in enumerate(PARAMS):
             ws.write_formula(r0 - 1, B_COL_V1 + 2 * p, '="%s"&CHAR(10)&bLabA' % pr[1], fa)
             ws.write_formula(r0 - 1, B_COL_V1 + 2 * p + 1, '="%s"&CHAR(10)&bLabB' % pr[1], fb)
@@ -1352,6 +1352,12 @@ class Construtor:
         ws.write(4, 3, 'Tags inválidas', rot)
         ws.write_blank(4, 4, None)
         self.nome('mesInvalidas', ws, 4, 4)
+        ws.write(5, 3, 'Resposta Germano', rot)
+        ws.write_blank(5, 4, None)
+        self.nome('mesRespG', ws, 5, 4)
+        ws.write(6, 3, 'Resposta Ubu', rot)
+        ws.write_blank(6, 4, None)
+        self.nome('mesRespU', ws, 6, 4)
         # ancoras: Germano A10 (saida A12), Ubu A40 (saida A42)
         for lab, anc, out in [('Germano', 9, 11), ('Ubu', 39, 41)]:
             ws.write(anc - 1, 0, 'Consulta %s (a fórmula é escrita pelo botão Buscar no MES)' % lab,

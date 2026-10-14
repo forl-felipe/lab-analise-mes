@@ -229,6 +229,19 @@ Public Sub TesteLO()
     AbrirBatch V("pSel")
     Ok CStr(V("bNivel")) = "Médio", "nivel reaberto"
 
+    ' --- respostas do Aspen em texto
+    Dim tj As Date, xx As Double
+    Ok ComoData("12/10/2026 15:00:00", tj) And Abs(CDbl(tj) - CDbl(DateSerial(2026, 10, 12) + TimeSerial(15, 0, 0))) < 0.0001, _
+       "data do Aspen em texto"
+    Ok ComoData(DateSerial(2026, 10, 12), tj), "data do Aspen como data"
+    Ok ComoData("10/12/2026 3:00:00 PM", tj, DateSerial(2026, 10, 12)) And _
+       Abs(CDbl(tj) - CDbl(DateSerial(2026, 10, 12) + TimeSerial(15, 0, 0))) < 0.0001, "data do Aspen em texto americano"
+    Ok Not ComoData("Success", tj), "texto Success nao e data"
+    Ok ComoNumero("2052.0", xx) And Abs(xx - 2052) < 0.0001, "numero em texto 2052.0 (" & xx & ")"
+    Ok ComoNumero("0.058", xx) And Abs(xx - 0.058) < 0.000001, "numero em texto 0.058"
+    Ok ComoNumero(1.95, xx) And Abs(xx - 1.95) < 0.000001, "numero 1,95"
+    Ok Not ComoNumero("Tag Name X is invalid", xx), "texto de erro nao e numero"
+
     GoTo Fim
 Erro:
     mLog = mLog & "ERRO " & Err.Number & " " & Err.Description & "|"

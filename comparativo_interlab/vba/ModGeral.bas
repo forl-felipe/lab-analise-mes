@@ -72,6 +72,80 @@ Public Function EData(ByVal v As Variant) As Boolean
     End If
 End Function
 
+' Data/hora devolvida pelo Aspen: pode vir como data do Excel ou como TEXTO ("12/10/2026 15:00:00").
+' Texto: le dia/mes/ano (ou mes/dia/ano) sem depender do idioma do Windows; com ref, fica com a
+' interpretacao mais proxima de ref.
+Public Function ComoData(ByVal v As Variant, ByRef d As Date, Optional ByVal ref As Variant) As Boolean
+    Dim t As String, p As Variant, dt As Variant, hm As Variant, a As Long, b As Long, y As Long
+    Dim hh As Long, mi As Long, ss As Long, d1 As Date, d2 As Date, ok1 As Boolean, ok2 As Boolean
+    On Error GoTo Nao
+    If EData(v) Then
+        d = CDate(v)
+        ComoData = True
+        Exit Function
+    End If
+    If VarType(v) <> vbString Then Exit Function
+    t = Trim$(v)
+    If Len(t) < 8 Or InStr(t, "/") = 0 Then Exit Function
+    p = Split(Application.WorksheetFunction.Trim(t), " ")
+    dt = Split(p(0), "/")
+    If UBound(dt) <> 2 Then Exit Function
+    If Not (IsNumeric(dt(0)) And IsNumeric(dt(1)) And IsNumeric(dt(2))) Then Exit Function
+    a = CLng(dt(0)): b = CLng(dt(1)): y = CLng(dt(2))
+    If y < 100 Then y = y + 2000
+    If UBound(p) >= 1 Then
+        hm = Split(p(1), ":")
+        hh = CLng(hm(0))
+        If UBound(hm) >= 1 Then mi = CLng(hm(1))
+        If UBound(hm) >= 2 Then ss = CLng(Val(hm(2)))
+        If UBound(p) >= 2 Then
+            If UCase$(Left$(p(2), 1)) = "P" And hh < 12 Then hh = hh + 12
+            If UCase$(Left$(p(2), 1)) = "A" And hh = 12 Then hh = 0
+        End If
+    End If
+    ok1 = (b >= 1 And b <= 12 And a >= 1 And a <= 31)
+    ok2 = (a >= 1 And a <= 12 And b >= 1 And b <= 31)
+    If ok1 Then d1 = DateSerial(y, b, a) + TimeSerial(hh, mi, ss)
+    If ok2 Then d2 = DateSerial(y, a, b) + TimeSerial(hh, mi, ss)
+    If ok1 And ok2 And Not IsMissing(ref) Then
+        If EData(ref) Then
+            If Abs(CDbl(d2) - CDbl(ref)) < Abs(CDbl(d1) - CDbl(ref)) Then ok1 = False
+        End If
+    End If
+    If ok1 Then
+        d = d1
+    ElseIf ok2 Then
+        d = d2
+    Else
+        Exit Function
+    End If
+    ComoData = True
+    Exit Function
+Nao:
+    ComoData = False
+End Function
+
+' Numero devolvido pelo Aspen: numero ou TEXTO com ponto decimal ("2052.0"), independente do idioma do Windows
+Public Function ComoNumero(ByVal v As Variant, ByRef x As Double) As Boolean
+    Dim t As String
+    On Error GoTo Nao
+    If IsError(v) Or IsEmpty(v) Then Exit Function
+    If VarType(v) = vbString Then
+        t = Trim$(v)
+        If t = "" Then Exit Function
+        If t Like "*[!0-9.,eE+-]*" Then Exit Function
+        If InStr(t, ",") > 0 And InStr(t, ".") = 0 Then t = Replace(t, ",", ".")
+        x = Val(t)
+        ComoNumero = True
+    ElseIf IsNumeric(v) Then
+        x = CDbl(v)
+        ComoNumero = True
+    End If
+    Exit Function
+Nao:
+    ComoNumero = False
+End Function
+
 ' Chave / rotulo / decimais do parametro p (1..NP)
 Public Function PChave(ByVal p As Long) As String
     PChave = Split(P_CHAVES, "|")(p - 1)
