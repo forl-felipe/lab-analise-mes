@@ -37,6 +37,9 @@ Ocultas: `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos e cál
 - A fórmula do Aspen é escrita testando as formas do nome da função (com e sem `_xll.`) e a que o Excel reconhece
   fica guardada. Sem o suplemento (#NOME?), a planilha avisa uma vez e não fica esperando. Depois de cada consulta a
   fórmula vira texto (uma consulta ativa refaz a busca no MES a cada recálculo e deixa a planilha lenta).
+- Tag recusada pelo MES: a planilha tenta o mesmo código no outro formato (`-0008-` ↔ `-8-`); se o MES aceitar,
+  a tag é corrigida sozinha na aba Configurações. Resposta "Sucesso" sem resultados: a planilha monta a matriz
+  `ShowCalculationValues` e espera mais uma vez.
 - Análise **sem tag** fica fora da consulta (lançamento manual na grade). Para treinar sem MES: Fonte = SIMULAÇÃO.
 - Tags cadastradas pelo laboratório em 14/10/2026 (aba Configurações), com as correções: S.E. de Germano estava
   igual à de PPC (→ `M250010000-17-ABLF`), S.E. de Ubu na US3 (→ `M4650060010-0017-HHLFU`, Alimentação 04) e tags

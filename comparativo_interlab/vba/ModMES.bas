@@ -103,6 +103,9 @@ Public Sub BuscarMES()
     If Not simulado And (CDbl(iniU) + n * HORAS_SLOT / 24 > CDbl(Now) Or CDbl(iniG) + nG * HORAS_SLOT / 24 > CDbl(Now)) Then
         msg = msg & vbCrLf & vbCrLf & "Batch ainda em andamento: horários futuros ficam em branco."
     End If
+    If Not simulado And ((okG And qG = 0 And nG > 0) Or (okU And qU = 0)) Then
+        msg = msg & vbCrLf & vbCrLf & "Resultado 0 = o MES respondeu, mas não tem resultados dessas tags no período."
+    End If
     If semTag <> "" And semTag <> "TODAS" Then
         msg = msg & vbCrLf & vbCrLf & "Sem tag (lançamento manual): " & semTag
     End If
@@ -149,10 +152,40 @@ Private Function TagsFaltando() As String
 End Function
 
 ' Parametros do laboratorio com tag valida (lista "1,3,5")
+' Mesma tag com o codigo do meio em outro formato: -0008- <-> -8- (o MES aceita so um deles)
+Public Function VarianteTag(ByVal t As String) As String
+    Dim pt As Variant, i As Long, r As String
+    pt = Split(t, "-")
+    If UBound(pt) < 2 Then Exit Function
+    If Not IsNumeric(pt(1)) Or Len(pt(1)) = 0 Then Exit Function
+    If Len(pt(1)) >= 4 And Left$(pt(1), 1) = "0" Then
+        pt(1) = CStr(CLng(pt(1)))
+    ElseIf Len(pt(1)) < 4 Then
+        pt(1) = Format$(CLng(pt(1)), "0000")
+    Else
+        Exit Function
+    End If
+    VarianteTag = Join(pt, "-")
+End Function
+
+' Tag usada na consulta: a da aba Configuracoes ou, se o MES a recusou, a variante do codigo
+Private Function TagAtual(ByVal p As Long, ByVal lab As Long) As String
+    Dim t As String, alt As String
+    t = TagCfg(p, lab, C_COL_TAG)
+    TagAtual = t
+    If t = "" Then Exit Function
+    If TagInvalida(t) Then
+        alt = VarianteTag(t)
+        If alt <> "" Then
+            If Not TagInvalida(alt) Then TagAtual = alt
+        End If
+    End If
+End Function
+
 Private Function ParamsLab(ByVal lab As Long) As String
     Dim p As Long, t As String, r As String
     For p = 1 To NP
-        t = TagCfg(p, lab, C_COL_TAG)
+        t = TagAtual(p, lab)
         If t <> "" And Not TagInvalida(t) Then
             If r <> "" Then r = r & ","
             r = r & p
@@ -167,6 +200,7 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
     Dim anc As Range, sai As Range, ps As String, rodada As Long, limite As Double, nJan As Long
     Dim fim As Date, t0 As Single, d() As Variant, lst As Variant, i As Long, r As Long, s As Long, v As Variant
     Dim estado As Long, nomeLab As String, invalidas As String, tj As Date, x As Double, resp As String
+    Dim restaurado As Boolean, e2 As Long, corrigidas As String
 
     ReDim d(1 To n, 1 To NP)
     res = d
@@ -216,19 +250,29 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
         End If
         estado = Esperar(anc, sai, ini, limite)
         If estado = 3 Then
-            ' tag recusada: guarda e consulta de novo sem ela
+            ' tag recusada: guarda e consulta de novo sem ela (ou com a variante do codigo)
             If ColetarInvalidas(anc, sai) = 0 Then Exit For
-        ElseIf estado = 0 And rodada = 0 Then
-            ' nada voltou: recria a matriz de saida no formato original e tenta mais uma vez
+        ElseIf (estado = 0 Or estado = 2) And Not restaurado Then
+            ' respondeu sem resultados na celula de saida: monta a matriz ShowCalculationValues
+            ' (forma da planilha de referencia do MES) e espera mais uma vez
+            restaurado = True
             RestaurarSaida anc, sai, nJan, UBound(Split(ps, ",")) + 2
             anc.Calculate
-            estado = Esperar(anc, sai, ini, limite)
+            sai.Resize(nJan, UBound(Split(ps, ",")) + 2).Calculate
+            e2 = Esperar(anc, sai, ini, limite)
+            If e2 = 1 Or estado = 0 Then estado = e2
             Exit For
         Else
             Exit For
         End If
     Next rodada
+    ' variantes de codigo que o MES aceitou: passam para a aba Configuracoes
+    If estado = 1 Then corrigidas = CorrigirTags(lab)
 
+    If corrigidas <> "" Then
+        Aviso "Tags de " & nomeLab & " corrigidas na aba Configurações (o MES aceitou o código em outro formato):" & _
+              vbCrLf & vbCrLf & corrigidas, vbInformation, "MES - tags"
+    End If
     invalidas = ListaInvalidas(lab)
     If invalidas <> "" Then
         Nm("mesInvalidas").Value = "'" & Replace(invalidas, vbCrLf, " ")
@@ -297,7 +341,7 @@ Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Da
             Exit Function
         End If
         If Not pronto And Timer - t0 >= SEM_DADOS_SEG Then
-            If LCase$(Left$(Trim$(anc.Text), 7)) = "success" And Vazio(sai.Cells(1, 1).Value) Then
+            If RespondeuSucesso(anc) And Vazio(sai.Cells(1, 1).Value) Then
                 Esperar = 2
                 Exit Function
             End If
@@ -307,6 +351,13 @@ Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Da
             Exit Function
         End If
     Loop
+End Function
+
+' "Success" / "Sucesso" (o suplemento responde no idioma do Office)
+Private Function RespondeuSucesso(ByVal anc As Range) As Boolean
+    Dim t As String
+    t = LCase$(Trim$(anc.Text))
+    RespondeuSucesso = (Left$(t, 7) = "success" Or Left$(t, 7) = "sucesso" Or Left$(t, 5) = "éxito")
 End Function
 
 Private Function Assinatura(ByVal anc As Range, ByVal sai As Range) As String
@@ -372,11 +423,32 @@ Public Function TesteTagsInvalidas(ByVal texto As String) As String
     mInvalidas = ""
 End Function
 
+' Grava na aba Configuracoes as variantes de tag que funcionaram; devolve a lista
+Private Function CorrigirTags(ByVal lab As Long) As String
+    Dim p As Long, t As String, r As String
+    For p = 1 To NP
+        t = TagAtual(p, lab)
+        If t <> "" And t <> TagCfg(p, lab, C_COL_TAG) And Not TagInvalida(t) Then
+            r = r & "  - " & PRotulo(p) & ": " & TagCfg(p, lab, C_COL_TAG) & "  ->  " & t & vbCrLf
+            On Error Resume Next
+            shConfig.Unprotect
+            shConfig.Cells(C_ROW_TAG0 + 2 * (p - 1) + lab, C_COL_TAG).Value = t
+            Proteger shConfig
+            On Error GoTo 0
+        End If
+    Next p
+    CorrigirTags = r
+End Function
+
 Private Function ListaInvalidas(ByVal lab As Long) As String
     Dim p As Long, t As String, r As String
     For p = 1 To NP
-        t = TagCfg(p, lab, C_COL_TAG)
-        If TagInvalida(t) Then r = r & "  - " & PRotulo(p) & ": " & t & vbCrLf
+        t = TagAtual(p, lab)
+        If TagInvalida(t) Then
+            r = r & "  - " & PRotulo(p) & ": " & TagCfg(p, lab, C_COL_TAG)
+            If t <> TagCfg(p, lab, C_COL_TAG) Then r = r & "  (e " & t & ")"
+            r = r & vbCrLf
+        End If
     Next p
     ListaInvalidas = r
 End Function
@@ -423,7 +495,7 @@ Public Function ArgumentosLab(ByVal lab As Long, ByVal ps As String, ByVal anc A
             servs = servs & ","
             mapas = mapas & ","
         End If
-        tags = tags & TagCfg(p, lab, C_COL_TAG)
+        tags = tags & TagAtual(p, lab)
         servs = servs & s
         mapas = mapas & m
     Next i
