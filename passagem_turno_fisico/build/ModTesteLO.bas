@@ -54,8 +54,8 @@ Public Sub TesteLO()
     passo = 2
     Set ws = shResumoDia
     AtualizarMESDia
-    lin = LinhaChave(ws, "P02U3")
-    r = r & "SiO2PF_media=" & ws.Cells(lin, 11).Value & "|PF_umaLinha=" & (LinhaChave(ws, "P02U4") = 0) & _
+    lin = LinhaChave(ws, "P03U3")
+    r = r & "SiO2PF_media=" & ws.Cells(lin, 11).Value & "|PF_umaLinha=" & (LinhaChave(ws, "P03U4") = 0) & _
         "|PFrotulo=" & ws.Cells(lin, 4).Value & "|dHora1=" & Nm("dHoras").Cells(1, 1).Value & _
         "|prodSoma=" & (Abs(ws.Cells(LinhaChave(ws, "P26U3"), 11).Value - _
             Application.WorksheetFunction.Sum(ws.Range(ws.Cells(LinhaChave(ws, "P26U3"), 5), ws.Cells(LinhaChave(ws, "P26U3"), 10)))) < 0.001) & _
@@ -68,9 +68,9 @@ Public Sub TesteLO()
         "|limTambUS4=" & ws.Cells(LinhaChave(ws, "P22U4"), 17).Text & _
         "|limFinosUS4=" & ws.Cells(LinhaChave(ws, "P25U4"), 18).Text & _
         "|limRG=" & ws.Cells(LinhaChave(ws, "P21U3"), 17).Text & "/" & ws.Cells(LinhaChave(ws, "P21U3"), 18).Text & _
-        "|limSiO2MistUS3=" & ws.Cells(LinhaChave(ws, "P04U3"), 18).Text & _
-        "|limSiO2PF=" & ws.Cells(LinhaChave(ws, "P02U3"), 18).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P01U3"), 18).Text & _
-        "|limB2US4=" & ws.Cells(LinhaChave(ws, "P06U4"), 18).Text
+        "|limSiO2MistUS3=" & ws.Cells(LinhaChave(ws, "P05U3"), 18).Text & _
+        "|limSiO2PF=" & ws.Cells(LinhaChave(ws, "P03U3"), 18).Text & "|limPPCPF=" & ws.Cells(LinhaChave(ws, "P02U3"), 18).Text & _
+        "|limB2US4=" & ws.Cells(LinhaChave(ws, "P07U4"), 18).Text
     passo = 3
     r = r & "|batch=" & ws.Cells(LinhaTexto(ws, "Mineroduto 03") + 1, 2).Text & _
         "|dragasVisivel=" & (Not ws.Rows(LinhaTexto(ws, "Dragas")).Hidden) & _

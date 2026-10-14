@@ -71,6 +71,7 @@ def _p(g, nome, un, dec, agg, t3, ty3, t4, ty4, tip3, tip4, cons='Q'):
 
 
 PARAMS = [
+    _p('Alimentação', 'Alimentação da Grelha', 't/h', 0, 'Média', '306TP001-FX001-R', AM, '406-FX-001', AM, 1000, 1100),
     # ---- quimicos
     _p(G_PF, 'PPC', '%', 2, 'Média', 'M650030010-0013-HHLQU', MV, 'M650030010-0013-HHLQU', MV, 3.66, 3.66),
     _p(G_PF, 'SiO2', '%', 2, 'Média', 'M650030010-0004-HHLQU', MV, 'M650030010-0004-HHLQU', MV, 1.29, 1.29),
@@ -81,7 +82,6 @@ PARAMS = [
     _p(G_LM, 'Dosagem de Carvão', 'kg/t', 1, 'Média', 'M710050020-0084-HHLQU', MV, 'M4710050020-0084-HHLQU', MV, 12.7, 17.6),
     _p(G_LM, 'Carbono Fixo', '%', 2, 'Média', 'M710050020-0493-HHLQU', MV, 'M4710050020-0493-HHLQU', MV, 1.07, 1.20),
     # ---- fisicos
-    _p('Alimentação', 'Alimentação da Grelha', 't/h', 0, 'Média', '306TP001-FX001-R', AM, '406-FX-001', AM, 1000, 1100),
     _p(G_PFF, 'Superfície Específica - Alimentação RP', 'cm²/g', 0, 'Média', 'M650060010-0017-HHLFU', MV, 'M4650060010-0017-HHLFU', MV, 2010, 2010),
     _p(G_PFF, 'Superfície Específica - Saída RP', 'cm²/g', 0, 'Média', 'M650060030-0017-HHLFU', MV, 'M4650060030-0017-HHLFU', MV, 2160, 2120),
     _p(G_PFF, '#325 - Saída RP', '%', 1, 'Média', 'M650060030-0016-HHLFU', MV, 'M4650060030-0016-HHLFU', MV, 90.2, 89.9),
@@ -89,9 +89,9 @@ PARAMS = [
     _p(G_PFF, 'H2O - Saída RP', '%', 2, 'Média', 'M650060030-0001-HHLFU', MV, 'M4650060030-0001-HHLFU', MV, 11.0, 11.0),
     _p(G_FP, 'Umidade', '%', 2, 'Média', 'M0650030020-0001-HHLFU', MV, 'M0650030020-0001-HHLFU', MV, 9.6, 9.6),
     _p(G_PC, 'Umidade', '%', 2, 'Média', 'M690025000-0001-HHLFU', MV, 'M4690025000-0001-HHLFU', MV, 9.4, 9.5),
-    _p(G_PC, 'Resiliência', 'nº quedas', 1, 'Média', 'M690025000-0094-HHLFU', MV, 'M4690025000-0094-HHLFU', MV, 5.5, 5.8),
+    _p(G_PC, 'Resiliência', 'nº quedas', 1, 'Média', 'M690025000-0120-HHLFU', MV, 'M4690025000-0120-HHLFU', MV, 5.5, 5.8),
     _p(G_PC, 'Compressão seca', 'kgf/pel', 2, 'Média', 'M690025000-0095-HHLFU', MV, 'M4690025000-0095-HHLFU', MV, 6.2, 6.5),
-    _p(G_PC, 'Compressão úmida', 'kgf/pel', 2, 'Média', 'M690025000-0120-HHLFU', MV, 'M4690025000-0120-HHLFU', MV, 1.6, 1.7),
+    _p(G_PC, 'Compressão úmida', 'kgf/pel', 2, 'Média', 'M690025000-0094-HHLFU', MV, 'M4690025000-0094-HHLFU', MV, 1.6, 1.7),
     _p(G_PQ, 'Faixa +16,0 -8,0 mm', '%', 1, 'Média', 'M710050020-0028-HHLFU', MV, 'M4710050020-0028-HHLFU', MV, 92.5, 90.9),
     _p(G_PQ, 'Relação Granulométrica', '-', 2, 'Média', 'M710050020-2021-HHLFU', MV, 'M4710050020-2021-HHLFU', MV, 0.73, 0.80),
     _p(G_PQ, 'Tamboramento', '%', 1, 'Média', 'M710050020-0029-HHLFU', MV, 'M4710050020-0029-HHLFU', MV, 94.0, 93.9),
@@ -142,6 +142,11 @@ PARAM_LIM = {(G_PF, 'SiO2'): 'PF_SIO2', (G_PF, 'PPC'): 'PF_PPC',
              (G_LM, 'SiO2'): 'LM_SIO2', (G_LM, 'CaO'): 'LM_CAO', (G_LM, 'B2 (CaO/SiO2)'): 'LM_B2',
              (G_PQ, 'Tamboramento'): 'PQ_TAMB', (G_PQ, 'Finos -6,3 mm'): 'PQ_FINOS',
              (G_PQ, 'Relação Granulométrica'): 'PQ_RG'}
+
+
+# Regra entre analises: (grupo, analise) fica VERMELHA quando >= a referencia (mesma usina e mesma janela),
+# VERDE quando menor. Umidade da pelota crua tem que ser menor que a umidade de saida da prensa de rolos.
+REGRA_MENOR_QUE = {(G_PC, 'Umidade'): (G_PFF, 'H2O - Saída RP')}
 
 
 def lim_col(chave, qual):
@@ -756,6 +761,7 @@ class Construtor:
         vermelho = self.wb.add_format({'font_color': '#B42318', 'bold': True, 'bg_color': '#FDE3E1'})
         # colunas auxiliares (ocultas) com o limite minimo e maximo do produto de cada linha
         ws.set_column(col_lim, col_lim + 1, 8, None, {'hidden': True})
+        linhas = {}             # (grupo, analise, k) -> linha (para as regras entre analises)
         for p, pr in enumerate(PARAMS, start=1):
             g, nome, un, dec = pr[:4]
             unica = pr[12]
@@ -782,6 +788,7 @@ class Construtor:
             chave_lim = PARAM_LIM.get((g, nome))
             for k in range(nlin):
                 rr = r + k
+                linhas[(g, nome, k)] = rr
                 ws.set_row(rr, 17)
                 ws.write(rr, 0, 'P%02dU%d' % (p, 3 + k), chave_fmt)
                 ws.write(rr, 3, 'US3/4' if unica else USINAS[k],
@@ -829,6 +836,18 @@ class Construtor:
                         'type': 'formula', 'format': verde,
                         'criteria': '=AND(ISNUMBER({c}),OR(ISNUMBER({mn}),ISNUMBER({mx})),NOT({f}))'.format(
                             c=c0, mn=mn, mx=mx, f=fora)})
+                ref = REGRA_MENOR_QUE.get((g, nome))
+                if ref and (ref[0], ref[1], k) in linhas:
+                    c0 = rc(rr, CS, False, False)
+                    c1 = rc(linhas[(ref[0], ref[1], k)], CS, False, False)
+                    dr = PARAMS[[x[:2] for x in PARAMS].index(ref)][3]
+                    a, b_ = 'ROUND(%s,%d)' % (c0, dec), 'ROUND(%s,%d)' % (c1, dr)
+                    ws.conditional_format(rr, CS, rr, CM, {
+                        'type': 'formula', 'format': vermelho,
+                        'criteria': '=AND(ISNUMBER(%s),ISNUMBER(%s),%s>=%s)' % (c0, c1, a, b_)})
+                    ws.conditional_format(rr, CS, rr, CM, {
+                        'type': 'formula', 'format': verde,
+                        'criteria': '=AND(ISNUMBER(%s),ISNUMBER(%s),%s<%s)' % (c0, c1, a, b_)})
             r += nlin
         return r, UC
 
@@ -990,7 +1009,7 @@ class Construtor:
                            UC + 4)
         ws.set_row(r, 17)
         ws.merge_range(r, 1, r, UC, 'Verde: dentro do limite   |   Vermelho: fora do limite   |   Limites: SMIN-POP-GEA-001 rev. 12   |   '
-                       'Resultado: média (Produção = soma; Ritmo = último valor)',
+                       'Resultado: média (Produção = soma; Ritmo = último valor)   |   Umidade pelota crua: vermelho se >= H2O saída RP',
                        self.f(font_size=8.5, font_color=TEXTO_SEC, italic=True, indent=1))
         fim = r
         self.nome(t + 'Area', ws, 1, 1, fim, UC)
@@ -1055,7 +1074,7 @@ class Construtor:
             ws.data_validation(rr, 2, rr, 2, {'validate': 'list', 'source': '=lstProdutos'})
             self.nome('gProd' + us, ws, rr, 2)
         rodape = ('Verde: dentro do limite   |   Vermelho: fora do limite   |   Limites: SMIN-POP-GEA-001 rev. 12   |   '
-                  'Resultado: média (Produção = soma; Ritmo = último valor)')
+                  'Resultado: média (Produção = soma; Ritmo = último valor)   |   Umidade pelota crua: vermelho se >= H2O saída RP')
         ws.set_row(9, 15)
         ws.merge_range(9, 1, 9, UC, 'Resultados não atualizados', self.f(font_size=8, italic=True,
                                                                               font_color=TEXTO_SEC, indent=1))
