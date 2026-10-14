@@ -85,11 +85,13 @@ SERVIDOR_PADRAO = 'UBU'
 #   S.E. Ubu estava na US3 (M650060010); as demais da Alimentacao 04 estao na US4 (M4650060010)
 #   P e PPC de Ubu: M650030010-0008/-0013-HHLQU (corrigidas pelo laboratorio na planilha de 14/10/2026)
 #   Tags de Ubu (HHL...) usam o codigo com 4 digitos, como todas as tags ja validadas no MES (-0016-, -0008-, -0013-)
-TAGS = {('SE', 0): 'M250010000-17-ABLQ', ('SE', 1): 'M4650060010-0017-HHLFU',
-        ('325', 0): 'M250010000-16-ABLF', ('325', 1): 'M4650060010-0016-HHLFU',
-        ('SiO2', 0): 'M250010000-4-ABLQ', ('SiO2', 1): 'M650030010-0004-HHLQU',
-        ('P', 0): 'M250010000-8-ABLQ', ('P', 1): 'M650030010-0008-HHLQU',
-        ('PPC', 0): 'M250010000-13-ABLQ', ('PPC', 1): 'M650030010-0013-HHLQU'}
+# Germano = MINERODUTO 3 (M4250010000-...), informadas pelo laboratorio em 15/10/2026. As anteriores
+# (M250010000-xx-ABLQ/ABLF, sem zeros) sao do Mineroduto 2 - ficam para a ponderacao MD2 x MD3.
+TAGS = {('SE', 0): 'M4250010000-0017-ABLQ', ('SE', 1): 'M4650060010-0017-HHLFU',
+        ('325', 0): 'M4250010000-0016-ABLF', ('325', 1): 'M4650060010-0016-HHLFU',
+        ('SiO2', 0): 'M4250010000-0004-ABLQ', ('SiO2', 1): 'M650030010-0004-HHLQU',
+        ('P', 0): 'M4250010000-0008-ABLQ', ('P', 1): 'M650030010-0008-HHLQU',
+        ('PPC', 0): 'M4250010000-0013-ABLQ', ('PPC', 1): 'M650030010-0013-HHLQU'}
 MAPA_PADRAO = 'IP_MESVALOR'
 
 
@@ -115,7 +117,7 @@ B_COL_TG = 3              # D  data/hora Germano
 B_COL_V1 = 4              # E  1o valor (SE A); valor (p, lab) em B_COL_V1 + 2p + lab
 B_COL_D1 = 15             # P  1a diferenca
 B_COL_R1 = 20             # U  1o "rank" (par A/B para os graficos)
-B_ROW_G0 = 16             # 1a linha de leituras
+B_ROW_G0 = 17             # 1a linha de leituras
 B_ROW_MED = B_ROW_G0 + NMAX
 B_ROW_CNT = B_ROW_MED + 1
 
@@ -449,77 +451,76 @@ class Construtor:
                          font_size=9.5)
         fcalc_h = self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, num_format='0.0" h"',
                          font_color=INK2, font_size=9.5)
-        # ① ② ③ lado a lado
+        # ① e ③ a esquerda; ② (area de colar, sem nada mesclado em volta) no meio
         ws.set_row(2, 8)
         self.secao(ws, 3, 1, 2, '①  BATCH Nº')
-        self.secao(ws, 3, 3, 7, '②  COLE AS FASES DO EVENTO (MES)')
-        self.secao(ws, 3, 8, 11, '③  NÍVEL DOS TANQUES')
+        self.secao(ws, 3, 3, 11, '②  COLE AS FASES DO EVENTO (MES)')
         ws.merge_range(4, 1, 5, 2, '', self.fi(align='center', bold=True, font_size=16))
         if b:
             ws.write_number(4, 1, b['id'], self.fi(align='center', bold=True, font_size=16))
         self.nome('bId', ws, 4, 1)
-        fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4, border_color='#C9A227')
-        for r in range(4, 9):
-            for c in range(3, 8):
-                ws.write_blank(r, c, None, fpaste)
-        self.nome('bFases', ws, 4, 3, 8, 7)
-        ws.merge_range(9, 3, 9, 7, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True))
-        self.nome('bFasesMsg', ws, 9, 3)
-        ws.merge_range(4, 8, 5, 11, '', self.fi(align='center', bold=True, font_size=13))
+        self.secao(ws, 6, 1, 2, '③  NÍVEL DOS TANQUES')
+        ws.merge_range(7, 1, 7, 2, '', self.fi(align='center', bold=True, font_size=12))
         if b and b.get('nivel'):
-            ws.write_string(4, 8, b['nivel'].capitalize(), self.fi(align='center', bold=True, font_size=13))
-        self.nome('bNivel', ws, 4, 8)
-        ws.data_validation(4, 8, 4, 8, {'validate': 'list', 'source': '=lstNivel'})
-        ws.merge_range(6, 8, 6, 9, 'Atraso no processo', self.f(font_size=8.5, font_color=MUTED, indent=1))
-        ws.merge_range(6, 10, 6, 11, '', fcalc_h)
-        ws.write_formula(6, 10, '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),'
-                                'IF(bNivel<>"",gAtrasoNivel,""))', fcalc_h)
-        self.nome('bAtraso', ws, 6, 10)
-        for r in range(4, 9):
-            ws.set_row(r, 17)
-        ws.set_row(9, 16)
-        # conferencia (preenchida sozinha; da para corrigir)
-        ws.set_row(10, 6)
+            ws.write_string(7, 1, b['nivel'].capitalize(), self.fi(align='center', bold=True, font_size=12))
+        self.nome('bNivel', ws, 7, 1)
+        ws.data_validation(7, 1, 7, 1, {'validate': 'list', 'source': '=lstNivel'})
+        fatr = self.f(align='center', font_color=INK2, font_size=9, num_format='"atraso no processo: "0.0" h"')
+        ws.merge_range(8, 1, 8, 2, '', fatr)
+        ws.write_formula(8, 1, '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),'
+                               'IF(bNivel<>"",gAtrasoNivel,""))', fatr)
+        self.nome('bAtraso', ws, 8, 1)
+        fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4, border_color='#C9A227')
+        for r in range(4, 11):
+            for c in range(3, 12):
+                ws.write_blank(r, c, None, fpaste)
+        self.nome('bFases', ws, 4, 3, 10, 11)
+        ws.merge_range(11, 3, 11, 11, '', self.f(font_size=8.5, font_color=OK, bold=True))
+        self.nome('bFasesMsg', ws, 11, 3)
+        for r in range(4, 11):
+            ws.set_row(r, 16)
+        # conferencia (preenchida sozinha; da para corrigir): rotulos na linha RL, valores na RV
+        RL, RV = 12, 13
         fl = self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom')
         conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
                 (4, 5, 'Ubu · chegada (UBU3)', 'bIniU', fauto_dt), (6, 7, 'Ubu · término', 'bFimU', fauto_dt)]
         for c1, c2, rot, nm, fmt in conf:
             if c2 > c1:
-                ws.merge_range(11, c1, 11, c2, rot.upper(), fl)
+                ws.merge_range(RL, c1, RL, c2, rot.upper(), fl)
             else:
-                ws.write(11, c1, rot.upper(), fl)
-            self.entrada(ws, 12, c1, c2, None, fmt, nm)
-        ws.merge_range(11, 8, 11, 9, '► INÍCIO NO PROCESSO', self.f(bold=True, font_size=7.5, font_color=OK,
+                ws.write(RL, c1, rot.upper(), fl)
+            self.entrada(ws, RV, c1, c2, None, fmt, nm)
+        ws.merge_range(RL, 8, RL, 9, '► INÍCIO NO PROCESSO', self.f(bold=True, font_size=7.5, font_color=OK,
                                                                    valign='bottom'))
         fip = self.f(align='center', bold=True, font_color=OK, bg_color=OK_BG, border=1, border_color='#B9DEC9',
                      num_format='dd/mm/yy hh:mm', font_size=9.5)
-        ws.merge_range(12, 8, 12, 9, '', fip)
-        ws.write_formula(12, 8, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
-        self.nome('bIniP', ws, 12, 8)
-        ws.merge_range(11, 10, 11, 11, 'BI-HORÁRIOS', fl)
-        self.entrada(ws, 12, 10, 11, len(b['rows']) if b else
+        ws.merge_range(RV, 8, RV, 9, '', fip)
+        ws.write_formula(RV, 8, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
+        self.nome('bIniP', ws, RV, 8)
+        ws.merge_range(RL, 10, RL, 11, 'BI-HORÁRIOS', fl)
+        self.entrada(ws, RV, 10, 11, len(b['rows']) if b else
                      '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))', fauto_v, 'bNHor')
-        ws.data_validation(12, 10, 12, 10, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
+        ws.data_validation(RV, 10, RV, 10, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
                                             'maximum': NMAX, 'error_message': 'Entre 1 e %d horários.' % NMAX})
-        ws.merge_range(11, 12, 11, 13, 'DEFASAGEM', fl)
-        ws.merge_range(12, 12, 12, 13, '', fcalc_h)
-        ws.write_formula(12, 12, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fcalc_h)
-        self.nome('bDef', ws, 12, 12)
+        ws.merge_range(RL, 12, RL, 13, 'DEFASAGEM', fl)
+        ws.merge_range(RV, 12, RV, 13, '', fcalc_h)
+        ws.write_formula(RV, 12, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fcalc_h)
+        self.nome('bDef', ws, RV, 12)
         fdata = self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC', border=1, border_color=LINE2,
                        locked=False, font_size=9.5)
-        ws.merge_range(11, 15, 11, 16, 'DATA DO REPORT', fl)
-        ws.merge_range(12, 15, 12, 16, '', fdata)
+        ws.merge_range(RL, 15, RL, 16, 'DATA DO REPORT', fl)
+        ws.merge_range(RV, 15, RV, 16, '', fdata)
         if b:
-            ws.write_datetime(12, 15, dtm.datetime.strptime(b.get('chegada') or b['rows'][0]['data'], '%Y-%m-%d'), fdata)
+            ws.write_datetime(RV, 15, dtm.datetime.strptime(b.get('chegada') or b['rows'][0]['data'], '%Y-%m-%d'), fdata)
         else:
-            ws.write_formula(12, 15, '=TODAY()', fdata)
-        self.nome('bData', ws, 12, 15)
-        ws.merge_range(11, 17, 11, 18, 'MINERODUTO', fl)
-        self.entrada(ws, 12, 17, 18, '03', fauto_v, 'bMin')
-        ws.data_validation(12, 17, 12, 17, {'validate': 'list', 'source': '=lstMin'})
-        ws.set_row(11, 14)
-        ws.set_row(12, 22)
-        ws.set_row(13, 8)
+            ws.write_formula(RV, 15, '=TODAY()', fdata)
+        self.nome('bData', ws, RV, 15)
+        ws.merge_range(RL, 17, RL, 18, 'MINERODUTO', fl)
+        self.entrada(ws, RV, 17, 18, '03', fauto_v, 'bMin')
+        ws.data_validation(RV, 17, RV, 17, {'validate': 'list', 'source': '=lstMin'})
+        ws.set_row(RL, 14)
+        ws.set_row(RV, 22)
+        ws.set_row(RV + 1, 8)
 
         # --- leituras
         self.secao(ws, B_ROW_G0 - 2, 1, 19, 'LEITURAS POR HORÁRIO  (em branco = sem análise no laboratório)')

@@ -8,7 +8,7 @@ Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTM
 | Aba | Para quê |
 |---|---|
 | **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários** e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo. |
-| **Batch** | Passos lado a lado: ① **batch Nº**, ② **colar as Fases do Evento** do MES, ③ **nível dos tanques**; linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); a grade de **leituras por horário** logo abaixo; depois comentários e ajustes opcionais. Botões: Buscar no MES, Salvar no histórico, Novo batch, Limpar leituras, Ver painel. Abre com um batch em branco. |
+| **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); a grade de **leituras por horário** logo abaixo; depois comentários e ajustes opcionais. Botões: Buscar no MES, Salvar no histórico, Novo batch, Limpar leituras, Ver painel. Abre com um batch em branco. |
 | **Enviar** | Resumo curto para o corpo do e-mail (batch, parâmetros fora da tolerância e os comentários) e o assunto. Botões: Copiar resumo e Copiar painel (imagem). |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. |
 | **BD_Leituras** | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
@@ -43,9 +43,11 @@ Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cá
   a tag é corrigida sozinha na aba Configurações. Resposta "Sucesso" sem resultados: a planilha monta a matriz
   `ShowCalculationValues` e espera mais uma vez.
 - Análise **sem tag** fica fora da consulta (lançamento manual na grade). Para treinar sem MES: Fonte = SIMULAÇÃO.
-- Tags (aba Configurações), conferidas pelo laboratório em 14/10/2026: Germano `M250010000-17-ABLQ` (S.E.),
-  `-16-ABLF` (<325#), `-4-ABLQ` (SiO₂), `-8-ABLQ` (P), `-13-ABLQ` (PPC); Ubu `M4650060010-0017-HHLFU` (S.E.),
+- Tags (aba Configurações): Germano **Mineroduto 3** `M4250010000-0017-ABLQ` (S.E.), `-0016-ABLF` (<325#),
+  `-0004-ABLQ` (SiO₂), `-0008-ABLQ` (P), `-0013-ABLQ` (PPC); Ubu `M4650060010-0017-HHLFU` (S.E.),
   `M4650060010-0016-HHLFU` (<325#), `M650030010-0004/-0008/-0013-HHLQU` (SiO₂, P, PPC).
+  Tags do Mineroduto 2 (para a futura ponderação por volume): `M250010000-17-ABLQ`, `-16-ABLF`, `-4-ABLQ`,
+  `-8-ABLQ`, `-13-ABLQ`. Tabulações e quebras de linha coladas junto com a tag são removidas.
 
 ## Histórico
 

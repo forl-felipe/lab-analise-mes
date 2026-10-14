@@ -5,7 +5,7 @@ Public Const NP As Long = 5
 Public Const NMAX As Long = 24
 Public Const HORAS_SLOT As Double = 2
 ' aba Batch (1-based)
-Public Const B_ROW_G0 As Long = 17
+Public Const B_ROW_G0 As Long = 18
 Public Const B_COL_N As Long = 2
 Public Const B_COL_TU As Long = 3
 Public Const B_COL_TG As Long = 4

@@ -127,7 +127,16 @@ End Sub
 Public Function TagCfg(ByVal p As Long, ByVal lab As Long, ByVal campo As Long) As String
     Dim v As Variant
     v = shConfig.Cells(C_ROW_TAG0 + 2 * (p - 1) + lab, campo).Value
-    If IsError(v) Then TagCfg = "" Else TagCfg = Trim$(CStr(v))
+    If IsError(v) Then TagCfg = "" Else TagCfg = Limpo(CStr(v))
+End Function
+
+' Sem tabulacao, quebra de linha e espaco duro (vem junto quando a tag e copiada de outro programa)
+Public Function Limpo(ByVal t As String) As String
+    t = Replace(t, vbTab, "")
+    t = Replace(t, vbCr, "")
+    t = Replace(t, vbLf, "")
+    t = Replace(t, ChrW(160), "")
+    Limpo = Trim$(t)
 End Function
 
 Private Function TagInvalida(ByVal t As String) As Boolean

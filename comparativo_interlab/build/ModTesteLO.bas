@@ -196,6 +196,8 @@ Public Sub TesteLO()
     Ok Not shDadosMES.Range("A40").HasFormula And Not shDadosMES.Range("A10").HasFormula, "consulta desligada depois da falha"
     Nm("cfgFonte").Value = "SIMULAÇÃO"
 
+    Ok Limpo("M4250010000-0004-ABLQ" & vbTab) = "M4250010000-0004-ABLQ", "tag com tabulacao no fim e limpa"
+
     ' --- variantes do codigo da tag
     Ok VarianteTag("M4650060010-0008-HHLQU") = "M4650060010-8-HHLQU", "variante -0008- -> -8-"
     Ok VarianteTag("M250010000-17-ABLF") = "M250010000-0017-ABLF", "variante -17- -> -0017-"
