@@ -27,10 +27,15 @@ Ocultas: `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos e cál
 
 - Uma fórmula `GetCalculationValues` por laboratório, igual aos relatórios do laboratório (tags, servidores e mapas
   em texto literal, intervalo `2h`). Tags recusadas pelo MES saem da consulta, que é refeita com as demais.
-- **Ubu**: janelas de 2 h a partir do *Início no processo em Ubu* (horário 11:30 = janela 11:00–13:00).
-- **Germano**: as mesmas janelas deslocadas pela **defasagem** (*Início em Germano*); em branco = mesmo horário de Ubu.
-- Análise **sem tag** fica fora da consulta (lançamento manual na grade).
-- As tags ainda **não estão cadastradas**: preencher em Configurações. Para treinar sem MES: Fonte = SIMULAÇÃO.
+- Horários do batch copiados da **tela de eventos do MES** (Fases do Evento): **Germano** = início e término do
+  bombeamento (ex.: EB06); **Ubu** = Terminal Ponta Ubu (UBU3).
+- Janelas de 2 h na grade 07:00, 09:00, 11:00… (aba Configurações). A 1ª janela é a **primeira completa depois do
+  início** (UBU3 13/10 09:18 → janela 11:00–13:00, mostrada como 11:30). O Nº de horários sai do término de Ubu.
+- Germano: mesma regra a partir do início do bombeamento, até o término (EB06 11/10 00:00 → 01:30, 03:30…).
+  O horário 1 de Germano é comparado com o horário 1 de Ubu, e assim por diante (a **defasagem** aparece no batch).
+  Sem início de Germano = mesmos horários de Ubu.
+- Análise **sem tag** fica fora da consulta (lançamento manual na grade). Para treinar sem MES: Fonte = SIMULAÇÃO.
+- Tags cadastradas pelo laboratório em 14/10/2026 (aba Configurações).
 
 ## Histórico inicial
 

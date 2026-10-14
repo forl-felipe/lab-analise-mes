@@ -79,6 +79,12 @@ NMAX = 24            # horarios por batch (2 h cada = 48 h)
 NHOR_PADRAO = 14
 LABS = ('Germano', 'Ubu')
 SERVIDOR_PADRAO = 'UBU'
+# Tags informadas pelo laboratorio (aba Configuracoes da planilha devolvida em 14/10/2026), sem alteracao
+TAGS = {('SE', 0): 'M250010000-13-ABLQ', ('SE', 1): 'M650060010-0017-HHLFU',
+        ('325', 0): 'M250010000-16-ABLF', ('325', 1): 'M4650060010-16-HHLFU',
+        ('SiO2', 0): 'M250010000-4-ABLQ', ('SiO2', 1): 'M650030010-0004-HHLQU',
+        ('P', 0): 'M250010000-8-ABLQ', ('P', 1): 'M4650060010-8-HHLQU',
+        ('PPC', 0): 'M250010000-13-ABLQ', ('PPC', 1): 'M4650060010-13-HHLQU'}
 MAPA_PADRAO = 'IP_MESVALOR'
 
 
@@ -121,7 +127,8 @@ C_COL = dict(PARAM=1, LAB=2, TAG=3, SERV=4, MAPA=5, VMIN=6, VMAX=7, TIP=8)
 
 # ---------------------------------------------------------------- Histórico
 H_ROW_HDR = 6             # cabecalho da tabela tbl_Batches (0-based)
-H_COLS = (['Batch', 'Data do report', 'Mineroduto', 'Início Ubu', 'Início Germano', 'Nº horários',
+H_COLS = (['Batch', 'Data do report', 'Mineroduto', 'Início Ubu', 'Início Germano', 'Término Germano', 'Término Ubu',
+           'Nº horários',
            'Laboratório A', 'Laboratório B', 'Referência', 'Título', 'Subtítulo'] +
           ['Tol %s' % p[1] for p in PARAMS] +
           ['Frase automática'] + ['Comentário %d' % i for i in range(1, 7)] +
@@ -298,7 +305,7 @@ class Construtor:
                 r = C_ROW_TAG0 + p * 2 + lab
                 ws.write(r, C_COL['PARAM'], pr[1], fl)
                 ws.write(r, C_COL['LAB'], LABS[lab], fc)
-                ws.write_blank(r, C_COL['TAG'], None, self.fi(font_name='Consolas', font_size=9.5))
+                ws.write_string(r, C_COL['TAG'], TAGS.get((pr[0], lab), ''), self.fi(font_name='Consolas', font_size=9.5))
                 ws.write(r, C_COL['SERV'], SERVIDOR_PADRAO, self.fi(align='center'))
                 ws.write(r, C_COL['MAPA'], MAPA_PADRAO, self.fi(align='center'))
                 ws.write(r, C_COL['VMIN'], pr[6][0], self.fi(align='center'))
@@ -320,8 +327,12 @@ class Construtor:
             ('cfgTimeout', 'Tempo máximo de espera (s)', 120, 'Quanto esperar a resposta do Aspen'),
             ('cfgFormatoData', 'Formato da data para o MES', 'Texto dd/mm/aaaa',
              'Data do Excel, Texto dd/mm/aaaa ou Texto mm/dd/aaaa'),
-            ('cfgMinAntes', 'Janela começa antes do horário (min)', 30,
-             'Horário 11:30 = janela de 2 h que começa às 11:00 (30 min antes)'),
+            ('cfgMinAntes', 'Horário da linha após o início da janela (min)', 30,
+             'Janela de 2 h que começa às 11:00 aparece como 11:30 (início + 30 min)'),
+            ('cfgGradeU', 'Grade das janelas de Ubu (hora)', dtm.time(7, 0),
+             'Janelas de 2 h a partir desta hora (07:00, 09:00, 11:00...). 1ª janela = 1ª completa após o início'),
+            ('cfgGradeG', 'Grade das janelas de Germano (hora)', dtm.time(7, 0),
+             'Idem para Germano (a partir do início do bombeamento)'),
             ('cfgCalc', 'Tipo de cálculo do Aspen', '1', '1 = média da janela (como nos relatórios do físico)'),
         ]
         self.cfg_rows = {}
@@ -331,6 +342,8 @@ class Construtor:
             ws.merge_range(rr, 2, rr, 3, '', self.fi(align='center'))
             if isinstance(val, str):
                 ws.write_string(rr, 2, val, self.fi(align='center'))
+            elif isinstance(val, dtm.time):
+                ws.write_datetime(rr, 2, dtm.datetime.combine(dtm.date(1899, 12, 31), val), self.fi(align='center', num_format='hh:mm'))
             else:
                 ws.write(rr, 2, val, self.fi(align='center'))
             ws.merge_range(rr, 4, rr, 8, desc, fd)
@@ -434,29 +447,33 @@ class Construtor:
                          self.f(align='center', font_color=INK2, font_size=9, bold=True))
 
         # --- horarios
-        self.secao(ws, 11, 1, 13, 'HORÁRIOS PARA A CONSULTA AO MES (JANELAS DE 2 H)')
+        self.secao(ws, 11, 1, 13, 'HORÁRIOS DO BATCH (TELA DE EVENTOS DO MES — FASES DO MINERODUTO)')
         t0 = dtm.datetime.strptime(b['rows'][0]['data'] + ' ' + b['rows'][0]['hora'], '%Y-%m-%d %H:%M')
         fdt = self.fi(align='center', num_format='dd/mm/yyyy hh:mm')
-        self.rotulo(ws, 12, 1, 2, 'Início no processo em Ubu')
-        self.entrada(ws, 13, 1, 2, None, fdt, 'bIniU')
-        ws.write_datetime(13, 1, t0, fdt)
-        self.rotulo(ws, 12, 3, 3, 'Início em Germano')
-        self.entrada(ws, 13, 3, 3, None, fdt, 'bIniG')
-        self.rotulo(ws, 12, 4, 5, 'Nº de horários')
-        self.entrada(ws, 13, 4, 5, len(b['rows']), fv, 'bNHor')
-        ws.data_validation(13, 4, 13, 4, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
+        campos_h = [(1, 2, 'Germano · início (EB06)', 'bIniG', None), (3, 3, 'Germano · término', 'bFimG', None),
+                    (4, 5, 'Ubu · início (UBU3)', 'bIniU', t0 - dtm.timedelta(minutes=30)),
+                    (6, 7, 'Ubu · término', 'bFimU', None)]
+        for c1, c2, rot, nm, val in campos_h:
+            self.rotulo(ws, 12, c1, c2, rot)
+            self.entrada(ws, 13, c1, c2, None, fdt, nm)
+            if val is not None:
+                ws.write_datetime(13, c1, val, fdt)
+        self.rotulo(ws, 12, 8, 9, 'Nº de horários (Ubu)')
+        self.entrada(ws, 13, 8, 9, len(b['rows']), fv, 'bNHor')
+        ws.data_validation(13, 8, 13, 8, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
                                           'maximum': NMAX, 'error_message': 'Entre 1 e %d horários.' % NMAX})
-        self.rotulo(ws, 12, 6, 7, 'Defasagem (h)')
-        ws.merge_range(13, 6, 13, 7, '', self.f(align='center', bold=True, border=1, border_color=LINE2,
-                                               bg_color=SEC))
-        ws.write_formula(13, 6, '=IF(AND(ISNUMBER(bIniU),ISNUMBER(bIniG)),ROUND((bIniU-bIniG)*24,2),"")',
-                         self.f(align='center', bold=True, border=1, border_color=LINE2, bg_color=SEC,
-                                num_format='0.0" h"'))
-        self.nome('bDef', ws, 13, 6)
-        ws.merge_range(12, 8, 13, 13, 'Ubu: 1º horário no processo. Germano: horário do mesmo material em '
-                       'Germano (em branco = mesmo horário de Ubu). Os horários seguintes andam de 2 em 2 h.',
+        self.rotulo(ws, 12, 10, 11, 'Defasagem Ubu − Germano')
+        fdef = self.f(align='center', bold=True, border=1, border_color=LINE2, bg_color=SEC, num_format='0.0" h"')
+        ws.merge_range(13, 10, 13, 11, '', fdef)
+        ws.write_formula(13, 10, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fdef)
+        self.nome('bDef', ws, 13, 10)
+        ws.merge_range(14, 1, 14, 13, 'Copie da tela de eventos do MES (Fases do Evento): Germano = início e término do '
+                       'bombeamento (ex.: EB06); Ubu = Terminal Ponta Ubu (UBU3). Janelas de 2 h: a 1ª é a primeira '
+                       'completa depois do início; Germano em branco = mesmo horário de Ubu. O Nº de horários sai do '
+                       'término de Ubu (dá para mudar).',
                        self.f(font_size=8, font_color=MUTED, text_wrap=True, valign='top'))
         ws.set_row(13, 22)
+        ws.set_row(14, 24)
 
         # --- tolerancias
         self.secao(ws, 15, 1, 13, 'TOLERÂNCIAS (|DIFERENÇA| MÁXIMA ACEITA) — CRITÉRIO OK/NOK DO FAROL')
@@ -530,13 +547,8 @@ class Construtor:
         for i in range(NMAX):
             r = r0 + i
             ws.write(r, B_COL_N, i + 1, fn)
-            if i < len(rows):
-                t = dtm.datetime.strptime(rows[i]['data'] + ' ' + rows[i]['hora'], '%Y-%m-%d %H:%M')
-                ws.write_datetime(r, B_COL_TU, t, ftu)
-            else:
-                ws.write_formula(r, B_COL_TU, self.f_hora_u(i), ftu)
-            ws.write_formula(r, B_COL_TG, '=IF(ISNUMBER(%s),IF(ISNUMBER(bDef),%s-bDef/24,%s),"")'
-                             % (rc(r, B_COL_TU), rc(r, B_COL_TU), rc(r, B_COL_TU)), ftg)
+            ws.write_formula(r, B_COL_TU, self.f_hora_u(i), ftu)
+            ws.write_formula(r, B_COL_TG, self.f_hora_g(i, rc(r, B_COL_TU)), ftg)
             for p, pr in enumerate(PARAMS):
                 for lab in range(2):
                     c = B_COL_V1 + 2 * p + lab
@@ -606,9 +618,9 @@ class Construtor:
         self.botao(ws, 14, 15, 'Limpar leituras', 'LimparLeituras', 186, 28, 'd', x=4, y=6)
         self.botao(ws, 16, 15, 'Importar da planilha antiga', 'IrImportar', 186, 28, 's', x=4, y=8)
         ws.merge_range(19, 15, 26, 19, '', self.f())
-        ws.write(19, 15, 'Como usar:\n1. Batch Nº, data e horários de início.\n2. Buscar no MES (Germano e '
-                 'Ubu, de 2 em 2 h).\n3. Conferir as leituras (dá para digitar).\n4. Comentários e PFUF.\n'
-                 '5. Salvar no histórico.\n6. Painel → Copiar imagem / E-mail.',
+        ws.write(19, 15, 'Como usar:\n1. Batch Nº e data.\n2. Início/término de Germano (EB06) e de Ubu (UBU3), da '
+                 'tela de eventos do MES.\n3. Buscar no MES (de 2 em 2 h).\n4. Conferir as leituras (dá para digitar).\n5. Comentários e PFUF.\n'
+                 '6. Salvar no histórico.\n7. Painel → Copiar imagem / E-mail.',
                  self.f(font_size=8.5, font_color=INK2, text_wrap=True, valign='top', bg_color='#F5F8FD',
                         left=5, left_color=NAVY2))
         ws.print_area(0, 0, B_ROW_CNT, 19)
@@ -618,9 +630,17 @@ class Construtor:
         ws.protect('', {'format_columns': True, 'format_rows': True, 'select_locked_cells': True,
                         'select_unlocked_cells': True})
 
-    def f_hora_u(self, i):
-        """Horario do processo em Ubu da linha i (0-based): inicio + i x 2 h (ate o Nº de horarios)."""
-        return '=IF(AND(ISNUMBER(bIniU),%d<=bNHor),bIniU+%d/12,"")' % (i + 1, i)
+    @staticmethod
+    def f_hora_u(i):
+        """Horario da linha i (0-based) em Ubu: 1a janela + i x 2 h + 30 min (ate o Nº de horarios).
+        (mesma formula em ModMES.RestaurarHorarios)"""
+        return '=IF(AND(ISNUMBER(gJanU),%d<=bNHor),gJanU+%d/12+cfgMinAntes/1440,"")' % (i + 1, i)
+
+    @staticmethod
+    def f_hora_g(i, cel_u):
+        """Horario da linha i em Germano: 1a janela de Germano + i x 2 h (ate o termino); sem inicio = Ubu."""
+        return ('=IF(ISNUMBER(%s),IF(ISNUMBER(gJanG),IF(%d<=gNG,gJanG+%d/12+cfgMinAntes/1440,""),%s),"")'
+                % (cel_u, i + 1, i, cel_u))
 
     # ------------------------------------------------------------ _Graf (series e farol)
     def aba_graf(self):
@@ -719,6 +739,21 @@ class Construtor:
         self.nome('gAvalNome', ws, X + 3, 1)
         self.nome('gDataTxt', ws, X + 4, 1)
         self.nome('gLegDif', ws, X + 5, 1)
+        # 1a janela completa de 2 h depois do inicio (grade da aba Configuracoes) e Nº de janelas de Germano
+        ws.write(X + 8, 0, 'Janela Ubu')
+        ws.write_formula(X + 8, 1, '=IF(ISNUMBER(bIniU),cfgGradeU+ROUNDUP((bIniU-cfgGradeU)*12-0.000001,0)/12,"")')
+        ws.write(X + 9, 0, 'Janela Germano')
+        ws.write_formula(X + 9, 1, '=IF(ISNUMBER(bIniG),cfgGradeG+ROUNDUP((bIniG-cfgGradeG)*12-0.000001,0)/12,"")')
+        ws.write(X + 10, 0, 'Janelas Germano')
+        ws.write_formula(X + 10, 1, '=IF(AND(ISNUMBER(%s),ISNUMBER(bFimG)),MIN(bNHor,MAX(0,ROUNDUP((bFimG-%s)*12-0.000001,0))),bNHor)'
+                         % (rc(X + 9, 1), rc(X + 9, 1)))
+        ws.write(X + 11, 0, 'Nº horários (término Ubu)')
+        ws.write_formula(X + 11, 1, '=IF(AND(ISNUMBER(%s),ISNUMBER(bFimU)),MIN(%d,MAX(1,ROUNDUP((bFimU-%s)*12-0.000001,0))),"")'
+                         % (rc(X + 8, 1), NMAX, rc(X + 8, 1)))
+        self.nome('gJanU', ws, X + 8, 1)
+        self.nome('gJanG', ws, X + 9, 1)
+        self.nome('gNG', ws, X + 10, 1)
+        self.nome('gNHorFim', ws, X + 11, 1)
         ws.write_formula(X + 6, 0, '=bLabA&IF(bRef=bLabA," (ref.)","")')
         ws.write_formula(X + 6, 1, '=bLabB&IF(bRef=bLabB," (ref.)","")')
         self.nome('gSerieA', ws, X + 6, 0)
@@ -1096,7 +1131,8 @@ class Construtor:
             t0 = dtm.datetime.strptime(b['rows'][0]['data'] + ' ' + b['rows'][0]['hora'], '%Y-%m-%d %H:%M')
             drep = dtm.datetime.strptime(b.get('chegada') or b['rows'][0]['data'], '%Y-%m-%d')
             st = self.stats_batch(b)
-            linha = [b['id'], drep, '03', t0, None, len(b['rows']), 'Germano', 'Ubu', 'Germano',
+            linha = [b['id'], drep, '03', t0 - dtm.timedelta(minutes=30), None, None, None, len(b['rows']),
+                     'Germano', 'Ubu', 'Germano',
                      'COMPARATIVO DE MEDIÇÕES DE QUALIDADE', 'Batch bombeado e pellet feed recebido']
             linha += [pr[5] for pr in PARAMS]
             com = self.comentarios(b)
@@ -1132,7 +1168,7 @@ class Construtor:
             fmt = ftxt
             if h in ('Data do report',):
                 fmt = fdate
-            elif h in ('Início Ubu', 'Início Germano', 'Salvo em'):
+            elif h in ('Início Ubu', 'Início Germano', 'Término Germano', 'Término Ubu', 'Salvo em'):
                 fmt = fdt
             elif 'média' in h or 'diferença' in h or h.startswith('Tol') or h.startswith('PFUF ') and h != 'PFUF data':
                 fmt = fnum

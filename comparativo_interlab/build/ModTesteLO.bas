@@ -50,14 +50,20 @@ Public Sub TesteLO()
     Ok id = 291, "novo batch = 291 (" & id & ")"
     Ok Not ENumero(Celula(1, pSE, 0)), "novo batch sem leituras"
     Nm("bIniU").Value = DateSerial(2026, 10, 10) + TimeSerial(7, 30, 0)
+    Nm("bFimU").Value = DateSerial(2026, 10, 11) + TimeSerial(8, 10, 0)
     Nm("bIniG").Value = DateSerial(2026, 10, 8) + TimeSerial(5, 30, 0)
-    Nm("bNHor").Value = 12
+    Nm("bFimG").Value = DateSerial(2026, 10, 8) + TimeSerial(20, 0, 0)
     Recalcular
+    Ok CLng(V("bNHor")) = 12, "Nº de horarios pelo termino de Ubu = 12 (" & V("bNHor") & ")"
+    Ok CLng(V("gNG")) = 7, "janelas de Germano pelo termino = 7 (" & V("gNG") & ")"
     Ok Abs(CDbl(V("bDef")) - 50) < 0.01, "defasagem 50 h (" & V("bDef") & ")"
-    Ok Abs(CDbl(shBatch.Cells(B_ROW_G0 + 1, B_COL_TU).Value) - CDbl(DateSerial(2026, 10, 10) + TimeSerial(9, 30, 0))) < 0.0001, _
-       "2o horario Ubu 09:30"
-    Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TG).Value) - CDbl(DateSerial(2026, 10, 8) + TimeSerial(5, 30, 0))) < 0.0001, _
-       "1o horario Germano 08/10 05:30"
+    Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value) - CDbl(DateSerial(2026, 10, 10) + TimeSerial(9, 30, 0))) < 0.0001, _
+       "1o horario Ubu 10/10 09:30 (1a janela completa 09:00)"
+    Ok Abs(CDbl(shBatch.Cells(B_ROW_G0 + 1, B_COL_TU).Value) - CDbl(DateSerial(2026, 10, 10) + TimeSerial(11, 30, 0))) < 0.0001, _
+       "2o horario Ubu 11:30"
+    Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TG).Value) - CDbl(DateSerial(2026, 10, 8) + TimeSerial(7, 30, 0))) < 0.0001, _
+       "1o horario Germano 08/10 07:30"
+    Ok shBatch.Cells(B_ROW_G0 + 7, B_COL_TG).Text = "", "8o horario Germano vazio (fim do bombeamento)"
     Ok shBatch.Cells(B_ROW_G0 + 12, B_COL_TU).Text = "", "13o horario vazio (Nº de horarios = 12)"
     BuscarMES
     Recalcular
@@ -65,10 +71,11 @@ Public Sub TesteLO()
     For i = 1 To 12
         If ENumero(Celula(i, pSE, 0)) Then n = n + 1
     Next i
-    Ok n = 12, "simulacao: 12 S.E. Germano (" & n & ")"
+    Ok n = 7, "simulacao: 7 S.E. Germano (" & n & ")"
+    Ok ENumero(Celula(12, pSE, 1)), "simulacao: S.E. Ubu ate o 12o horario"
     Ok ENumero(Celula(1, pSE, 1)) And Not ENumero(Celula(2, PIndice("325"), 1)), "Ubu: S.E. a cada 2 h, <325# a cada 6 h"
-    Ok CLng(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_NP).Value) = 12, "12 pares S.E. no grafico"
-    Ok CStr(shGraf.Cells(2 + 12, (pSE - 1) * G_BLOCO + 1).Value) = "Média", "rotulo Media apos os pares"
+    Ok CLng(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_NP).Value) = 7, "7 pares S.E. no grafico"
+    Ok CStr(shGraf.Cells(2 + 7, (pSE - 1) * G_BLOCO + 1).Value) = "Média", "rotulo Media apos os pares"
     salvo1 = Celula(3, pSi, 0)
     salvo2 = Celula(5, pSE, 1)
     SalvarHistorico
@@ -79,7 +86,7 @@ Public Sub TesteLO()
         If Vazio(shLeituras.Cells(i, 1).Value) Then Exit For
         If CLng(shLeituras.Cells(i, 1).Value) = id Then nL = nL + 1
     Next i
-    Ok nL = 12 * 5, "leituras do 291 em BD_Leituras (" & nL & ")"
+    Ok nL = 47, "leituras do 291 em BD_Leituras (" & nL & ")"
     Ok InStr(gUltimaMsg, "Erro") = 0, "nenhuma mensagem de erro: " & gUltimaMsg
     Ok CStr(shHist.Cells(r, H_COL1 + 2).Value) = "03", "mineroduto gravado como texto 03 (" & shHist.Cells(r, H_COL1 + 2).Value & ")"
 
@@ -164,6 +171,19 @@ Public Sub TesteLO()
        "argumentos da consulta Ubu: " & Left$(s, 140)
     s = TesteTagsInvalidas("Error: Tag Name TAG-UBU-SIO2 is invalid")
     Ok InStr(s, "TAG-UBU-SIO2") > 0, "tag recusada identificada"
+
+    ' --- batch 285 da tela de eventos do MES (EB06 / UBU3)
+    NovoBatch
+    Nm("bIniG").Value = DateSerial(2026, 10, 11)
+    Nm("bFimG").Value = DateSerial(2026, 10, 11) + TimeSerial(23, 59, 0)
+    Nm("bIniU").Value = DateSerial(2026, 10, 13) + TimeSerial(9, 18, 0)
+    Nm("bFimU").Value = DateSerial(2026, 10, 14) + TimeSerial(10, 37, 0)
+    Recalcular
+    Ok shBatch.Cells(B_ROW_G0, B_COL_TU).Text <> "" And Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(11, 0, 0))) < 0.0001, _
+       "285: 1a janela Ubu 13/10 11:00"
+    Ok Abs(CDbl(V("gJanG")) - CDbl(DateSerial(2026, 10, 11) + TimeSerial(1, 0, 0))) < 0.0001, "285: 1a janela Germano 11/10 01:00"
+    Ok CLng(V("bNHor")) = 12 And CLng(V("gNG")) = 12, "285: 12 horarios Ubu e 12 Germano (" & V("bNHor") & "/" & V("gNG") & ")"
+    Ok Abs(CDbl(V("bDef")) - 58) < 0.01, "285: defasagem 58 h (" & V("bDef") & ")"
 
     GoTo Fim
 Erro:

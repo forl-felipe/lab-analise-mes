@@ -30,11 +30,11 @@ Public Const G_COL_MB As Long = 3
 Public Const G_COL_D As Long = 4
 Public Const G_COL_ST As Long = 6
 ' Historico: colunas da tabela tbl_Batches (ordem)
-Public Const H_NCOL As Long = 52
+Public Const H_NCOL As Long = 54
 Public Const H_ROW_HDR As Long = 7
 Public Const H_COL1 As Long = 2
 ' coluna (na tabela) da 1a estatistica (media A do 1o parametro)
-Public Const H_COL_STAT1 As Long = 29
+Public Const H_COL_STAT1 As Long = 31
 Public Const L_NCOL As Long = 10
 ' chaves e rotulos dos parametros (ordem das colunas da aba Batch)
 Public Const P_CHAVES As String = "SE|325|SiO2|P|PPC"

@@ -10,7 +10,7 @@ Option Explicit
 ' Campos da aba Batch na ordem das primeiras colunas de tbl_Batches
 Private Function CamposBatch() As Variant
     Dim c As String, p As Long
-    c = "bId|bData|bMin|bIniU|bIniG|bNHor|bLabA|bLabB|bRef|bTit|bSub"
+    c = "bId|bData|bMin|bIniU|bIniG|bFimG|bFimU|bNHor|bLabA|bLabB|bRef|bTit|bSub"
     For p = 1 To NP
         c = c & "|bTol_" & PChave(p)
     Next p
@@ -381,7 +381,9 @@ Public Sub NovoBatch()
     Nm("bSub").Formula = "=padSub"
     Nm("bIniU").ClearContents
     Nm("bIniG").ClearContents
-    Nm("bNHor").Formula = "=padNHor"
+    Nm("bFimG").ClearContents
+    Nm("bFimU").ClearContents
+    Nm("bNHor").Formula = "=IF(ISNUMBER(gNHorFim),gNHorFim,padNHor)"
     For p = 1 To NP
         Nm("bTol_" & PChave(p)).Formula = "=padTol_" & PChave(p)
     Next p
@@ -407,7 +409,7 @@ Public Sub NovoBatch()
     Nm("bIniU").Select
     On Error GoTo 0
     Aviso "Novo batch " & novo & " em branco." & vbCrLf & vbCrLf & _
-          "Informe o início no processo em Ubu (e em Germano) e use Buscar no MES.", vbInformation, "Novo batch"
+          "Informe início e término de Germano (EB06) e de Ubu (UBU3) da tela de eventos do MES e use Buscar no MES.", vbInformation, "Novo batch"
 End Sub
 
 Public Sub LimparLeituras()
@@ -537,8 +539,11 @@ Public Sub ImportarColado()
     ModoCarga True
     Desproteger shBatch
     Nm("bId").Value = id
-    Nm("bIniU").Value = CDate(chaves(1))
+    ' inicio = comeco da janela do 1o horario (horario da linha - minutos da configuracao)
+    Nm("bIniU").Value = CDate(chaves(1) - MinutosRotulo() / 1440)
     Nm("bIniG").ClearContents
+    Nm("bFimG").ClearContents
+    Nm("bFimU").ClearContents
     Nm("bNHor").Value = nCh
     If Not EData(Nm("bData").Value) Or novo Then Nm("bData").Value = CDate(Int(chaves(1)))
     shBatch.Range(shBatch.Cells(B_ROW_G0, B_COL_V1), shBatch.Cells(B_ROW_G0 + NMAX - 1, B_COL_V1 + 2 * NP - 1)).ClearContents

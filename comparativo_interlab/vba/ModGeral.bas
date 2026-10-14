@@ -101,6 +101,12 @@ Public Function ColValor(ByVal p As Long, ByVal lab As Long) As Long
     ColValor = B_COL_V1 + 2 * (p - 1) + lab
 End Function
 
+' Minutos entre o inicio da janela de 2 h e o horario mostrado na linha (padrao 30: 11:00 -> 11:30)
+Public Function MinutosRotulo() As Double
+    MinutosRotulo = 30
+    If ENumero(Nm("cfgMinAntes").Value) Then MinutosRotulo = CDbl(Nm("cfgMinAntes").Value)
+End Function
+
 ' Recalcula a pasta (o LibreOffice sem janela nao aceita Application.Calculate)
 Public Sub Recalcular()
     On Error Resume Next

@@ -27,7 +27,7 @@ Private mInvalidas As String
 
 ' ---------------------------------------------------------------- botao
 Public Sub BuscarMES()
-    Dim vIni As Variant, n As Long, iniU As Date, iniG As Date, minAntes As Double
+    Dim n As Long, nG As Long, iniU As Date, iniG As Date
     Dim resG As Variant, resU As Variant, simulado As Boolean, okG As Boolean, okU As Boolean
     Dim qG As Long, qU As Long, msg As String, semTag As String
 
@@ -35,9 +35,10 @@ Public Sub BuscarMES()
         Aviso "Consulta ao MES em andamento. Aguarde.", vbInformation, "MES"
         Exit Sub
     End If
-    vIni = Nm("bIniU").Value
-    If Not EData(vIni) Then
-        Aviso "Informe o início no processo em Ubu (data e hora do 1º horário) na aba Batch.", vbExclamation, "MES"
+    Recalcular
+    If Not EData(Nm("bIniU").Value) Or Not EData(Nm("gJanU").Value) Then
+        Aviso "Informe o início do batch em Ubu (fase UBU3 da tela de eventos do MES) na aba Batch.", vbExclamation, "MES"
+        On Error Resume Next
         Nm("bIniU").Select
         Exit Sub
     End If
@@ -57,40 +58,45 @@ Public Sub BuscarMES()
         Exit Sub
     End If
 
-    minAntes = 30
-    If ENumero(Nm("cfgMinAntes").Value) Then minAntes = CDbl(Nm("cfgMinAntes").Value)
-    iniU = CDate(CDbl(CDate(vIni)) - minAntes / 1440)
-    If EData(Nm("bIniG").Value) Then
-        iniG = CDate(CDbl(CDate(Nm("bIniG").Value)) - minAntes / 1440)
+    ' janelas de 2 h: Ubu a partir da 1a janela completa depois do inicio (UBU3); Germano idem a partir
+    ' do inicio do bombeamento (sem inicio de Germano = mesmos horarios de Ubu)
+    iniU = CDate(Nm("gJanU").Value)
+    nG = n
+    If EData(Nm("gJanG").Value) Then
+        iniG = CDate(Nm("gJanG").Value)
+        If ENumero(Nm("gNG").Value) Then nG = CLng(Nm("gNG").Value)
     Else
         iniG = iniU
     End If
+    If nG > n Then nG = n
 
     mOcupado = True
     Ampulheta True
     On Error GoTo Falha
     If simulado Then
-        resG = DadosSimulados(0, n, iniG)
+        If nG > 0 Then resG = DadosSimulados(0, nG, iniG)
         resU = DadosSimulados(1, n, iniU)
         okG = True
         okU = True
     Else
-        Application.StatusBar = "Consultando MES - Germano..."
-        okG = ConsultarLab(0, iniG, n, resG)
-        Application.StatusBar = "Consultando MES - Ubu..."
+        Application.StatusBar = "Consultando MES - " & CfgTxt("bLabA") & "..."
+        If nG > 0 Then okG = ConsultarLab(0, iniG, nG, resG) Else okG = True
+        Application.StatusBar = "Consultando MES - " & CfgTxt("bLabB") & "..."
         okU = ConsultarLab(1, iniU, n, resU)
     End If
     Application.StatusBar = False
     If Not okG And Not okU Then GoTo Fim
 
-    qG = GravarResultados(0, resG, n, okG)
+    qG = GravarResultados(0, resG, nG, okG)
     qU = GravarResultados(1, resU, n, okU)
     Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & IIf(simulado, " (SIMULAÇÃO)", "")
     AjustarGraficos
     msg = "Resultados gravados no batch " & CfgTxt("bId") & ":" & vbCrLf & vbCrLf & _
-          "  " & CfgTxt("bLabA") & ": " & qG & IIf(okG, "", " (consulta falhou)") & vbCrLf & _
-          "  " & CfgTxt("bLabB") & ": " & qU & IIf(okU, "", " (consulta falhou)")
-    If CDbl(iniU) + n * HORAS_SLOT / 24 > CDbl(Now) And Not simulado Then
+          "  " & CfgTxt("bLabA") & ": " & qG & IIf(okG, "", " (consulta falhou)") & _
+          "   (" & nG & " janelas a partir de " & Format$(iniG, "dd\/mm hh:mm") & ")" & vbCrLf & _
+          "  " & CfgTxt("bLabB") & ": " & qU & IIf(okU, "", " (consulta falhou)") & _
+          "   (" & n & " janelas a partir de " & Format$(iniU, "dd\/mm hh:mm") & ")"
+    If Not simulado And (CDbl(iniU) + n * HORAS_SLOT / 24 > CDbl(Now) Or CDbl(iniG) + nG * HORAS_SLOT / 24 > CDbl(Now)) Then
         msg = msg & vbCrLf & vbCrLf & "Batch ainda em andamento: horários futuros ficam em branco."
     End If
     If semTag <> "" And semTag <> "TODAS" Then
@@ -527,7 +533,7 @@ Public Sub RestaurarHorarios()
     Dim i As Long
     For i = 1 To NMAX
         shBatch.Cells(B_ROW_G0 + i - 1, B_COL_TU).Formula = _
-            "=IF(AND(ISNUMBER(bIniU)," & i & "<=bNHor),bIniU+" & (i - 1) & "/12,"""")"
+            "=IF(AND(ISNUMBER(gJanU)," & i & "<=bNHor),gJanU+" & (i - 1) & "/12+cfgMinAntes/1440,"""")"
     Next i
 End Sub
 
