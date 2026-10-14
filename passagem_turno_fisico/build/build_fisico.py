@@ -58,9 +58,10 @@ FONTE = 'Segoe UI'
 #  consulta, amostra_unica)   consulta: Q = Qualidade, P = Producao, R = Ritmo de processo (ver BLOCOS)
 # Pellet Feed: amostra unica para as duas usinas (uma linha "US3/4").
 MV, AM = 'IP_MESVALOR', 'IP_ANALOGMAP'
-G_PF = 'Pellet Feed'
-G_LM = 'Mistura'
-G_PQ = 'Pelota Queimada'
+G_PF = 'Pellet Feed · Químico'
+G_LM = 'Pelota Queimada · Químico'
+G_PQ = 'Pelota Queimada · Físico'
+G_PFF = 'Pellet Feed · Físico'
 G_FP = 'Filtrado para o pátio'
 G_PC = 'Pelota Crua'
 
@@ -70,21 +71,23 @@ def _p(g, nome, un, dec, agg, t3, ty3, t4, ty4, tip3, tip4, cons='Q'):
 
 
 PARAMS = [
-    _p('Alimentação', 'Alimentação da Grelha', 't/h', 0, 'Média', '306TP001-FX001-R', AM, '406-FX-001', AM, 1000, 1100),
-    _p('Prensa de Rolos', 'Superfície Específica - Alimentação RP', 'cm²/g', 0, 'Média', 'M650060010-0017-HHLFU', MV, 'M4650060010-0017-HHLFU', MV, 2010, 2010),
-    _p('Prensa de Rolos', 'Superfície Específica - Saída RP', 'cm²/g', 0, 'Média', 'M650060030-0017-HHLFU', MV, 'M4650060030-0017-HHLFU', MV, 2160, 2120),
-    _p('Prensa de Rolos', '#325 - Saída RP', '%', 1, 'Média', 'M650060030-0016-HHLFU', MV, 'M4650060030-0016-HHLFU', MV, 90.2, 89.9),
-    _p('Prensa de Rolos', 'H2O - Alimentação RP', '%', 2, 'Média', 'M650060010-0001-HHLFU', MV, 'M4650060010-0001-HHLFU', MV, 11.2, 11.2),
-    _p('Prensa de Rolos', 'H2O - Saída RP', '%', 2, 'Média', 'M650060030-0001-HHLFU', MV, 'M4650060030-0001-HHLFU', MV, 11.0, 11.0),
+    # ---- quimicos
     _p(G_PF, 'PPC', '%', 2, 'Média', 'M650030010-0013-HHLQU', MV, 'M650030010-0013-HHLQU', MV, 3.66, 3.66),
     _p(G_PF, 'SiO2', '%', 2, 'Média', 'M650030010-0004-HHLQU', MV, 'M650030010-0004-HHLQU', MV, 1.29, 1.29),
     _p(G_PF, 'CaO', '%', 2, 'Média', 'M650030010-0006-HHLQU', MV, 'M650030010-0006-HHLQU', MV, 0.09, 0.09),
-    _p(G_FP, 'Umidade', '%', 2, 'Média', 'M650030020-0001-HHLFU', MV, 'M650030020-0001-HHLFU', MV, 9.6, 9.6),
     _p(G_LM, 'SiO2', '%', 2, 'Média', 'M710050020-0004-HHLQU', MV, 'M4710050020-0004-HHLQU', MV, 1.82, 2.90),
     _p(G_LM, 'CaO', '%', 2, 'Média', 'M710050020-0006-HHLQU', MV, 'M4710050020-0006-HHLQU', MV, 0.82, 1.40),
     _p(G_LM, 'B2 (CaO/SiO2)', '-', 2, 'Média', 'M710050020-0018-HHLQU', MV, 'M4710050020-0018-HHLQU', MV, 0.45, 0.48),
     _p(G_LM, 'Dosagem de Carvão', 'kg/t', 1, 'Média', 'M710050020-0084-HHLQU', MV, 'M4710050020-0084-HHLQU', MV, 12.7, 17.6),
     _p(G_LM, 'Carbono Fixo', '%', 2, 'Média', 'M710050020-0493-HHLQU', MV, 'M4710050020-0493-HHLQU', MV, 1.07, 1.20),
+    # ---- fisicos
+    _p('Alimentação', 'Alimentação da Grelha', 't/h', 0, 'Média', '306TP001-FX001-R', AM, '406-FX-001', AM, 1000, 1100),
+    _p(G_PFF, 'Superfície Específica - Alimentação RP', 'cm²/g', 0, 'Média', 'M650060010-0017-HHLFU', MV, 'M4650060010-0017-HHLFU', MV, 2010, 2010),
+    _p(G_PFF, 'Superfície Específica - Saída RP', 'cm²/g', 0, 'Média', 'M650060030-0017-HHLFU', MV, 'M4650060030-0017-HHLFU', MV, 2160, 2120),
+    _p(G_PFF, '#325 - Saída RP', '%', 1, 'Média', 'M650060030-0016-HHLFU', MV, 'M4650060030-0016-HHLFU', MV, 90.2, 89.9),
+    _p(G_PFF, 'H2O - Alimentação RP', '%', 2, 'Média', 'M650060010-0001-HHLFU', MV, 'M4650060010-0001-HHLFU', MV, 11.2, 11.2),
+    _p(G_PFF, 'H2O - Saída RP', '%', 2, 'Média', 'M650060030-0001-HHLFU', MV, 'M4650060030-0001-HHLFU', MV, 11.0, 11.0),
+    _p(G_FP, 'Umidade', '%', 2, 'Média', 'M0650030020-0001-HHLFU', MV, 'M0650030020-0001-HHLFU', MV, 9.6, 9.6),
     _p(G_PC, 'Umidade', '%', 2, 'Média', 'M690025000-0001-HHLFU', MV, 'M4690025000-0001-HHLFU', MV, 9.4, 9.5),
     _p(G_PC, 'Resiliência', 'nº quedas', 1, 'Média', 'M690025000-0094-HHLFU', MV, 'M4690025000-0094-HHLFU', MV, 5.5, 5.8),
     _p(G_PC, 'Compressão seca', 'kgf/pel', 2, 'Média', 'M690025000-0095-HHLFU', MV, 'M4690025000-0095-HHLFU', MV, 6.2, 6.5),
@@ -339,7 +342,7 @@ class Construtor:
             ('cfgFonte', 'Fonte dos dados', 'MES', 'MES ou SIMULAÇÃO (dados fictícios, para treino)'),
             ('cfgServidor', 'Servidor do MES', 'UBU', 'Servidor do suplemento Aspen'),
             ('cfgInicioDia', 'Início do turno Dia', dtm.time(7, 0), 'O turno Noite inicia 12 h depois'),
-            ('cfgTimeout', 'Espera máxima pelo MES (s)', 60, 'Tempo máximo de resposta do Aspen'),
+            ('cfgTimeout', 'Espera máxima pelo MES (s)', 120, 'Tempo máximo de resposta do Aspen'),
             ('cfgFormatoData', 'Formato da data para o MES', 'Texto dd/mm/aaaa',
              'Padrão: Texto dd/mm/aaaa'),
         ]

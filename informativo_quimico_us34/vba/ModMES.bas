@@ -311,6 +311,18 @@ Public Function ParamInvalido(ByVal p As Long) As Boolean
     ParamInvalido = TagInvalida(CfgCel(p, CFG_COL_TAG3)) Or TagInvalida(CfgCel(p, CFG_COL_TAG4))
 End Function
 
+' Nenhum bloco do clique atual tem analise valida para consultar
+Private Function TodosBlocosVazios() As Boolean
+    Dim b As Long
+    TodosBlocosVazios = True
+    For b = 1 To NumBlocos()
+        If BlocoUsado(b) And Not BlocoVazio(b) Then
+            TodosBlocosVazios = False
+            Exit Function
+        End If
+    Next b
+End Function
+
 ' Bloco sem nenhuma analise para consultar (todas sem tag ou com tag recusada)
 Private Function BlocoVazio(ByVal b As Long) As Boolean
     Dim ps As Variant
@@ -736,14 +748,15 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
         RegerarFormulasMES
         On Error GoTo 0
         CalcularConsultas
-        nOk = EsperarBlocos(ini, nb, pronto, limite)
+        ' a consulta refeita pode demorar mais (o Aspen refaz todas as tags)
+        nOk = EsperarBlocos(ini, nb, pronto, IIf(limite < 120, 120, limite))
     Loop
     invalidas = ListaInvalidas()
     shDadosMES.Range("D5").Value = "Tags inválidas"
     shDadosMES.Range("E5").Value = "'" & Replace(Replace(invalidas, vbCrLf, " "), "  - ", "")
 
     ' Seguranca: se nada voltou, recria as matrizes de saida no formato original e tenta de novo
-    If nOk = 0 And invalidas = "" Then
+    If nOk = 0 And Not TodosBlocosVazios() Then
         RestaurarSaidasMES
         RegerarFormulasMES
         CalcularConsultas
@@ -757,13 +770,15 @@ Private Function ConsultarMES(ByVal ini As Date, ByVal fim As Date, ByRef dados 
         End If
     Next b
 
-    If nOk = 0 And invalidas <> "" Then
+    If nOk = 0 And invalidas <> "" And TodosBlocosVazios() Then
         Aviso "O MES não reconheceu as tags abaixo (Tag Name ... is invalid)." & vbCrLf & _
               "Nenhuma tag válida restou para consultar." & vbCrLf & vbCrLf & ResumoLista(invalidas) & vbCrLf & _
               "Corrigir as tags na aba Configurações.", vbExclamation, "MES - tags inválidas"
         Exit Function
     End If
     If nOk = 0 Then
+        If invalidas <> "" Then falhas = falhas & vbCrLf & "Tags não reconhecidas pelo MES (retiradas da consulta):" & _
+                                         vbCrLf & ResumoLista(invalidas)
         msg = "O MES não respondeu (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & vbCrLf & vbCrLf & _
               falhas & vbCrLf & _
               "Verificar: suplemento Aspen ativo, servidor '" & CfgTxt("cfgServidor") & "', tags e formato da data " & _
