@@ -12,20 +12,30 @@ Private Const XL_BITMAP As Long = 2
 Private Const XL_PICTURE As Long = -4147
 ' Ampliacao da imagem exportada (pixels = ESCALA x tela)
 Private Const ESCALA As Double = 2.5
+' Numero de pares de cada grafico no ultimo ajuste
+Private mAssinGraf As String
 
 ' ---------------------------------------------------------------- graficos
 Public Sub AtualizarPainel()
     Recalcular
-    AjustarGraficos
+    AjustarGraficos True
     shPainel.Activate
 End Sub
 
-Public Sub AjustarGraficos()
+' So mexe nos graficos quando o numero de pares muda (ajustar as 30 series a toda hora deixava a planilha lenta)
+Public Sub AjustarGraficos(Optional ByVal forcar As Boolean = False)
     Dim ordem As Variant, i As Long, k As String, p As Long, n As Long, c0 As Long, ult As Long
-    Dim co As Object, ch As Object, s As Long, ser As Object, g As String
+    Dim co As Object, ch As Object, s As Long, ser As Object, g As String, assin As String
     If gTesteLO Then Exit Sub
     On Error Resume Next
     ordem = Split(GRAF_ORDEM, "|")
+    assin = ""
+    For i = LBound(ordem) To UBound(ordem)
+        assin = assin & shGraf.Cells(G_ROW_ST + PIndice(CStr(ordem(i))) - 1, G_COL_NP).Value & "|"
+    Next i
+    If Not forcar And assin = mAssinGraf Then Exit Sub
+    mAssinGraf = assin
+    Application.ScreenUpdating = False
     g = "'" & shGraf.Name & "'!"
     Desproteger shPainel
     For i = LBound(ordem) To UBound(ordem)
@@ -47,6 +57,7 @@ Public Sub AjustarGraficos()
             Next s
         End If
     Next i
+    Application.ScreenUpdating = True
     Proteger shPainel
 End Sub
 

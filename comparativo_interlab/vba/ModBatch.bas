@@ -89,6 +89,11 @@ Public Sub SalvarHistorico()
                  vbQuestion + vbYesNo, "Salvar no histórico") <> vbYes Then Exit Sub
     End If
     novo = (r = 0)
+    If Not EData(Nm("bData").Value) Then
+        Nm("bData").Value = Date
+    ElseIf Nm("bData").HasFormula Then
+        Nm("bData").Value = CDate(Nm("bData").Value)
+    End If
     GravarHistorico id
     gAlterado = False
     Aviso "Batch " & id & IIf(novo, " salvo", " atualizado") & " no histórico (" & ContarLeituras() & _
@@ -370,7 +375,7 @@ Public Sub NovoBatch()
     ModoCarga True
     Desproteger shBatch
     Nm("bId").Value = novo
-    Nm("bData").Formula = "=IF(ISNUMBER(bIniU),INT(bIniU),TODAY())"
+    Nm("bData").Value = Date
     Nm("bMin").Formula = "=padMin"
     Nm("bLabA").Formula = "=padLabA"
     Nm("bLabB").Formula = "=padLabB"
@@ -382,11 +387,10 @@ Public Sub NovoBatch()
     Nm("bFimG").ClearContents
     Nm("bFimU").ClearContents
     Nm("bNivel").ClearContents
-    Nm("bInterf").ClearContents
     Nm("bIniPMan").ClearContents
     Nm("bIncAcomp").Value = "Sim"
     Nm("bFasesMsg").ClearContents
-    Nm("bNHor").Formula = "=IF(ISNUMBER(gNHorFim),gNHorFim,padNHor)"
+    Nm("bNHor").Formula = "=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))"
     For p = 1 To NP
         Nm("bTol_" & PChave(p)).Formula = "=padTol_" & PChave(p)
     Next p
@@ -395,11 +399,6 @@ Public Sub NovoBatch()
     For i = 2 To 6
         Nm("bCom" & i).ClearContents
     Next i
-    Nm("bPfData").ClearContents
-    Nm("bPfFe").ClearContents
-    Nm("bPfSiO2").ClearContents
-    Nm("bPfP").ClearContents
-    Nm("bPfSE").ClearContents
     shBatch.Range(shBatch.Cells(B_ROW_G0, B_COL_V1), shBatch.Cells(B_ROW_G0 + NMAX - 1, B_COL_V1 + 2 * NP - 1)).ClearContents
     RestaurarHorarios
     Nm("pSel").Value = novo
@@ -461,7 +460,7 @@ Public Sub ImportarColado()
     Dim area As Range, r As Long, c As Long, nC As Long, rot As String, low As String, id As Variant
     Dim datas() As Variant, chaves() As Double, colChave() As Long, nCh As Long, k As Long, lab As Long, p As Long
     Dim vals() As Variant, v As Variant, t As Double, achou As Boolean, i As Long, qtd As Long, novo As Boolean
-    Dim nivel As String, interf As String
+    Dim nivel As String
 
     Set area = Nm("impArea")
     nC = area.Columns.Count
@@ -508,8 +507,6 @@ Public Sub ImportarColado()
             Next c
         ElseIf Left$(low, 5) = "nível" Or Left$(low, 5) = "nivel" Then
             nivel = Primeira(LCase$(Trim$(CStr(area.Cells(r, 2).Text))))
-        ElseIf InStr(low, "interface") > 0 Then
-            interf = Primeira(LCase$(Trim$(CStr(area.Cells(r, 2).Text))))
         ElseIf InStr(low, "diferen") > 0 Or InStr(low, "retorno") > 0 Or InStr(low, "legenda") > 0 Then
         Else
             lab = -1
@@ -551,7 +548,6 @@ Public Sub ImportarColado()
     Nm("bIniPMan").Value = CDate(chaves(1) - MinutosRotulo() / 1440)
     Nm("bIniU").ClearContents
     If nivel <> "" Then Nm("bNivel").Value = nivel
-    If interf <> "" Then Nm("bInterf").Value = interf
     Nm("bIniG").ClearContents
     Nm("bFimG").ClearContents
     Nm("bFimU").ClearContents
@@ -671,6 +667,9 @@ Public Sub LerFases()
         If uCod <> "" Then
             Nm("bIniU").Value = uIni
             If Not IsEmpty(uFim) Then Nm("bFimU").Value = uFim
+            If IsNumeric(Mid$(uCod, Len(faseU) + 1)) And Len(uCod) > Len(faseU) Then
+                Nm("bMin").Value = "'" & Format$(CLng(Mid$(uCod, Len(faseU) + 1)), "00")
+            End If
         End If
         If gCod <> "" Then
             Nm("bIniG").Value = gIni

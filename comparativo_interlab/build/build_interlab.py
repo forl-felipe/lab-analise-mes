@@ -114,7 +114,7 @@ B_COL_TG = 3              # D  data/hora Germano
 B_COL_V1 = 4              # E  1o valor (SE A); valor (p, lab) em B_COL_V1 + 2p + lab
 B_COL_D1 = 15             # P  1a diferenca
 B_COL_R1 = 20             # U  1o "rank" (par A/B para os graficos)
-B_ROW_G0 = 40             # 1a linha de leituras
+B_ROW_G0 = 44             # 1a linha de leituras
 B_ROW_MED = B_ROW_G0 + NMAX
 B_ROW_CNT = B_ROW_MED + 1
 
@@ -134,15 +134,13 @@ H_ROW_HDR = 6             # cabecalho da tabela tbl_Batches (0-based)
 # Campos da aba Batch gravados no historico (nome da celula, coluna de tbl_Batches) - mesma ordem no VBA
 CAMPOS = ([('bId', 'Batch'), ('bData', 'Data do report'), ('bMin', 'Mineroduto'),
            ('bIniU', 'Chegada Ubu (UBU3)'), ('bFimU', 'Término Ubu (UBU3)'), ('bNivel', 'Nível dos tanques'),
-           ('bInterf', 'Teve interface'), ('bIniPMan', 'Início processo (manual)'),
+           ('bIniPMan', 'Início processo (manual)'),
            ('bIniG', 'Início Germano (EB06)'), ('bFimG', 'Término Germano (EB06)'), ('bNHor', 'Nº horários'),
            ('bLabA', 'Laboratório A'), ('bLabB', 'Laboratório B'), ('bRef', 'Referência'), ('bTit', 'Título'),
            ('bSub', 'Subtítulo')] +
           [('bTol_%s' % p[0], 'Tol %s' % p[1]) for p in PARAMS] +
           [('bIncFrase', 'Frase automática'), ('bIncAcomp', 'Acompanhamento no report')] +
-          [('bCom%d' % i, 'Comentário %d' % i) for i in range(1, 7)] +
-          [('bPfData', 'PFUF data'), ('bPfFe', 'PFUF Fe'), ('bPfSiO2', 'PFUF SiO₂'), ('bPfP', 'PFUF P'),
-           ('bPfSE', 'PFUF S.E.')])
+          [('bCom%d' % i, 'Comentário %d' % i) for i in range(1, 7)])
 H_COLS = ([h for _, h in CAMPOS] +
           sum([['%s média A' % p[1], '%s média B' % p[1], '%s diferença' % p[1], '%s status' % p[1]]
                for p in PARAMS], []) +
@@ -167,7 +165,8 @@ class Construtor:
         with open(HIST_INICIAL, encoding='utf-8') as fh:
             self.hist = json.load(fh)
         # batch aberto ao gerar: o mais completo do historico importado
-        self.atual = max(self.hist, key=lambda b: sum(len(r) for r in b['rows']))
+        # a planilha abre com um batch em branco (o historico importado fica na aba Historico)
+        self.atual = None
 
     # ----------------------------------------------------------- formatos
     def f(self, **kw):
@@ -371,12 +370,13 @@ class Construtor:
         r = r + 1 + len(itens) + 1
         self.secao(ws, r, 1, 8, 'NÍVEL DOS TANQUES EM UBU → ATRASO ATÉ O BATCH PREVALECER NO PROCESSO')
         ws.merge_range(r + 1, 1, r + 1, 8, 'Horas somadas à chegada em Ubu (UBU3) para achar o início da comparação. '
-                       'Preencher conforme a experiência da operação (0 = começa na chegada).', fd)
+                       'Alto 8 h, Médio 6 h, Baixo 4 h (informado pelo laboratório).', fd)
         ws.set_row(r + 1, 24)
-        for i, nivel in enumerate(['Alto', 'Médio', 'Baixo']):
+        # valores informados pelo laboratorio (14/10/2026): Alto 8 h, Medio 6 h, Baixo 4 h
+        for i, (nivel, horas) in enumerate([('Alto', 8), ('Médio', 6), ('Baixo', 4)]):
             rr = r + 2 + i
             ws.write_string(rr, 1, nivel, fr)
-            ws.write_number(rr, 2, 0, self.fi(align='center', num_format='0.0" h"'))
+            ws.write_number(rr, 2, horas, self.fi(align='center', num_format='0.0" h"'))
         self.nome('cfgAtrasoN', ws, r + 2, 1, r + 4, 1)
         self.nome('cfgAtrasoH', ws, r + 2, 2, r + 4, 2)
         self.wb.define_name('lstNivel', "='%s'!$B$%d:$B$%d" % (ws.name, r + 3, r + 5))
@@ -442,105 +442,114 @@ class Construtor:
         ws.set_column(25, 25, 2)
         ws.set_default_row(18)
         self.faixa(ws, 1, 1, 19, 'DADOS DO BATCH',
-                   'Siga os passos ① a ④, clique em Buscar no MES, confira e salve no histórico. '
-                   'O painel atualiza sozinho.')
+                   'Só 3 passos: ① número do batch  ② colar as fases do evento do MES  ③ nível dos tanques  '
+                   '→  Buscar no MES  →  Salvar no histórico')
         fv = self.fi(align='center')
         fdt = self.fi(align='center', num_format='dd/mm/yyyy hh:mm')
         frot = self.f(font_size=9.5, font_color=INK2, indent=1, bottom=1, bottom_color=LINE2)
-        fcalc = self.f(align='center', bold=True, bg_color=SEC, border=1, border_color=LINE2)
-        t0 = dtm.datetime.strptime(b['rows'][0]['data'] + ' ' + b['rows'][0]['hora'], '%Y-%m-%d %H:%M')
+        # campos que a planilha preenche sozinha (dá para corrigir): fundo claro
+        fauto_dt = self.f(align='center', num_format='dd/mm/yyyy hh:mm', bg_color='#F3F7FC', border=1,
+                          border_color=LINE2, locked=False)
+        fauto_v = self.f(align='center', bg_color='#F3F7FC', border=1, border_color=LINE2, locked=False)
+        fcalc_h = self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, num_format='0.0" h"',
+                         font_color=INK2)
 
-        def linha(r, rot, nome, valor, fmt, dica=None):
+        def linha(r, rot, nome, valor, fmt, altura=21):
             ws.merge_range(r, 1, r, 2, rot, frot)
             self.entrada(ws, r, 3, 5, valor, fmt, nome)
+            ws.set_row(r, altura)
+
+        def calc(r, rot, nome, formula, fmt):
+            ws.merge_range(r, 1, r, 2, rot, frot)
+            ws.merge_range(r, 3, r, 5, '', fmt)
+            ws.write_formula(r, 3, formula, fmt)
+            self.nome(nome, ws, r, 3)
             ws.set_row(r, 21)
 
-        # ① batch
-        self.secao(ws, 4, 1, 5, '①  BATCH')
-        linha(5, 'Batch Nº', 'bId', b['id'], self.fi(align='center', bold=True, font_size=12))
-        dchg = b.get('chegada') or b['rows'][0]['data']
-        linha(6, 'Data do report', 'bData', None, self.fi(align='center', num_format='dd/mm/yyyy'))
-        ws.write_datetime(6, 3, dtm.datetime.strptime(dchg, '%Y-%m-%d'), self.fi(align='center', num_format='dd/mm/yyyy'))
-        linha(7, 'Mineroduto', 'bMin', '03', fv)
-        ws.data_validation(7, 3, 7, 3, {'validate': 'list', 'source': '=lstMin'})
-        # ② chegada em Ubu
-        self.secao(ws, 8, 1, 5, '②  CHEGADA EM UBU — FASE UBU3 DO EVENTO NO MES')
-        linha(9, 'Chegada em Ubu (início UBU3)', 'bIniU', None, fdt)
-        linha(10, 'Término em Ubu (fim UBU3)', 'bFimU', None, fdt)
-        linha(11, 'Nível dos tanques', 'bNivel', (b.get('nivel') or '').capitalize() or None, fv)
-        ws.data_validation(11, 3, 11, 3, {'validate': 'list', 'source': '=lstNivel'})
-        linha(12, 'Teve interface?', 'bInterf', (b.get('interface') or '').capitalize() or None, fv)
-        ws.data_validation(12, 3, 12, 3, {'validate': 'list', 'source': '=lstSimNao'})
-        ws.merge_range(13, 1, 13, 2, 'Atraso pelo nível dos tanques', frot)
-        ws.merge_range(13, 3, 13, 5, '', self.f(align='center', bg_color=SEC, border=1, border_color=LINE2,
-                                               num_format='0.0" h"', font_color=INK2))
-        ws.write_formula(13, 3, '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),'
-                                'IF(bNivel<>"",gAtrasoNivel,""))',
-                         self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, num_format='0.0" h"',
-                                font_color=INK2))
-        self.nome('bAtraso', ws, 13, 3)
-        ws.set_row(13, 21)
-        linha(14, 'Início no processo (ajuste manual)', 'bIniPMan', None, fdt)
-        ws.write_datetime(14, 3, t0 - dtm.timedelta(minutes=30), fdt)
-        ws.merge_range(15, 1, 15, 2, '►  Início considerado no processo',
+        # ① numero do batch
+        self.secao(ws, 4, 1, 5, '①  NÚMERO DO BATCH (ID DO EVENTO NO MES)')
+        linha(5, 'Batch Nº', 'bId', b['id'] if b else None, self.fi(align='center', bold=True, font_size=13), 24)
+        ws.set_row(6, 8)
+        # ② colar as fases
+        self.secao(ws, 7, 1, 5, '②  COLE AQUI AS FASES DO EVENTO (TELA DO MES)')
+        ws.merge_range(8, 1, 8, 5, 'No MES, selecione as linhas da grade Fases do Evento (EB06 … UBU3), Ctrl+C; clique '
+                       'na 1ª célula amarela e Ctrl+V.', self.f(font_size=8.5, font_color=INK2, text_wrap=True,
+                                                               valign='top'))
+        ws.set_row(8, 26)
+        fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4, border_color='#C9A227')
+        for r in range(9, 14):
+            for c in range(1, 6):
+                ws.write_blank(r, c, None, fpaste)
+        self.nome('bFases', ws, 9, 1, 13, 5)
+        ws.merge_range(14, 1, 14, 5, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True,
+                                               valign='top'))
+        self.nome('bFasesMsg', ws, 14, 1)
+        ws.set_row(14, 30)
+        # ③ nivel dos tanques
+        self.secao(ws, 15, 1, 5, '③  NÍVEL DOS TANQUES EM UBU')
+        linha(16, 'Nível dos tanques', 'bNivel', (b.get('nivel') or '').capitalize() or None if b else None,
+              self.fi(align='center', bold=True), 22)
+        ws.data_validation(16, 3, 16, 3, {'validate': 'list', 'source': '=lstNivel'})
+        calc(17, 'Atraso até prevalecer no processo', 'bAtraso',
+             '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),IF(bNivel<>"",gAtrasoNivel,""))',
+             fcalc_h)
+        ws.set_row(18, 8)
+        # conferencia
+        self.secao(ws, 19, 1, 5, 'CONFERÊNCIA  (PREENCHIDO SOZINHO — DÁ PARA CORRIGIR)')
+        linha(20, 'Germano · início do bombeamento', 'bIniG', None, fauto_dt)
+        linha(21, 'Germano · término do bombeamento', 'bFimG', None, fauto_dt)
+        linha(22, 'Ubu · chegada (UBU3)', 'bIniU', None, fauto_dt)
+        linha(23, 'Ubu · término (UBU3)', 'bFimU', None, fauto_dt)
+        ws.merge_range(24, 1, 24, 2, '►  Início considerado no processo',
                        self.f(font_size=9.5, bold=True, font_color=OK, indent=1))
         fip = self.f(align='center', bold=True, font_color=OK, bg_color=OK_BG, border=1, border_color='#B9DEC9',
                      num_format='dd/mm/yyyy hh:mm')
-        ws.merge_range(15, 3, 15, 5, '', fip)
-        ws.write_formula(15, 3, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
-        self.nome('bIniP', ws, 15, 3)
-        ws.set_row(15, 22)
-        # ③ Germano
-        self.secao(ws, 16, 1, 5, '③  GERMANO — FASE EB06 (BOMBEAMENTO)')
-        linha(17, 'Início do bombeamento', 'bIniG', None, fdt)
-        linha(18, 'Término do bombeamento', 'bFimG', None, fdt)
-        # ④ horarios
-        self.secao(ws, 19, 1, 5, '④  HORÁRIOS DE 2 H PARA A COMPARAÇÃO')
-        linha(20, 'Nº de horários (Ubu)', 'bNHor', len(b['rows']), fv)
-        ws.data_validation(20, 3, 20, 3, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
+        ws.merge_range(24, 3, 24, 5, '', fip)
+        ws.write_formula(24, 3, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
+        self.nome('bIniP', ws, 24, 3)
+        ws.set_row(24, 22)
+        linha(25, 'Nº de bi-horários (os de Germano)', 'bNHor',
+              len(b['rows']) if b else '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))', fauto_v)
+        ws.data_validation(25, 3, 25, 3, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
                                           'maximum': NMAX, 'error_message': 'Entre 1 e %d horários.' % NMAX})
-        ws.merge_range(21, 1, 21, 2, 'Defasagem Ubu − Germano', frot)
-        ws.merge_range(21, 3, 21, 5, '', self.f(align='center', bg_color=SEC, border=1, border_color=LINE2,
-                                               num_format='0.0" h"', font_color=INK2))
-        ws.write_formula(21, 3, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")',
-                         self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, num_format='0.0" h"',
-                                font_color=INK2))
-        self.nome('bDef', ws, 21, 3)
-        ws.set_row(21, 21)
-        ws.merge_range(22, 1, 22, 5, '', self.f(font_size=8.5, font_color=NAVY2, bold=True, text_wrap=True,
+        calc(26, 'Defasagem Ubu − Germano', 'bDef',
+             '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fcalc_h)
+        linha(27, 'Data do report', 'bData', None, self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC',
+                                                          border=1, border_color=LINE2, locked=False))
+        if b:
+            dchg = b.get('chegada') or b['rows'][0]['data']
+            ws.write_datetime(27, 3, dtm.datetime.strptime(dchg, '%Y-%m-%d'),
+                              self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC', border=1,
+                                     border_color=LINE2, locked=False))
+        else:
+            ws.write_formula(27, 3, '=TODAY()', self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC',
+                                                      border=1, border_color=LINE2, locked=False))
+        linha(28, 'Mineroduto', 'bMin', '03', fauto_v)
+        ws.data_validation(28, 3, 28, 3, {'validate': 'list', 'source': '=lstMin'})
+        ws.merge_range(29, 1, 29, 5, '', self.f(font_size=8.5, font_color=NAVY2, bold=True, text_wrap=True,
                                                valign='top'))
-        ws.write_formula(22, 1, '=gResumoHor', self.f(font_size=8.5, font_color=NAVY2, bold=True, text_wrap=True,
+        ws.write_formula(29, 1, '=gResumoHor', self.f(font_size=8.5, font_color=NAVY2, bold=True, text_wrap=True,
                                                     valign='top'))
-        ws.set_row(22, 30)
+        ws.set_row(29, 30)
 
-        # colar fases do MES
-        self.secao(ws, 4, 7, 13, 'COLAR DA TELA DE EVENTOS DO MES (OPCIONAL)')
-        ws.merge_range(5, 7, 6, 13, 'No MES (Fases do Evento), selecione as linhas EB06 … UBU3, Ctrl+C, clique na '
-                       'célula amarela abaixo e Ctrl+V. Início e término de Germano e de Ubu são preenchidos sozinhos.',
-                       self.f(font_size=8.5, font_color=INK2, text_wrap=True, valign='top'))
-        fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4, border_color='#C9A227')
-        for r in range(7, 12):
-            for c in range(7, 14):
-                ws.write_blank(r, c, None, fpaste)
-        self.nome('bFases', ws, 7, 7, 11, 13)
-        ws.merge_range(12, 7, 13, 13, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True,
-                                                valign='top'))
-        self.nome('bFasesMsg', ws, 12, 7)
-        ws.merge_range(15, 7, 22, 13, 'Como usar:\n'
-                       '①  Batch Nº (ID do evento no MES), data e mineroduto.\n'
-                       '②  Chegada e término em Ubu (UBU3), nível dos tanques e interface. O nível define o atraso '
-                       'até o batch prevalecer no processo (tabela em Configurações); dá para corrigir no ajuste manual.\n'
-                       '③  Início e término do bombeamento em Germano (EB06).\n'
-                       '④  Confira o Nº de horários → Buscar no MES → confira as leituras → Salvar no histórico.',
-                       self.f(font_size=8.5, font_color=INK2, text_wrap=True, valign='top', bg_color='#F5F8FD',
+        ws.merge_range(4, 7, 14, 13, 'Como usar\n\n'
+                       '①  Digite o número do batch.\n\n'
+                       '②  No MES, tela de eventos do batch: selecione as linhas das Fases do Evento '
+                       '(EB06, EB07, UBU3), Ctrl+C, e cole na caixa amarela. Germano (EB06) e Ubu (UBU3) são '
+                       'preenchidos sozinhos.\n\n'
+                       '③  Escolha o nível dos tanques: Alto = 8 h, Médio = 6 h, Baixo = 4 h até o batch prevalecer '
+                       'no processo (tabela em Configurações).\n\n'
+                       'Depois: Buscar no MES → conferir as leituras → Salvar no histórico.\n'
+                       'O nº de bi-horários é o de Germano; em Ubu entram os mesmos.',
+                       self.f(font_size=9, font_color=INK2, text_wrap=True, valign='top', bg_color='#F5F8FD',
                               left=5, left_color=NAVY2))
 
         # --- comentarios
-        self.secao(ws, 24, 1, 13, '⑤  COMENTÁRIOS (CADA LINHA VIRA UM TÓPICO NO REPORT)')
+        self.secao(ws, 31, 1, 13, 'COMENTÁRIOS (CADA LINHA VIRA UM TÓPICO NO REPORT)')
         fauto = self.f(italic=True, font_size=9.5, font_color=INK2, bg_color=SEC, border=1, border_color=LINE2,
                        text_wrap=True)
-        for r, rot, ref, nm, nm_inc in [(25, 'Frase automática', rc(G_ROW_X, 6, True, True), 'bFrase', 'bIncFrase'),
-                                        (26, 'Acompanhamento', None, 'bAcomp', 'bIncAcomp')]:
+        for r, rot, ref, nm, nm_inc in [(32, 'Frase automática', rc(G_ROW_X, 6, True, True), 'bFrase', 'bIncFrase'),
+                                        (33, 'Acompanhamento', None, 'bAcomp', 'bIncAcomp')]:
             ws.merge_range(r, 1, r, 2, rot, self.f(bold=True, font_size=9, font_color=MUTED))
             ws.merge_range(r, 3, r, 11, '', fauto)
             ws.write_formula(r, 3, ("=_Graf!%s" % ref) if ref else '=gAcomp', fauto)
@@ -552,23 +561,12 @@ class Construtor:
             ws.set_row(r, 30)
         com = self.comentarios(b)
         for i in range(6):
-            r = 27 + i
+            r = 34 + i
             ws.merge_range(r, 1, r, 2, 'Tópico %d' % (i + 1), self.f(bold=True, font_size=9, font_color=MUTED))
             ws.merge_range(r, 3, r, 13, '', self.fi(text_wrap=True))
             if i < len(com):
                 ws.write_string(r, 3, com[i], self.fi(text_wrap=True))
             self.nome('bCom%d' % (i + 1), ws, r, 3)
-
-        # --- PFUF
-        self.secao(ws, 34, 1, 13, 'PELLET FEED ULTRA FINO — PFUF (SÓ UBU, NÃO COMPARÁVEL)')
-        pf = [('Data do composto', 1, 2, 'bPfData', self.fi(align='center', num_format='dd/mm/yy')),
-              ('Ferro (Fe)', 3, 3, 'bPfFe', self.fi(align='center', num_format='0.00')),
-              ('Sílica (SiO₂)', 4, 5, 'bPfSiO2', self.fi(align='center', num_format='0.00')),
-              ('Fósforo (P)', 6, 7, 'bPfP', self.fi(align='center', num_format='0.000')),
-              ('S.E.', 8, 9, 'bPfSE', self.fi(align='center', num_format='0'))]
-        for rot, c1, c2, nm, fmt in pf:
-            self.rotulo(ws, 35, c1, c2, rot)
-            self.entrada(ws, 36, c1, c2, None, fmt, nm)
 
         # --- leituras
         self.secao(ws, B_ROW_G0 - 2, 1, 19, 'LEITURAS POR HORÁRIO  (em branco = sem análise no laboratório)')
@@ -595,7 +593,7 @@ class Construtor:
                      bg_color='#F7F9FC', font_size=9.5)
         ftg = self.f(align='center', num_format='dd/mm hh:mm', border=1, border_color=LINE2, font_size=9.5,
                      font_color=INK2)
-        rows = b['rows']
+        rows = b['rows'] if b else []
         for i in range(NMAX):
             r = r0 + i
             ws.write(r, B_COL_N, i + 1, fn)
@@ -681,6 +679,10 @@ class Construtor:
         ws.merge_range(r + 2, 6, r + 2, 7, '', self.f(align='center', font_color=INK2, font_size=9, bold=True))
         ws.write_formula(r + 2, 6, '=IF(bRef=bLabA,bLabB&" − "&bLabA,bLabA&" − "&bLabB)',
                          self.f(align='center', font_color=INK2, font_size=9, bold=True))
+        self.rotulo(ws, r + 1, 8, 10, 'Início no processo (ajuste manual)')
+        self.entrada(ws, r + 2, 8, 10, None, self.fi(align='center', num_format='dd/mm/yyyy hh:mm'), 'bIniPMan')
+        ws.merge_range(r + 1, 11, r + 2, 13, 'Vale no lugar de chegada + atraso do nível (deixe em branco no dia a dia).',
+                       self.f(font_size=8, font_color=MUTED, text_wrap=True, valign='top'))
         self.rotulo(ws, r + 5, 1, 13, 'Tolerâncias deste batch (|diferença| máxima aceita) — critério OK/NOK do farol')
         pos_tol = [(1, 2), (3, 3), (4, 5), (6, 7), (8, 9)]
         for p, pr in enumerate(PARAMS):
@@ -820,8 +822,12 @@ class Construtor:
         ws.write(X + 9, 0, 'Janela Germano')
         ws.write_formula(X + 9, 1, '=IF(ISNUMBER(bIniG),cfgGradeG+ROUNDUP((bIniG-cfgGradeG)*12-0.000001,0)/12,"")')
         ws.write(X + 10, 0, 'Janelas Germano')
-        ws.write_formula(X + 10, 1, '=IF(AND(ISNUMBER(%s),ISNUMBER(bFimG)),MIN(bNHor,MAX(0,ROUNDUP((bFimG-%s)*12-0.000001,0))),bNHor)'
-                         % (rc(X + 9, 1), rc(X + 9, 1)))
+        ws.write_formula(X + 10, 1, '=IF(ISNUMBER(%s),MIN(bNHor,%s),bNHor)' % (rc(X + 19, 1), rc(X + 19, 1)))
+        # bi-horarios de Germano (EB06): define o Nº de horarios do batch (Ubu tem os mesmos)
+        ws.write(X + 19, 0, 'Bi-horários Germano')
+        ws.write_formula(X + 19, 1, '=IF(AND(ISNUMBER(%s),ISNUMBER(bFimG)),MIN(%d,MAX(1,ROUNDUP((bFimG-%s)*12-0.000001,0))),"")'
+                         % (rc(X + 9, 1), NMAX, rc(X + 9, 1)))
+        self.nome('gNGer', ws, X + 19, 1)
         ws.write(X + 11, 0, 'Nº horários (término Ubu)')
         # o fim tambem anda o atraso do nivel dos tanques (inicio no processo - chegada)
         ws.write_formula(X + 11, 1, '=IF(AND(ISNUMBER(%s),ISNUMBER(bFimU)),MIN(%d,MAX(1,ROUNDUP((bFimU+IF(ISNUMBER(bIniU),'
@@ -835,7 +841,6 @@ class Construtor:
                     % (x, x, x, x))
         partes = ['IF(ISNUMBER(bIniU),"chegada em Ubu "&%s&" · ","")' % dt('bIniU'),
                   'IF(bNivel<>"","nível dos tanques "&LOWER(bNivel)&" · ","")',
-                  'IF(bInterf="Sim","com interface · ",IF(bInterf="Não","sem interface · ",""))',
                   'IF(ISNUMBER(gJanU),"comparação a partir de "&%s&" · ","")' % dt('gJanU+cfgMinAntes/1440')]
         for k, f in enumerate(partes):
             ws.write(X + 13 + k, 0, 'Acomp. %d' % (k + 1))
@@ -848,7 +853,7 @@ class Construtor:
         ws.write(X + 18, 0, 'Resumo horários')
         ws.write_formula(X + 18, 1, '=IF(ISNUMBER(gJanU),"→ Ubu: "&bNHor&" horários a partir de "&%s&IF(ISNUMBER(gJanG),'
                                     '"   ·   Germano: "&gNG&" a partir de "&%s,"   ·   Germano: mesmos horários"),'
-                                    '"→ Informe a chegada em Ubu (②) ou o início no processo.")'
+                                    '"→ Cole as fases do evento (passo ②) para calcular os horários.")'
                          % (dt('gJanU+cfgMinAntes/1440'), dt('gJanG+cfgMinAntes/1440')))
         self.nome('gResumoHor', ws, X + 18, 1)
         self.nome('gJanU', ws, X + 8, 1)
@@ -908,7 +913,7 @@ class Construtor:
         ws.set_row(3, 10)
         ws.write(1, 1, 'BATCH EM EXIBIÇÃO', self.f(bold=True, font_size=7.5, font_color=MUTED, bg_color=BG))
         ws.merge_range(2, 1, 2, 2, '', self.fi(align='center', bold=True, font_size=11, border_color=LINE))
-        ws.write_number(2, 1, self.atual['id'], self.fi(align='center', bold=True, font_size=11, border_color=LINE,
+        ws.write_blank(2, 1, None, self.fi(align='center', bold=True, font_size=11, border_color=LINE,
                                                          num_format='"Batch "0'))
         self.nome('pSel', ws, 2, 1)
         ws.data_validation(2, 1, 2, 1, {'validate': 'list', 'source': '=lstBatches',
@@ -962,8 +967,7 @@ class Construtor:
         ws.merge_range(r, 1, r, 6, '', secf)
         ws.write_formula(r, 1, '=UPPER("Farol — Batch "&bId&IF(bMin<>""," · Mineroduto "&bMin,"")&" · ref. "&gRefNome)',
                          secf)
-        ws.merge_range(r, 8, r, 10, 'COMENTÁRIOS', secf)
-        ws.merge_range(r, 12, r, 13, 'PELLET FEED ULTRA FINO', secf)
+        ws.merge_range(r, 8, r, 13, 'COMENTÁRIOS', secf)
         # farol: cabecalho
         rh = r + 1
         ws.set_row(rh, 28)
@@ -1005,25 +1009,9 @@ class Construtor:
                                                                      right=1, border_color=LINE, align='right',
                                                                      indent=1))
         # comentarios
-        ws.merge_range(rh, 8, rl, 10, '', self.f(font_size=9.5, font_color=INK2, text_wrap=True, valign='top',
-                                                  border=1, border_color=LINE, indent=1))
-        ws.write_formula(rh, 8, '=gComentarios', self.f(font_size=9.5, font_color=INK2, text_wrap=True,
-                                                        valign='top', border=1, border_color=LINE, indent=1))
-        # PFUF
-        fcap = self.f(bold=True, font_size=7.5, font_color=INK2, bg_color=BG, align='center', left=1, right=1,
-                      border_color=LINE)
-        ws.merge_range(rh, 12, rh, 13, '', fcap)
-        ws.write_formula(rh, 12, '="COMPOSTO DIÁRIO — PFUF"&IF(ISNUMBER(bPfData)," · "&TEXT(DAY(bPfData),"00")&"/"&'
-                                 'TEXT(MONTH(bPfData),"00")&"/"&RIGHT(YEAR(bPfData),2),"")', fcap)
-        pfl = [('Fe', 'bPfFe', '0.00'), ('SiO₂', 'bPfSiO2', '0.00'), ('P', 'bPfP', '0.000'), ('S.E.', 'bPfSE', '0')]
-        for i, (rot, nm, fmt) in enumerate(pfl):
-            rr = rh + 1 + i
-            ws.write(rr, 12, rot, self.f(bold=True, font_size=10, border=1, border_color='#D5D9E2', indent=1))
-            ws.write_formula(rr, 13, '=IF(ISNUMBER(%s),%s,"—")' % (nm, nm),
-                             self.f(font_size=10, align='center', border=1, border_color='#D5D9E2', num_format=fmt))
-        for rr in range(rh + 1 + len(pfl), rl + 1):
-            ws.write_blank(rr, 12, None, self.f(left=1, border_color=LINE, bottom=1 if rr == rl else 0))
-            ws.write_blank(rr, 13, None, self.f(right=1, border_color=LINE, bottom=1 if rr == rl else 0))
+        fcm = self.f(font_size=10, font_color=INK2, text_wrap=True, valign='top', border=1, border_color=LINE, indent=1)
+        ws.merge_range(rh, 8, rl, 13, '', fcm)
+        ws.write_formula(rh, 8, '=gComentarios', fcm)
         ws.set_row(rl + 1, 10)
 
         # ---- graficos: 2 por linha (P | SiO2), (PPC | <325#), S.E. inteiro
@@ -1081,6 +1069,8 @@ class Construtor:
 
     def n_pares(self, k):
         b = self.atual
+        if not b:
+            return 0
         return sum(1 for row in b['rows'] if ('%s_G' % k) in row and ('%s_U' % k) in row)
 
     def grafico(self, ws, r, c, k, largura, altura):
@@ -1226,7 +1216,6 @@ class Construtor:
             st = self.stats_batch(b)
             v = {'bId': b['id'], 'bData': drep, 'bMin': '03', 'bIniPMan': t0 - dtm.timedelta(minutes=30),
                  'bNivel': (b.get('nivel') or '').capitalize() or None,
-                 'bInterf': (b.get('interface') or '').capitalize() or None,
                  'bNHor': len(b['rows']), 'bLabA': 'Germano', 'bLabB': 'Ubu', 'bRef': 'Germano',
                  'bTit': 'COMPARATIVO DE MEDIÇÕES DE QUALIDADE', 'bSub': 'Batch bombeado e pellet feed recebido',
                  'bIncFrase': 'Sim', 'bIncAcomp': 'Sim'}

@@ -33,8 +33,11 @@ Public Sub TesteLO()
     pSi = PIndice("SiO2")
     Recalcular
 
-    ' --- estado inicial (batch 288 importado)
-    Ok CStr(V("bId")) = "288", "batch inicial 288 (" & V("bId") & ")"
+    ' --- abre em branco; o 288 vem do historico importado
+    Ok Vazio(V("bId")) And Not ENumero(Celula(1, PIndice("SE"), 0)), "abre com batch em branco"
+    AbrirBatch 288
+    Recalcular
+    Ok CStr(V("bId")) = "288", "batch 288 aberto do historico (" & V("bId") & ")"
     Ok Celula(1, pSE, 0) = 2052 And Celula(1, pSE, 1) = 1787, "1a leitura S.E. 2052/1787"
     Ok CStr(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_ST).Value) = "NOK", "S.E. NOK no farol"
     Ok LinhaHistorico(288) > 0 And LinhaHistorico(290) > 0, "historico inicial com 288 e 290"
@@ -54,7 +57,7 @@ Public Sub TesteLO()
     Nm("bIniG").Value = DateSerial(2026, 10, 8) + TimeSerial(5, 30, 0)
     Nm("bFimG").Value = DateSerial(2026, 10, 8) + TimeSerial(20, 0, 0)
     Recalcular
-    Ok CLng(V("bNHor")) = 12, "Nº de horarios pelo termino de Ubu = 12 (" & V("bNHor") & ")"
+    Ok CLng(V("bNHor")) = 7, "Nº de horarios = bi-horarios de Germano = 7 (" & V("bNHor") & ")"
     Ok CLng(V("gNG")) = 7, "janelas de Germano pelo termino = 7 (" & V("gNG") & ")"
     Ok Abs(CDbl(V("bDef")) - 50) < 0.01, "defasagem 50 h (" & V("bDef") & ")"
     Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value) - CDbl(DateSerial(2026, 10, 10) + TimeSerial(9, 30, 0))) < 0.0001, _
@@ -64,7 +67,7 @@ Public Sub TesteLO()
     Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TG).Value) - CDbl(DateSerial(2026, 10, 8) + TimeSerial(7, 30, 0))) < 0.0001, _
        "1o horario Germano 08/10 07:30"
     Ok shBatch.Cells(B_ROW_G0 + 7, B_COL_TG).Text = "", "8o horario Germano vazio (fim do bombeamento)"
-    Ok shBatch.Cells(B_ROW_G0 + 12, B_COL_TU).Text = "", "13o horario vazio (Nº de horarios = 12)"
+    Ok shBatch.Cells(B_ROW_G0 + 7, B_COL_TU).Text = "", "8o horario Ubu vazio (mesmo Nº de Germano)"
     BuscarMES
     Recalcular
     n = 0
@@ -72,7 +75,7 @@ Public Sub TesteLO()
         If ENumero(Celula(i, pSE, 0)) Then n = n + 1
     Next i
     Ok n = 7, "simulacao: 7 S.E. Germano (" & n & ")"
-    Ok ENumero(Celula(12, pSE, 1)), "simulacao: S.E. Ubu ate o 12o horario"
+    Ok ENumero(Celula(7, pSE, 1)) And Not ENumero(Celula(8, pSE, 1)), "simulacao: S.E. Ubu ate o 7o horario"
     Ok ENumero(Celula(1, pSE, 1)) And Not ENumero(Celula(2, PIndice("325"), 1)), "Ubu: S.E. a cada 2 h, <325# a cada 6 h"
     Ok CLng(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_NP).Value) = 7, "7 pares S.E. no grafico"
     Ok CStr(shGraf.Cells(2 + 7, (pSE - 1) * G_BLOCO + 1).Value) = "Média", "rotulo Media apos os pares"
@@ -86,7 +89,7 @@ Public Sub TesteLO()
         If Vazio(shLeituras.Cells(i, 1).Value) Then Exit For
         If CLng(shLeituras.Cells(i, 1).Value) = id Then nL = nL + 1
     Next i
-    Ok nL = 47, "leituras do 291 em BD_Leituras (" & nL & ")"
+    Ok nL = 35, "leituras do 291 em BD_Leituras (" & nL & ")"
     Ok InStr(gUltimaMsg, "Erro") = 0, "nenhuma mensagem de erro: " & gUltimaMsg
     Ok CStr(shHist.Cells(r, H_COL1 + 2).Value) = "03", "mineroduto gravado como texto 03 (" & shHist.Cells(r, H_COL1 + 2).Value & ")"
 
@@ -198,7 +201,8 @@ Public Sub TesteLO()
        Abs(CDbl(V("bFimU")) - CDbl(DateSerial(2026, 10, 14) + TimeSerial(10, 37, 0))) < 0.0001, _
        "285 colado: Germano EB06 e Ubu UBU3 (" & V("bFasesMsg") & ")"
     Ok Vazio(Nm("bFases").Cells(4, 1).Value), "area de colar limpa depois de ler"
-    Ok Abs(CDbl(V("bData")) - CDbl(DateSerial(2026, 10, 13))) < 0.0001, "data do report = dia da chegada"
+    Ok Abs(CDbl(V("bData")) - CDbl(Date)) < 0.0001, "data do report = hoje"
+    Ok CStr(V("bMin")) = "03", "mineroduto pela fase UBU3 = 03"
     Ok Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(11, 0, 0))) < 0.0001, _
        "285: 1a janela Ubu 13/10 11:00 (sem nivel = sem atraso)"
     Ok Abs(CDbl(V("gJanG")) - CDbl(DateSerial(2026, 10, 11) + TimeSerial(1, 0, 0))) < 0.0001, "285: 1a janela Germano 11/10 01:00"
@@ -207,13 +211,12 @@ Public Sub TesteLO()
     ' nivel dos tanques: atraso da tabela de Configuracoes
     Nm("cfgAtrasoH").Cells(2, 1).Value = 4
     Nm("bNivel").Value = "Médio"
-    Nm("bInterf").Value = "Não"
     Recalcular
     Ok Abs(CDbl(V("bIniP")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(13, 18, 0))) < 0.0001, "nivel medio: processo = chegada + 4 h"
     Ok Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(15, 0, 0))) < 0.0001, "nivel medio: 1a janela 15:00"
     Ok CLng(V("bNHor")) = 12, "nivel medio: termino tambem anda 4 h (12 horarios)"
     Ok Abs(CDbl(V("bAtraso")) - 4) < 0.01, "atraso exibido 4 h"
-    Ok InStr(CStr(V("gAcomp")), "nível dos tanques médio · sem interface · comparação a partir de 13/10 15:30") > 0, _
+    Ok InStr(CStr(V("gAcomp")), "nível dos tanques médio · comparação a partir de 13/10 15:30") > 0, _
        "acompanhamento: " & V("gAcomp")
     Ok InStr(CStr(V("gComentarios")), "Chegada em Ubu 13/10 09:18") > 0, "acompanhamento no comentario do painel"
     Nm("bIniPMan").Value = DateSerial(2026, 10, 13) + TimeSerial(12, 0, 0)
@@ -223,11 +226,22 @@ Public Sub TesteLO()
     SalvarHistorico
     r = LinhaHistorico(V("bId"))
     Ok CStr(shHist.Cells(r, H_COL1 + 5).Value) = "Médio", "nivel gravado no historico"
+    Ok CStr(V("bNivel")) = "Médio", "nivel continua"
     Ok Abs(CDbl(shHist.Cells(r, H_COL1 + H_COL_STAT1 - 1 + 4 * NP).Value) - CDbl(V("bIniP"))) < 0.0001, _
        "inicio no processo gravado no historico"
     AbrirBatch 288
     AbrirBatch V("pSel")
     Ok CStr(V("bNivel")) = "Médio", "nivel reaberto"
+
+    ' --- MES sem o suplemento Aspen (LibreOffice): #NOME? avisado uma vez, sem esperar
+    Nm("cfgFonte").Value = "MES"
+    gUltimaMsg = ""
+    BuscarMES
+    Ok InStr(gUltimaMsg, "não reconheceu a função do MES") > 0 And _
+       (Len(gUltimaMsg) - Len(Replace(gUltimaMsg, "não reconheceu a função", ""))) = Len("não reconheceu a função"), _
+       "sem Aspen: aviso #NOME? uma vez"
+    Ok Not shDadosMES.Range("A40").HasFormula And Not shDadosMES.Range("A10").HasFormula, "consulta desligada depois da falha"
+    Nm("cfgFonte").Value = "SIMULAÇÃO"
 
     ' --- respostas do Aspen em texto
     Dim tj As Date, xx As Double

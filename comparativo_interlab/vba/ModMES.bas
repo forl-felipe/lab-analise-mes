@@ -22,6 +22,8 @@ Private Const ANC_U As String = "A40"
 Private Const OUT_U As String = "A42"
 
 Private mOcupado As Boolean
+' Funcao do Aspen nao reconhecida nesta busca (#NOME?): nao repete o aviso para o 2o laboratorio
+Private mSemAspen As Boolean
 ' Tags recusadas pelo MES nesta sessao, no formato |TAG1|TAG2|
 Private mInvalidas As String
 
@@ -72,6 +74,7 @@ Public Sub BuscarMES()
     If nG > n Then nG = n
 
     mOcupado = True
+    mSemAspen = False
     Ampulheta True
     On Error GoTo Falha
     If simulado Then
@@ -167,6 +170,7 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
 
     ReDim d(1 To n, 1 To NP)
     res = d
+    If mSemAspen Then Exit Function
     nomeLab = IIf(lab = 0, CfgTxt("bLabA"), CfgTxt("bLabB"))
     If lab = 0 Then
         Set anc = shDadosMES.Range(ANC_G)
@@ -199,8 +203,17 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
         ps = ParamsLab(lab)
         If ps = "" Then Exit For
         LimparSaida sai
-        anc.Formula = PrefixoAspen(anc) & ArgumentosLab(lab, ps, anc, sai)
-        If Application.Calculation <> -4105 Then anc.Calculate
+        If Not EscreverConsulta(anc, ArgumentosLab(lab, ps, anc, sai)) Then
+            Nm(IIf(lab = 0, "mesRespG", "mesRespU")).Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  #NOME? (suplemento Aspen)"
+            anc.Value = "'Suplemento Aspen não reconhecido (#NOME?)"
+            LimparSaida sai
+            mSemAspen = True
+            Aviso "O Excel não reconheceu a função do MES (GetCalculationValues) - aparece #NOME?." & vbCrLf & vbCrLf & _
+                  "Verificar se o suplemento Aspen Process Data está ativo neste Excel: Arquivo > Opções > " & _
+                  "Suplementos > Gerenciar: Suplementos do Excel / COM > Ir... (o mesmo usado no relatório do " & _
+                  "laboratório físico). Depois feche e abra a planilha.", vbExclamation, "MES"
+            Exit Function
+        End If
         estado = Esperar(anc, sai, ini, limite)
         If estado = 3 Then
             ' tag recusada: guarda e consulta de novo sem ela
@@ -226,7 +239,9 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
                  Trim$(sai.Cells(1, 2).Text), 250)
     Nm(IIf(lab = 0, "mesRespG", "mesRespU")).Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & resp
     If estado = 0 Then
-        ' a formula fica em Dados_MES para conferencia (a proxima consulta certa desliga)
+        ' a formula vira texto (com a formula guardada para conferencia): uma consulta ativa refaz a busca
+        ' no MES a cada recalculo e deixa a planilha lenta
+        DesligarConsulta anc, sai
         If Aviso("O MES não respondeu à consulta de " & nomeLab & " (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & _
                  vbCrLf & vbCrLf & "Resposta do Aspen: " & resp & vbCrLf & vbCrLf & _
                  "Verificar: suplemento Aspen ativo, servidor, tags e formato da data " & _
@@ -428,16 +443,60 @@ Public Function ArgumentosLab(ByVal lab As Long, ByVal ps As String, ByVal anc A
 End Function
 
 ' Inicio da formula do Aspen ("=...GetCalculationValues("), como o Excel a mostra
+' Escreve a consulta na ancora. O nome da funcao do Aspen aparece de formas diferentes conforme a instalacao
+' (com ou sem "_xll."); testa as formas e guarda a que o Excel reconhece (sem #NOME?) em mesPrefixo.
+Private Function EscreverConsulta(ByVal anc As Range, ByVal args As String) As Boolean
+    Dim cand As Variant, i As Long, v As Variant, pre As String, lista As String
+    lista = CfgTxt("mesPrefixo") & "|=AspenTech.PME.ProcessData.Functions.GetCalculationValues(" & _
+            "|=_xll.AspenTech.PME.ProcessData.Functions.GetCalculationValues(" & "|=GetCalculationValues("
+    cand = Split(lista, "|")
+    For i = LBound(cand) To UBound(cand)
+        pre = CStr(cand(i))
+        If pre <> "" Then
+            On Error Resume Next
+            Err.Clear
+            anc.Formula = pre & args
+            If Err.Number = 0 Then
+                anc.Calculate
+                If Not CelulaErroNome(anc) Then
+                    On Error GoTo 0
+                    If CfgTxt("mesPrefixo") <> pre Then Nm("mesPrefixo").Value = "'" & pre
+                    EscreverConsulta = True
+                    Exit Function
+                End If
+            End If
+            On Error GoTo 0
+        End If
+    Next i
+End Function
+
+Private Function EhErroNome(ByVal v As Variant) As Boolean
+    On Error Resume Next
+    If IsError(v) Then EhErroNome = (v = CVErr(2029))
+End Function
+
+' Celula com #NOME? / #NAME? (funcao nao reconhecida)
+Private Function CelulaErroNome(ByVal c As Range) As Boolean
+    Dim t As String
+    On Error Resume Next
+    If EhErroNome(c.Value) Then
+        CelulaErroNome = True
+        Exit Function
+    End If
+    t = UCase$(Trim$(c.Text))
+    CelulaErroNome = (t = "#NAME?" Or t = "#NOME?" Or t = "#¿NOMBRE?")
+End Function
+
 Private Function PrefixoAspen(ByVal anc As Range) As String
     Dim atual As String
     atual = anc.Formula
     If InStr(atual, "(") > 0 And InStr(1, atual, "GetCalculationValues", vbTextCompare) > 0 Then
         PrefixoAspen = Left$(atual, InStr(atual, "("))
-        If CfgTxt("mesPrefixo") <> PrefixoAspen Then Nm("mesPrefixo").Value = "'" & PrefixoAspen
+        If Not CelulaErroNome(anc) And CfgTxt("mesPrefixo") <> PrefixoAspen Then Nm("mesPrefixo").Value = "'" & PrefixoAspen
     ElseIf Len(CfgTxt("mesPrefixo")) > 0 Then
         PrefixoAspen = CfgTxt("mesPrefixo")
     Else
-        PrefixoAspen = "=_xll.AspenTech.PME.ProcessData.Functions.GetCalculationValues("
+        PrefixoAspen = "=AspenTech.PME.ProcessData.Functions.GetCalculationValues("
     End If
 End Function
 
@@ -446,7 +505,8 @@ Private Sub DesligarConsulta(ByVal anc As Range, ByVal sai As Range)
     On Error Resume Next
     If anc.HasFormula Then
         Call PrefixoAspen(anc)
-        anc.Value = "'Consulta concluída em " & Format$(Now, "dd\/mm\/yyyy hh:mm:ss")
+        anc.Offset(0, 7).Value = "'" & anc.Formula
+        anc.Value = "'Consulta encerrada em " & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & " (fórmula em H)"
     End If
     LimparSaida sai
 End Sub
