@@ -81,10 +81,10 @@ LABS = ('Germano', 'Ubu')
 SERVIDOR_PADRAO = 'UBU'
 # Tags informadas pelo laboratorio (aba Configuracoes da planilha devolvida em 14/10/2026), sem alteracao
 # Correcoes (revisao de 14/10/2026):
-#   S.E. Germano estava igual a de PPC (M250010000-13-ABLQ): S.E. e analise fisica, codigo 17 -> -17-ABLF
+#   S.E. Germano: M250010000-17-ABLQ (informada pelo laboratorio; as tags de Germano nao tem zeros a esquerda)
 #   S.E. Ubu estava na US3 (M650060010); as demais da Alimentacao 04 estao na US4 (M4650060010)
 #   Tags de Ubu (HHL...) usam o codigo com 4 digitos, como todas as tags ja validadas no MES (-0016-, -0008-, -0013-)
-TAGS = {('SE', 0): 'M250010000-17-ABLF', ('SE', 1): 'M4650060010-0017-HHLFU',
+TAGS = {('SE', 0): 'M250010000-17-ABLQ', ('SE', 1): 'M4650060010-0017-HHLFU',
         ('325', 0): 'M250010000-16-ABLF', ('325', 1): 'M4650060010-0016-HHLFU',
         ('SiO2', 0): 'M250010000-4-ABLQ', ('SiO2', 1): 'M650030010-0004-HHLQU',
         ('P', 0): 'M250010000-8-ABLQ', ('P', 1): 'M4650060010-0008-HHLQU',

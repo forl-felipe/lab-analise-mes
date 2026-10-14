@@ -42,7 +42,7 @@ Ocultas: `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos e cál
   `ShowCalculationValues` e espera mais uma vez.
 - Análise **sem tag** fica fora da consulta (lançamento manual na grade). Para treinar sem MES: Fonte = SIMULAÇÃO.
 - Tags cadastradas pelo laboratório em 14/10/2026 (aba Configurações), com as correções: S.E. de Germano estava
-  igual à de PPC (→ `M250010000-17-ABLF`), S.E. de Ubu na US3 (→ `M4650060010-0017-HHLFU`, Alimentação 04) e tags
+  igual à de PPC (→ `M250010000-17-ABLQ`, informada pelo laboratório), S.E. de Ubu na US3 (→ `M4650060010-0017-HHLFU`, Alimentação 04) e tags
   de Ubu com o código de 4 dígitos (`-0016-`, `-0008-`, `-0013-`).
 
 ## Histórico inicial
