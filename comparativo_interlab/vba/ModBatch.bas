@@ -9,13 +9,7 @@ Option Explicit
 
 ' Campos da aba Batch na ordem das primeiras colunas de tbl_Batches
 Private Function CamposBatch() As Variant
-    Dim c As String, p As Long
-    c = "bId|bData|bMin|bIniU|bIniG|bFimG|bFimU|bNHor|bLabA|bLabB|bRef|bTit|bSub"
-    For p = 1 To NP
-        c = c & "|bTol_" & PChave(p)
-    Next p
-    c = c & "|bIncFrase|bCom1|bCom2|bCom3|bCom4|bCom5|bCom6|bPfData|bPfFe|bPfSiO2|bPfP|bPfSE"
-    CamposBatch = Split(c, "|")
+    CamposBatch = Split(CAMPOS_BATCH(), "|")
 End Function
 
 ' ---------------------------------------------------------------- tabelas
@@ -148,10 +142,14 @@ Public Sub GravarHistorico(ByVal id As Variant)
             c = c + 1
         Next j
     Next p
-    ws.Cells(r, c).Value = nok
-    ws.Cells(r, c + 1).Value = ContarLeituras()
-    ws.Cells(r, c + 2).Value = Now
-    ws.Cells(r, c + 3).Value = "'" & Usuario()
+    v = Nm("bIniP").Value
+    If EData(v) Then ws.Cells(r, c).Value = CDate(v) Else ws.Cells(r, c).ClearContents
+    v = Nm("bDef").Value
+    If ENumero(v) Then ws.Cells(r, c + 1).Value = CDbl(v) Else ws.Cells(r, c + 1).ClearContents
+    ws.Cells(r, c + 2).Value = nok
+    ws.Cells(r, c + 3).Value = ContarLeituras()
+    ws.Cells(r, c + 4).Value = Now
+    ws.Cells(r, c + 5).Value = "'" & Usuario()
     AjustarTabela ws, "tbl_Batches", H_ROW_HDR, H_COL1, H_NCOL, UltimaLinhaH()
 
     ' leituras: apaga as antigas do batch e grava as atuais
@@ -372,7 +370,7 @@ Public Sub NovoBatch()
     ModoCarga True
     Desproteger shBatch
     Nm("bId").Value = novo
-    Nm("bData").Value = Date
+    Nm("bData").Formula = "=IF(ISNUMBER(bIniU),INT(bIniU),TODAY())"
     Nm("bMin").Formula = "=padMin"
     Nm("bLabA").Formula = "=padLabA"
     Nm("bLabB").Formula = "=padLabB"
@@ -383,6 +381,11 @@ Public Sub NovoBatch()
     Nm("bIniG").ClearContents
     Nm("bFimG").ClearContents
     Nm("bFimU").ClearContents
+    Nm("bNivel").ClearContents
+    Nm("bInterf").ClearContents
+    Nm("bIniPMan").ClearContents
+    Nm("bIncAcomp").Value = "Sim"
+    Nm("bFasesMsg").ClearContents
     Nm("bNHor").Formula = "=IF(ISNUMBER(gNHorFim),gNHorFim,padNHor)"
     For p = 1 To NP
         Nm("bTol_" & PChave(p)).Formula = "=padTol_" & PChave(p)
@@ -409,7 +412,7 @@ Public Sub NovoBatch()
     Nm("bIniU").Select
     On Error GoTo 0
     Aviso "Novo batch " & novo & " em branco." & vbCrLf & vbCrLf & _
-          "Informe início e término de Germano (EB06) e de Ubu (UBU3) da tela de eventos do MES e use Buscar no MES.", vbInformation, "Novo batch"
+          "Preencha os passos 2 e 3 (ou cole as Fases do Evento do MES) e use Buscar no MES.", vbInformation, "Novo batch"
 End Sub
 
 Public Sub LimparLeituras()
@@ -458,6 +461,7 @@ Public Sub ImportarColado()
     Dim area As Range, r As Long, c As Long, nC As Long, rot As String, low As String, id As Variant
     Dim datas() As Variant, chaves() As Double, colChave() As Long, nCh As Long, k As Long, lab As Long, p As Long
     Dim vals() As Variant, v As Variant, t As Double, achou As Boolean, i As Long, qtd As Long, novo As Boolean
+    Dim nivel As String, interf As String
 
     Set area = Nm("impArea")
     nC = area.Columns.Count
@@ -502,6 +506,10 @@ Public Sub ImportarColado()
                     End If
                 End If
             Next c
+        ElseIf Left$(low, 5) = "nível" Or Left$(low, 5) = "nivel" Then
+            nivel = Primeira(LCase$(Trim$(CStr(area.Cells(r, 2).Text))))
+        ElseIf InStr(low, "interface") > 0 Then
+            interf = Primeira(LCase$(Trim$(CStr(area.Cells(r, 2).Text))))
         ElseIf InStr(low, "diferen") > 0 Or InStr(low, "retorno") > 0 Or InStr(low, "legenda") > 0 Then
         Else
             lab = -1
@@ -539,8 +547,11 @@ Public Sub ImportarColado()
     ModoCarga True
     Desproteger shBatch
     Nm("bId").Value = id
-    ' inicio = comeco da janela do 1o horario (horario da linha - minutos da configuracao)
-    Nm("bIniU").Value = CDate(chaves(1) - MinutosRotulo() / 1440)
+    ' inicio no processo = comeco da janela do 1o horario (horario da linha - minutos da configuracao)
+    Nm("bIniPMan").Value = CDate(chaves(1) - MinutosRotulo() / 1440)
+    Nm("bIniU").ClearContents
+    If nivel <> "" Then Nm("bNivel").Value = nivel
+    If interf <> "" Then Nm("bInterf").Value = interf
     Nm("bIniG").ClearContents
     Nm("bFimG").ClearContents
     Nm("bFimU").ClearContents
@@ -590,4 +601,96 @@ Private Sub OrdenarHorarios(ByRef chaves() As Double, ByRef vals() As Variant, B
             End If
         Next j
     Next i
+End Sub
+
+' "MÉDIO" -> "Médio"
+Private Function Primeira(ByVal t As String) As String
+    If t = "" Then Exit Function
+    Primeira = UCase$(Left$(t, 1)) & Mid$(t, 2)
+End Function
+
+' ---------------------------------------------------------------- colar as Fases do Evento do MES
+' Le as linhas coladas em bFases (Fase, Descricao, Inicio, Termino - com ou sem cabecalho) e preenche
+' inicio/termino de Germano (fase cfgFaseG, ex.: EB06) e de Ubu (fase que comeca com cfgFaseU, ex.: UBU3).
+Public Sub LerFases()
+    Dim area As Range, r As Long, c As Long, v As Variant, cod As String, d1 As Variant, d2 As Variant
+    Dim faseG As String, faseU As String, gIni As Variant, gFim As Variant, uIni As Variant, uFim As Variant
+    Dim gCod As String, uCod As String, primIni As Variant, primFim As Variant, primCod As String, msg As String
+    Dim t As String, dd As Variant
+
+    Set area = Nm("bFases")
+    faseG = UCase$(CfgTxt("cfgFaseG"))
+    faseU = UCase$(CfgTxt("cfgFaseU"))
+    If faseU = "" Then faseU = "UBU"
+    For r = 1 To area.Rows.Count
+        cod = ""
+        d1 = Empty
+        d2 = Empty
+        For c = 1 To area.Columns.Count
+            v = area.Cells(r, c).Value
+            dd = Empty
+            If EData(v) Then
+                dd = CDate(v)
+            ElseIf VarType(v) = vbString Then
+                t = Trim$(v)
+                If t <> "" And InStr(t, "/") > 0 And IsDate(t) Then
+                    dd = CDate(t)
+                ElseIf cod = "" And t <> "" And InStr(t, " ") = 0 And Len(t) <= 8 Then
+                    cod = UCase$(t)
+                End If
+            End If
+            If Not IsEmpty(dd) Then
+                If IsEmpty(d1) Then
+                    d1 = dd
+                ElseIf IsEmpty(d2) Then
+                    d2 = dd
+                End If
+            End If
+        Next c
+        If cod <> "" And Not IsEmpty(d1) Then
+            If Left$(cod, Len(faseU)) = faseU Then
+                uCod = cod: uIni = d1: uFim = d2
+            ElseIf cod = faseG Then
+                gCod = cod: gIni = d1: gFim = d2
+            ElseIf primCod = "" Then
+                primCod = cod: primIni = d1: primFim = d2
+            ElseIf CDbl(d1) < CDbl(primIni) Then
+                primCod = cod: primIni = d1: primFim = d2
+            End If
+        End If
+    Next r
+    ' sem a fase de Germano configurada: usa a primeira fase (mais cedo) que nao e de Ubu
+    If gCod = "" And primCod <> "" Then
+        gCod = primCod: gIni = primIni: gFim = primFim
+    End If
+    If gCod = "" And uCod = "" Then
+        msg = "Nada reconhecido. Cole as linhas da grade Fases do Evento (Fase, Descrição, Início, Término)."
+    Else
+        ModoCarga True
+        Desproteger shBatch
+        If uCod <> "" Then
+            Nm("bIniU").Value = uIni
+            If Not IsEmpty(uFim) Then Nm("bFimU").Value = uFim
+        End If
+        If gCod <> "" Then
+            Nm("bIniG").Value = gIni
+            If Not IsEmpty(gFim) Then Nm("bFimG").Value = gFim
+        End If
+        area.ClearContents
+        msg = "Fases lidas:"
+        If gCod <> "" Then msg = msg & "  Germano " & gCod & " " & Format$(gIni, "dd\/mm hh:mm") & _
+                                  IIf(IsEmpty(gFim), "", " a " & Format$(gFim, "dd\/mm hh:mm"))
+        If uCod <> "" Then msg = msg & "   ·   Ubu " & uCod & " " & Format$(uIni, "dd\/mm hh:mm") & _
+                                  IIf(IsEmpty(uFim), "", " a " & Format$(uFim, "dd\/mm hh:mm"))
+        Nm("bFasesMsg").Value = "'" & msg
+        Proteger shBatch
+        ModoCarga False
+        gAlterado = True
+        Exit Sub
+    End If
+    ModoCarga True
+    Desproteger shBatch
+    Nm("bFasesMsg").Value = "'" & msg
+    Proteger shBatch
+    ModoCarga False
 End Sub

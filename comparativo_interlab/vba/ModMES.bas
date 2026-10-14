@@ -36,8 +36,9 @@ Public Sub BuscarMES()
         Exit Sub
     End If
     Recalcular
-    If Not EData(Nm("bIniU").Value) Or Not EData(Nm("gJanU").Value) Then
-        Aviso "Informe o início do batch em Ubu (fase UBU3 da tela de eventos do MES) na aba Batch.", vbExclamation, "MES"
+    If Not EData(Nm("gJanU").Value) Then
+        Aviso "Informe a chegada em Ubu (passo 2, fase UBU3 do evento no MES) ou o início no processo, na aba Batch.", _
+              vbExclamation, "MES"
         On Error Resume Next
         Nm("bIniU").Select
         Exit Sub

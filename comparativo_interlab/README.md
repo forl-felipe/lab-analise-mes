@@ -8,7 +8,7 @@ Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTM
 | Aba | Para quê |
 |---|---|
 | **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **Pellet Feed Ultra Fino**, e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição* (lista do histórico), Copiar imagem, Salvar PNG, PDF e E-mail. |
-| **Batch** | Cabeçalho do batch, horários para o MES, tolerâncias, comentários (com a frase automática dos parâmetros NOK), PFUF e a grade de **leituras por horário** (até 24 horários de 2 h). Botões: Buscar no MES, Salvar no histórico, Novo batch, Limpar leituras e Importar da planilha antiga. |
+| **Batch** | Formulário em passos: ① batch, ② **chegada em Ubu** (UBU3, nível dos tanques, interface, início considerado no processo), ③ **Germano** (EB06), ④ horários; caixa para **colar as Fases do Evento** direto da tela do MES; comentários (frase NOK e linha de acompanhamento automáticas), PFUF, grade de **leituras por horário** (até 24 horários de 2 h) e, no fim, os ajustes opcionais do report (laboratórios, referência, títulos, tolerâncias). Botões: Buscar no MES, Salvar no histórico, Novo batch, Limpar leituras e Importar da planilha antiga. |
 | **Enviar** | Resumo pronto para o corpo do e-mail e o assunto; Copiar resumo, Criar e-mail no Outlook (painel no corpo + PNG anexo), imagem, PNG e PDF. |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. |
 | **BD_Leituras** | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). |
@@ -27,6 +27,9 @@ Ocultas: `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos e cál
 
 - Uma fórmula `GetCalculationValues` por laboratório, igual aos relatórios do laboratório (tags, servidores e mapas
   em texto literal, intervalo `2h`). Tags recusadas pelo MES saem da consulta, que é refeita com as demais.
+- **Nível dos tanques** (Alto/Médio/Baixo): soma à chegada em Ubu o atraso até o batch prevalecer no processo
+  (tabela em Configurações; padrão 0 h). O **ajuste manual** do início no processo vale sobre a tabela.
+  A comparação em Ubu começa no *início considerado no processo* e o término anda o mesmo atraso.
 - Horários do batch copiados da **tela de eventos do MES** (Fases do Evento): **Germano** = início e término do
   bombeamento (ex.: EB06); **Ubu** = Terminal Ponta Ubu (UBU3).
 - Janelas de 2 h na grade 07:00, 09:00, 11:00… (aba Configurações). A 1ª janela é a **primeira completa depois do
@@ -35,7 +38,9 @@ Ocultas: `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos e cál
   O horário 1 de Germano é comparado com o horário 1 de Ubu, e assim por diante (a **defasagem** aparece no batch).
   Sem início de Germano = mesmos horários de Ubu.
 - Análise **sem tag** fica fora da consulta (lançamento manual na grade). Para treinar sem MES: Fonte = SIMULAÇÃO.
-- Tags cadastradas pelo laboratório em 14/10/2026 (aba Configurações).
+- Tags cadastradas pelo laboratório em 14/10/2026 (aba Configurações), com as correções: S.E. de Germano estava
+  igual à de PPC (→ `M250010000-17-ABLF`), S.E. de Ubu na US3 (→ `M4650060010-0017-HHLFU`, Alimentação 04) e tags
+  de Ubu com o código de 4 dígitos (`-0016-`, `-0008-`, `-0013-`).
 
 ## Histórico inicial
 

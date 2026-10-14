@@ -172,18 +172,62 @@ Public Sub TesteLO()
     s = TesteTagsInvalidas("Error: Tag Name TAG-UBU-SIO2 is invalid")
     Ok InStr(s, "TAG-UBU-SIO2") > 0, "tag recusada identificada"
 
-    ' --- batch 285 da tela de eventos do MES (EB06 / UBU3)
+    ' --- batch 285 colado da tela de eventos do MES (Fases do Evento)
     NovoBatch
-    Nm("bIniG").Value = DateSerial(2026, 10, 11)
-    Nm("bFimG").Value = DateSerial(2026, 10, 11) + TimeSerial(23, 59, 0)
-    Nm("bIniU").Value = DateSerial(2026, 10, 13) + TimeSerial(9, 18, 0)
-    Nm("bFimU").Value = DateSerial(2026, 10, 14) + TimeSerial(10, 37, 0)
+    With Nm("bFases")
+        .Cells(1, 1).Value = "Fase"
+        .Cells(1, 2).Value = "Descrição"
+        .Cells(1, 3).Value = "Início"
+        .Cells(1, 4).Value = "Término"
+        .Cells(2, 1).Value = "EB06"
+        .Cells(2, 2).Value = "Estação de Bombas 06"
+        .Cells(2, 3).Value = DateSerial(2026, 10, 11)
+        .Cells(2, 4).Value = DateSerial(2026, 10, 11) + TimeSerial(23, 59, 0)
+        .Cells(3, 1).Value = "EB07"
+        .Cells(3, 2).Value = "Estação de Bombas 07"
+        .Cells(3, 3).Value = DateSerial(2026, 10, 12) + TimeSerial(0, 5, 0)
+        .Cells(3, 4).Value = DateSerial(2026, 10, 13) + TimeSerial(0, 12, 0)
+        .Cells(4, 1).Value = "UBU3"
+        .Cells(4, 2).Value = "Terminal Ponta Ubu 03"
+        .Cells(4, 3).Value = DateSerial(2026, 10, 13) + TimeSerial(9, 18, 0)
+        .Cells(4, 4).Value = DateSerial(2026, 10, 14) + TimeSerial(10, 37, 0)
+    End With
+    LerFases
     Recalcular
-    Ok shBatch.Cells(B_ROW_G0, B_COL_TU).Text <> "" And Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(11, 0, 0))) < 0.0001, _
-       "285: 1a janela Ubu 13/10 11:00"
+    Ok Abs(CDbl(V("bIniG")) - CDbl(DateSerial(2026, 10, 11))) < 0.0001 And _
+       Abs(CDbl(V("bFimU")) - CDbl(DateSerial(2026, 10, 14) + TimeSerial(10, 37, 0))) < 0.0001, _
+       "285 colado: Germano EB06 e Ubu UBU3 (" & V("bFasesMsg") & ")"
+    Ok Vazio(Nm("bFases").Cells(4, 1).Value), "area de colar limpa depois de ler"
+    Ok Abs(CDbl(V("bData")) - CDbl(DateSerial(2026, 10, 13))) < 0.0001, "data do report = dia da chegada"
+    Ok Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(11, 0, 0))) < 0.0001, _
+       "285: 1a janela Ubu 13/10 11:00 (sem nivel = sem atraso)"
     Ok Abs(CDbl(V("gJanG")) - CDbl(DateSerial(2026, 10, 11) + TimeSerial(1, 0, 0))) < 0.0001, "285: 1a janela Germano 11/10 01:00"
     Ok CLng(V("bNHor")) = 12 And CLng(V("gNG")) = 12, "285: 12 horarios Ubu e 12 Germano (" & V("bNHor") & "/" & V("gNG") & ")"
     Ok Abs(CDbl(V("bDef")) - 58) < 0.01, "285: defasagem 58 h (" & V("bDef") & ")"
+    ' nivel dos tanques: atraso da tabela de Configuracoes
+    Nm("cfgAtrasoH").Cells(2, 1).Value = 4
+    Nm("bNivel").Value = "Médio"
+    Nm("bInterf").Value = "Não"
+    Recalcular
+    Ok Abs(CDbl(V("bIniP")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(13, 18, 0))) < 0.0001, "nivel medio: processo = chegada + 4 h"
+    Ok Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(15, 0, 0))) < 0.0001, "nivel medio: 1a janela 15:00"
+    Ok CLng(V("bNHor")) = 12, "nivel medio: termino tambem anda 4 h (12 horarios)"
+    Ok Abs(CDbl(V("bAtraso")) - 4) < 0.01, "atraso exibido 4 h"
+    Ok InStr(CStr(V("gAcomp")), "nível dos tanques médio · sem interface · comparação a partir de 13/10 15:30") > 0, _
+       "acompanhamento: " & V("gAcomp")
+    Ok InStr(CStr(V("gComentarios")), "Chegada em Ubu 13/10 09:18") > 0, "acompanhamento no comentario do painel"
+    Nm("bIniPMan").Value = DateSerial(2026, 10, 13) + TimeSerial(12, 0, 0)
+    Recalcular
+    Ok Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(13, 0, 0))) < 0.0001, "ajuste manual: 1a janela 13:00"
+    Ok Abs(CDbl(V("bAtraso")) - 2.7) < 0.01, "ajuste manual: atraso 2,7 h (" & V("bAtraso") & ")"
+    SalvarHistorico
+    r = LinhaHistorico(V("bId"))
+    Ok CStr(shHist.Cells(r, H_COL1 + 5).Value) = "Médio", "nivel gravado no historico"
+    Ok Abs(CDbl(shHist.Cells(r, H_COL1 + H_COL_STAT1 - 1 + 4 * NP).Value) - CDbl(V("bIniP"))) < 0.0001, _
+       "inicio no processo gravado no historico"
+    AbrirBatch 288
+    AbrirBatch V("pSel")
+    Ok CStr(V("bNivel")) = "Médio", "nivel reaberto"
 
     GoTo Fim
 Erro:
