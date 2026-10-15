@@ -117,7 +117,7 @@ B_COL_TG = 3              # D  data/hora Germano
 B_COL_V1 = 4              # E  1o valor (SE A); valor (p, lab) em B_COL_V1 + 2p + lab
 B_COL_D1 = 15             # P  1a diferenca
 B_COL_R1 = 20             # U  1o "rank" (par A/B para os graficos)
-B_ROW_G0 = 17             # 1a linha de leituras
+B_ROW_G0 = 27             # 1a linha de leituras
 B_ROW_MED = B_ROW_G0 + NMAX
 B_ROW_CNT = B_ROW_MED + 1
 
@@ -130,7 +130,11 @@ G_ROW_X = G_ROW_ST + NP + 2   # linha dos totais / listas
 
 # ---------------------------------------------------------------- Configurações (0-based)
 C_ROW_TAG0 = 7            # 1a linha da tabela de tags
-C_COL = dict(PARAM=1, LAB=2, TAG=3, SERV=4, MAPA=5, VMIN=6, VMAX=7, TIP=8)
+C_COL = dict(PARAM=1, LAB=2, TAG=3, SERV=4, MAPA=5, VMIN=6, VMAX=7, TIP=8, FREQ=9, HORA1=10)
+# Frequencia das analises (h) e 1o horario da escala. O MES devolve a analise de 4 h em duas janelas de 2 h
+# (valor repetido); so os horarios da escala ficam. Ubu: quimica de 4 em 4 h a partir de 03:30 (03:30, 07:30,
+# 11:30, 15:30, 19:30, 23:30), como no painel do laboratorio. Ubu lancando de 2 em 2 h: frequencia 2.
+FREQ = {('SiO2', 1): (4, dtm.time(3, 30)), ('P', 1): (4, dtm.time(3, 30)), ('PPC', 1): (4, dtm.time(3, 30))}
 
 # ---------------------------------------------------------------- Histórico
 H_ROW_HDR = 6             # cabecalho da tabela tbl_Batches (0-based)
@@ -142,7 +146,8 @@ CAMPOS = ([('bId', 'Batch'), ('bData', 'Data do report'), ('bMin', 'Mineroduto')
            ('bLabA', 'Laboratório A'), ('bLabB', 'Laboratório B'), ('bRef', 'Referência'), ('bTit', 'Título'),
            ('bSub', 'Subtítulo')] +
           [('bTol_%s' % p[0], 'Tol %s' % p[1]) for p in PARAMS] +
-          [('bIncFrase', 'Frase automática'), ('bIncAcomp', 'Acompanhamento no report')] +
+          [('bIncFrase', 'Frase automática'), ('bIncAcomp', 'Acompanhamento no report'),
+           ('bFrase', 'Texto parâmetros fora'), ('bAcomp', 'Texto acompanhamento')] +
           [('bCom%d' % i, 'Comentário %d' % i) for i in range(1, 7)])
 H_COLS = ([h for _, h in CAMPOS] +
           sum([['%s média A' % p[1], '%s média B' % p[1], '%s diferença' % p[1], '%s status' % p[1]]
@@ -289,19 +294,20 @@ class Construtor:
         ws.set_column(3, 3, 30)
         ws.set_column(4, 5, 15)
         ws.set_column(6, 8, 13)
-        ws.set_column(9, 9, 2)
-        ws.set_column(10, 10, 60)
-        self.faixa(ws, 1, 1, 10, 'CONFIGURAÇÕES',
+        ws.set_column(9, 10, 12)
+        ws.set_column(11, 11, 2)
+        ws.set_column(12, 12, 60)
+        self.faixa(ws, 1, 1, 12, 'CONFIGURAÇÕES',
                    'Tags do MES, consulta, padrões de um batch novo e títulos do report')
         self.botao(ws, 1, 8, 'Voltar ao Batch', 'IrBatch', 150, 26, 'n', x=80, y=4)
 
-        self.secao(ws, 4, 1, 8, 'TAGS DO MES (UMA POR ANÁLISE E LABORATÓRIO)')
-        ws.merge_range(5, 1, 5, 8, 'Tag em branco = análise fora da consulta (fica para lançamento manual). '
+        self.secao(ws, 4, 1, 10, 'TAGS DO MES (UMA POR ANÁLISE E LABORATÓRIO)')
+        ws.merge_range(5, 1, 5, 10, 'Tag em branco = análise fora da consulta (fica para lançamento manual). '
                        'Servidor e mapa como no MES (padrão UBU / IP_MESVALOR). Valores fora da faixa '
-                       'válida são descartados.', self.f(font_size=8.5, font_color=MUTED, text_wrap=True))
+                       'válida são descartados. Frequência: só os horários da escala (1º horário + n × frequência) ficam.', self.f(font_size=8.5, font_color=MUTED, text_wrap=True))
         ws.set_row(5, 26)
         hdr = ['Análise', 'Laboratório', 'Tag', 'Servidor', 'Mapa', 'Mín. válido', 'Máx. válido',
-               'Típico (simulação)']
+               'Típico (simulação)', 'Frequência (h)', '1º horário']
         fh = self.f(bold=True, font_size=9, font_color=BRANCO, bg_color=NAVY2, align='center', border=1,
                     border_color=NAVY2)
         for i, h in enumerate(hdr):
@@ -319,10 +325,17 @@ class Construtor:
                 ws.write(r, C_COL['VMIN'], pr[6][0], self.fi(align='center'))
                 ws.write(r, C_COL['VMAX'], pr[6][1], self.fi(align='center'))
                 ws.write(r, C_COL['TIP'], pr[7 + lab], self.fi(align='center'))
-        self.nome('cfgTags', ws, C_ROW_TAG0, 1, C_ROW_TAG0 + 2 * NP - 1, 8)
+                fq, h1 = FREQ.get((pr[0], lab), (2, None))
+                ws.write_number(r, C_COL['FREQ'], fq, self.fi(align='center'))
+                if h1 is None:
+                    ws.write_blank(r, C_COL['HORA1'], None, self.fi(align='center', num_format='hh:mm'))
+                else:
+                    ws.write_datetime(r, C_COL['HORA1'], dtm.datetime.combine(dtm.date(1899, 12, 31), h1),
+                                      self.fi(align='center', num_format='hh:mm'))
+        self.nome('cfgTags', ws, C_ROW_TAG0, 1, C_ROW_TAG0 + 2 * NP - 1, 10)
         nota = ('As tags vêm das telas do MES (ex.: M650030010-0004-HHLQU). Germano e Ubu podem estar em '
                 'servidores diferentes: informe o servidor de cada tag.')
-        ws.merge_range(C_ROW_TAG0, 10, C_ROW_TAG0 + 3, 10, nota,
+        ws.merge_range(C_ROW_TAG0, 12, C_ROW_TAG0 + 3, 12, nota,
                        self.f(font_size=9, font_color=INK2, text_wrap=True, valign='top', bg_color='#F5F8FD',
                               left=5, left_color=NAVY2))
 
@@ -439,8 +452,8 @@ class Construtor:
         ws.set_column(14, 14, 1.5)
         ws.set_column(15, 19, 9.3)
         ws.set_column(20, 24, 6, None, {'hidden': True})
-        ws.set_column(25, 25, 2)
-        ws.set_default_row(18)
+        ws.set_column(25, 16383, None, None, {'hidden': True})
+        ws.set_default_row(18, True)   # linhas sem uso ocultas
         ws.set_row(1, 34)
         ws.merge_range(1, 1, 1, 19, 'DADOS DO BATCH', self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY,
                                                            indent=1))
@@ -521,6 +534,32 @@ class Construtor:
         ws.set_row(RL, 14)
         ws.set_row(RV, 22)
         ws.set_row(RV + 1, 8)
+
+        # --- comentarios do report (logo abaixo da conferencia, para editar antes de salvar)
+        r = 15
+        self.secao(ws, r, 1, 13, 'COMENTÁRIOS DO REPORT  (os dois primeiros são automáticos — dá para editar)')
+        fauto = self.fi(italic=True, font_size=9.5, font_color=INK2, text_wrap=True, bg_color='#F3F7FC')
+        for rr, rot, form, nm, nm_inc in [(r + 1, 'Parâmetros fora', '=gFrase', 'bFrase', 'bIncFrase'),
+                                          (r + 2, 'Acompanhamento', '=gAcomp', 'bAcomp', 'bIncAcomp')]:
+            ws.merge_range(rr, 1, rr, 2, rot, self.f(bold=True, font_size=9, font_color=MUTED))
+            ws.merge_range(rr, 3, rr, 11, '', fauto)
+            ws.write_formula(rr, 3, form, fauto)
+            self.nome(nm, ws, rr, 3)
+            ws.write(rr, 12, 'No report?', self.f(bold=True, font_size=8, font_color=MUTED, align='right'))
+            ws.write_string(rr, 13, 'Sim', self.fi(align='center'))
+            self.nome(nm_inc, ws, rr, 13)
+            ws.data_validation(rr, 13, rr, 13, {'validate': 'list', 'source': '=lstSimNao'})
+            ws.set_row(rr, 26)
+        com = self.comentarios(b)
+        for i in range(6):
+            rr = r + 3 + i
+            ws.merge_range(rr, 1, rr, 2, 'Tópico %d' % (i + 1), self.f(bold=True, font_size=9, font_color=MUTED))
+            ws.merge_range(rr, 3, rr, 13, '', self.fi(text_wrap=True))
+            if i < len(com):
+                ws.write_string(rr, 3, com[i], self.fi(text_wrap=True))
+            self.nome('bCom%d' % (i + 1), ws, rr, 3)
+            ws.set_row(rr, 17)
+        ws.set_row(r + 9, 8)
 
         # --- leituras
         self.secao(ws, B_ROW_G0 - 2, 1, 19, 'LEITURAS POR HORÁRIO  (em branco = sem análise no laboratório)')
@@ -614,33 +653,8 @@ class Construtor:
         self.nome('bValores', ws, g1, B_COL_V1, g2, B_COL_V1 + 2 * NP - 1)
         self.nome('bHorasU', ws, g1, B_COL_TU, g2, B_COL_TU)
 
-        # --- comentarios
         r = B_ROW_CNT + 2
-        self.secao(ws, r, 1, 13, 'COMENTÁRIOS (CADA LINHA VIRA UM TÓPICO NO REPORT)')
-        fauto = self.f(italic=True, font_size=9.5, font_color=INK2, bg_color=SEC, border=1, border_color=LINE2,
-                       text_wrap=True)
-        for rr, rot, ref, nm, nm_inc in [(r + 1, 'Frase automática', rc(G_ROW_X, 6, True, True), 'bFrase', 'bIncFrase'),
-                                         (r + 2, 'Acompanhamento', None, 'bAcomp', 'bIncAcomp')]:
-            ws.merge_range(rr, 1, rr, 2, rot, self.f(bold=True, font_size=9, font_color=MUTED))
-            ws.merge_range(rr, 3, rr, 11, '', fauto)
-            ws.write_formula(rr, 3, ("=_Graf!%s" % ref) if ref else '=gAcomp', fauto)
-            self.nome(nm, ws, rr, 3)
-            ws.write(rr, 12, 'No report?', self.f(bold=True, font_size=8, font_color=MUTED, align='right'))
-            ws.write_string(rr, 13, 'Sim', self.fi(align='center'))
-            self.nome(nm_inc, ws, rr, 13)
-            ws.data_validation(rr, 13, rr, 13, {'validate': 'list', 'source': '=lstSimNao'})
-            ws.set_row(rr, 28)
-        com = self.comentarios(b)
-        for i in range(6):
-            rr = r + 3 + i
-            ws.merge_range(rr, 1, rr, 2, 'Tópico %d' % (i + 1), self.f(bold=True, font_size=9, font_color=MUTED))
-            ws.merge_range(rr, 3, rr, 13, '', self.fi(text_wrap=True))
-            if i < len(com):
-                ws.write_string(rr, 3, com[i], self.fi(text_wrap=True))
-            self.nome('bCom%d' % (i + 1), ws, rr, 3)
-
         # --- ajustes do report (opcional)
-        r = r + 10
         self.secao(ws, r, 1, 13, 'AJUSTES DO REPORT (OPCIONAL — JÁ VÊM DOS PADRÕES DA ABA CONFIGURAÇÕES)')
         fv = self.fi(align='center')
         campos = [
@@ -772,6 +786,7 @@ class Construtor:
             topicos += '&IF(TRIM(bCom%d&"")<>"","•  "&TRIM(bCom%d&"")&CHAR(10),"")' % (i, i)
         ws.write_formula(X, 7, '=' + topicos)
         ws.write_formula(X, 8, '=IF(%s="","Sem observações.",LEFT(%s,LEN(%s)-1))' % (rc(X, 7), rc(X, 7), rc(X, 7)))
+        self.nome('gFrase', ws, X, 6)
         self.nome('gNok', ws, X, 0)
         self.nome('gOk', ws, X, 1)
         self.nome('gAval', ws, X, 2)
@@ -876,7 +891,8 @@ class Construtor:
         for c, px in enumerate(self.P_COLS):
             ws.set_column_pixels(c, c, px)
         ws.set_column_pixels(len(self.P_COLS), len(self.P_COLS), 20)
-        ws.set_default_row(15)
+        ws.set_column(len(self.P_COLS) + 1, 16383, None, None, {'hidden': True})
+        ws.set_default_row(15, True)   # linhas sem uso ocultas
         bgw = self.f(bg_color=BRANCO)
         # ---- barra de ferramentas (fora da imagem)
         tb = self.f(bg_color=BG)
@@ -938,7 +954,7 @@ class Construtor:
         secf = self.f(bold=True, font_size=8, font_color=INK, bg_color=SEC, top=1, bottom=1, left=1, right=1,
                       border_color=LINE, indent=1)
         ws.merge_range(r, 1, r, 6, '', secf)
-        ws.write_formula(r, 1, '=UPPER("Farol — Batch "&bId&IF(bMin<>""," · Mineroduto "&bMin,"")&" · ref. "&gRefNome)',
+        ws.write_formula(r, 1, '=UPPER("Batch "&bId&IF(bMin<>""," - Mineroduto "&bMin,""))',
                          secf)
         ws.merge_range(r, 8, r, 13, 'COMENTÁRIOS', secf)
         # farol: cabecalho

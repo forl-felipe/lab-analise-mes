@@ -5,7 +5,7 @@ Public Const NP As Long = 5
 Public Const NMAX As Long = 24
 Public Const HORAS_SLOT As Double = 2
 ' aba Batch (1-based)
-Public Const B_ROW_G0 As Long = 18
+Public Const B_ROW_G0 As Long = 28
 Public Const B_COL_N As Long = 2
 Public Const B_COL_TU As Long = 3
 Public Const B_COL_TG As Long = 4
@@ -21,6 +21,8 @@ Public Const C_COL_MAPA As Long = 6
 Public Const C_COL_VMIN As Long = 7
 Public Const C_COL_VMAX As Long = 8
 Public Const C_COL_TIP As Long = 9
+Public Const C_COL_FREQ As Long = 10
+Public Const C_COL_HORA1 As Long = 11
 ' aba _Graf
 Public Const G_BLOCO As Long = 9
 Public Const G_ROW_ST As Long = 31
@@ -30,12 +32,12 @@ Public Const G_COL_MB As Long = 3
 Public Const G_COL_D As Long = 4
 Public Const G_COL_ST As Long = 6
 ' Historico: colunas da tabela tbl_Batches (ordem)
-Public Const H_NCOL As Long = 54
+Public Const H_NCOL As Long = 56
 Public Const H_ROW_HDR As Long = 7
 Public Const H_COL1 As Long = 2
 ' coluna (na tabela) da 1a estatistica (media A do 1o parametro)
-Public Const H_COL_STAT1 As Long = 29
-Public Const H_NCAMPOS As Long = 28
+Public Const H_COL_STAT1 As Long = 31
+Public Const H_NCAMPOS As Long = 30
 Public Const L_NCOL As Long = 10
 ' chaves e rotulos dos parametros (ordem das colunas da aba Batch)
 Public Const P_CHAVES As String = "SE|325|SiO2|P|PPC"
@@ -47,7 +49,7 @@ Public Const SENHA As String = ""
 
 ' campos da aba Batch gravados em tbl_Batches (mesma ordem das 1as colunas)
 Public Function CAMPOS_BATCH() As String
-    CAMPOS_BATCH = "bId|bData|bMin|bIniU|bFimU|bNivel|bIniPMan|bIniG|bFimG|bNHor|bLabA|bLabB|bRef|bTit|bSub|bTol_SE|bTol_325|bTol_SiO2|bTol_P|bTol_PPC|bIncFrase|bIncAcomp|bCom1|bCom2|bCom3|bCom4|bCom5|bCom6"
+    CAMPOS_BATCH = "bId|bData|bMin|bIniU|bFimU|bNivel|bIniPMan|bIniG|bFimG|bNHor|bLabA|bLabB|bRef|bTit|bSub|bTol_SE|bTol_325|bTol_SiO2|bTol_P|bTol_PPC|bIncFrase|bIncAcomp|bFrase|bAcomp|bCom1|bCom2|bCom3|bCom4|bCom5|bCom6"
 End Function
 
 ' rotulos dos parametros (com caracteres fora do cp1252 via ChrW)

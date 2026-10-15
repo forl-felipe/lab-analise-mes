@@ -53,6 +53,7 @@ Public Sub TesteLO()
     id = CLng(V("bId"))
     Ok id = 285, "novo batch = 285 (" & id & ")"
     Ok Not ENumero(Celula(1, pSE, 0)), "novo batch sem leituras"
+    Ok Nm("bAcomp").HasFormula And Nm("bFrase").HasFormula, "novo batch com comentarios automaticos"
     Nm("bIniU").Value = DateSerial(2026, 10, 10) + TimeSerial(7, 30, 0)
     Nm("bFimU").Value = DateSerial(2026, 10, 11) + TimeSerial(8, 10, 0)
     Nm("bIniG").Value = DateSerial(2026, 10, 8) + TimeSerial(5, 30, 0)
@@ -78,8 +79,14 @@ Public Sub TesteLO()
     Ok n = 7, "simulacao: 7 S.E. Germano (" & n & ")"
     Ok ENumero(Celula(7, pSE, 1)) And Not ENumero(Celula(8, pSE, 1)), "simulacao: S.E. Ubu ate o 7o horario"
     Ok ENumero(Celula(1, pSE, 1)) And Not ENumero(Celula(2, PIndice("325"), 1)), "Ubu: S.E. a cada 2 h, <325# a cada 6 h"
+    Ok Not ENumero(Celula(1, pSi, 1)) And ENumero(Celula(2, pSi, 1)) And Not ENumero(Celula(3, pSi, 1)) And _
+       ENumero(Celula(4, pSi, 1)), "Ubu SiO2 so na escala de 4 h (11:30, 15:30...)"
+    Ok ENumero(Celula(1, pSi, 0)) And ENumero(Celula(2, pSi, 0)) And ENumero(Celula(3, pSi, 0)), "Germano SiO2 de 2 em 2 h"
+    Ok NaEscala(pSi, 1, DateSerial(2026, 10, 10) + TimeSerial(23, 30, 0)) And _
+       Not NaEscala(pSi, 1, DateSerial(2026, 10, 10) + TimeSerial(21, 30, 0)), "escala 03:30 + 4 h: 23:30 sim, 21:30 nao"
     Ok CLng(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_NP).Value) = 7, "7 pares S.E. no grafico"
     Ok CStr(shGraf.Cells(2 + 7, (pSE - 1) * G_BLOCO + 1).Value) = "Média", "rotulo Media apos os pares"
+    Nm("bAcomp").Value = "Acompanhamento editado"
     salvo1 = Celula(3, pSi, 0)
     salvo2 = Celula(5, pSE, 1)
     SalvarHistorico
@@ -102,6 +109,7 @@ Public Sub TesteLO()
     AbrirBatch id
     Ok Celula(3, pSi, 0) = salvo1 And Celula(5, pSE, 1) = salvo2, "reabrir 291 com os mesmos valores"
     Ok Abs(CDbl(V("bDef")) - 51) < 0.01, "reabrir 291 com a defasagem"
+    Ok CStr(V("bAcomp")) = "Acompanhamento editado", "comentario editado reaberto"
     ' selecao pelo painel
     Nm("pSel").Value = 284
     SelecionarBatch

@@ -8,7 +8,7 @@ Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTM
 | Aba | Para quê |
 |---|---|
 | **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários** e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo. |
-| **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); a grade de **leituras por horário** logo abaixo; depois comentários e ajustes opcionais. Botões: Buscar no MES, Salvar no histórico, Novo batch, Limpar leituras, Ver painel. Abre com um batch em branco. |
+| **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); **comentários do report** (parâmetros fora e acompanhamento automáticos e editáveis + 6 tópicos); a grade de **leituras por horário**; no fim, ajustes opcionais. Linhas e colunas sem uso ficam ocultas (também no Painel). Botões: Buscar no MES, Salvar no histórico, Novo batch, Limpar leituras, Ver painel. Abre com um batch em branco. |
 | **Enviar** | Resumo curto para o corpo do e-mail (batch, parâmetros fora da tolerância e os comentários) e o assunto. Botões: Copiar resumo e Copiar painel (imagem). |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. |
 | **BD_Leituras** | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
@@ -21,7 +21,11 @@ Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cá
 - Média de cada laboratório = média de **todas** as leituras dele no batch.
 - Diferença = avaliado − referência (padrão: **Ubu − Germano**; a referência pode ser trocada no batch).
 - **OK** quando |diferença arredondada| ≤ tolerância. Tolerâncias padrão: S.E. 150 · <325# 1,0 · SiO₂ 0,19 · P 0,003 · PPC 0,08.
-- Os gráficos mostram só os horários com leitura nos dois laboratórios, mais a coluna **Média**.
+- Os gráficos mostram só os horários com leitura nos dois laboratórios (ex.: química de Ubu de 4 em 4 h ×
+  Germano de 2 em 2 h), mais a coluna **Média**, que é a média de todas as leituras de cada laboratório.
+- **Escala de cada análise** (Configurações: frequência e 1º horário): o MES devolve a análise de 4 h em duas
+  janelas de 2 h (valor repetido); só o horário da escala fica. Padrão: Ubu SiO₂, P e PPC de 4 em 4 h a partir de
+  03:30 (03:30, 07:30, 11:30, 15:30, 19:30, 23:30); demais de 2 em 2 h. Ubu de 2 em 2 h: frequência 2.
 
 ## Consulta ao MES
 

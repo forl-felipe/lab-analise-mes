@@ -202,6 +202,12 @@ Private Function Usuario() As String
     If Usuario = "" Then Usuario = Environ$("USERNAME")
 End Function
 
+' Frase dos parametros fora e acompanhamento: formula automatica (todos = tambem os ja editados)
+Public Sub RestaurarComentariosAuto(ByVal todos As Boolean)
+    If todos Or Vazio(Nm("bFrase").Value) Then Nm("bFrase").Formula = "=gFrase"
+    If todos Or Vazio(Nm("bAcomp").Value) Then Nm("bAcomp").Formula = "=gAcomp"
+End Sub
+
 ' ---------------------------------------------------------------- abrir
 Public Sub AbrirBatch(ByVal id As Variant)
     Dim r As Long, campos As Variant, j As Long, v As Variant, campo As String, rL As Long, i As Long
@@ -227,6 +233,7 @@ Public Sub AbrirBatch(ByVal id As Variant)
             Nm(campo).Value = v
         End If
     Next j
+    RestaurarComentariosAuto False
     ' leituras
     shBatch.Range(shBatch.Cells(B_ROW_G0, B_COL_V1), shBatch.Cells(B_ROW_G0 + NMAX - 1, B_COL_V1 + 2 * NP - 1)).ClearContents
     RestaurarHorarios
@@ -389,6 +396,7 @@ Public Sub NovoBatch()
     Nm("bNivel").ClearContents
     Nm("bIniPMan").ClearContents
     Nm("bIncAcomp").Value = "Sim"
+    RestaurarComentariosAuto True
     Nm("bFasesMsg").ClearContents
     Nm("bNHor").Formula = "=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))"
     For p = 1 To NP

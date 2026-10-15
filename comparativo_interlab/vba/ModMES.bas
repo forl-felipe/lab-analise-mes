@@ -91,8 +91,8 @@ Public Sub BuscarMES()
     Application.StatusBar = False
     If Not okG And Not okU Then GoTo Fim
 
-    qG = GravarResultados(0, resG, nG, okG)
-    qU = GravarResultados(1, resU, n, okU)
+    qG = GravarResultados(0, resG, nG, okG, iniG)
+    qU = GravarResultados(1, resU, n, okU, iniU)
     Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & IIf(simulado, " (SIMULAÇÃO)", "")
     AjustarGraficos
     msg = "Resultados gravados no batch " & CfgTxt("bId") & ":" & vbCrLf & vbCrLf & _
@@ -644,19 +644,24 @@ End Sub
 ' ---------------------------------------------------------------- gravacao na aba Batch
 ' Grava os valores do laboratorio nas colunas das analises COM tag (as sem tag ficam como estao).
 ' Devolve quantos valores foram gravados.
-Private Function GravarResultados(ByVal lab As Long, ByVal res As Variant, ByVal n As Long, ByVal ok As Boolean) As Long
-    Dim p As Long, s As Long, c As Range, qtd As Long, temTag As Boolean, simulado As Boolean
+Private Function GravarResultados(ByVal lab As Long, ByVal res As Variant, ByVal n As Long, ByVal ok As Boolean, _
+                                  ByVal ini As Date) As Long
+    Dim p As Long, s As Long, c As Range, qtd As Long, temTag As Boolean, simulado As Boolean, t As Date, minLab As Double
     If Not ok Then Exit Function
     simulado = (Left$(UCase$(CfgTxt("cfgFonte")), 3) = "SIM")
+    ' horario mostrado na linha (Ubu: inicio da janela + 30 min; Germano: + cfgMinG)
+    minLab = MinutosRotulo()
+    If lab = 0 And ENumero(Nm("cfgMinG").Value) Then minLab = CDbl(Nm("cfgMinG").Value)
     ModoCarga True
     Desproteger shBatch
     For p = 1 To NP
-        temTag = (TagCfg(p, lab, C_COL_TAG) <> "" And Not TagInvalida(TagCfg(p, lab, C_COL_TAG)))
+        temTag = (TagAtual(p, lab) <> "" And Not TagInvalida(TagAtual(p, lab)))
         If temTag Or simulado Then
             For s = 1 To NMAX
                 Set c = shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, lab))
+                t = CDate(CDbl(ini) + (s - 1) * HORAS_SLOT / 24 + minLab / 1440)
                 If s <= n Then
-                    If ENumero(res(s, p)) Then
+                    If ENumero(res(s, p)) And NaEscala(p, lab, t) Then
                         c.Value = CDbl(res(s, p))
                         qtd = qtd + 1
                     Else
@@ -673,6 +678,21 @@ Private Function GravarResultados(ByVal lab As Long, ByVal res As Variant, ByVal
     ModoCarga False
     gAlterado = True
     GravarResultados = qtd
+End Function
+
+' Horario t esta na escala da analise (aba Configuracoes: frequencia e 1o horario)? A analise de 4 h aparece
+' no MES em duas janelas de 2 h (valor repetido); so o horario da escala vale.
+Public Function NaEscala(ByVal p As Long, ByVal lab As Long, ByVal t As Date) As Boolean
+    Dim fq As Variant, h1 As Variant, dif As Double, r As Double
+    NaEscala = True
+    fq = shConfig.Cells(C_ROW_TAG0 + 2 * (p - 1) + lab, C_COL_FREQ).Value
+    h1 = shConfig.Cells(C_ROW_TAG0 + 2 * (p - 1) + lab, C_COL_HORA1).Value
+    If Not ENumero(fq) Or Vazio(h1) Then Exit Function
+    If Not (VarType(h1) = vbDate Or IsNumeric(h1)) Then Exit Function
+    If CDbl(fq) <= HORAS_SLOT + 0.001 Then Exit Function
+    dif = (CDbl(t) - CDbl(h1)) * 24
+    r = dif - Int(dif / CDbl(fq)) * CDbl(fq)
+    NaEscala = (r < 0.1 Or r > CDbl(fq) - 0.1)
 End Function
 
 ' Horarios de Ubu voltam a ser calculados pelo inicio e pelo Nº de horarios
@@ -696,11 +716,7 @@ Private Function DadosSimulados(ByVal lab As Long, ByVal n As Long, ByVal ini As
             tip = TagCfg(p, lab, C_COL_TIP)
             passo = 1
             If lab = 1 Then
-                Select Case PChave(p)
-                    Case "325": passo = 3
-                    Case "SE": passo = 1
-                    Case Else: passo = 2
-                End Select
+                If PChave(p) = "325" Then passo = 3
             End If
             If IsNumeric(tip) And tip <> "" And ((s - 1) Mod passo = 0) Then
                 d(s, p) = Round(CDbl(tip) * (1 + (Rnd() - 0.5) * 0.06), PDec(p) + 1)
