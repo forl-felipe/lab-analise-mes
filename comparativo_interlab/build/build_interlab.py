@@ -449,13 +449,10 @@ class Construtor:
         ws.set_column(2, 2, 25)
         ws.set_column(3, 3, 16.5)
         ws.set_column(4, 13, 9.3)
-        ws.set_column(14, 14, 1.5)
-        ws.set_column(15, 19, 9.3)
-        ws.set_column(20, 24, 6, None, {'hidden': True})
-        ws.set_column(25, 16383, None, None, {'hidden': True})
+        ws.set_column(14, 16383, None, None, {'hidden': True})   # diferencas, auxiliares e o resto: ocultos
         ws.set_default_row(18, True)   # linhas sem uso ocultas
         ws.set_row(1, 34)
-        ws.merge_range(1, 1, 1, 19, 'DADOS DO BATCH', self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY,
+        ws.merge_range(1, 1, 1, 13, 'DADOS DO BATCH', self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY,
                                                            indent=1))
         fdt = self.fi(align='center', num_format='dd/mm/yyyy hh:mm')
         fauto_dt = self.f(align='center', num_format='dd/mm/yy hh:mm', bg_color='#F3F7FC', border=1,
@@ -467,7 +464,7 @@ class Construtor:
         # ① e ③ a esquerda; ② (area de colar, sem nada mesclado em volta) no meio
         ws.set_row(2, 8)
         self.secao(ws, 3, 1, 2, '①  BATCH Nº')
-        self.secao(ws, 3, 3, 11, '②  COLE AS FASES DO EVENTO (MES)')
+        self.secao(ws, 3, 3, 9, '②  COLE AS FASES DO EVENTO (MES)')
         ws.merge_range(4, 1, 5, 2, '', self.fi(align='center', bold=True, font_size=16))
         if b:
             ws.write_number(4, 1, b['id'], self.fi(align='center', bold=True, font_size=16))
@@ -485,10 +482,10 @@ class Construtor:
         self.nome('bAtraso', ws, 8, 1)
         fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4, border_color='#C9A227')
         for r in range(4, 11):
-            for c in range(3, 12):
+            for c in range(3, 10):
                 ws.write_blank(r, c, None, fpaste)
-        self.nome('bFases', ws, 4, 3, 10, 11)
-        ws.merge_range(11, 3, 11, 11, '', self.f(font_size=8.5, font_color=OK, bold=True))
+        self.nome('bFases', ws, 4, 3, 10, 9)
+        ws.merge_range(11, 3, 11, 9, '', self.f(font_size=8.5, font_color=OK, bold=True))
         self.nome('bFasesMsg', ws, 11, 3)
         for r in range(4, 11):
             ws.set_row(r, 16)
@@ -510,27 +507,25 @@ class Construtor:
         ws.merge_range(RV, 8, RV, 9, '', fip)
         ws.write_formula(RV, 8, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
         self.nome('bIniP', ws, RV, 8)
-        ws.merge_range(RL, 10, RL, 11, 'BI-HORÁRIOS', fl)
-        self.entrada(ws, RV, 10, 11, len(b['rows']) if b else
+        ws.write(RL, 10, 'BI-HORÁRIOS', fl)
+        self.entrada(ws, RV, 10, 10, len(b['rows']) if b else
                      '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))', fauto_v, 'bNHor')
         ws.data_validation(RV, 10, RV, 10, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
                                             'maximum': NMAX, 'error_message': 'Entre 1 e %d horários.' % NMAX})
-        ws.merge_range(RL, 12, RL, 13, 'DEFASAGEM', fl)
-        ws.merge_range(RV, 12, RV, 13, '', fcalc_h)
-        ws.write_formula(RV, 12, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fcalc_h)
-        self.nome('bDef', ws, RV, 12)
-        fdata = self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC', border=1, border_color=LINE2,
+        ws.write(RL, 11, 'DEFASAGEM', fl)
+        ws.write_formula(RV, 11, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fcalc_h)
+        self.nome('bDef', ws, RV, 11)
+        fdata = self.f(align='center', num_format='dd/mm/yy', bg_color='#F3F7FC', border=1, border_color=LINE2,
                        locked=False, font_size=9.5)
-        ws.merge_range(RL, 15, RL, 16, 'DATA DO REPORT', fl)
-        ws.merge_range(RV, 15, RV, 16, '', fdata)
+        ws.write(RL, 12, 'DATA REPORT', fl)
         if b:
-            ws.write_datetime(RV, 15, dtm.datetime.strptime(b.get('chegada') or b['rows'][0]['data'], '%Y-%m-%d'), fdata)
+            ws.write_datetime(RV, 12, dtm.datetime.strptime(b.get('chegada') or b['rows'][0]['data'], '%Y-%m-%d'), fdata)
         else:
-            ws.write_formula(RV, 15, '=TODAY()', fdata)
-        self.nome('bData', ws, RV, 15)
-        ws.merge_range(RL, 17, RL, 18, 'MINERODUTO', fl)
-        self.entrada(ws, RV, 17, 18, '03', fauto_v, 'bMin')
-        ws.data_validation(RV, 17, RV, 17, {'validate': 'list', 'source': '=lstMin'})
+            ws.write_formula(RV, 12, '=TODAY()', fdata)
+        self.nome('bData', ws, RV, 12)
+        ws.write(RL, 13, 'MINERODUTO', fl)
+        self.entrada(ws, RV, 13, 13, '03', fauto_v, 'bMin')
+        ws.data_validation(RV, 13, RV, 13, {'validate': 'list', 'source': '=lstMin'})
         ws.set_row(RL, 14)
         ws.set_row(RV, 22)
         ws.set_row(RV + 1, 8)
@@ -562,7 +557,7 @@ class Construtor:
         ws.set_row(r + 9, 8)
 
         # --- leituras
-        self.secao(ws, B_ROW_G0 - 2, 1, 19, 'LEITURAS POR HORÁRIO  (em branco = sem análise no laboratório)')
+        self.secao(ws, B_ROW_G0 - 2, 1, 13, 'LEITURAS POR HORÁRIO  (em branco = sem análise no laboratório)')
         r0 = B_ROW_G0
         fgh = self.f(bold=True, font_size=8.5, font_color=BRANCO, bg_color=NAVY2, align='center', border=1,
                      border_color=BRANCO, text_wrap=True)
@@ -684,12 +679,11 @@ class Construtor:
         self.b_fim = r + 7
 
         # botoes (na faixa do topo e ao lado dos passos)
-        self.botao(ws, 3, 13, 'Buscar no MES', 'BuscarMES', 165, 40, 'p', x=6, y=4)
-        self.botao(ws, 3, 17, 'Salvar no histórico', 'SalvarHistorico', 170, 40, 'g', x=4, y=4)
-        self.botao(ws, 6, 13, '＋ Novo batch', 'NovoBatch', 104, 26, 's', x=6, y=4)
-        self.botao(ws, 6, 15, 'Limpar leituras', 'LimparLeituras', 118, 26, 'd', x=26, y=4)
-        self.botao(ws, 6, 17, 'Ver painel →', 'IrPainel', 106, 26, 'n', x=68, y=4)
-        ws.print_area(0, 0, self.b_fim, 19)
+        self.botao(ws, 3, 10, 'Buscar no MES', 'BuscarMES', 260, 34, 'p', x=12, y=2)
+        self.botao(ws, 5, 10, 'Salvar no histórico', 'SalvarHistorico', 260, 34, 'g', x=12, y=10)
+        self.botao(ws, 8, 10, 'Ver painel →', 'IrPainel', 126, 26, 'n', x=12, y=4)
+        self.botao(ws, 8, 12, 'Limpar leituras', 'LimparLeituras', 126, 26, 'd', x=6, y=4)
+        ws.print_area(0, 0, self.b_fim, 13)
         ws.fit_to_pages(1, 0)
         ws.set_paper(9)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)

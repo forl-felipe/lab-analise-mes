@@ -50,8 +50,9 @@ Public Sub TesteLO()
     shConfig.Unprotect
     Nm("cfgFonte").Value = "SIMULAÇÃO"
     NovoBatch
-    id = CLng(V("bId"))
-    Ok id = 285, "novo batch = 285 (" & id & ")"
+    Ok Vazio(V("bId")), "novo batch com numero em branco"
+    Nm("bId").Value = 291
+    id = 291
     Ok Not ENumero(Celula(1, pSE, 0)), "novo batch sem leituras"
     Ok Nm("bAcomp").HasFormula And Nm("bFrase").HasFormula, "novo batch com comentarios automaticos"
     Nm("bIniU").Value = DateSerial(2026, 10, 10) + TimeSerial(7, 30, 0)
@@ -89,9 +90,13 @@ Public Sub TesteLO()
     Nm("bAcomp").Value = "Acompanhamento editado"
     salvo1 = Celula(3, pSi, 0)
     salvo2 = Celula(5, pSE, 1)
+    Nm("bTol_SE").Value = 999
     SalvarHistorico
     r = LinhaHistorico(id)
     Ok r > 0, "291 salvo no historico (linha " & r & ")"
+    Ok Vazio(V("bId")) And Not ENumero(Celula(1, pSE, 0)), "salvar deixa a aba Batch em branco para o proximo"
+    Ok Nm("bTol_SE").HasFormula And CDbl(V("bTol_SE")) = 150, "tolerancia volta ao padrao depois de salvar"
+    Ok CDbl(shHist.Cells(r, H_COL1 + 15).Value) = 999, "tolerancia do batch gravada no historico"
     nL = 0
     For i = 2 To 2000
         If Vazio(shLeituras.Cells(i, 1).Value) Then Exit For
@@ -137,6 +142,7 @@ Public Sub TesteLO()
 
     ' --- batch 285 colado da tela de eventos do MES (Fases do Evento)
     NovoBatch
+    Nm("bId").Value = 285
     With Nm("bFases")
         .Cells(1, 1).Value = "Fase"
         .Cells(1, 2).Value = "Descrição"
@@ -183,13 +189,14 @@ Public Sub TesteLO()
     Recalcular
     Ok Abs(CDbl(V("gJanU")) - CDbl(DateSerial(2026, 10, 13) + TimeSerial(13, 0, 0))) < 0.0001, "ajuste manual: 1a janela 13:00"
     Ok Abs(CDbl(V("bAtraso")) - 2.7) < 0.01, "ajuste manual: atraso 2,7 h (" & V("bAtraso") & ")"
-    SalvarHistorico
-    r = LinhaHistorico(V("bId"))
-    Ok CStr(shHist.Cells(r, H_COL1 + 5).Value) = "Médio", "nivel gravado no historico"
-    Ok CStr(V("bNivel")) = "Médio", "nivel continua"
-    Ok Abs(CDbl(shHist.Cells(r, H_COL1 + H_COL_STAT1 - 1 + 4 * NP).Value) - CDbl(V("bIniP"))) < 0.0001, _
-       "inicio no processo gravado no historico"
     id = CLng(V("bId"))
+    a = V("bIniP")
+    SalvarHistorico
+    r = LinhaHistorico(id)
+    Ok CStr(shHist.Cells(r, H_COL1 + 5).Value) = "Médio", "nivel gravado no historico"
+    Ok Vazio(V("bNivel")), "nivel em branco no proximo batch"
+    Ok Abs(CDbl(shHist.Cells(r, H_COL1 + H_COL_STAT1 - 1 + 4 * NP).Value) - CDbl(a)) < 0.0001, _
+       "inicio no processo gravado no historico"
     AbrirBatch 284
     AbrirBatch id
     Ok CStr(V("bNivel")) = "Médio", "nivel reaberto"

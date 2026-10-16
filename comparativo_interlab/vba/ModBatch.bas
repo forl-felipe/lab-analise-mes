@@ -76,7 +76,7 @@ End Sub
 
 ' ---------------------------------------------------------------- salvar
 Public Sub SalvarHistorico()
-    Dim id As Variant, r As Long, novo As Boolean
+    Dim id As Variant, r As Long, novo As Boolean, n As Long
     Recalcular
     id = Nm("bId").Value
     If Not ENumero(id) Then
@@ -89,6 +89,7 @@ Public Sub SalvarHistorico()
                  vbQuestion + vbYesNo, "Salvar no histórico") <> vbYes Then Exit Sub
     End If
     novo = (r = 0)
+    Desproteger shBatch
     If Not EData(Nm("bData").Value) Then
         Nm("bData").Value = Date
     ElseIf Nm("bData").HasFormula Then
@@ -96,8 +97,12 @@ Public Sub SalvarHistorico()
     End If
     GravarHistorico id
     gAlterado = False
-    Aviso "Batch " & id & IIf(novo, " salvo", " atualizado") & " no histórico (" & ContarLeituras() & _
-          " leituras).", vbInformation, "Salvar no histórico"
+    n = ContarLeituras()
+    ' a aba Batch fica pronta para o proximo batch, com as tolerancias e padroes da aba Configuracoes
+    LimparBatch
+    Aviso "Batch " & id & IIf(novo, " salvo", " atualizado") & " no histórico (" & n & " leituras)." & vbCrLf & vbCrLf & _
+          "A aba Batch já está pronta para o próximo batch. Para ver o " & id & " de novo: Painel > Batch em exibição.", _
+          vbInformation, "Salvar no histórico"
 End Sub
 
 Private Function ContarLeituras() As Long
@@ -226,7 +231,7 @@ Public Sub AbrirBatch(ByVal id As Variant)
         campo = CStr(campos(j))
         v = shHist.Cells(r, H_COL1 + j - LBound(campos)).Value
         If Vazio(v) Then
-            Nm(campo).ClearContents
+            Nm(campo).MergeArea.ClearContents
         ElseIf VarType(v) = vbString Then
             Nm(campo).Value = "'" & v
         Else
@@ -366,22 +371,20 @@ End Sub
 
 ' ---------------------------------------------------------------- novo / limpar
 Public Sub NovoBatch()
-    Dim novo As Long, r As Long, v As Variant, p As Long, i As Long
     If Not ConfirmarTroca() Then Exit Sub
-    novo = 0
-    For r = PrimeiraLinhaH() To UltimaLinhaH()
-        v = shHist.Cells(r, H_COL1).Value
-        If ENumero(v) Then
-            If CLng(v) > novo Then novo = CLng(v)
-        End If
-    Next r
-    If ENumero(Nm("bId").Value) Then
-        If CLng(Nm("bId").Value) > novo Then novo = CLng(Nm("bId").Value)
-    End If
-    novo = novo + 1
+    LimparBatch
+    On Error Resume Next
+    shBatch.Activate
+    Nm("bId").Select
+End Sub
+
+' Deixa a aba Batch em branco para o proximo batch (numero em branco; tolerancias, laboratorios,
+' titulos e comentarios voltam aos padroes da aba Configuracoes)
+Public Sub LimparBatch()
+    Dim p As Long, i As Long
     ModoCarga True
     Desproteger shBatch
-    Nm("bId").Value = novo
+    Nm("bId").MergeArea.ClearContents
     Nm("bData").Value = Date
     Nm("bMin").Formula = "=padMin"
     Nm("bLabA").Formula = "=padLabA"
@@ -389,15 +392,15 @@ Public Sub NovoBatch()
     Nm("bRef").Formula = "=padRef"
     Nm("bTit").Formula = "=padTit"
     Nm("bSub").Formula = "=padSub"
-    Nm("bIniU").ClearContents
-    Nm("bIniG").ClearContents
-    Nm("bFimG").ClearContents
-    Nm("bFimU").ClearContents
-    Nm("bNivel").ClearContents
-    Nm("bIniPMan").ClearContents
+    Nm("bIniU").MergeArea.ClearContents
+    Nm("bIniG").MergeArea.ClearContents
+    Nm("bFimG").MergeArea.ClearContents
+    Nm("bFimU").MergeArea.ClearContents
+    Nm("bNivel").MergeArea.ClearContents
+    Nm("bIniPMan").MergeArea.ClearContents
     Nm("bIncAcomp").Value = "Sim"
     RestaurarComentariosAuto True
-    Nm("bFasesMsg").ClearContents
+    Nm("bFasesMsg").MergeArea.ClearContents
     Nm("bNHor").Formula = "=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))"
     For p = 1 To NP
         Nm("bTol_" & PChave(p)).Formula = "=padTol_" & PChave(p)
@@ -405,21 +408,15 @@ Public Sub NovoBatch()
     Nm("bIncFrase").Value = "Sim"
     Nm("bCom1").Formula = "=padCom"
     For i = 2 To 6
-        Nm("bCom" & i).ClearContents
+        Nm("bCom" & i).MergeArea.ClearContents
     Next i
     shBatch.Range(shBatch.Cells(B_ROW_G0, B_COL_V1), shBatch.Cells(B_ROW_G0 + NMAX - 1, B_COL_V1 + 2 * NP - 1)).ClearContents
     RestaurarHorarios
-    Nm("pSel").Value = novo
+    Nm("pSel").MergeArea.ClearContents
     Proteger shBatch
     ModoCarga False
     gAlterado = False
     AjustarGraficos
-    On Error Resume Next
-    shBatch.Activate
-    Nm("bIniU").Select
-    On Error GoTo 0
-    Aviso "Novo batch " & novo & " em branco." & vbCrLf & vbCrLf & _
-          "Preencha os passos 2 e 3 (ou cole as Fases do Evento do MES) e use Buscar no MES.", vbInformation, "Novo batch"
 End Sub
 
 Public Sub LimparLeituras()
