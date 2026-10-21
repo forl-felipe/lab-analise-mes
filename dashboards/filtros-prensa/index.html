@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filtros Prensa · Disponibilidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Identidade visual =====
+   Paleta institucional (azul-marinho + verde + laranja). Ajuste os valores --brand-*
+   para os códigos oficiais do manual de marca, se necessário. */
+:root {
+  color-scheme: light;
+  --brand-navy: #00305f;
+  --brand-navy-2: #004a8f;
+  --brand-green: #6aa842;
+  --brand-orange: #f08a24;
+
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --border: #e1e5eb;
+  --grid: #eceff3;
+  --text: #0f1b2b;
+  --text-2: #4a5566;
+  --muted: #7b8595;
+
+  /* série categórica (motivo) – ordem fixa validada */
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #8a8a85;
+  /* sequencial (mapa de calor) */
+  --q0: #f0f2f5; --q1: #cde2fb; --q2: #9ec5f4; --q3: #5598e7; --q4: #256abf; --q5: #104281; --q6: #0d2a52;
+  /* status */
+  --good: #0ca30c; --warn: #d48a00; --crit: #d03b3b;
+  --bar: #256abf;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0e141c; --surface: #172029; --surface-2: #1d2833; --border: #2a3644; --grid: #24303c;
+    --text: #eef2f6; --text-2: #b6c0cc; --muted: #8692a1;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #77776f;
+    --q0: #1f2a35; --q1: #184f95; --q2: #1c5cab; --q3: #2a78d6; --q4: #5598e7; --q5: #9ec5f4; --q6: #cde2fb;
+    --bar: #5598e7; --warn: #fab219;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e141c; --surface: #172029; --surface-2: #1d2833; --border: #2a3644; --grid: #24303c;
+  --text: #eef2f6; --text-2: #b6c0cc; --muted: #8692a1;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #77776f;
+  --q0: #1f2a35; --q1: #184f95; --q2: #1c5cab; --q3: #2a78d6; --q4: #5598e7; --q5: #9ec5f4; --q6: #cde2fb;
+  --bar: #5598e7; --warn: #fab219;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+.num { font-variant-numeric: tabular-nums; }
+
+header.top { background: var(--brand-navy); color: #fff; position: relative; }
+header.top::after { content: ""; display: block; height: 4px; background: linear-gradient(90deg, var(--brand-green) 0 70%, var(--brand-orange) 70% 100%); }
+.top-in { max-width: 1400px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.wordmark { font-weight: 700; font-size: 26px; letter-spacing: -0.5px; text-transform: lowercase; }
+.wordmark span { color: var(--brand-green); }
+.top h1 { font-size: 18px; font-weight: 600; margin: 0; padding-left: 20px; border-left: 1px solid rgba(255,255,255,.3); }
+.top .sub { font-size: 12px; opacity: .75; }
+.top .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.btn { border: 1px solid rgba(255,255,255,.35); background: transparent; color: #fff; border-radius: 6px; padding: 6px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.btn:hover { background: rgba(255,255,255,.1); }
+
+main { max-width: 1400px; margin: 0 auto; padding: 20px 24px 48px; }
+
+.filters { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; }
+.fgroup { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fgroup > label, .flabel { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.filters input[type=date], .filters input[type=number], .search { font: inherit; font-size: 13px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
+.filters input[type=number] { width: 64px; }
+.chip { font: inherit; font-size: 12px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); border-radius: 999px; padding: 4px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.chip[aria-pressed="true"] { background: var(--brand-navy); border-color: var(--brand-navy); color: #fff; }
+.chip .sw { width: 8px; height: 8px; border-radius: 2px; }
+.reset { margin-left: auto; font-size: 12px; color: var(--brand-navy-2); background: none; border: 0; cursor: pointer; font-weight: 600; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .reset { color: #86b6ef; } :root:not([data-theme="light"]) .heat td.dark { color: #0e141c; } }
+:root[data-theme="dark"] .reset { color: #86b6ef; }
+:root[data-theme="dark"] .heat td.dark { color: #0e141c; }
+
+.kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 16px 0; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; position: relative; overflow: hidden; }
+.kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--brand-navy-2); }
+.kpi .lbl { font-size: 12px; color: var(--text-2); font-weight: 500; }
+.kpi .val { font-size: 28px; font-weight: 700; margin-top: 4px; letter-spacing: -.5px; }
+.kpi .val small { font-size: 14px; font-weight: 500; color: var(--text-2); margin-left: 2px; }
+.kpi .ctx { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; }
+.badge.good { color: var(--good); } .badge.warn { color: var(--warn); } .badge.crit { color: var(--crit); }
+
+.grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; min-width: 0; }
+.card h2 { font-size: 14px; font-weight: 600; margin: 0; }
+.card .desc { font-size: 12px; color: var(--muted); margin: 2px 0 12px; }
+.c4 { grid-column: span 4; } .c5 { grid-column: span 5; } .c6 { grid-column: span 6; } .c7 { grid-column: span 7; } .c8 { grid-column: span 8; } .c12 { grid-column: span 12; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--text-2); margin-bottom: 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+/* barras horizontais */
+.hbars { display: grid; grid-template-columns: max-content 1fr max-content; gap: 8px 10px; align-items: center; }
+.hbars .lab { font-size: 12px; color: var(--text-2); white-space: nowrap; }
+.hbars .lab b { color: var(--text); font-weight: 600; }
+.hbars .track { position: relative; height: 22px; background: linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 25% 100%; border-left: 1px solid var(--border); }
+.hbars .fill { position: absolute; left: 0; top: 3px; bottom: 3px; border-radius: 0 4px 4px 0; display: flex; gap: 2px; }
+.hbars .fill .seg { height: 100%; }
+.hbars .fill .seg:last-child { border-radius: 0 4px 4px 0; }
+.hbars .v { font-size: 12px; font-weight: 600; text-align: right; }
+.meta-line { position: absolute; top: -3px; bottom: -3px; width: 0; border-left: 2px dashed var(--text); opacity: .55; }
+.axis { display: grid; grid-template-columns: max-content 1fr max-content; gap: 0 10px; font-size: 11px; color: var(--muted); margin-top: 4px; }
+.axis .ticks { display: flex; justify-content: space-between; }
+
+/* mapa de calor */
+.heat { overflow-x: auto; }
+.heat table { border-collapse: separate; border-spacing: 2px; }
+.heat th { font-size: 10px; font-weight: 500; color: var(--muted); }
+.heat th.row { font-size: 12px; color: var(--text-2); text-align: right; padding-right: 6px; white-space: nowrap; }
+.heat td { width: 30px; min-width: 26px; height: 28px; border-radius: 4px; font-size: 10px; text-align: center; cursor: default; }
+.heat td.dark { color: #fff; } .heat td.light { color: var(--text-2); }
+.scale { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); margin-top: 8px; }
+.scale span.s { width: 22px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* tabelas */
+.tbl-wrap { overflow-x: auto; }
+.tbl-wrap.scroll { max-height: 520px; overflow-y: auto; }
+.tbl-wrap.scroll th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.tbl th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 600; padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; }
+table.tbl th.r, table.tbl td.r { text-align: right; }
+table.tbl td { padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+table.tbl tbody tr:hover { background: var(--surface-2); }
+.tag { font-size: 11px; padding: 1px 6px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border); white-space: nowrap; }
+.tag .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+.tools { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
+.search { min-width: 240px; }
+
+.dq { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.dq li { display: flex; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); font-size: 12.5px; }
+.dq li .ic { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 12px; color: #fff; background: var(--warn); }
+.dq li .ic.info { background: var(--brand-navy-2); }
+.dq li b { display: block; color: var(--text); }
+.dq li span { color: var(--text-2); }
+
+.tip { position: fixed; pointer-events: none; background: var(--text); color: var(--surface); font-size: 12px; padding: 7px 9px; border-radius: 6px; max-width: 320px; z-index: 10; opacity: 0; transition: opacity .08s; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+.tip b { font-weight: 600; }
+.foot { font-size: 11.5px; color: var(--muted); margin-top: 16px; line-height: 1.6; }
+.empty { color: var(--muted); font-size: 12px; padding: 12px 0; }
+
+@media (max-width: 1100px) {
+  .kpis { grid-template-columns: repeat(3, 1fr); }
+  .c4, .c5, .c6, .c7, .c8 { grid-column: span 12; }
+}
+@media (max-width: 640px) {
+  .top-in, main { padding-left: 16px; padding-right: 16px; }
+  .top h1 { border: 0; padding: 0; width: 100%; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .kpi .val { font-size: 22px; }
+  .search { min-width: 0; width: 100%; }
+}
+@media print { .filters .reset, .btn { display: none; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="wordmark">samarco<span>.</span></div>
+    <div>
+      <h1>Gestão de Disponibilidade · Filtros Prensa</h1>
+      <div class="sub" id="periodoTxt"></div>
+    </div>
+    <div class="right">
+      <button class="btn" id="btnTema" title="Alternar tema claro/escuro">◐ Tema</button>
+      <button class="btn" id="btnCsv">⇩ Exportar CSV</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="filters" aria-label="Filtros">
+    <div class="fgroup"><label for="dIni">Período</label><input type="date" id="dIni"> <span class="flabel">a</span> <input type="date" id="dFim"></div>
+    <div class="fgroup"><span class="flabel">Filtro</span><span id="fEq"></span></div>
+    <div class="fgroup"><span class="flabel">Especialidade</span><span id="fEsp"></span></div>
+    <div class="fgroup"><span class="flabel">Motivo</span><span id="fMot"></span></div>
+    <div class="fgroup"><label for="meta">Meta DF</label><input type="number" id="meta" min="0" max="100" step="0.5" value="90"><span class="flabel">%</span></div>
+    <button class="reset" id="btnReset">Limpar filtros</button>
+  </section>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid">
+    <div class="card c6">
+      <h2>Disponibilidade física por filtro</h2>
+      <p class="desc">DF = (horas calendário − horas paradas) ÷ horas calendário. Linha tracejada = meta.</p>
+      <div id="chDF"></div>
+    </div>
+    <div class="card c6">
+      <h2>Horas paradas por filtro e motivo</h2>
+      <p class="desc">Composição das horas indisponíveis de cada equipamento.</p>
+      <div class="legend" id="lgMot"></div>
+      <div id="chHP"></div>
+    </div>
+
+    <div class="card c8">
+      <h2>Mapa de paradas · filtro × dia</h2>
+      <p class="desc">Horas paradas por dia (0–24 h). Passe o mouse para ver os eventos do dia.</p>
+      <div class="heat" id="chHeat"></div>
+      <div class="scale" id="heatScale"></div>
+    </div>
+    <div class="card c4">
+      <h2>Horas paradas por especialidade</h2>
+      <p class="desc">Pareto das disciplinas responsáveis (nº de eventos entre parênteses).</p>
+      <div id="chEsp"></div>
+    </div>
+
+    <div class="card c5">
+      <h2>Principais causas</h2>
+      <p class="desc">Top 10 descrições por horas paradas (eventos contínuos agrupados).</p>
+      <div id="chCausa"></div>
+    </div>
+    <div class="card c7">
+      <h2>Indicadores por filtro</h2>
+      <p class="desc">MTTR e MTBF consideram apenas paradas não programadas (falhas).</p>
+      <div class="tbl-wrap"><table class="tbl" id="tbEq"></table></div>
+    </div>
+
+    <div class="card c12">
+      <div class="tools">
+        <div><h2>Registro de paradas</h2><p class="desc" style="margin-bottom:0" id="logCount"></p></div>
+        <input class="search" id="busca" type="search" placeholder="Buscar descrição, filtro, especialidade…">
+      </div>
+      <div class="tbl-wrap scroll"><table class="tbl" id="tbLog"></table></div>
+    </div>
+
+    <div class="card c12">
+      <h2>Qualidade do apontamento</h2>
+      <p class="desc">Pontos detectados automaticamente na planilha, para padronizar antes de evoluir o projeto.</p>
+      <ul class="dq" id="dq"></ul>
+    </div>
+  </section>
+
+  <p class="foot">
+    <b>Premissas.</b> Horas calendário = do início do período até o fim do período ou até o último apontamento registrado (o que vier primeiro).
+    Eventos que cruzam os limites do período são recortados. <b>DF manutenção</b> considera só as paradas de MEC, ELE e INS (exclui OPR).
+    MTTR = horas de paradas não programadas ÷ nº de falhas; MTBF = horas disponíveis ÷ nº de falhas. Eventos de um mesmo equipamento,
+    mesma descrição e separados por até 2 min (ex.: 23:59 → 00:00) são contados como uma única falha.
+  </p>
+</main>
+<div class="tip" id="tip"></div>
+
+<script>
+const DADOS = /*DADOS_INICIO*/[{"eq":"U00-76FP001","ini":"2026-10-01T09:20","fim":"2026-10-01T11:40","h":2.33,"esp":"MEC","mot":"Parada Não Programada","desc":"parte movel encostando na correia da bomba de alimentação"},{"eq":"U00-76FP001","ini":"2026-10-02T13:05","fim":"2026-10-02T16:10","h":3.08,"esp":"MEC","mot":"Parada Não Programada","desc":"Rompimento das correias em V"},{"eq":"U00-76FP001","ini":"2026-10-04T06:00","fim":"2026-10-04T08:10","h":2.17,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno, disponível."},{"eq":"U00-76FP001","ini":"2026-10-04T18:23","fim":"2026-10-04T20:10","h":1.78,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de turno"},{"eq":"U00-76FP001","ini":"2026-10-05T15:00","fim":"2026-10-05T15:30","h":0.5,"esp":"OPR","mot":"Parada Programada","desc":"Rota de limpeza ."},{"eq":"U00-76FP001","ini":"2026-10-10T20:10","fim":"2026-10-10T23:59","h":3.82,"esp":"ELE","mot":"Parada Não Programada","desc":"Sobrecarga motor da bomba de alimentação."},{"eq":"U00-76FP001","ini":"2026-10-11T00:00","fim":"2026-10-11T23:59","h":23.98,"esp":"ELE","mot":"Parada Não Programada","desc":"Sobrecarga motor da bomba de limentação."},{"eq":"U00-76FP001","ini":"2026-10-12T00:00","fim":"2026-10-12T15:45","h":15.75,"esp":"ELE","mot":"Parada Não Programada","desc":"Sobrecarga motor da bomba de limentação."},{"eq":"U00-76FP001","ini":"2026-10-13T16:00","fim":"2026-10-13T17:43","h":1.72,"esp":"MEC","mot":"Parada Não Programada","desc":"Vibração na 76MB060 causada pela soltura da chaveta da polia."},{"eq":"U00-76FP001","ini":"2026-10-13T19:00","fim":"2026-10-13T21:30","h":2.5,"esp":"ELE","mot":"Parada Não Programada","desc":"Falha no IHM do painel de comando"},{"eq":"U00-76FP001","ini":"2026-10-14T03:40","fim":"2026-10-14T05:10","h":1.5,"esp":"MEC","mot":"Parada Não Programada","desc":"Proteção da polia da bomba de alimentação com barulho anormal."},{"eq":"U00-76FP001","ini":"2026-10-15T21:20","fim":"2026-10-15T23:59","h":2.65,"esp":"MEC","mot":"Parada Não Programada","desc":"Foi identificado que a chaveta de fixação da polia se soltou da bomba de alimentação."},{"eq":"U00-76FP001","ini":"2026-10-16T00:00","fim":"2026-10-16T02:18","h":2.3,"esp":"MEC","mot":"Parada Não Programada","desc":"Foi identificado que a chaveta de fixação da polia se soltou da bomba de alimentação."},{"eq":"U00-76FP001","ini":"2026-10-17T18:48","fim":"2026-10-17T21:25","h":2.62,"esp":"INS","mot":"Parada Não Programada","desc":"Travamento da vávula de saída do TQ Silo"},{"eq":"U00-76FP001","ini":"2026-10-19T09:00","fim":"2026-10-19T09:40","h":0.67,"esp":"OPR","mot":"Limpeza","desc":"Rota de limpeza"},{"eq":"U00-76FP002","ini":"2026-10-01T15:00","fim":"2026-10-01T17:05","h":2.08,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de setor"},{"eq":"U00-76FP002","ini":"2026-10-04T06:00","fim":"2026-10-04T08:10","h":2.17,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno, disponível."},{"eq":"U00-76FP002","ini":"2026-10-04T18:23","fim":"2026-10-04T20:10","h":1.78,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno"},{"eq":"U00-76FP002","ini":"2026-10-06T09:30","fim":"2026-10-06T10:53","h":1.38,"esp":"OPR","mot":"Limpeza","desc":"Limpeza nos Setores."},{"eq":"U00-76FP002","ini":"2026-10-07T16:30","fim":"2026-10-07T21:50","h":5.33,"esp":"ELE","mot":"Parada Não Programada","desc":"Falha na bomba de polpa."},{"eq":"U00-76FP002","ini":"2026-10-09T10:05","fim":"2026-10-09T11:10","h":1.08,"esp":"MEC","mot":"Parada Não Programada","desc":"sistema de abertura em falha"},{"eq":"U00-76FP002","ini":"2026-10-13T23:00","fim":"2026-10-13T23:59","h":0.98,"esp":"MEC","mot":"Parada Programada","desc":"Desmontagem de setores pra Troca do cilindro hidráulico"},{"eq":"U00-76FP002","ini":"2026-10-14T00:00","fim":"2026-10-14T23:59","h":23.98,"esp":"MEC","mot":"Parada Programada","desc":"Desmontagem de setores pra Troca do cilindro hidráulico"},{"eq":"U00-76FP002","ini":"2026-10-15T19:00","fim":"2026-10-15T21:36","h":2.6,"esp":"OPR","mot":"Parada Não Programada","desc":"Alinhamento da corrente superior."},{"eq":"U00-76FP002","ini":"2026-10-17T18:48","fim":"2026-10-17T21:25","h":2.62,"esp":"INS","mot":"Parada Não Programada","desc":"Travamento na vávula de saída do TQ Silo"},{"eq":"U00-76FP002","ini":"2026-10-20T15:15","fim":"2026-10-20T15:45","h":0.5,"esp":"OPR","mot":"Limpeza","desc":"Rota de limpeza"},{"eq":"U00-76FP003","ini":"2026-10-04T06:00","fim":"2026-10-04T08:10","h":2.17,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno, disponível."},{"eq":"U00-76FP003","ini":"2026-10-04T18:23","fim":"2026-10-04T20:10","h":1.78,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de turno"},{"eq":"U00-76FP003","ini":"2026-10-08T15:00","fim":"2026-10-08T17:27","h":2.45,"esp":"OPR","mot":"Parada Não Programada","desc":"Rota de limpeza"},{"eq":"U00-76FP003","ini":"2026-10-14T10:40","fim":"2026-10-14T11:30","h":0.83,"esp":"MEC","mot":"Parada Não Programada","desc":"corte de vergalhão exposto no piso"},{"eq":"U00-76FP003","ini":"2026-10-15T11:05","fim":"2026-10-15T17:15","h":6.17,"esp":"MEC","mot":"Parada Programada","desc":"Manutenção na valvula de alimentação do filtro"},{"eq":"U00-76FP004","ini":"2026-10-01T18:00","fim":"2026-10-01T23:59","h":5.98,"esp":"MEC","mot":"Parada Não Programada","desc":"Correias da bomba de alimentação quebradas."},{"eq":"U00-76FP004","ini":"2026-10-02T00:00","fim":"2026-10-02T00:35","h":0.58,"esp":"MEC","mot":"Parada Não Programada","desc":"Correias da bomba de alimetação quebradas"},{"eq":"U00-76FP004","ini":"2026-10-02T15:45","fim":"2026-10-02T16:50","h":1.08,"esp":"OPR","mot":"Limpeza","desc":"Rota de limpeza"},{"eq":"U00-76FP004","ini":"2026-10-04T06:00","fim":"2026-10-04T08:10","h":2.17,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno, disponível."},{"eq":"U00-76FP004","ini":"2026-10-04T18:23","fim":"2026-10-04T20:10","h":1.78,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno"},{"eq":"U00-76FP004","ini":"2026-10-15T11:05","fim":"2026-10-15T17:15","h":6.17,"esp":"MEC","mot":"Parada Programada","desc":"Manutenção na valvula de alimentação do filtro"},{"eq":"U00-76FP004","ini":"2026-10-19T23:05","fim":"2026-10-19T23:59","h":0.9,"esp":"OPR","mot":"Parada Programada","desc":"Limpeza na baia da bomba de alimentação."},{"eq":"U00-76FP004","ini":"2026-10-20T00:00","fim":"2026-10-20T05:59","h":5.98,"esp":"OPR","mot":"Parada Programada","desc":"Limpeza na baia da bomba de alimentação, para troca da mesma."},{"eq":"U00-76FP004","ini":"2026-10-20T06:00","fim":"2026-10-20T23:59","h":17.98,"esp":"MEC","mot":"Parada Não Programada","desc":"Troca da bomba de alimentação"},{"eq":"U00-76FP004","ini":"2026-10-21T00:00","fim":"2026-10-21T05:45","h":5.75,"esp":"MEC","mot":"Parada Não Programada","desc":"Troca da bomba de alimentação"},{"eq":"U00-76FP005","ini":"2026-10-01T07:00","fim":"2026-10-01T09:00","h":2.0,"esp":"MEC","mot":"Parada Não Programada","desc":"Corrente de abertura do filtro solta"},{"eq":"U00-76FP005","ini":"2026-10-01T18:00","fim":"2026-10-01T20:10","h":2.17,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno"},{"eq":"U00-76FP005","ini":"2026-10-01T21:25","fim":"2026-10-01T22:32","h":1.12,"esp":"MEC","mot":"Parada Não Programada","desc":"Parafuso solto da placa de arraste."},{"eq":"U00-76FP005","ini":"2026-10-01T22:50","fim":"2026-10-01T23:59","h":1.15,"esp":"OPR","mot":"Parada Não Programada","desc":"Alerta de raio."},{"eq":"U00-76FP005","ini":"2026-10-02T00:00","fim":"2026-10-02T00:40","h":0.67,"esp":"OPR","mot":"Parada Não Programada","desc":"Alerat de raio"},{"eq":"U00-76FP005","ini":"2026-10-03T06:30","fim":"2026-10-03T06:50","h":0.33,"esp":"OPR","mot":"Parada Não Programada","desc":"Alto volume de chuva, tanque da bomba 72 cheio."},{"eq":"U00-76FP005","ini":"2026-10-03T17:45","fim":"2026-10-03T20:10","h":2.42,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno"},{"eq":"U00-76FP005","ini":"2026-10-03T22:10","fim":"2026-10-03T23:59","h":1.82,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de setores"},{"eq":"U00-76FP005","ini":"2026-10-04T00:00","fim":"2026-10-04T23:40","h":23.67,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de setores"},{"eq":"U00-76FP005","ini":"2026-10-04T23:41","fim":"2026-10-04T23:59","h":0.3,"esp":"ELE","mot":"Parada Não Programada","desc":"Falha na pressão de ar e óleo do hidraulico devido dsjuntor desamrmado no painel de comando"},{"eq":"U00-76FP005","ini":"2026-10-05T00:00","fim":"2026-10-05T01:17","h":1.28,"esp":"ELE","mot":"Parada Não Programada","desc":"Falha na pressão de ar e óleo do hidraulico devido dsjuntor desamrmado no painel de comando"},{"eq":"U00-76FP005","ini":"2026-10-05T10:35","fim":"2026-10-05T12:50","h":2.25,"esp":"MEC","mot":"Parada Programada","desc":"Troca da válvula borboleta de alimentação do filtro."},{"eq":"U00-76FP005","ini":"2026-10-05T13:55","fim":"2026-10-05T16:00","h":2.08,"esp":"MEC","mot":"Parada Programada","desc":"Troca da bomba de alimentação do filtro."},{"eq":"U00-76FP005","ini":"2026-10-05T16:15","fim":"2026-10-05T18:50","h":2.58,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de tecido."},{"eq":"U00-76FP005","ini":"2026-10-05T23:40","fim":"2026-10-05T23:59","h":0.32,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de setores"},{"eq":"U00-76FP005","ini":"2026-10-06T00:00","fim":"2026-10-06T01:35","h":1.58,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de setores"},{"eq":"U00-76FP005","ini":"2026-10-07T16:13","fim":"2026-10-07T16:49","h":0.6,"esp":"MEC","mot":"Parada Programada","desc":"Retirada de cavalete para Medições."},{"eq":"U00-76FP005","ini":"2026-10-07T22:50","fim":"2026-10-07T23:25","h":0.58,"esp":"OPR","mot":"Parada Não Programada","desc":"Desobstrução da tubulação de dreno."},{"eq":"U00-76FP005","ini":"2026-10-08T06:00","fim":"2026-10-08T08:10","h":2.17,"esp":"OPR","mot":"Falta de Demanda","desc":"Troca de turno."},{"eq":"U00-76FP005","ini":"2026-10-08T23:40","fim":"2026-10-08T23:59","h":0.32,"esp":"MEC","mot":"Parada Não Programada","desc":"Vazamento no flange da tubulação de alimentação."},{"eq":"U00-76FP005","ini":"2026-10-09T00:00","fim":"2026-10-09T02:15","h":2.25,"esp":"MEC","mot":"Parada Não Programada","desc":"Vazamento no flange da tubulação de alimentação."},{"eq":"U00-76FP005","ini":"2026-10-09T05:10","fim":"2026-10-09T05:30","h":0.33,"esp":"ELE","mot":"Parada Não Programada","desc":"Falha no botão seletor."},{"eq":"U00-76FP005","ini":"2026-10-09T10:35","fim":"2026-10-09T12:50","h":2.25,"esp":"MEC","mot":"Parada Programada","desc":"Desmontagem da bomba de alimentação para mandar para recuperação"},{"eq":"U00-76FP005","ini":"2026-10-09T13:17","fim":"2026-10-09T17:00","h":3.72,"esp":"MEC","mot":"Parada Não Programada","desc":"Desalinhamento da correia"},{"eq":"U00-76FP005","ini":"2026-10-10T01:10","fim":"2026-10-10T01:45","h":0.58,"esp":"OPR","mot":"Parada Não Programada","desc":"Nivel alto do TQ da bomba 72."},{"eq":"U00-76FP005","ini":"2026-10-12T06:00","fim":"2026-10-12T08:10","h":2.17,"esp":"OPR","mot":"Parada Programada","desc":"Troca de turno, disponível"},{"eq":"U00-76FP005","ini":"2026-10-12T08:15","fim":"2026-10-12T08:40","h":0.42,"esp":"ELE","mot":"Parada Não Programada","desc":"Falha na botoeira \"line auxiliar\""},{"eq":"U00-76FP005","ini":"2026-10-13T10:00","fim":"2026-10-13T16:13","h":6.22,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de tecidos"},{"eq":"U00-76FP005","ini":"2026-10-13T20:30","fim":"2026-10-13T23:59","h":3.48,"esp":"MEC","mot":"Parada Não Programada","desc":"Rolamento do tambor de acionamento da correia danificado"},{"eq":"U00-76FP005","ini":"2026-10-14T00:00","fim":"2026-10-14T04:20","h":4.33,"esp":"MEC","mot":"Parada Não Programada","desc":"Rolamento do tambor de acionamento da correia danificado"},{"eq":"U00-76FP005","ini":"2026-10-14T10:05","fim":"2026-10-14T17:15","h":7.17,"esp":"MEC","mot":"Parada Não Programada","desc":"Montagem de andaime/Troca de rolamento do tambor de acionamento"},{"eq":"U00-76FP005","ini":"2026-10-14T22:20","fim":"2026-10-14T23:20","h":1.0,"esp":"MEC","mot":"Parada Não Programada","desc":"Pino de arraste da placa da décima seção danificado"},{"eq":"U00-76FP005","ini":"2026-10-15T10:09","fim":"2026-10-15T17:17","h":7.13,"esp":"MEC","mot":"Parada Programada","desc":"Adequação da tubulação de alimentação"},{"eq":"U00-76FP005","ini":"2026-10-16T03:00","fim":"2026-10-16T05:25","h":2.42,"esp":"OPR","mot":"Parada Não Programada","desc":"Tecido rasgado"},{"eq":"U00-76FP005","ini":"2026-10-16T13:20","fim":"2026-10-16T18:31","h":5.18,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de setores"},{"eq":"U00-76FP005","ini":"2026-10-17T17:00","fim":"2026-10-17T17:45","h":0.75,"esp":"OPR","mot":"Parada Não Programada","desc":"Alerta de raio, disponível"},{"eq":"U00-76FP005","ini":"2026-10-18T12:40","fim":"2026-10-18T15:40","h":3.0,"esp":"OPR","mot":"Parada Não Programada","desc":"Troca de tecido."},{"eq":"U00-76FP005","ini":"2026-10-19T09:30","fim":"2026-10-19T10:30","h":1.0,"esp":"MEC","mot":"Parada Não Programada","desc":"Reparo no setor"},{"eq":"U00-76FP005","ini":"2026-10-19T10:31","fim":"2026-10-19T16:45","h":6.23,"esp":"OPR","mot":"Parada Não Programada","desc":"Remoção e troca dos setores"},{"eq":"U00-76FP005","ini":"2026-10-19T16:46","fim":"2026-10-19T17:45","h":0.98,"esp":"MEC","mot":"Parada Não Programada","desc":"Reparo no setor"},{"eq":"U00-76FP005","ini":"2026-10-20T06:10","fim":"2026-10-20T12:25","h":6.25,"esp":"OPR","mot":"Parada Não Programada","desc":"Setor rasgado"},{"eq":"U00-76FP005","ini":"2026-10-20T12:26","fim":"2026-10-20T13:36","h":1.17,"esp":"ELE","mot":"Parada Não Programada","desc":"Aguardando eletrica pra retirar o TAG"},{"eq":"U00-76FP005","ini":"2026-10-20T16:15","fim":"2026-10-20T18:16","h":2.02,"esp":"MEC","mot":"Parada Não Programada","desc":"Barra TT fora de posição"}]/*DADOS_FIM*/;
+
+const MOTIVOS = ["Parada Não Programada", "Parada Programada", "Limpeza", "Falta de Demanda"];
+const ESP_NOME = { MEC: "Mecânica", ELE: "Elétrica", INS: "Instrumentação", OPR: "Operação" };
+const MANUT = new Set(["MEC", "ELE", "INS"]);
+const HORA = 36e5;
+const motCor = m => { const i = MOTIVOS.indexOf(m); return `var(--s${i < 0 ? 5 : i + 1})`; };
+
+const parse = s => new Date(s + ":00");
+const ev = DADOS.map((d, i) => ({ ...d, id: i, t0: parse(d.ini), t1: parse(d.fim) }));
+// "23:59" é tratado como fim do dia para não perder 1 min a cada virada
+ev.forEach(e => { if (e.fim.endsWith("23:59")) e.t1 = new Date(e.t1.getTime() + 60e3); });
+const EQS = [...new Set(ev.map(e => e.eq))].sort();
+const ESPS = [...new Set(ev.map(e => e.esp))].sort((a, b) => sum(ev.filter(e => e.esp === b), e => e.h) - sum(ev.filter(e => e.esp === a), e => e.h));
+MOTIVOS.push(...[...new Set(ev.map(e => e.mot))].filter(m => !MOTIVOS.includes(m)));
+const MOTS = MOTIVOS.filter(m => ev.some(e => e.mot === m));
+const CORTE = new Date(Math.max(...ev.map(e => e.t1)));
+const dmin = new Date(Math.min(...ev.map(e => e.t0)));
+
+function sum(a, f) { return a.reduce((s, x) => s + f(x), 0); }
+const fmt = (n, d = 1) => n.toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const dm = d => `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+const hm = d => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const normDesc = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim()
+  .replace(/\b(limentacao|alimetacao)\b/g, "alimentacao").replace(/\bvavula\b/g, "valvula").replace(/\balerat\b/g, "alerta");
+
+/* ---------- estado ---------- */
+const st = { ini: ymd(dmin), fim: ymd(CORTE), eq: new Set(EQS), esp: new Set(ESPS), mot: new Set(MOTS), meta: 90, busca: "", sort: { k: "t0", dir: -1 } };
+
+function chips(el, vals, set, label, color) {
+  el.innerHTML = vals.map(v => `<button class="chip" data-v="${esc(v)}" aria-pressed="${set.has(v)}">${color ? `<span class="sw" style="background:${color(v)}"></span>` : ""}${esc(label ? label(v) : v)}</button>`).join(" ");
+  el.onclick = e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    const v = b.dataset.v;
+    // clique simples isola; Ctrl/⌘ ou clique em um já isolado soma/alterna
+    if (e.ctrlKey || e.metaKey || e.shiftKey) { set.has(v) ? set.delete(v) : set.add(v); if (!set.size) vals.forEach(x => set.add(x)); }
+    else if (set.size === 1 && set.has(v)) vals.forEach(x => set.add(x));
+    else { set.clear(); set.add(v); }
+    [...el.children].forEach(c => c.setAttribute("aria-pressed", set.has(c.dataset.v)));
+    render();
+  };
+}
+
+/* ---------- cálculo ---------- */
+function periodo() {
+  const a = new Date(st.ini + "T00:00:00");
+  let b = new Date(st.fim + "T00:00:00"); b = new Date(b.getTime() + 24 * HORA);
+  if (b > CORTE) b = CORTE;
+  return { a, b, hc: Math.max(0, (b - a) / HORA) };
+}
+const clip = (e, a, b) => Math.max(0, (Math.min(e.t1, b) - Math.max(e.t0, a)) / HORA);
+
+function filtrados(p) {
+  return ev.filter(e => st.eq.has(e.eq) && st.esp.has(e.esp) && st.mot.has(e.mot) && e.t1 > p.a && e.t0 < p.b)
+    .map(e => ({ ...e, hp: clip(e, p.a, p.b) }));
+}
+// agrupa eventos contínuos (mesmo filtro, mesma descrição, intervalo ≤ 2 min) em uma ocorrência
+function ocorrencias(list) {
+  const s = [...list].sort((x, y) => x.eq.localeCompare(y.eq) || x.t0 - y.t0), out = [];
+  for (const e of s) {
+    const l = out[out.length - 1];
+    if (l && l.eq === e.eq && l.key === normDesc(e.desc) && e.t0 - l.t1 <= 2 * 60e3) { l.t1 = e.t1; l.hp += e.hp; l.n++; }
+    else out.push({ eq: e.eq, key: normDesc(e.desc), desc: e.desc, mot: e.mot, esp: e.esp, t0: e.t0, t1: e.t1, hp: e.hp, n: 1 });
+  }
+  return out;
+}
+function indicadores(list, hc) {
+  const hp = sum(list, e => e.hp), hpm = sum(list.filter(e => MANUT.has(e.esp)), e => e.hp);
+  const np = list.filter(e => e.mot === "Parada Não Programada");
+  const falhas = ocorrencias(np).length, hnp = sum(np, e => e.hp);
+  const disp = Math.max(0, hc - hp);
+  return { hp, hpm, hnp, falhas, n: list.length, df: hc ? disp / hc * 100 : 0, dfm: hc ? (hc - hpm) / hc * 100 : 0,
+    mttr: falhas ? hnp / falhas : null, mtbf: falhas ? disp / falhas : null };
+}
+const status = (v, meta) => v >= meta ? ["good", "✓", "Na meta"] : v >= meta - 5 ? ["warn", "!", "Atenção"] : ["crit", "✕", "Abaixo"];
+
+/* ---------- render ---------- */
+function render() {
+  const p = periodo(), L = filtrados(p), eqs = EQS.filter(q => st.eq.has(q));
+  const hcTot = p.hc * eqs.length, I = indicadores(L, hcTot);
+  document.getElementById("periodoTxt").textContent =
+    `${dm(p.a)} 00:00 a ${dm(p.b)} ${hm(p.b)} · ${fmt(p.hc, 0)} h calendário por filtro · ${eqs.length} filtro(s)`;
+
+  // KPIs
+  const [cls, ic, txt] = status(I.df, st.meta);
+  const k = (lbl, val, unit, ctx) => `<div class="kpi"><div class="lbl">${lbl}</div><div class="val num">${val}<small>${unit}</small></div><div class="ctx">${ctx}</div></div>`;
+  document.getElementById("kpis").innerHTML =
+    k("Disponibilidade física", fmt(I.df), "%", `<span class="badge ${cls}">${ic} ${txt}</span> meta ${fmt(st.meta)}%`) +
+    k("DF manutenção", fmt(I.dfm), "%", "MEC + ELE + INS") +
+    k("Horas paradas", fmt(I.hp), "h", `${fmt(hcTot, 0)} h calendário`) +
+    k("Não programadas", fmt(I.hp ? I.hnp / I.hp * 100 : 0, 0), "%", `${fmt(I.hnp)} h do total parado`) +
+    k("MTTR", I.mttr == null ? "–" : fmt(I.mttr), "h", `${I.falhas} falhas · ${I.n} apontamentos`) +
+    k("MTBF", I.mtbf == null ? "–" : fmt(I.mtbf), "h", "tempo médio entre falhas");
+
+  // por equipamento
+  const porEq = eqs.map(q => ({ q, L: L.filter(e => e.eq === q) })).map(o => ({ ...o, I: indicadores(o.L, p.hc) }));
+
+  // DF por filtro (escala 0–100)
+  const dfOrd = [...porEq].sort((a, b) => a.I.df - b.I.df);
+  document.getElementById("chDF").innerHTML = !porEq.length ? `<div class="empty">Sem dados.</div>` :
+    `<div class="hbars">${dfOrd.map(o => {
+      const [c, ic] = status(o.I.df, st.meta);
+      return `<div class="lab"><b>${o.q.replace("U00-", "")}</b></div>
+        <div class="track"><div class="fill" style="width:${o.I.df}%"><div class="seg" data-tip="<b>${o.q}</b><br>DF ${fmt(o.I.df)}% · ${fmt(o.I.hp)} h paradas<br>Meta ${fmt(st.meta)}%" style="width:100%;background:var(--bar)"></div></div>
+        <div class="meta-line" style="left:${st.meta}%"></div></div>
+        <div class="v num"><span class="badge ${c}" title="${status(o.I.df, st.meta)[2]}">${ic}</span> ${fmt(o.I.df)}%</div>`;
+    }).join("")}</div><div class="axis"><span style="visibility:hidden"><b>76FP000</b></span><div class="ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div><span style="visibility:hidden">✕ 100,0%</span></div>`;
+
+  // Horas paradas por motivo (empilhado)
+  document.getElementById("lgMot").innerHTML = MOTS.filter(m => st.mot.has(m)).map(m => `<span><i style="background:${motCor(m)}"></i>${m}</span>`).join("");
+  const maxHP = Math.max(1, ...porEq.map(o => o.I.hp)), escHP = niceMax(maxHP);
+  document.getElementById("chHP").innerHTML = !porEq.length ? "" :
+    `<div class="hbars">${[...porEq].sort((a, b) => b.I.hp - a.I.hp).map(o => {
+      const segs = MOTS.map(m => ({ m, h: sum(o.L.filter(e => e.mot === m), e => e.hp) })).filter(s => s.h > 0);
+      return `<div class="lab"><b>${o.q.replace("U00-", "")}</b></div>
+        <div class="track"><div class="fill" style="width:${o.I.hp / escHP * 100}%">${segs.map(s =>
+          `<div class="seg" style="flex:${s.h} 1 0;background:${motCor(s.m)}" data-tip="<b>${o.q}</b> · ${s.m}<br>${fmt(s.h)} h (${fmt(s.h / o.I.hp * 100, 0)}%)"></div>`).join("")}</div></div>
+        <div class="v num">${fmt(o.I.hp)} h</div>`;
+    }).join("")}</div><div class="axis"><span style="visibility:hidden"><b>76FP000</b></span><div class="ticks">${[0, .25, .5, .75, 1].map(f => `<span>${fmt(escHP * f, 0)}</span>`).join("")}</div><span style="visibility:hidden">000,0 h</span></div>`;
+
+  // Mapa de calor
+  const dias = []; for (let d = new Date(p.a); d < p.b; d = new Date(d.getTime() + 24 * HORA)) dias.push(d);
+  const steps = [0, 2, 4, 8, 12, 18];
+  const qi = h => h <= 0 ? 0 : h < 2 ? 1 : h < 4 ? 2 : h < 8 ? 3 : h < 12 ? 4 : h < 18 ? 5 : 6;
+  document.getElementById("chHeat").innerHTML = `<table><thead><tr><th></th>${dias.map(d => `<th>${dm(d).slice(0, 2)}</th>`).join("")}<th class="row" style="text-align:left;padding-left:6px">Total</th></tr></thead><tbody>${
+    porEq.map(o => `<tr><th class="row">${o.q.replace("U00-", "")}</th>${dias.map(d => {
+      const d1 = new Date(Math.min(d.getTime() + 24 * HORA, p.b));
+      const evs = o.L.filter(e => e.t1 > d && e.t0 < d1), h = sum(evs, e => clip(e, d, d1)), q = qi(h);
+      const tip = `<b>${o.q} · ${dm(d)}</b> — ${fmt(h)} h parado${evs.length ? "<br>" + evs.map(e => `• ${hm(e.t0)}–${hm(e.t1)} ${e.esp}: ${esc(e.desc)}`).join("<br>") : ""}`;
+      return `<td class="${q >= 4 ? "dark" : "light"}" style="background:var(--q${q})" data-tip="${esc(tip)}">${h >= 0.05 ? fmt(h, 0) : ""}</td>`;
+    }).join("")}<td class="num" style="font-size:12px;font-weight:600;text-align:left;padding-left:6px;white-space:nowrap">${fmt(o.I.hp)} h</td></tr>`).join("")}</tbody></table>`;
+  document.getElementById("heatScale").innerHTML = "Horas/dia: " + ["0", "<2", "2–4", "4–8", "8–12", "12–18", "≥18"].map((t, i) => `<span class="s" style="background:var(--q${i})"></span>${t}`).join(" ");
+
+  // Especialidade
+  const esp = ESPS.filter(s => st.esp.has(s)).map(s => ({ s, h: sum(L.filter(e => e.esp === s), e => e.hp), n: L.filter(e => e.esp === s).length })).sort((a, b) => b.h - a.h);
+  const mE = niceMax(Math.max(1, ...esp.map(x => x.h))); let acc = 0;
+  document.getElementById("chEsp").innerHTML = `<div class="hbars">${esp.map(x => {
+    acc += x.h;
+    return `<div class="lab"><b>${x.s}</b> ${ESP_NOME[x.s] || ""}</div>
+      <div class="track"><div class="fill" style="width:${x.h / mE * 100}%"><div class="seg" style="width:100%;background:var(--bar)" data-tip="<b>${ESP_NOME[x.s] || x.s}</b><br>${fmt(x.h)} h · ${x.n} eventos<br>${fmt(I.hp ? x.h / I.hp * 100 : 0, 0)}% do total · acumulado ${fmt(I.hp ? acc / I.hp * 100 : 0, 0)}%"></div></div></div>
+      <div class="v num">${fmt(x.h)} h <span style="color:var(--muted);font-weight:400">(${x.n})</span></div>`;
+  }).join("")}</div>`;
+
+  // Causas
+  const oc = ocorrencias(L), byKey = new Map();
+  oc.forEach(o => { const g = byKey.get(o.key) || { desc: o.desc, h: 0, n: 0, eqs: new Set(), esp: o.esp, mot: o.mot }; g.h += o.hp; g.n++; g.eqs.add(o.eq.replace("U00-", "")); byKey.set(o.key, g); });
+  const top = [...byKey.values()].sort((a, b) => b.h - a.h).slice(0, 10), mC = niceMax(Math.max(1, ...top.map(t => t.h)));
+  document.getElementById("chCausa").innerHTML = `<div class="hbars" style="grid-template-columns:minmax(0,1.3fr) 1fr max-content">${top.map(t =>
+    `<div class="lab" style="white-space:normal;line-height:1.25" title="${esc(t.desc)}">${esc(t.desc.length > 52 ? t.desc.slice(0, 50) + "…" : t.desc)}<br><span style="color:var(--muted);font-size:11px">${t.esp} · ${[...t.eqs].join(", ")}</span></div>
+     <div class="track"><div class="fill" style="width:${t.h / mC * 100}%"><div class="seg" style="width:100%;background:${motCor(t.mot)}" data-tip="<b>${esc(t.desc)}</b><br>${t.mot} · ${t.esp}<br>${fmt(t.h)} h em ${t.n} ocorrência(s) · ${[...t.eqs].join(", ")}"></div></div></div>
+     <div class="v num">${fmt(t.h)} h</div>`).join("")}</div>`;
+
+  // Tabela por filtro
+  const cols = [["Filtro"], ["DF", 1], ["DF man.", 1], ["H. paradas", 1], ["H. não prog.", 1], ["Falhas", 1], ["MTTR (h)", 1], ["MTBF (h)", 1], ["Maior causa"]];
+  document.getElementById("tbEq").innerHTML = `<thead><tr>${cols.map(c => `<th class="${c[1] ? "r" : ""}">${c[0]}</th>`).join("")}</tr></thead><tbody>${
+    porEq.map(o => {
+      const [c, ic] = status(o.I.df, st.meta);
+      const g = new Map(); ocorrencias(o.L).forEach(x => g.set(x.key, { d: x.desc, h: (g.get(x.key)?.h || 0) + x.hp }));
+      const mc = [...g.values()].sort((a, b) => b.h - a.h)[0];
+      return `<tr><td style="white-space:nowrap"><b>${o.q.replace("U00-", "")}</b></td><td class="r num" style="white-space:nowrap"><span class="badge ${c}">${ic}</span> ${fmt(o.I.df)}%</td><td class="r num">${fmt(o.I.dfm)}%</td>
+        <td class="r num">${fmt(o.I.hp)}</td><td class="r num">${fmt(o.I.hnp)}</td><td class="r num">${o.I.falhas}</td>
+        <td class="r num">${o.I.mttr == null ? "–" : fmt(o.I.mttr)}</td><td class="r num">${o.I.mtbf == null ? "–" : fmt(o.I.mtbf)}</td>
+        <td style="max-width:240px">${mc ? `${esc(mc.d)} <span style="color:var(--muted)">(${fmt(mc.h)} h)</span>` : "–"}</td></tr>`;
+    }).join("")}</tbody>`;
+
+  renderLog(L);
+  renderDQ();
+}
+
+function renderLog(L) {
+  const q = normDesc(st.busca);
+  let rows = q ? L.filter(e => normDesc(`${e.eq} ${e.esp} ${ESP_NOME[e.esp] || ""} ${e.mot} ${e.desc}`).includes(q)) : L;
+  const { k, dir } = st.sort;
+  rows = [...rows].sort((a, b) => (a[k] > b[k] ? 1 : a[k] < b[k] ? -1 : 0) * dir);
+  const cols = [["eq", "Filtro"], ["t0", "Início"], ["t1", "Término"], ["hp", "Horas", 1], ["esp", "Esp."], ["mot", "Motivo"], ["desc", "Descrição"]];
+  document.getElementById("logCount").textContent = `${rows.length} apontamento(s) · ${fmt(sum(rows, e => e.hp))} h`;
+  const fdt = d => `${dm(d)} ${hm(d)}`;
+  document.getElementById("tbLog").innerHTML = `<thead><tr>${cols.map(c => `<th data-k="${c[0]}" class="${c[2] ? "r" : ""}">${c[1]}${k === c[0] ? (dir > 0 ? " ▲" : " ▼") : ""}</th>`).join("")}</tr></thead><tbody>${
+    rows.map(e => `<tr><td style="white-space:nowrap">${e.eq.replace("U00-", "")}</td><td class="num" style="white-space:nowrap">${fdt(e.t0)}</td><td class="num" style="white-space:nowrap">${fdt(e.t1)}</td>
+      <td class="r num">${fmt(e.hp, 2)}</td><td><span class="tag" title="${ESP_NOME[e.esp] || ""}">${e.esp}</span></td>
+      <td><span class="tag"><span class="sw" style="background:${motCor(e.mot)}"></span>${e.mot}</span></td><td>${esc(e.desc)}</td></tr>`).join("")}</tbody>`;
+}
+
+/* qualidade do dado: independente dos filtros de tela */
+let dqFeito = false;
+function renderDQ() {
+  if (dqFeito) return; dqFeito = true;
+  const itens = [];
+  const grupos = new Map();
+  ev.forEach(e => { const k = normDesc(e.desc).replace(/\b(disponivel)\b/g, "").trim(); const g = grupos.get(k) || new Map(); g.set(e.mot, (g.get(e.mot) || 0) + 1); grupos.set(k, g); });
+  const conflito = [...grupos].filter(([, g]) => g.size > 1);
+  if (conflito.length) itens.push(["!", "Mesma causa classificada com motivos diferentes",
+    conflito.slice(0, 6).map(([k, g]) => `“${k}”: ${[...g].map(([m, n]) => `${m} (${n})`).join(", ")}`).join(" · ") +
+    ". Sugestão: tabela padrão de causas → motivo/especialidade."]);
+  const turno = ev.filter(e => /troca de turno/i.test(e.desc));
+  if (turno.length) itens.push(["!", `Troca de turno apontada como parada (${turno.length} registros, ${fmt(sum(turno, e => e.h))} h)`,
+    "Vários registros dizem “disponível”. Definir se troca de turno entra como indisponibilidade ou como tempo disponível não utilizado (afeta DF × Utilização)."]);
+  const viradas = ev.filter(e => e.fim.endsWith("23:59")).length;
+  if (viradas) itens.push(["i", `${viradas} eventos quebrados na virada do dia (23:59 → 00:00)`,
+    "O dashboard junta esses trechos para contar falhas (MTBF/MTTR). No sistema futuro, registrar início e fim reais da parada em um único evento."]);
+  const sim = ev.filter((e, i) => ev.some((o, j) => j !== i && o.eq !== e.eq && o.ini === e.ini && o.fim === e.fim));
+  if (sim.length) itens.push(["i", `${sim.length} apontamentos idênticos em filtros diferentes`,
+    "Ex.: troca de turno e travamento da válvula do TQ Silo no mesmo horário em vários filtros — provável causa comum (sistema compartilhado). Vale um campo de “evento de área”."]);
+  const difH = ev.filter(e => Math.abs((parse(e.fim) - parse(e.ini)) / HORA - e.h) > 0.02);
+  itens.push(difH.length ? ["!", `${difH.length} registros com “Horas Paradas” diferente de Término − Início`, "Conferir digitação."]
+    : ["i", "Coluna “Horas Paradas” consistente com Início/Término", "Todas as durações batem (tolerância de 1 min)."]);
+  document.getElementById("dq").innerHTML = itens.map(([ic, t, d]) => `<li><span class="ic ${ic === "i" ? "info" : ""}">${ic}</span><div><b>${t}</b><span>${esc(d).replace(/&lt;br&gt;/g, "<br>")}</span></div></li>`).join("");
+}
+
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p; return 10 * p; }
+
+/* ---------- interação ---------- */
+const tip = document.getElementById("tip");
+document.addEventListener("mousemove", e => {
+  const t = e.target.closest("[data-tip]");
+  if (!t) { tip.style.opacity = 0; return; }
+  tip.innerHTML = t.dataset.tip; tip.style.opacity = 1;
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+});
+document.getElementById("tbLog").addEventListener("click", e => {
+  const th = e.target.closest("th"); if (!th) return;
+  st.sort = { k: th.dataset.k, dir: st.sort.k === th.dataset.k ? -st.sort.dir : 1 }; render();
+});
+
+const dIni = document.getElementById("dIni"), dFim = document.getElementById("dFim"), meta = document.getElementById("meta");
+function initControles() {
+  dIni.value = st.ini; dFim.value = st.fim; dIni.min = dFim.min = ymd(dmin); dIni.max = dFim.max = ymd(CORTE); meta.value = st.meta;
+  chips(document.getElementById("fEq"), EQS, st.eq, v => v.replace("U00-", ""));
+  chips(document.getElementById("fEsp"), ESPS, st.esp);
+  chips(document.getElementById("fMot"), MOTS, st.mot, null, motCor);
+}
+dIni.onchange = () => { st.ini = dIni.value || ymd(dmin); if (st.fim < st.ini) dFim.value = st.fim = st.ini; render(); };
+dFim.onchange = () => { st.fim = dFim.value || ymd(CORTE); if (st.fim < st.ini) dIni.value = st.ini = st.fim; render(); };
+meta.oninput = () => { st.meta = Math.min(100, Math.max(0, +meta.value || 0)); render(); };
+document.getElementById("busca").oninput = e => { st.busca = e.target.value; renderLog(filtrados(periodo())); };
+document.getElementById("btnReset").onclick = () => {
+  st.ini = ymd(dmin); st.fim = ymd(CORTE); st.meta = 90;
+  [[st.eq, EQS], [st.esp, ESPS], [st.mot, MOTS]].forEach(([s, v]) => v.forEach(x => s.add(x)));
+  initControles(); render();
+};
+document.getElementById("btnTema").onclick = () => {
+  const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("fp-tema", r.dataset.theme); } catch (_) {}
+};
+try { const t = localStorage.getItem("fp-tema"); if (t) document.documentElement.dataset.theme = t; } catch (_) {}
+document.getElementById("btnCsv").onclick = () => {
+  const L = filtrados(periodo()), q = v => `"${String(v).replace(/"/g, '""')}"`;
+  const csv = "﻿Equipamento;Início;Término;Horas;Especialidade;Motivo;Descrição\n" +
+    L.map(e => [e.eq, e.ini.replace("T", " "), e.fim.replace("T", " "), fmt(e.hp, 2), e.esp, e.mot, e.desc].map(q).join(";")).join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = `paradas_filtros_${st.ini}_${st.fim}.csv`; a.click();
+};
+
+initControles();
+render();
+</script>
+</body>
+</html>
