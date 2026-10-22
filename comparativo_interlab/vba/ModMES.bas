@@ -39,9 +39,9 @@ Private mEtapa As String
 Private mErroPF As String
 ' Dias em que o MES tem resultado do PFUF na ultima consulta ("19/10 (4), 20/10 (4)")
 Private mDiasPF As String
-' Dias consultados antes e depois do dia do composto (para mostrar onde o MES tem resultado)
-Private Const PF_DIAS_ANTES As Long = 2
-Private Const PF_DIAS_DEPOIS As Long = 2
+' PFUF: janelas de 2 h (igual as leituras do batch, que funcionam) de 12 h antes do dia do composto ate 12 h
+' depois; o resultado vale na janela do horario de lancamento (cfgPfHora, 23:30)
+Private Const PF_JANELAS As Long = 24
 Private Const MAPAS_ALT As String = "IP_AnalogMap|IP_MESVALOR|IP_DiscreteMap"
 
 ' ---------------------------------------------------------------- botao
@@ -683,8 +683,6 @@ Public Function ArgumentosLab(ByVal lab As Long, ByVal ps As String, ByVal anc A
     Else
         ci = "Dados_MES!$B$9"
         cf = "Dados_MES!$B$10"
-        intervalo = Replace(CfgTxt("cfgPfIntervalo"), """", "")
-        If intervalo = "" Then intervalo = "24h"
     End If
     calc = CfgTxt("cfgCalc")
     If calc = "" Then calc = "1"
@@ -923,9 +921,10 @@ Public Function AtualizarPFUF() As String
     End If
     dia = Int(CDbl(CDate(Nm("bPfData").Value)))
     h = 0
+    h = 23.5 / 24
     If ENumero(Nm("cfgPfHora").Value) Then h = CDbl(Nm("cfgPfHora").Value) - Int(CDbl(Nm("cfgPfHora").Value))
-    ini = CDate(dia + h)
-    fim = CDate(dia + h + 1)
+    ini = CDate(dia)              ' inicio do dia do composto
+    fim = CDate(dia + h)          ' horario em que o composto e lancado no MES
     txtDia = Format$(CDate(dia), "dd\/mm\/yyyy")
     simulado = (Left$(UCase$(CfgTxt("cfgFonte")), 3) = "SIM")
     ReDim res(1 To NPF)
@@ -941,20 +940,21 @@ Public Function AtualizarPFUF() As String
             AtualizarPFUF = "PFUF: sem tags na aba Configurações (lançamento manual)."
             Exit Function
         End If
-        If CDbl(ini) > CDbl(Now) Then
-            AtualizarPFUF = "PFUF: o dia " & txtDia & " ainda não começou."
+        If CDbl(fim) > CDbl(Now) Then
+            AtualizarPFUF = "PFUF: o composto de " & txtDia & " é lançado às " & Format$(fim, "hh:mm") & _
+                            " (ainda não chegou essa hora)."
             Exit Function
         End If
         mErroPF = ""
         mDiasPF = ""
         ' consulta alguns dias em volta: o resultado do dia fica com o composto; os outros so mostram
         ' em que dias o MES tem resultado (ajuda a achar a data/hora em que o composto e gravado)
-        qIni = CDate(CDbl(ini) - PF_DIAS_ANTES)
-        nd = PF_DIAS_ANTES + 1 + PF_DIAS_DEPOIS
-        If CDbl(qIni) + nd > CDbl(Now) + 1 Then nd = Int(CDbl(Now) - CDbl(qIni)) + 1
-        If nd < PF_DIAS_ANTES + 1 Then nd = PF_DIAS_ANTES + 1
+        qIni = CDate(CDbl(ini) - 0.5)
+        nd = PF_JANELAS
+        If CDbl(qIni) + nd * HORAS_SLOT / 24 > CDbl(Now) Then nd = Int((CDbl(Now) - CDbl(qIni)) * 24 / HORAS_SLOT) + 1
+        If nd > PF_JANELAS Then nd = PF_JANELAS
         t0 = Timer
-        ok = ConsultarPF(qIni, CDate(CDbl(qIni) + nd), ini, res)
+        ok = ConsultarPF(qIni, CDate(CDbl(qIni) + nd * HORAS_SLOT / 24), fim, res)
         seg = Int(Timer - t0)
         If seg < 0 Then seg = seg + 86400
     End If
@@ -984,20 +984,21 @@ Public Function AtualizarPFUF() As String
                     IIf(falta <> "", " - sem resultado: " & falta, "") & IIf(simulado, "", " (" & seg & " s)") & "."
     If Not simulado And q < NPF Then
         If mDiasPF <> "" Then
-            AtualizarPFUF = AtualizarPFUF & vbCrLf & "Dias com resultado do PFUF no MES (" & _
-                Format$(qIni, "dd\/mm") & " a " & Format$(CDate(CDbl(qIni) + nd - 1), "dd\/mm") & "): " & mDiasPF & _
-                vbCrLf & "Se o composto de " & Format$(CDate(dia), "dd\/mm") & " aparece em outro dia, ajuste " & _
-                """Dias antes da data do report"" ou ""Início do dia do composto"" (aba Configurações)."
+            AtualizarPFUF = AtualizarPFUF & vbCrLf & "Resultados do PFUF no MES (janelas de 2 h de " & _
+                Format$(qIni, "dd\/mm hh:mm") & " a " & Format$(CDate(CDbl(qIni) + nd * HORAS_SLOT / 24), "dd\/mm hh:mm") & _
+                "): " & mDiasPF & vbCrLf & "O composto de " & Format$(CDate(dia), "dd\/mm") & " é procurado às " & _
+                Format$(fim, "hh:mm") & ". Se ele aparece em outro horário, ajuste ""Horário de lançamento"" ou " & _
+                """Dias antes da data do report"" (aba Configurações)."
         Else
-            AtualizarPFUF = AtualizarPFUF & vbCrLf & "O MES não tem nenhum resultado dessas tags de " & _
-                Format$(qIni, "dd\/mm") & " a " & Format$(CDate(CDbl(qIni) + nd - 1), "dd\/mm") & _
-                ": conferir tag, servidor e mapa (aba Configurações)."
+            AtualizarPFUF = AtualizarPFUF & vbCrLf & "O MES não devolveu nenhum resultado dessas tags de " & _
+                Format$(qIni, "dd\/mm hh:mm") & " a " & Format$(CDate(CDbl(qIni) + nd * HORAS_SLOT / 24), "dd\/mm hh:mm") & _
+                ": conferir tag, servidor e mapa (aba Configurações) e a Resposta PFUF na aba Dados_MES."
         End If
     End If
 End Function
 
-' Uma consulta (intervalo cfgPfIntervalo, padrao 24h) de ini a fim (alguns dias em volta do composto).
-' res(1..NPF): resultado da janela que comeca em alvo (inicio do dia do composto); mDiasPF: dias com resultado
+' Uma consulta em janelas de 2 h de ini a fim (em volta do dia do composto).
+' res(1..NPF): resultado da janela que contem alvo (horario de lancamento); mDiasPF: janelas com resultado
 Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByVal alvo As Date, ByRef res As Variant) As Boolean
     Dim anc As Range, sai As Range, ps As String, rodada As Long, limite As Double, estado As Long, e2 As Long
     Dim restaurado As Boolean, lst As Variant, r As Long, i As Long, k As Long, v As Variant, x As Double
@@ -1028,7 +1029,7 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByVal alvo As
             Exit Function
         End If
         ' o resultado pode vir com a hora do inicio ou do fim do dia: aceita qualquer hora ate o fim
-        estado = Esperar(anc, sai, ini, limite, PF_DIAS_ANTES + PF_DIAS_DEPOIS + 1 + 1 / 1440)
+        estado = Esperar(anc, sai, ini, limite, -1)
         If estado = 3 Then
             If ColetarInvalidas(anc, sai) = 0 Then Exit For
         ElseIf estado = 4 Then
@@ -1037,10 +1038,10 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByVal alvo As
             Exit For
         ElseIf (estado = 0 Or estado = 2) And Not restaurado Then
             restaurado = True
-            RestaurarSaida anc, sai, PF_DIAS_ANTES + PF_DIAS_DEPOIS + 2, UBound(Split(ps, ",")) + 2
+            RestaurarSaida anc, sai, PF_JANELAS + 1, UBound(Split(ps, ",")) + 2
             anc.Calculate
-            sai.Resize(PF_DIAS_ANTES + PF_DIAS_DEPOIS + 2, UBound(Split(ps, ",")) + 2).Calculate
-            e2 = Esperar(anc, sai, ini, limite, PF_DIAS_ANTES + PF_DIAS_DEPOIS + 1 + 1 / 1440)
+            sai.Resize(PF_JANELAS + 1, UBound(Split(ps, ",")) + 2).Calculate
+            e2 = Esperar(anc, sai, ini, limite, -1)
             If e2 = 1 Or estado = 0 Then estado = e2
             Exit For
         Else
@@ -1078,14 +1079,14 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByVal alvo As
                 If ComoNumero(v, x) Then
                     If ValorValido(k, LAB_PF, x) Then
                         n = n + 1
-                        If Abs(CDbl(tj) - CDbl(alvo)) < 1 / 1440 Then d(k) = x
+                        If CDbl(tj) <= CDbl(alvo) + 1 / 1440 And CDbl(alvo) < CDbl(tj) + HORAS_SLOT / 24 - 1 / 1440 Then d(k) = x
                     End If
                 End If
             Next i
             If n > 0 Then
                 If mDiasPF <> "" Then mDiasPF = mDiasPF & ", "
-                mDiasPF = mDiasPF & Format$(tj, "dd\/mm") & IIf(Abs(CDbl(tj) - Int(CDbl(tj))) > 1 / 1440, _
-                          " " & Format$(tj, "hh:mm"), "") & " (" & n & ")"
+                mDiasPF = mDiasPF & Format$(tj, "dd\/mm hh:mm") & "-" & Format$(CDate(CDbl(tj) + HORAS_SLOT / 24), "hh:mm") & _
+                          " (" & n & ")"
             End If
         Next r
     End If

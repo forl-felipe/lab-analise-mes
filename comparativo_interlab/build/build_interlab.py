@@ -376,10 +376,9 @@ class Construtor:
         fd = self.f(font_size=8.5, font_color=MUTED, text_wrap=True)
         r = C_ROW_PF0 + len(PFUF)
         itens_pf = [('cfgPfDias', 'Dias antes da data do report', 1, '1 = composto do dia anterior (o enviado no report)'),
-                    ('cfgPfHora', 'Início do dia do composto (hora)', dtm.time(0, 0),
-                     'O dia do composto vai desta hora até a mesma hora do dia seguinte'),
-                    ('cfgPfIntervalo', 'Intervalo da consulta', '24h',
-                     'Uma janela só (o dia inteiro). Vale o 1º resultado válido devolvido pelo MES')]
+                    ('cfgPfHora', 'Horário de lançamento no MES', dtm.time(23, 30),
+                     'O composto do dia é gravado no MES a esta hora do próprio dia (23:30). '
+                     'Consulta em janelas de 2 h; vale a janela que contém este horário')]
         for i, (nm, rot, val, desc) in enumerate(itens_pf):
             rr = r + i
             ws.write(rr, 1, rot, fr)

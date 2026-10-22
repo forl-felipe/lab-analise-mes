@@ -58,10 +58,10 @@ Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cá
 - **Composto do dia anterior** à data do report (ex.: report de 22/10 → composto de 21/10). A data fica no Batch
   (`data do report − 1`, configurável em *Dias antes da data do report*) e pode ser trocada à mão.
 - Um botão só: o **Buscar no MES** traz as leituras do batch e o PFUF (sem a chegada em Ubu ainda, traz só o PFUF).
-  Uma consulta `GetCalculationValues` com intervalo `24h` de 2 dias antes a 2 dias depois do composto (até hoje);
-  vale a janela que começa no início do dia do composto (00:00, configurável). Os outros dias só aparecem na
-  mensagem ("dias com resultado no MES"), para mostrar em que dia o composto é gravado. Os que o MES não devolver
-  ficam como estão.
+- O composto do dia é gravado no MES às **23:30 do próprio dia** (Configurações: *Horário de lançamento no MES*).
+  A consulta usa janelas de **2 h**, como as leituras do batch, de 12 h antes a 12 h depois do dia do composto; vale a
+  janela que contém as 23:30. As demais janelas com resultado aparecem na mensagem, para conferir o horário.
+  Os valores que o MES não devolver ficam como estão.
 - Tags (servidor UBU, aba Configurações): `M0650024000-0003-DDLQU` (Fe — no MES "PF Elutriação - FeO"),
   `M0650024000-0004-DDLQU` (SiO₂), `M0650024000-0008-DDLQU` (P), `M0650024000-0017-DDLFU` (S.E.).
   Mapa `IP_AnalogMap` (o MES recusou `IP_MESVALOR` para essas tags). O rótulo mostrado no painel também é editável lá.
