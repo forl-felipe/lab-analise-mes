@@ -233,6 +233,10 @@ Public Sub TesteLO()
     Ok VarianteTag("M250010000-17-ABLF") = "M250010000-0017-ABLF", "variante -17- -> -0017-"
     Ok VarianteTag("306TP001-FX001-R") = "", "tag sem codigo numerico: sem variante"
 
+    ' --- mapa recusado pelo MES: tenta o proximo da lista e grava o que funcionou
+    Ok TesteMapas("Erro:(M0650024000-0003-DDLQU) Map Name IP_MESVALOR is invalid(M0650024000-0004-DDLQU) Map Name " & _
+       "IP_MESVALOR is invalid") = "2|IP_DiscreteMap|IP_AnalogMap", "mapa recusado: 2 tags, troca para o proximo mapa"
+
     ' --- respostas do Aspen em texto
     Dim tj As Date, xx As Double
     Ok ComoData("12/10/2026 15:00:00", tj) And Abs(CDbl(tj) - CDbl(DateSerial(2026, 10, 12) + TimeSerial(15, 0, 0))) < 0.0001, _

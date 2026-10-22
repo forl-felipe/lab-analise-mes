@@ -62,8 +62,17 @@ Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cá
   (configurável); vale o 1º resultado válido de cada análise. Os que o MES não devolver ficam como estão.
 - Tags (servidor UBU, aba Configurações): `M0650024000-0003-DDLQU` (Fe — no MES "PF Elutriação - FeO"),
   `M0650024000-0004-DDLQU` (SiO₂), `M0650024000-0008-DDLQU` (P), `M0650024000-0017-DDLFU` (S.E.).
-  O rótulo mostrado no painel também é editável lá. Mesmo tratamento de tag recusada/variante de código do batch.
+  Mapa `IP_AnalogMap` (o MES recusou `IP_MESVALOR` para essas tags). O rótulo mostrado no painel também é editável lá.
+  Mesmo tratamento de tag recusada/variante de código do batch.
 - Os 4 valores e a data do composto vão para o histórico (colunas *PFUF ...*).
+
+## Tempo da consulta
+
+- Contador de segundos na barra de status do Excel durante a consulta; o tempo total aparece na mensagem final e
+  em Dados_MES (*Última consulta*).
+- Resposta de erro do Aspen (`Erro: ...`) encerra a espera na hora, sem aguardar o tempo máximo.
+- **Mapa recusado** (`Map Name ... is invalid`): a planilha tenta `IP_AnalogMap`, `IP_MESVALOR` e `IP_DiscreteMap`, e o
+  que o MES aceitar fica gravado na aba Configurações.
 
 ## Histórico
 

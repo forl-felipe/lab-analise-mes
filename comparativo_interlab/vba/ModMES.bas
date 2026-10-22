@@ -30,12 +30,20 @@ Private mOcupado As Boolean
 Private mSemAspen As Boolean
 ' Tags recusadas pelo MES nesta sessao, no formato |TAG1|TAG2|
 Private mInvalidas As String
+' Mapas recusados pelo MES nesta sessao ("Map Name X is invalid"), no formato |TAG>MAPA|
+Private mMapasRuins As String
+' Contador da consulta na barra de status: o que esta sendo consultado
+Private mEtapa As String
+' Mapas tentados quando o MES recusa o da aba Configuracoes (o que funcionar fica gravado la)
+' Motivo da ultima falha da consulta do PFUF (para a mensagem)
+Private mErroPF As String
+Private Const MAPAS_ALT As String = "IP_AnalogMap|IP_MESVALOR|IP_DiscreteMap"
 
 ' ---------------------------------------------------------------- botao
 Public Sub BuscarMES()
     Dim n As Long, nG As Long, iniU As Date, iniG As Date
     Dim resG As Variant, resU As Variant, simulado As Boolean, okG As Boolean, okU As Boolean
-    Dim qG As Long, qU As Long, msg As String, semTag As String, pf As String
+    Dim qG As Long, qU As Long, msg As String, semTag As String, pf As String, t0 As Single, seg As Long
 
     If mOcupado Then
         Aviso "Consulta ao MES em andamento. Aguarde.", vbInformation, "MES"
@@ -80,6 +88,7 @@ Public Sub BuscarMES()
     mOcupado = True
     mSemAspen = False
     Ampulheta True
+    t0 = Timer
     On Error GoTo Falha
     If simulado Then
         If nG > 0 Then resG = DadosSimulados(0, nG, iniG)
@@ -100,7 +109,9 @@ Public Sub BuscarMES()
     Application.StatusBar = "Consultando MES - pellet feed ultra fino..."
     pf = AtualizarPFUF()
     Application.StatusBar = False
-    Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & IIf(simulado, " (SIMULAÇÃO)", "")
+    seg = Int(Timer - t0)
+    If seg < 0 Then seg = seg + 86400
+    Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & IIf(simulado, " (SIMULAÇÃO)", "  -  " & seg & " s")
     AjustarGraficos
     msg = "Resultados gravados no batch " & CfgTxt("bId") & ":" & vbCrLf & vbCrLf & _
           "  " & CfgTxt("bLabA") & ": " & qG & IIf(okG, "", " (consulta falhou)") & _
@@ -117,7 +128,8 @@ Public Sub BuscarMES()
         msg = msg & vbCrLf & vbCrLf & "Sem tag (lançamento manual): " & semTag
     End If
     If pf <> "" Then msg = msg & vbCrLf & vbCrLf & pf
-    If simulado Then msg = msg & vbCrLf & vbCrLf & "Fonte: SIMULAÇÃO (dados fictícios)."
+    If simulado Then msg = msg & vbCrLf & vbCrLf & "Fonte: SIMULAÇÃO (dados fictícios)." Else msg = msg & _
+        vbCrLf & vbCrLf & "Tempo total da consulta: " & seg & " s."
     Aviso msg, vbInformation, "MES"
 Fim:
     Application.StatusBar = False
@@ -245,6 +257,7 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
     res = d
     If mSemAspen Then Exit Function
     nomeLab = IIf(lab = 0, CfgTxt("bLabA"), CfgTxt("bLabB"))
+    mEtapa = nomeLab
     If lab = 0 Then
         Set anc = shDadosMES.Range(ANC_G)
         Set sai = shDadosMES.Range(OUT_G)
@@ -291,6 +304,11 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
         If estado = 3 Then
             ' tag recusada: guarda e consulta de novo sem ela (ou com a variante do codigo)
             If ColetarInvalidas(anc, sai) = 0 Then Exit For
+        ElseIf estado = 4 Then
+            ' mapa recusado: consulta de novo com o proximo mapa da lista MAPAS_ALT
+            If ColetarMapas(anc, sai, lab) = 0 Then Exit For
+        ElseIf estado = 5 Then
+            Exit For
         ElseIf (estado = 0 Or estado = 2) And Not restaurado Then
             ' respondeu sem resultados na celula de saida: monta a matriz ShowCalculationValues
             ' (forma da planilha de referencia do MES) e espera mais uma vez
@@ -306,7 +324,7 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
         End If
     Next rodada
     ' variantes de codigo que o MES aceitou: passam para a aba Configuracoes
-    If estado = 1 Then corrigidas = CorrigirTags(lab)
+    If estado = 1 Then corrigidas = CorrigirTags(lab) & CorrigirMapas(lab)
 
     If corrigidas <> "" Then
         Aviso "Tags de " & nomeLab & " corrigidas na aba Configurações (o MES aceitou o código em outro formato):" & _
@@ -321,11 +339,11 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
     resp = Left$(Trim$(anc.Text) & "  |  1a célula: " & Trim$(sai.Cells(1, 1).Text) & "  " & _
                  Trim$(sai.Cells(1, 2).Text), 250)
     Nm(IIf(lab = 0, "mesRespG", "mesRespU")).Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & resp
-    If estado = 0 Then
+    If estado = 0 Or estado = 4 Or estado = 5 Then
         ' a formula vira texto (com a formula guardada para conferencia): uma consulta ativa refaz a busca
         ' no MES a cada recalculo e deixa a planilha lenta
         DesligarConsulta anc, sai
-        If Aviso("O MES não respondeu à consulta de " & nomeLab & " (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & _
+        If Aviso(IIf(estado = 0, "O MES não respondeu à consulta de ", "O MES devolveu erro na consulta de ") & nomeLab & " (" & Format$(ini, "dd\/mm\/yyyy hh:mm") & ")." & _
                  vbCrLf & vbCrLf & "Resposta do Aspen: " & resp & vbCrLf & vbCrLf & _
                  "Verificar: suplemento Aspen ativo, servidor, tags e formato da data " & _
                  "(aba Configurações)." & vbCrLf & vbCrLf & "Abrir a aba Dados_MES?", vbExclamation + vbYesNo, _
@@ -354,10 +372,13 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
     ConsultarLab = True
 End Function
 
-' 0 = sem resposta, 1 = resultados prontos, 2 = respondeu sem dados, 3 = tag recusada
+' 0 = sem resposta, 1 = resultados prontos, 2 = respondeu sem dados, 3 = tag recusada, 4 = mapa recusado,
+' 5 = outro erro do Aspen
 Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Date, ByVal limite As Double, _
                          Optional ByVal tol As Double = -1) As Long
     Dim t0 As Single, tEst As Single, assin As String, ant As String, v As Variant, pronto As Boolean, tj As Date
+    Dim seg As Long
+    seg = -1
     If tol < 0 Then tol = HORAS_SLOT / 24 + 1 / 1440
     t0 = Timer
     tEst = Timer
@@ -365,8 +386,16 @@ Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Da
         DoEvents
         If Timer < t0 Then t0 = t0 - 86400
         If Timer < tEst Then tEst = tEst - 86400
+        If Int(Timer - t0) <> seg Then
+            seg = Int(Timer - t0)
+            Application.StatusBar = "Consultando MES - " & mEtapa & "...  " & seg & " s  (máx. " & limite & " s)"
+        End If
         If RespostaTagInvalida(anc, sai) Then
             Esperar = 3
+            Exit Function
+        End If
+        If RespostaMapaInvalido(anc, sai) Then
+            Esperar = 4
             Exit Function
         End If
         v = sai.Cells(1, 1).Value
@@ -380,6 +409,13 @@ Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Da
         If pronto And Timer - tEst >= ESTAVEL_SEG Then
             Esperar = 1
             Exit Function
+        End If
+        ' o Aspen respondeu com erro ("Erro: ...", "Error: ..."): nao adianta esperar o tempo maximo
+        If Not pronto And Timer - tEst >= ESTAVEL_SEG Then
+            If RespondeuErro(anc) Then
+                Esperar = 5
+                Exit Function
+            End If
         End If
         If Not pronto And Timer - t0 >= SEM_DADOS_SEG Then
             If RespondeuSucesso(anc) And Vazio(sai.Cells(1, 1).Value) Then
@@ -434,6 +470,100 @@ Private Function RespostaTagInvalida(ByVal anc As Range, ByVal sai As Range) As 
         End If
         i = InStr(j, t, "Tag Name ", vbTextCompare)
     Loop
+End Function
+
+Private Function RespondeuErro(ByVal anc As Range) As Boolean
+    Dim t As String
+    t = LCase$(Trim$(anc.Text))
+    RespondeuErro = (Left$(t, 4) = "erro" Or Left$(t, 5) = "error" Or InStr(t, " is invalid") > 0)
+End Function
+
+' "(TAG) Map Name IP_MESVALOR is invalid": mapa ainda nao marcado como recusado para a tag?
+Private Function RespostaMapaInvalido(ByVal anc As Range, ByVal sai As Range) As Boolean
+    RespostaMapaInvalido = (MapasRecusados(TextoResposta(anc, sai), False) > 0)
+End Function
+
+' Marca os pares tag/mapa recusados (gravar = True); devolve quantos sao novos
+Private Function MapasRecusados(ByVal t As String, ByVal gravar As Boolean) As Long
+    Dim i As Long, j As Long, a As Long, tag As String, mapa As String, chave As String
+    i = InStr(1, t, "Map Name ", vbTextCompare)
+    Do While i > 0
+        j = InStr(i + 9, t, " is invalid", vbTextCompare)
+        If j = 0 Then Exit Do
+        mapa = UCase$(Trim$(Mid$(t, i + 9, j - i - 9)))
+        a = InStrRev(t, "(", i)
+        tag = ""
+        If a > 0 Then
+            If InStr(a, t, ")") < i Then tag = UCase$(Trim$(Mid$(t, a + 1, InStr(a, t, ")") - a - 1)))
+        End If
+        If tag <> "" And mapa <> "" And InStr(tag, " ") = 0 Then
+            chave = "|" & tag & ">" & mapa & "|"
+            If InStr(1, mMapasRuins, chave) = 0 Then
+                MapasRecusados = MapasRecusados + 1
+                If gravar Then
+                    If mMapasRuins = "" Then mMapasRuins = "|"
+                    mMapasRuins = mMapasRuins & tag & ">" & mapa & "|"
+                End If
+            End If
+        End If
+        i = InStr(j, t, "Map Name ", vbTextCompare)
+    Loop
+End Function
+
+' Depois de "Map Name ... is invalid": guarda os recusados; a tag sem nenhum mapa aceito sai da consulta
+Private Function ColetarMapas(ByVal anc As Range, ByVal sai As Range, ByVal lab As Long) As Long
+    Dim p As Long, t As String
+    ColetarMapas = MapasRecusados(TextoResposta(anc, sai), True)
+    For p = 1 To NItens(lab)
+        t = TagAtual(p, lab)
+        If t <> "" And Not TagInvalida(t) And MapaAtual(p, lab) = "" Then
+            If mInvalidas = "" Then mInvalidas = "|"
+            mInvalidas = mInvalidas & UCase$(t) & "|"
+        End If
+    Next p
+End Function
+
+Private Function MapaRecusado(ByVal tag As String, ByVal mapa As String) As Boolean
+    MapaRecusado = (InStr(1, mMapasRuins, "|" & UCase$(tag) & ">" & UCase$(mapa) & "|") > 0)
+End Function
+
+' Mapa usado na consulta: o da aba Configuracoes ou, se o MES o recusou, o 1o da lista MAPAS_ALT ainda nao
+' recusado ("" = nenhum)
+Private Function MapaAtual(ByVal p As Long, ByVal lab As Long) As String
+    Dim m As String, t As String, alt As Variant, i As Long
+    m = TagCfg(p, lab, C_COL_MAPA)
+    If m = "" Then m = "IP_MESVALOR"
+    t = TagAtual(p, lab)
+    If Not MapaRecusado(t, m) Then
+        MapaAtual = m
+        Exit Function
+    End If
+    alt = Split(MAPAS_ALT, "|")
+    For i = LBound(alt) To UBound(alt)
+        If Not MapaRecusado(t, CStr(alt(i))) Then
+            MapaAtual = CStr(alt(i))
+            Exit Function
+        End If
+    Next i
+End Function
+
+' Grava na aba Configuracoes os mapas alternativos que o MES aceitou; devolve a lista
+Private Function CorrigirMapas(ByVal lab As Long) As String
+    Dim p As Long, m As String, r As String
+    For p = 1 To NItens(lab)
+        If TagAtual(p, lab) <> "" And Not TagInvalida(TagAtual(p, lab)) Then
+            m = MapaAtual(p, lab)
+            If m <> "" And UCase$(m) <> UCase$(TagCfg(p, lab, C_COL_MAPA)) And TagCfg(p, lab, C_COL_MAPA) <> "" Then
+                r = r & "  - " & RotuloItem(p, lab) & ": mapa " & TagCfg(p, lab, C_COL_MAPA) & "  ->  " & m & vbCrLf
+                On Error Resume Next
+                shConfig.Unprotect
+                shConfig.Cells(LinhaCfg(p, lab), C_COL_MAPA).Value = m
+                Proteger shConfig
+                On Error GoTo 0
+            End If
+        End If
+    Next p
+    CorrigirMapas = r
 End Function
 
 Private Function ColetarInvalidas(ByVal anc As Range, ByVal sai As Range) As Long
@@ -529,8 +659,7 @@ Public Function ArgumentosLab(ByVal lab As Long, ByVal ps As String, ByVal anc A
         p = CLng(lst(i))
         s = TagCfg(p, lab, C_COL_SERV)
         If s = "" Then s = "UBU"
-        m = TagCfg(p, lab, C_COL_MAPA)
-        If m = "" Then m = "IP_MESVALOR"
+        m = MapaAtual(p, lab)
         If tags <> "" Then
             tags = tags & ","
             servs = servs & ","
@@ -775,7 +904,8 @@ End Sub
 ' (so os que o MES devolveu; os demais ficam como estao). Devolve uma linha para a mensagem.
 Public Function AtualizarPFUF() As String
     Dim dia As Double, h As Double, ini As Date, fim As Date, res As Variant, k As Long, q As Long
-    Dim simulado As Boolean, ok As Boolean, falta As String, tip As String, txtDia As String
+    Dim simulado As Boolean, ok As Boolean, falta As String, tip As String, txtDia As String, t0 As Single
+    Dim seg As Long
 
     Recalcular
     If Not EData(Nm("bPfData").Value) Then
@@ -806,10 +936,15 @@ Public Function AtualizarPFUF() As String
             AtualizarPFUF = "PFUF: o dia " & txtDia & " ainda não começou."
             Exit Function
         End If
+        mErroPF = ""
+        t0 = Timer
         ok = ConsultarPF(ini, fim, res)
+        seg = Int(Timer - t0)
+        If seg < 0 Then seg = seg + 86400
     End If
     If Not ok Then
-        AtualizarPFUF = "PFUF (composto de " & txtDia & "): consulta falhou."
+        AtualizarPFUF = "PFUF (composto de " & txtDia & "): consulta falhou" & IIf(mErroPF <> "", " - " & mErroPF, "") & _
+                        " (" & seg & " s). Resposta completa: aba Dados_MES, Resposta PFUF."
         Exit Function
     End If
 
@@ -825,12 +960,12 @@ Public Function AtualizarPFUF() As String
         End If
     Next k
     Nm("bPfMsg").Value = "'" & IIf(simulado, "SIMULAÇÃO", "MES") & " " & Format$(Now, "dd\/mm hh:mm") & _
-                         " · " & q & " de " & NPF
+                         " · " & q & " de " & NPF & IIf(simulado, "", " · " & seg & " s")
     Proteger shBatch
     ModoCarga False
     gAlterado = True
     AtualizarPFUF = "PFUF (composto de " & txtDia & "): " & q & " de " & NPF & " resultados" & _
-                    IIf(falta <> "", " - sem resultado: " & falta, "") & "."
+                    IIf(falta <> "", " - sem resultado: " & falta, "") & IIf(simulado, "", " (" & seg & " s)") & "."
 End Function
 
 ' Uma consulta (intervalo cfgPfIntervalo, padrao 24h) do inicio ao fim do dia do composto.
@@ -842,7 +977,11 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
 
     ReDim d(1 To NPF)
     res = d
-    If mSemAspen Then Exit Function
+    If mSemAspen Then
+        mErroPF = "suplemento Aspen não reconhecido (#NOME?)"
+        Exit Function
+    End If
+    mEtapa = "pellet feed ultra fino"
     Set anc = shDadosMES.Range(ANC_P)
     Set sai = shDadosMES.Range(OUT_P)
     limite = 120
@@ -854,6 +993,7 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
         LimparSaida sai
         If Not EscreverConsulta(anc, ArgumentosLab(LAB_PF, ps, anc, sai)) Then
             Nm("mesRespP").Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  #NOME? (suplemento Aspen)"
+            mErroPF = "suplemento Aspen não reconhecido (#NOME?)"
             anc.Value = "'Suplemento Aspen não reconhecido (#NOME?)"
             LimparSaida sai
             mSemAspen = True
@@ -863,6 +1003,10 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
         estado = Esperar(anc, sai, ini, limite, 1 + 1 / 1440)
         If estado = 3 Then
             If ColetarInvalidas(anc, sai) = 0 Then Exit For
+        ElseIf estado = 4 Then
+            If ColetarMapas(anc, sai, LAB_PF) = 0 Then Exit For
+        ElseIf estado = 5 Then
+            Exit For
         ElseIf (estado = 0 Or estado = 2) And Not restaurado Then
             restaurado = True
             RestaurarSaida anc, sai, 2, UBound(Split(ps, ",")) + 2
@@ -875,7 +1019,7 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
             Exit For
         End If
     Next rodada
-    If estado = 1 Then corrigidas = CorrigirTags(LAB_PF)
+    If estado = 1 Then corrigidas = CorrigirTags(LAB_PF) & CorrigirMapas(LAB_PF)
     If corrigidas <> "" Then
         Aviso "Tags do pellet feed ultra fino corrigidas na aba Configurações (o MES aceitou o código em outro " & _
               "formato):" & vbCrLf & vbCrLf & corrigidas, vbInformation, "MES - tags"
@@ -883,13 +1027,14 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
     invalidas = ListaInvalidas(LAB_PF)
     If invalidas <> "" Then
         Nm("mesInvalidas").Value = "'" & Replace(invalidas, vbCrLf, " ")
-        Aviso "O MES não reconheceu estas tags do pellet feed ultra fino (ficam como estão):" & vbCrLf & vbCrLf & _
+        Aviso "O MES não aceitou estas tags do pellet feed ultra fino (tag ou mapa; ficam como estão):" & vbCrLf & vbCrLf & _
               invalidas & vbCrLf & "Corrigir na aba Configurações.", vbExclamation, "MES - tags inválidas"
     End If
     resp = Left$(Trim$(anc.Text) & "  |  1a célula: " & Trim$(sai.Cells(1, 1).Text) & "  " & _
                  Trim$(sai.Cells(1, 2).Text), 250)
     Nm("mesRespP").Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & resp
-    If estado = 0 Then
+    If estado = 0 Or estado = 4 Or estado = 5 Then
+        mErroPF = IIf(estado = 0, "o MES não respondeu", "erro do MES: " & Left$(Trim$(anc.Text), 160))
         DesligarConsulta anc, sai
         Exit Function
     End If
@@ -941,4 +1086,15 @@ Private Function DadosSimulados(ByVal lab As Long, ByVal n As Long, ByVal ini As
         Next p
     Next s
     DadosSimulados = d
+End Function
+
+' Usado so na validacao automatica: "novos|mapa do Fe|mapa do SiO2" depois da resposta de erro
+' (Fe recusado tambem em IP_AnalogMap -> IP_DiscreteMap; SiO2 continua com IP_AnalogMap)
+Public Function TesteMapas(ByVal texto As String) As String
+    Dim n As Long
+    mMapasRuins = "|M0650024000-0003-DDLQU>IP_ANALOGMAP|"
+    mInvalidas = ""
+    n = MapasRecusados(texto, True)
+    TesteMapas = n & "|" & MapaAtual(1, LAB_PF) & "|" & MapaAtual(2, LAB_PF)
+    mMapasRuins = ""
 End Function

@@ -93,6 +93,8 @@ TAGS = {('SE', 0): 'M4250010000-0017-ABLQ', ('SE', 1): 'M4650060010-0017-HHLFU',
         ('P', 0): 'M4250010000-0008-ABLQ', ('P', 1): 'M650030010-0008-HHLQU',
         ('PPC', 0): 'M4250010000-0013-ABLQ', ('PPC', 1): 'M650030010-0013-HHLQU'}
 MAPA_PADRAO = 'IP_MESVALOR'
+# Tags do PFUF sao analogicas: o MES recusou IP_MESVALOR ("Map Name IP_MESVALOR is invalid", 22/10/2026)
+MAPA_PFUF = 'IP_AnalogMap'
 # Pellet Feed Ultra Fino (elutriacao) - composto diario de Ubu, tags informadas pelo laboratorio (22/10/2026)
 # (chave, rotulo no painel, tag, descricao no MES, decimais, faixa valida, valor tipico (simulacao))
 PFUF = [('Fe', 'Fe', 'M0650024000-0003-DDLQU', 'PF Elutriação - FeO', 2, (0, 80), 67.5),
@@ -363,7 +365,7 @@ class Construtor:
             ws.write_string(rr, C_COL['LAB'], pf[1], self.fi(align='center'))
             ws.write_string(rr, C_COL['TAG'], pf[2], self.fi(font_name='Consolas', font_size=9.5))
             ws.write(rr, C_COL['SERV'], SERVIDOR_PADRAO, self.fi(align='center'))
-            ws.write(rr, C_COL['MAPA'], MAPA_PADRAO, self.fi(align='center'))
+            ws.write(rr, C_COL['MAPA'], MAPA_PFUF, self.fi(align='center'))
             ws.write(rr, C_COL['VMIN'], pf[5][0], self.fi(align='center'))
             ws.write(rr, C_COL['VMAX'], pf[5][1], self.fi(align='center'))
             ws.write(rr, C_COL['TIP'], pf[6], self.fi(align='center'))
