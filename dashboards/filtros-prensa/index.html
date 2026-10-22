@@ -313,7 +313,7 @@ table.tbl tbody tr:hover { background: var(--surface-2); }
       </div>
       <div class="card c7">
         <h2>Indicadores por filtro</h2>
-        <p class="desc">Tempo médio de reparo e entre falhas consideram só as paradas não programadas (falhas).</p>
+        <p class="desc">Disponibilidade, horas paradas e falhas de cada equipamento no período.</p>
         <div class="tbl-wrap"><table class="tbl" id="tbEq"></table></div>
       </div>
 
@@ -666,13 +666,12 @@ function renderPainel(C) {
      <div class="v num">${fmt(t.h)} h</div>`).join("")}</div>`;
 
   // Tabela por filtro
-  const cols = [["Filtro"], ["Disponibilidade", 1], ["Disp. só manutenção", 1], ["Horas paradas", 1], ["Horas não programadas", 1], ["Nº de falhas", 1], ["Tempo médio de reparo (h)", 1], ["Tempo médio entre falhas (h)", 1], ["Maior causa"]];
+  const cols = [["Filtro"], ["Disponibilidade", 1], ["Disp. só manutenção", 1], ["Horas paradas", 1], ["Horas não programadas", 1], ["Nº de falhas", 1], ["Maior causa"]];
   el("tbEq").innerHTML = `<thead><tr>${cols.map(c => `<th class="${c[1] ? "r" : ""}">${c[0]}</th>`).join("")}</tr></thead><tbody>${
     porEq.map(o => {
       const [c, ic] = status(o.I.df, st.meta), mc = causas(o.L, 1)[0];
       return `<tr><td style="white-space:nowrap"><b>${curto(o.q)}</b></td><td class="r num" style="white-space:nowrap"><span class="badge ${c}">${ic}</span> ${fdf(o.I.df)}</td><td class="r num">${fdf(o.I.dfm)}</td>
         <td class="r num">${fmt(o.I.hp)}</td><td class="r num">${fmt(o.I.hnp)}</td><td class="r num">${o.I.falhas}</td>
-        <td class="r num">${o.I.mttr == null ? "–" : fmt(o.I.mttr)}</td><td class="r num">${o.I.mtbf == null ? "–" : fmt(o.I.mtbf)}</td>
         <td style="max-width:240px">${mc ? `${esc(mc.desc)} <span style="color:var(--muted)">(${fmt(mc.h)} h)</span>` : "–"}</td></tr>`;
     }).join("")}</tbody>`;
 
@@ -795,12 +794,9 @@ function desenharRelatorio(R, escala = 2) {
   ret(0, 0, W, 100, RC.navy);
   let xT = M;
   if (logoImg.complete && logoImg.naturalWidth) { ctx.drawImage(logoImg, M, 26, 48 * 470 / 103, 48); xT = M + 48 * 470 / 103 + 26; ret(xT - 13, 26, 1, 48, "rgba(255,255,255,.35)"); }
-  txt(caber(R.titulo, W - xT - 230, 23, 700), xT, 47, 23, "#ffffff", 700);
+  txt(caber(R.titulo, W - xT - M, 23, 700), xT, 47, 23, "#ffffff", 700);
   const fimTxt = dmy(new Date(p.bEf - 60e3));
-  txt(caber(`${R.area ? R.area + "  ·  " : ""}${st.modo === "semana" ? `Semana ${semanaISO(p.a)}  ·  ${dmy(p.a)} a ${fimTxt}` : st.modo === "mes" ? `${p.nome}  ·  ${dmy(p.a)} a ${fimTxt}` : p.nome}${p.parcial ? ` (parcial até ${hm(CORTE)})` : ""}`, W - xT - 230, 15), xT, 72, 15, "#cfdbe6");
-  const hoje = new Date();
-  txt(`Emitido em ${dmy(hoje)}`, W - M, 47, 13, "#cfdbe6", 400, "right");
-  txt(`Dados até ${dm(CORTE)} ${hm(CORTE)}`, W - M, 68, 13, "#cfdbe6", 400, "right");
+  txt(caber(`${R.area ? R.area + "  ·  " : ""}${st.modo === "semana" ? `Semana ${semanaISO(p.a)}  ·  ${dmy(p.a)} a ${fimTxt}` : st.modo === "mes" ? `${p.nome}  ·  ${dmy(p.a)} a ${fimTxt}` : p.nome}${p.parcial ? ` (parcial até ${hm(CORTE)})` : ""}`, W - xT - M, 15), xT, 72, 15, "#cfdbe6");
   ret(0, 100, W, 6, RC.amarelo);
   let y = 130;
 
@@ -934,16 +930,12 @@ function desenharRelatorio(R, escala = 2) {
 
   /* 6. Rodapé: como ler + responsável */
   ret(M, y, CW, 1, RC.linha); y += 20;
-  const espTxt = ESPS.map(s => ESP_NOME[s] ? `${s} = ${ESP_NOME[s]}` : s).join(" · ");
-  const leg = `Como ler: Disponibilidade física = tempo em que o filtro ficou disponível ÷ tempo total do período (as faixas: verde na meta, laranja até 5 p.p. abaixo, vermelho mais de 5 p.p. abaixo). ` +
-    `Tempo médio de reparo (MTTR) = horas de paradas não programadas ÷ nº de falhas. Tempo médio entre falhas (MTBF) = horas disponíveis ÷ nº de falhas. p.p. = pontos percentuais. Especialidades: ${espTxt}.`;
-  quebrar(leg, R.assin ? CW - 360 : CW, 11.5).forEach((s, i) => txt(s, M, y + i * 16, 11.5, RC.muted));
+  const leg = "MTTR = tempo médio de reparo  ·  MTBF = tempo médio entre falhas  ·  p.p. = pontos percentuais";
+  txt(caber(leg, R.assin ? CW - 360 : CW, 12), M, y + 14, 12, RC.muted);
   if (R.assin) { txt("Responsável", W - M, y, 11, RC.muted, 600, "right"); txt(caber(R.assin, 340, 14, 700), W - M, y + 20, 14, RC.texto, 700, "right"); }
-  y += Math.max(quebrar(leg, R.assin ? CW - 360 : CW, 11.5).length * 16, R.assin ? 30 : 0) + 18;
-  ret(0, y, W, 28, RC.profundo);
-  txt(`Samarco · Gestão de Disponibilidade dos Filtros Prensa · Base: ${BASE.fonte}`, M, y + 18, 11, "#cfdbe6");
-  ret(0, y + 28, W, 4, RC.amarelo);
-  y += 32;
+  y += (R.assin ? 30 : 20) + 18;
+  ret(0, y, W, 4, RC.amarelo);
+  y += 4;
 
   /* recorta na altura usada */
   const out = document.createElement("canvas"); out.width = W * escala; out.height = Math.ceil(y * escala);
