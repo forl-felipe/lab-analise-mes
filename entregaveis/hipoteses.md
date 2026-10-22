@@ -21,6 +21,8 @@ Situação: **Confirmada** (informada pelo LCE ou verificada em arquivo), **Pend
 | H13 | Identidade visual | Logotipo e paleta do kit visual fornecido. O kit informa que o logotipo foi reconstruído a partir de slide e que as cores foram medidas em imagens | Confirmada para uso interno | Confirmar com a Comunicação se existe arquivo oficial do manual de marca antes de uso amplo | Fidelidade da marca |
 | H14 | Padrão visual de IHM | ISA-101: fundo cinza neutro, cor apenas para situação anormal, estado sempre também em texto. A tela atual usa fundo cinza, o que facilita a integração | Confirmada | Requisito do projeto | Nenhum |
 | H15 | Severidade das faixas | Proposta será apresentada na Fase 2 | Aguardando aprovação | Validação do LCE | Cores e textos do painel de faixas |
+| H16 | Escala da carga média (307-GI-001) | 0 a 400 kgf/pel | Confirmada | Informada pelo LCE em 22/10/2026 | Escala das tendências e do minigráfico |
+| H17 | Escala do desvio padrão (307-GI-002) | 0 a 100 kgf/pel | Pendente | Conferir após os primeiros ensaios registrados | Escala do minigráfico do desvio padrão |
 
 ## Observações sobre a tela atual do Laboratório Químico
 

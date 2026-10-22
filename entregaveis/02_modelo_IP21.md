@@ -26,7 +26,7 @@ Os cinco registros já foram criados pelo chamado RITM0273793 (última leitura e
 |---|---|---|---|
 | IP_DESCRIPTION | Carga média | Desvio padrão | Exibida na tabela de tags e nas dicas de tela |
 | IP_ENG_UNITS | kgf/pel | kgf/pel | Unidade padrão do LCE, igual à tela atual do Laboratório Químico |
-| IP_GRAPH_MINIMUM / IP_GRAPH_MAXIMUM | 0 / 400 | 0 / 100 | Escala padrão das tendências, evitando ajuste manual em cada tela |
+| IP_GRAPH_MINIMUM / IP_GRAPH_MAXIMUM | 0 / 400 (confirmada) | 0 / 100 (proposta) | Escala padrão das tendências, evitando ajuste manual em cada tela |
 | IP_VALUE_FORMAT | 1 casa decimal | 1 casa decimal | Exibição com vírgula decimal, conforme a configuração regional da estação |
 | IP_INPUT_QUALITY | Leitura | Leitura | Base para exibir "Sem dado confiável" quando diferente de Good |
 | IP_INPUT_TIME | Leitura | Leitura | Base para a indicação de defasagem e de perda de comunicação |
