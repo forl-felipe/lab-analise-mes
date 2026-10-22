@@ -185,7 +185,7 @@ table.tbl tbody tr:hover { background: var(--surface-2); }
 .paper img { display: block; width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 6px rgba(0,0,0,.08); }
 .hint { font-size: 11.5px; color: var(--muted); }
 .obs { display: grid; gap: 6px; }
-.obs label { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.obs label { display: grid; grid-template-columns: 104px 1fr; gap: 8px; align-items: center; font-size: 12px; font-weight: 600; color: var(--text-2); }
 .rep .field input[type=text], .rep textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; width: 100%; }
 #repAssunto { flex: 1; min-width: 0; }
 #tbEq th { white-space: normal; vertical-align: bottom; }
@@ -732,7 +732,7 @@ function destaquesAuto(C, A) {
   const { I, porEq, L } = C, out = [];
   if (I.df == null) return "Sem dados no período.";
   const v = variacao(I.df, A.I.df, " p.p.");
-  out.push(`Disponibilidade da frota: ${fmt(I.df)}% (meta ${fmt(st.meta)}%) — ${status(I.df, st.meta)[2].toLowerCase()}` +
+  out.push(`Disponibilidade total dos filtros: ${fmt(I.df)}% (meta ${fmt(st.meta)}%) — ${status(I.df, st.meta)[2].toLowerCase()}` +
     (v && v.sinal ? `; ${v.sinal > 0 ? "subiu" : "caiu"} ${fmt(Math.abs(I.df - A.I.df))} p.p. em relação à ${nomeAnterior()}.` : "."));
   const abaixo = porEq.filter(o => o.I.df != null && o.I.df < st.meta).sort((a, b) => a.I.df - b.I.df);
   out.push(abaixo.length ? `Abaixo da meta: ${abaixo.map(o => `${curto(o.q)} (${fmt(o.I.df)}%)`).join(", ")}.` : `Todos os filtros atingiram a meta de ${fmt(st.meta)}%.`);
@@ -829,12 +829,12 @@ function desenharRelatorio(R, escala = 2) {
     .forEach(([t, x, al]) => txt(t.toUpperCase(), x, y + 4, 10.5, RC.muted, 700, al || "left"));
   y += 12; ret(M, y, CW, 2, RC.navy); y += 2;
   const linhas = [...porEq.map(o => ({ nome: curto(o.q), I: o.I, ant: A.porEq.find(x => x.q === o.q)?.I, obs: R.obs[o.q] || "" })),
-    { nome: "Frota", I, ant: A.I, obs: R.obs.frota || "", total: true }];
+    { nome: "Conjunto total", I, ant: A.I, obs: R.obs.frota || "", total: true }];
   linhas.forEach(l => {
     const obsL = l.obs ? quebrar(l.obs, obsW, 12.5, 400, 2) : [];
     const h = obsL.length > 1 ? 46 : 36, yc = y + h / 2;
     if (l.total) ret(M, y, CW, h, RC.fundo);
-    txt(l.nome, col.f, yc + 5, 14, RC.texto, 700);
+    txt(l.nome, col.f, yc + 5, l.total ? 13 : 14, RC.texto, 700);
     ret(col.bar, yc - 7, col.barW, 14, RC.trilho, 3);
     if (l.I.df != null) ret(col.bar, yc - 7, Math.max(2, col.barW * l.I.df / 100), 14, corStatus(l.I.df), 3);
     tracejado(col.bar + col.barW * st.meta / 100, yc - 11, yc + 11, RC.navy);
@@ -853,8 +853,8 @@ function desenharRelatorio(R, escala = 2) {
   const g3 = 26, w3 = (CW - 2 * g3) / 3, x3 = [M, M + w3 + g3, M + 2 * (w3 + g3)];
   const y3 = y; let fim3 = y;
 
-  // 4a. Evolução da disponibilidade (frota)
-  let ya = secao(`Evolução da disponibilidade · frota`, x3[0], y3) + 14;
+  // 4a. Evolução da disponibilidade total dos filtros
+  let ya = secao(`Evolução da disponibilidade total`, x3[0], y3) + 14;
   if (hist.length > 1) {
     const chH = 170, base = ya + chH, n = hist.length, slot = w3 / n, bw = Math.min(38, slot - 14);
     [0, 50, 100].forEach(g => { ret(x3[0], base - chH * g / 100, w3, 1, RC.linha); });
@@ -953,7 +953,7 @@ function preencherCampos(R, chave) {
   el("repArea").value = s.geral.area || ""; el("repAssin").value = s.geral.assin || "";
   el("repAcoes").value = R.acoes;
   el("repObs").innerHTML = [...R.C.porEq.map(o => o.q), "frota"].map(q =>
-    `<label><span>${q === "frota" ? "Frota" : curto(q)}</span><input type="text" data-q="${esc(q)}" value="${esc(R.obs[q] || "")}" placeholder="opcional"></label>`).join("");
+    `<label><span>${q === "frota" ? "Conjunto total" : curto(q)}</span><input type="text" data-q="${esc(q)}" value="${esc(R.obs[q] || "")}" placeholder="opcional"></label>`).join("");
 }
 function renderRelatorio() {
   const R = relDados(), chave = chavePer(R.C.p);
