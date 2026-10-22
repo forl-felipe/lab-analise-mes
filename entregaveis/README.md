@@ -7,8 +7,8 @@ Laboratório de Controle de Embarque (LCE), Unidade UBU. Prensa automática de c
 | 1 | `01_dicionario_tags.csv` | Concluída (pendências da TI registradas) |
 | 1 | `02_modelo_IP21.md` | Concluída (pendências da TI registradas) |
 | 1 | `hipoteses.md` | Atualizado continuamente |
-| 2 | `04_prototipo/index.html` | A fazer |
-| 3 | `03_roteiro_process_graphics.md` | A fazer |
+| 2 | `04_prototipo/index.html` | Em validação |
+| 2 e 3 | `03_roteiro_process_graphics.md` | Parte 1 (preparação) pronta; Partes 2 e 3 na Fase 3 |
 | 3 | `05_validar_tags.py` | Opcional (hipótese H10) |
 | 4 | `06_checklist_testes.md` e `07_manual_operacao.md` | A fazer |
 
