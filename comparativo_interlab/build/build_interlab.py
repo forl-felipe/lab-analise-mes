@@ -586,7 +586,7 @@ class Construtor:
 
         # --- pellet feed ultra fino: composto diario do dia anterior (Buscar no MES; da para corrigir)
         r = 15
-        self.secao(ws, r, 1, 13, '④  PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO DIA ANTERIOR (MES · dá para corrigir)')
+        self.secao(ws, r, 1, 13, '④  PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO DIA ANTERIOR (vem junto no Buscar no MES · dá para corrigir)')
         ws.merge_range(r + 1, 1, r + 1, 2, 'DATA DO COMPOSTO', fl)
         self.entrada(ws, r + 2, 1, 2, '=IF(ISNUMBER(bData),bData-cfgPfDias,"")',
                      self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC', border=1, border_color=LINE2,
@@ -597,7 +597,7 @@ class Construtor:
                                                     align='center'))
             ws.write_blank(r + 2, c, None, self.fi(align='center', num_format=fmt_num(pf[4]), font_size=9.5))
             self.nome('bPf%s' % pf[0], ws, r + 2, c)
-        ws.merge_range(r + 2, 7, r + 2, 9, '', self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True))
+        ws.merge_range(r + 2, 7, r + 2, 13, '', self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True))
         self.nome('bPfMsg', ws, r + 2, 7)
         ws.set_row(r + 1, 14)
         ws.set_row(r + 2, 22)
@@ -756,7 +756,6 @@ class Construtor:
         self.botao(ws, 5, 10, 'Salvar no histórico', 'SalvarHistorico', 260, 34, 'g', x=12, y=10)
         self.botao(ws, 8, 10, 'Ver painel →', 'IrPainel', 126, 26, 'n', x=12, y=4)
         self.botao(ws, 8, 12, 'Limpar leituras', 'LimparLeituras', 126, 26, 'd', x=6, y=4)
-        self.botao(ws, 16, 10, 'Buscar só o PFUF', 'BuscarPFUF', 200, 26, 's', x=12, y=10)
         ws.print_area(0, 0, self.b_fim, 13)
         ws.fit_to_pages(1, 0)
         ws.set_paper(9)

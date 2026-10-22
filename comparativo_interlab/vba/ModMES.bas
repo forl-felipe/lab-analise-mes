@@ -37,6 +37,11 @@ Private mEtapa As String
 ' Mapas tentados quando o MES recusa o da aba Configuracoes (o que funcionar fica gravado la)
 ' Motivo da ultima falha da consulta do PFUF (para a mensagem)
 Private mErroPF As String
+' Dias em que o MES tem resultado do PFUF na ultima consulta ("19/10 (4), 20/10 (4)")
+Private mDiasPF As String
+' Dias consultados antes e depois do dia do composto (para mostrar onde o MES tem resultado)
+Private Const PF_DIAS_ANTES As Long = 2
+Private Const PF_DIAS_DEPOIS As Long = 2
 Private Const MAPAS_ALT As String = "IP_AnalogMap|IP_MESVALOR|IP_DiscreteMap"
 
 ' ---------------------------------------------------------------- botao
@@ -51,10 +56,9 @@ Public Sub BuscarMES()
     End If
     Recalcular
     If Not EData(Nm("gJanU").Value) Then
-        Aviso "Informe a chegada em Ubu (passo 2, fase UBU3 do evento no MES) ou o início no processo, na aba Batch.", _
-              vbExclamation, "MES"
-        On Error Resume Next
-        Nm("bIniU").Select
+        ' sem os horarios do batch: busca so o pellet feed ultra fino
+        BuscarSoPFUF "Leituras do batch: não buscadas - falta a chegada em Ubu (cole as Fases do Evento ou " & _
+                   "informe a chegada/início no processo na aba Batch)."
         Exit Sub
     End If
     n = 0
@@ -875,8 +879,12 @@ Public Sub RestaurarHorarios()
 End Sub
 
 ' ---------------------------------------------------------------- pellet feed ultra fino (composto diario)
-' Botao "Buscar so o PFUF" (aba Batch): so o composto diario, sem as leituras do batch
+' So o composto diario, sem as leituras do batch (Buscar no MES sem a chegada em Ubu)
 Public Sub BuscarPFUF()
+    BuscarSoPFUF ""
+End Sub
+
+Private Sub BuscarSoPFUF(ByVal antes As String)
     Dim msg As String
     If mOcupado Then
         Aviso "Consulta ao MES em andamento. Aguarde.", vbInformation, "MES"
@@ -891,7 +899,8 @@ Public Sub BuscarPFUF()
     Application.StatusBar = False
     Ampulheta False
     mOcupado = False
-    If msg <> "" Then Aviso msg, vbInformation, "MES - PFUF"
+    If antes <> "" Then msg = antes & vbCrLf & vbCrLf & msg
+    If msg <> "" Then Aviso msg, vbInformation, "MES"
     Exit Sub
 Falha:
     Application.StatusBar = False
@@ -905,7 +914,7 @@ End Sub
 Public Function AtualizarPFUF() As String
     Dim dia As Double, h As Double, ini As Date, fim As Date, res As Variant, k As Long, q As Long
     Dim simulado As Boolean, ok As Boolean, falta As String, tip As String, txtDia As String, t0 As Single
-    Dim seg As Long
+    Dim seg As Long, qIni As Date, nd As Long
 
     Recalcular
     If Not EData(Nm("bPfData").Value) Then
@@ -937,8 +946,15 @@ Public Function AtualizarPFUF() As String
             Exit Function
         End If
         mErroPF = ""
+        mDiasPF = ""
+        ' consulta alguns dias em volta: o resultado do dia fica com o composto; os outros so mostram
+        ' em que dias o MES tem resultado (ajuda a achar a data/hora em que o composto e gravado)
+        qIni = CDate(CDbl(ini) - PF_DIAS_ANTES)
+        nd = PF_DIAS_ANTES + 1 + PF_DIAS_DEPOIS
+        If CDbl(qIni) + nd > CDbl(Now) + 1 Then nd = Int(CDbl(Now) - CDbl(qIni)) + 1
+        If nd < PF_DIAS_ANTES + 1 Then nd = PF_DIAS_ANTES + 1
         t0 = Timer
-        ok = ConsultarPF(ini, fim, res)
+        ok = ConsultarPF(qIni, CDate(CDbl(qIni) + nd), ini, res)
         seg = Int(Timer - t0)
         If seg < 0 Then seg = seg + 86400
     End If
@@ -966,14 +982,26 @@ Public Function AtualizarPFUF() As String
     gAlterado = True
     AtualizarPFUF = "PFUF (composto de " & txtDia & "): " & q & " de " & NPF & " resultados" & _
                     IIf(falta <> "", " - sem resultado: " & falta, "") & IIf(simulado, "", " (" & seg & " s)") & "."
+    If Not simulado And q < NPF Then
+        If mDiasPF <> "" Then
+            AtualizarPFUF = AtualizarPFUF & vbCrLf & "Dias com resultado do PFUF no MES (" & _
+                Format$(qIni, "dd\/mm") & " a " & Format$(CDate(CDbl(qIni) + nd - 1), "dd\/mm") & "): " & mDiasPF & _
+                vbCrLf & "Se o composto de " & Format$(CDate(dia), "dd\/mm") & " aparece em outro dia, ajuste " & _
+                """Dias antes da data do report"" ou ""Início do dia do composto"" (aba Configurações)."
+        Else
+            AtualizarPFUF = AtualizarPFUF & vbCrLf & "O MES não tem nenhum resultado dessas tags de " & _
+                Format$(qIni, "dd\/mm") & " a " & Format$(CDate(CDbl(qIni) + nd - 1), "dd\/mm") & _
+                ": conferir tag, servidor e mapa (aba Configurações)."
+        End If
+    End If
 End Function
 
-' Uma consulta (intervalo cfgPfIntervalo, padrao 24h) do inicio ao fim do dia do composto.
-' res(1..NPF): 1o resultado valido de cada analise
-Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As Variant) As Boolean
+' Uma consulta (intervalo cfgPfIntervalo, padrao 24h) de ini a fim (alguns dias em volta do composto).
+' res(1..NPF): resultado da janela que comeca em alvo (inicio do dia do composto); mDiasPF: dias com resultado
+Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByVal alvo As Date, ByRef res As Variant) As Boolean
     Dim anc As Range, sai As Range, ps As String, rodada As Long, limite As Double, estado As Long, e2 As Long
     Dim restaurado As Boolean, lst As Variant, r As Long, i As Long, k As Long, v As Variant, x As Double
-    Dim tj As Date, resp As String, invalidas As String, corrigidas As String, d() As Variant
+    Dim tj As Date, resp As String, invalidas As String, corrigidas As String, d() As Variant, n As Long
 
     ReDim d(1 To NPF)
     res = d
@@ -1000,7 +1028,7 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
             Exit Function
         End If
         ' o resultado pode vir com a hora do inicio ou do fim do dia: aceita qualquer hora ate o fim
-        estado = Esperar(anc, sai, ini, limite, 1 + 1 / 1440)
+        estado = Esperar(anc, sai, ini, limite, PF_DIAS_ANTES + PF_DIAS_DEPOIS + 1 + 1 / 1440)
         If estado = 3 Then
             If ColetarInvalidas(anc, sai) = 0 Then Exit For
         ElseIf estado = 4 Then
@@ -1009,10 +1037,10 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
             Exit For
         ElseIf (estado = 0 Or estado = 2) And Not restaurado Then
             restaurado = True
-            RestaurarSaida anc, sai, 2, UBound(Split(ps, ",")) + 2
+            RestaurarSaida anc, sai, PF_DIAS_ANTES + PF_DIAS_DEPOIS + 2, UBound(Split(ps, ",")) + 2
             anc.Calculate
-            sai.Resize(2, UBound(Split(ps, ",")) + 2).Calculate
-            e2 = Esperar(anc, sai, ini, limite, 1 + 1 / 1440)
+            sai.Resize(PF_DIAS_ANTES + PF_DIAS_DEPOIS + 2, UBound(Split(ps, ",")) + 2).Calculate
+            e2 = Esperar(anc, sai, ini, limite, PF_DIAS_ANTES + PF_DIAS_DEPOIS + 1 + 1 / 1440)
             If e2 = 1 Or estado = 0 Then estado = e2
             Exit For
         Else
@@ -1032,7 +1060,8 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
     End If
     resp = Left$(Trim$(anc.Text) & "  |  1a célula: " & Trim$(sai.Cells(1, 1).Text) & "  " & _
                  Trim$(sai.Cells(1, 2).Text), 250)
-    Nm("mesRespP").Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & resp
+    Nm("mesRespP").Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & resp & "  |  período " & _
+        Format$(ini, "dd\/mm hh:mm") & " a " & Format$(fim, "dd\/mm hh:mm")
     If estado = 0 Or estado = 4 Or estado = 5 Then
         mErroPF = IIf(estado = 0, "o MES não respondeu", "erro do MES: " & Left$(Trim$(anc.Text), 160))
         DesligarConsulta anc, sai
@@ -1042,18 +1071,26 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As 
     If estado = 1 Then
         For r = 1 To NMAX + 2
             If Not ComoData(sai.Cells(r, 1).Value, tj, ini) Then Exit For
+            n = 0
             For i = LBound(lst) To UBound(lst)
                 k = CLng(lst(i))
-                If Not ENumero(d(k)) Then
-                    v = sai.Cells(r, 2 + i - LBound(lst)).Value
-                    If ComoNumero(v, x) Then
-                        If ValorValido(k, LAB_PF, x) Then d(k) = x
+                v = sai.Cells(r, 2 + i - LBound(lst)).Value
+                If ComoNumero(v, x) Then
+                    If ValorValido(k, LAB_PF, x) Then
+                        n = n + 1
+                        If Abs(CDbl(tj) - CDbl(alvo)) < 1 / 1440 Then d(k) = x
                     End If
                 End If
             Next i
+            If n > 0 Then
+                If mDiasPF <> "" Then mDiasPF = mDiasPF & ", "
+                mDiasPF = mDiasPF & Format$(tj, "dd\/mm") & IIf(Abs(CDbl(tj) - Int(CDbl(tj))) > 1 / 1440, _
+                          " " & Format$(tj, "hh:mm"), "") & " (" & n & ")"
+            End If
         Next r
     End If
     res = d
+    If mDiasPF <> "" Then Nm("mesRespP").Value = CStr(Nm("mesRespP").Value) & "  |  dias com resultado: " & mDiasPF
     DesligarConsulta anc, sai
     ConsultarPF = True
 End Function

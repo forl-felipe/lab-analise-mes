@@ -55,6 +55,10 @@ Public Sub TesteLO()
     id = 291
     Ok Not ENumero(Celula(1, pSE, 0)), "novo batch sem leituras"
     Ok Nm("bAcomp").HasFormula And Nm("bFrase").HasFormula, "novo batch com comentarios automaticos"
+    gUltimaMsg = ""
+    BuscarMES
+    Ok InStr(gUltimaMsg, "não buscadas") > 0 And InStr(gUltimaMsg, "4 de 4") > 0, _
+       "Buscar no MES sem chegada em Ubu: busca so o PFUF (" & gUltimaMsg & ")"
     Nm("bIniU").Value = DateSerial(2026, 10, 10) + TimeSerial(7, 30, 0)
     Nm("bFimU").Value = DateSerial(2026, 10, 11) + TimeSerial(8, 10, 0)
     Nm("bIniG").Value = DateSerial(2026, 10, 8) + TimeSerial(5, 30, 0)
