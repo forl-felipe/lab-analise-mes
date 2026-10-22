@@ -39,6 +39,10 @@ header h1 { font-size: 1.3rem; font-weight: 600; margin: 0; }
 header p { margin: 2px 0 0; opacity: .8; font-size: .85rem; }
 header .acoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 header select { font: inherit; font-weight: 600; padding: 7px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,.35); background: var(--samarco-azul-medio); color: #fff; }
+.periodo { display: flex; gap: 6px; align-items: center; }
+.nav { font: inherit; font-size: 1.15rem; line-height: 1; width: 34px; height: 34px; border-radius: 4px; border: 1px solid rgba(255,255,255,.35); background: transparent; color: #fff; cursor: pointer; }
+.nav:disabled { opacity: .35; cursor: default; }
+.nav:focus-visible { outline: 3px solid var(--samarco-amarelo); outline-offset: 2px; }
 .btn { font: inherit; font-weight: 600; font-size: .9rem; padding: 8px 14px; border-radius: 4px; border: 1px solid var(--samarco-amarelo); background: var(--samarco-amarelo); color: var(--samarco-azul-profundo); cursor: pointer; }
 .btn:hover { filter: brightness(1.06); }
 .btn:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--samarco-amarelo); outline-offset: 2px; }
@@ -94,6 +98,7 @@ h2 small { font-size: .78rem; font-weight: 400; color: var(--muted); }
 .dia .t .n { font-weight: 700; }
 .dia .f { font-size: .72rem; color: var(--muted); }
 .dia.ok { background: var(--ok-bg); border-color: #b9dcc6; } .dia.fora { background: var(--fora-bg); border-color: #f0d98a; } .dia.nao { background: var(--nao-bg); border-color: #efbcbc; }
+.dia.antes { background: transparent; border-style: dashed; color: var(--muted); }
 .dia.hoje { border: 2px solid var(--samarco-azul-claro); background: #fff; }
 .legenda { display: flex; gap: 14px; flex-wrap: wrap; font-size: .76rem; color: var(--muted); margin-top: 10px; }
 .legenda span { display: inline-flex; gap: 5px; align-items: center; }
@@ -108,13 +113,15 @@ h2 small { font-size: .78rem; font-weight: 400; color: var(--muted); }
 .op .c { font-weight: 700; text-align: right; color: var(--samarco-azul-titulo); }
 
 /* Evolução mensal */
-.evo { display: flex; align-items: flex-end; gap: 10px; height: 190px; padding-top: 20px; border-bottom: 1px solid var(--samarco-cinza-logo); }
+.evo { display: flex; align-items: flex-end; gap: 6px; height: 190px; padding-top: 20px; border-bottom: 1px solid var(--samarco-cinza-logo); }
 .evo .col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; cursor: pointer; }
 .evo .col .vl { font-size: .82rem; font-weight: 700; color: var(--samarco-azul-titulo); }
 .evo .col .b { width: 100%; max-width: 56px; background: var(--samarco-azul-acinzentado); border-radius: 3px 3px 0 0; min-height: 2px; }
 .evo .col.sel .b { background: var(--samarco-azul-samarco); }
+.evo .col.sem .vl { color: var(--samarco-cinza-logo); font-weight: 400; }
+.evo .col.sel.sem .vl { color: var(--samarco-azul-samarco); font-weight: 700; }
 .evo .col.sel .vl { color: var(--samarco-azul-samarco); }
-.evo-x { display: flex; gap: 10px; }
+.evo-x { display: flex; gap: 6px; }
 .evo-x span { flex: 1 1 0; min-width: 0; text-align: center; font-size: .75rem; color: var(--muted); padding-top: 4px; }
 .evo-x span small { display: block; font-size: .7rem; }
 .meta-linha { font-size: .76rem; color: var(--muted); margin-top: 8px; }
@@ -148,6 +155,8 @@ footer { text-align: center; font-size: .75rem; color: var(--muted); padding: 0 
 @media (max-width: 480px) {
   header .in, .faixa .in, main { padding-left: 16px; padding-right: 16px; }
   .dia .f { display: none; }
+  .evo .col .vl { font-size: .6rem; }
+  .evo-x span { font-size: .62rem; } .evo-x span small { display: none; }
 }
 @media print { header .acoes, details summary::after { display: none; } }
 </style>
@@ -173,7 +182,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <p>Ponta Ubu · Turno · U00-76</p>
     </div>
     <div class="acoes">
-      <select id="mes" aria-label="Mês"></select>
+      <div class="periodo">
+        <button type="button" class="nav" id="prev" aria-label="Mês anterior">‹</button>
+        <select id="ano" aria-label="Ano"></select>
+        <select id="mes" aria-label="Mês"></select>
+        <button type="button" class="nav" id="next" aria-label="Próximo mês">›</button>
+      </div>
       <button class="btn" id="btnImport" type="button">Importar planilha</button>
       <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
     </div>
@@ -216,10 +230,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       <div id="ops"></div>
     </section>
     <section class="card">
-      <h2>Evolução da aderência <small>clique para abrir o mês</small></h2>
+      <h2><span>Evolução da aderência <span id="evoAno"></span></span> <small>clique para abrir o mês</small></h2>
       <div class="evo" id="evo"></div>
       <div class="evo-x" id="evoX"></div>
-      <div class="meta-linha">Barra = % das limpezas vencidas que foram realizadas. Embaixo: realizadas / previstas.</div>
+      <div class="meta-linha">Barra = % das limpezas vencidas que foram realizadas. Embaixo: realizadas / previstas no mês (meses futuros: só as previstas).</div>
     </section>
   </div>
 
@@ -350,18 +364,16 @@ function mapaNomes(todos) {
 
 // ---------- cálculo da gestão ----------
 function calcular(regs, inicio, hoje) {
-  const ultimo = regs.reduce((m, r) => (r.data > m ? r.data : m), hoje);
-  const fimMes = (k) => { const [y, m] = k.split("-").map(Number); return toISO(new Date(Date.UTC(y, m, 0))); };
-  const proxMes = (k) => { const [y, m] = k.split("-").map(Number); return m === 12 ? (y + 1) + "-01" : y + "-" + String(m + 1).padStart(2, "0"); };
-  const fim = fimMes(proxMes(ym(ultimo)));
-
+  // rota de todos os anos da escala; dias antes do início da gestão aparecem mas não contam
+  const anos = Object.keys(ESCALA).map(Number);
+  const ini = Math.min(...anos) + "-01-01", fim = Math.max(...anos) + "-12-31";
   const slots = [];
-  for (let d = inicio; d <= fim; d = addDays(d, 1)) {
+  for (let d = ini; d <= fim; d = addDays(d, 1)) {
     const dow = fromISO(d).getUTCDay();
     if (!ROTA[dow]) continue;
-    slots.push({ data: d, dow, filtro: ROTA[dow], letra: letraTurno1(d), reg: null, nota: null });
+    slots.push({ data: d, dow, filtro: ROTA[dow], letra: letraTurno1(d), ativo: d >= inicio, reg: null, nota: null });
   }
-  const porData = new Map(slots.map((s) => [s.data, s]));
+  const porData = new Map(slots.filter((s) => s.ativo).map((s) => [s.data, s]));
 
   // registros válidos: tira duplicados e os que dizem que não foi feita
   const vistos = new Set();
@@ -397,7 +409,8 @@ function calcular(regs, inicio, hoje) {
   regs.filter((r) => r.tipo === "naoFeita").forEach((r) => { const s = porData.get(r.data); if (s && !s.reg) s.nota = r; });
 
   slots.forEach((s) => {
-    if (s.reg) s.status = s.reg.tipo === "noDia" ? "ok" : "fora";
+    if (!s.ativo) s.status = "antes";
+    else if (s.reg) s.status = s.reg.tipo === "noDia" ? "ok" : "fora";
     else if (s.data < hoje) s.status = "nao";
     else if (s.data === hoje) s.status = "hoje";
     else s.status = "prog";
@@ -406,6 +419,7 @@ function calcular(regs, inicio, hoje) {
 }
 
 function resumo(slots) {
+  slots = slots.filter((s) => s.ativo);
   const r = { prev: slots.length, ok: 0, fora: 0, nao: 0, abertas: 0 };
   slots.forEach((s) => { if (s.status === "ok") r.ok++; else if (s.status === "fora") r.fora++; else if (s.status === "nao") r.nao++; else r.abertas++; });
   r.feitas = r.ok + r.fora;
@@ -454,7 +468,7 @@ async function importar(file) {
 
 
 // ---------- tela ----------
-const stTxt = { ok: "Realizada", fora: "Em outro dia", nao: "Não realizada", hoje: "Hoje", prog: "Programada" };
+const stTxt = { antes: "Antes do início", ok: "Realizada", fora: "Em outro dia", nao: "Não realizada", hoje: "Hoje", prog: "Programada" };
 const COR = { ok: "var(--ok)", fora: "var(--samarco-amarelo)", nao: "var(--nao)" };
 const barra = (R) => {
   const w = (n) => (R.prev ? (n / R.prev) * 100 : 0).toFixed(1) + "%";
@@ -472,8 +486,12 @@ function render() {
   const nomeDe = mapaNomes(regs.flatMap((r) => separarNomes(r.nome)));
 
   const meses = [...new Set(slots.map((s) => ym(s.data)))];
-  if (!mesSel || !meses.includes(mesSel)) mesSel = meses.includes(ym(hoje)) ? ym(hoje) : meses[meses.length - 1];
-  $("mes").innerHTML = meses.map((k) => `<option value="${k}"${k === mesSel ? " selected" : ""}>${ymLabel(k)}</option>`).join("");
+  if (!mesSel || !meses.includes(mesSel)) mesSel = meses.includes(ym(hoje)) ? ym(hoje) : hoje < meses[0] ? meses[0] : meses[meses.length - 1];
+  const anoSel = mesSel.slice(0, 4);
+  $("ano").innerHTML = [...new Set(meses.map((k) => k.slice(0, 4)))].map((a) => `<option value="${a}"${a === anoSel ? " selected" : ""}>${a}</option>`).join("");
+  $("mes").innerHTML = MESES.map((n, i) => { const k = anoSel + "-" + String(i + 1).padStart(2, "0"); return `<option value="${k}"${k === mesSel ? " selected" : ""}>${n}</option>`; }).join("");
+  const iM = meses.indexOf(mesSel);
+  $("prev").disabled = iM <= 0; $("next").disabled = iM >= meses.length - 1;
   $("fonte").innerHTML = `Planilha: ${esc(base.arquivo)} · ${regs.length} registros` +
     (base.quando ? ` · importada em ${new Date(base.quando).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}` : "");
 
@@ -495,7 +513,7 @@ function render() {
 
   const kp = [
     ["Previstas no mês", R.prev, ""],
-    ["Realizadas", R.feitas, "ok", R.fora ? `${R.fora} em outro dia` : "todas no dia da rota"],
+    ["Realizadas", R.feitas, "ok", R.fora ? `${R.fora} em outro dia` : R.feitas ? "todas no dia da rota" : ""],
     ["Não realizadas", R.nao, "nao", R.vencidas ? `de ${R.vencidas} vencidas` : ""],
     ["A realizar", R.abertas, "prog", futuro ? "mês ainda não começou" : passado ? "" : "até o fim do mês"],
   ];
@@ -503,7 +521,9 @@ function render() {
 
   const nomeMes = MESES[+mesSel.slice(5, 7) - 1].toLowerCase();
   const piores = LETRAS.map((L) => ({ L, R: resumo(sm.filter((s) => s.letra === L)) })).filter((x) => x.R.nao > 0).sort((a, b) => b.R.nao - a.R.nao);
-  $("frase").innerHTML = futuro
+  $("frase").innerHTML = !R.prev
+    ? `Este mês é anterior ao início da gestão (${fmtFull(inicio)}). A rota aparece só como referência.`
+    : futuro
     ? `Em ${nomeMes} estão programadas <b>${R.prev} limpezas</b>.`
     : `Em ${nomeMes}, de <b>${R.prev}</b> limpezas previstas, <b>${R.feitas}</b> foram realizadas` +
       (R.nao ? ` e <b>${R.nao}</b> não foram feitas` : "") + (R.abertas && !passado ? `. Faltam ${R.abertas}.` : ".") +
@@ -514,7 +534,7 @@ function render() {
     const r = resumo(sm.filter((s) => s.letra === L));
     const falhas = sm.filter((s) => s.letra === L && s.status === "nao");
     return `<div class="letra"><span class="chip">${L}</span>${barra(r)}
-      <span class="pct num">${pct(r.ader)}</span><span class="qt num">${r.feitas} de ${r.vencidas} vencidas<br>${r.prev} previstas</span>
+      <span class="pct num">${pct(r.ader)}</span><span class="qt num">${r.vencidas ? `${r.feitas} de ${r.vencidas} vencidas<br>` : ""}${r.prev} previstas</span>
       ${falhas.length ? `<span class="falta">Não feitas: <b>${falhas.map((s) => `${fmt(s.data)} ${fp(s.filtro)}`).join(" · ")}</b></span>` : ""}</div>`;
   }).join("");
 
@@ -550,11 +570,12 @@ function render() {
       <div class="barra"><i style="width:${(o.c / max) * 100}%;background:var(--samarco-azul-medio)"></i></div></div><span class="c num">${o.c}</span></div>`).join("")
     : `<div class="vazio-msg">Nenhuma limpeza registrada neste mês.</div>`;
 
-  // evolução mensal (até o mês atual)
-  const ev = meses.filter((k) => k <= ym(hoje)).slice(-8).map((k) => ({ k, R: resumo(slots.filter((s) => ym(s.data) === k)) }));
-  $("evo").innerHTML = ev.map(({ k, R }) => `<div class="col${k === mesSel ? " sel" : ""}" data-m="${k}" title="${ymLabel(k)}: ${pct(R.ader)}">
+  // evolução mensal: os 12 meses do ano selecionado
+  $("evoAno").textContent = "· " + anoSel;
+  const ev = meses.filter((k) => k.startsWith(anoSel)).map((k) => ({ k, R: resumo(slots.filter((s) => ym(s.data) === k)) }));
+  $("evo").innerHTML = ev.map(({ k, R }) => `<div class="col${k === mesSel ? " sel" : ""}${R.ader == null ? " sem" : ""}" data-m="${k}" title="${ymLabel(k)}: ${R.ader == null ? (R.prev ? R.prev + " programadas" : "antes do início") : pct(R.ader)}">
       <span class="vl num">${pct(R.ader)}</span><div class="b" style="height:${((R.ader || 0) * 82).toFixed(1)}%"></div></div>`).join("");
-  $("evoX").innerHTML = ev.map(({ k, R }) => `<span>${MESES[+k.slice(5, 7) - 1].slice(0, 3)}/${k.slice(2, 4)}<small class="num">${R.feitas}/${R.prev}</small></span>`).join("");
+  $("evoX").innerHTML = ev.map(({ k, R }) => `<span>${MESES[+k.slice(5, 7) - 1].slice(0, 3)}<small class="num">${R.vencidas ? R.feitas + "/" + R.prev : R.prev ? R.prev + " prev." : "—"}</small></span>`).join("");
 
   // registros
   const lista = rm.slice().sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : 0));
@@ -578,6 +599,10 @@ const alvo = document.body, topo = $("topo");
 ["dragleave", "drop"].forEach((t) => alvo.addEventListener(t, (e) => { e.preventDefault(); if (t === "drop" || e.target === alvo) topo.classList.remove("over"); }));
 alvo.addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) importar(e.dataTransfer.files[0]); });
 $("mes").addEventListener("change", (e) => { mesSel = e.target.value; render(); });
+$("ano").addEventListener("change", (e) => { mesSel = e.target.value + mesSel.slice(4); render(); });
+const passo = (n) => { const [y, m] = mesSel.split("-").map(Number); const d = new Date(Date.UTC(y, m - 1 + n, 1)); mesSel = toISO(d).slice(0, 7); render(); };
+$("prev").addEventListener("click", () => passo(-1));
+$("next").addEventListener("click", () => passo(1));
 $("inicio").addEventListener("change", (e) => { inicioSel = e.target.value || null; salvarPref(); render(); });
 $("evo").addEventListener("click", (e) => { const c = e.target.closest("[data-m]"); if (c) { mesSel = c.dataset.m; render(); } });
 
