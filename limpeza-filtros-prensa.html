@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Limpeza dos Filtros Prensa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+body { margin: 0; }
+[hidden] { display: none !important; }
+
+/* Layout: painel operacional em coluna única — cabeçalho com importador, resumo do mês, calendário da rota, letras, operadores, histórico e registros. */
+:root {
+  --bg: #eef1f3;
+  --surface: #ffffff;
+  --sunken: #e4e8eb;
+  --line: #d3d9de;
+  --ink: #16212b;
+  --muted: #5b6874;
+  --accent: #0b6e8a;
+  --accent-ink: #ffffff;
+  --ok: #1d7a46;   --ok-bg: #e2f2e8;
+  --warn: #9a6200; --warn-bg: #fbf0d9;
+  --bad: #b42318;  --bad-bg: #fbe5e2;
+  --idle: #6b7680; --idle-bg: #edf0f2;
+  --la: #2b62c9; --lb: #7c47c2; --lc: #c03683; --ld: #0d7f7a;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11171c; --surface: #182128; --sunken: #0e1418; --line: #2a353e; --ink: #e3e9ee; --muted: #94a2ae;
+  --accent: #4fb3d1; --accent-ink: #0b1a20;
+  --ok: #5cc98a; --ok-bg: #173226; --warn: #e5b04d; --warn-bg: #352a12; --bad: #f08074; --bad-bg: #3a1b18; --idle: #8794a0; --idle-bg: #1f282f;
+  --la: #74a0f0; --lb: #b18ae8; --lc: #ec7cb8; --ld: #4cc3bc;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11171c; --surface: #182128; --sunken: #0e1418; --line: #2a353e; --ink: #e3e9ee; --muted: #94a2ae;
+  --accent: #4fb3d1; --accent-ink: #0b1a20;
+  --ok: #5cc98a; --ok-bg: #173226; --warn: #e5b04d; --warn-bg: #352a12; --bad: #f08074; --bad-bg: #3a1b18; --idle: #8794a0; --idle-bg: #1f282f;
+  --la: #74a0f0; --lb: #b18ae8; --lc: #ec7cb8; --ld: #4cc3bc;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.5; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 24px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); margin: 0; text-wrap: balance; letter-spacing: .01em; }
+h1 { font-size: 30px; font-weight: 700; line-height: 1.1; }
+h2 { font-size: 20px; font-weight: 600; }
+h3 { font-size: 15px; font-weight: 600; }
+.eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--f-mono); }
+
+/* Cabeçalho */
+header.top { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: flex-end; }
+header.top .t { display: grid; gap: 6px; min-width: 0; }
+.rota { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.rota span { font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.rota b { font-weight: 600; color: var(--accent); }
+.importer { display: grid; gap: 8px; justify-items: end; }
+.drop { border: 1.5px dashed var(--line); border-radius: 8px; padding: 12px 14px; background: var(--surface); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.drop.over { border-color: var(--accent); background: var(--sunken); }
+.btn { font: 600 13px var(--f-body); border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fonte { font-size: 12px; color: var(--muted); text-align: right; }
+.msg { font-size: 13px; padding: 8px 12px; border-radius: 6px; }
+.msg.err { background: var(--bad-bg); color: var(--bad); }
+.msg.ok { background: var(--ok-bg); color: var(--ok); }
+
+/* Barra de controle */
+.controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.controls label { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+select, input[type="date"] { font: 500 14px var(--f-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.monthnav { display: flex; gap: 6px; align-items: center; }
+.monthnav button { font: 600 16px var(--f-body); width: 34px; height: 34px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+
+/* Resumo */
+.headline { font-family: var(--f-display); font-size: 22px; font-weight: 500; line-height: 1.3; max-width: 60ch; }
+.headline strong { font-weight: 700; }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.kpi { background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; }
+.kpi .v { font-family: var(--f-display); font-size: 34px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kpi .l { font-size: 12px; color: var(--muted); }
+.kpi.ok .v { color: var(--ok); } .kpi.bad .v { color: var(--bad); } .kpi.acc .v { color: var(--accent); }
+.meter { height: 6px; border-radius: 3px; background: var(--sunken); overflow: hidden; display: flex; }
+.meter i { display: block; height: 100%; }
+
+section { display: grid; gap: 14px; }
+.sechead { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* Calendário */
+.calwrap { overflow-x: auto; }
+.cal { display: grid; grid-template-columns: repeat(5, minmax(108px, 1fr)); gap: 6px; min-width: 580px; }
+.cal .dh { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; color: var(--muted); padding: 0 4px; }
+.cal .dh b { color: var(--ink); font-weight: 600; }
+.cell { border-radius: 6px; padding: 8px 10px; min-height: 104px; display: grid; grid-template-rows: auto auto 1fr; gap: 4px; border: 1px solid transparent; background: var(--surface); }
+.cell.out { background: transparent; border: 1px dashed var(--line); }
+.cell .dtop { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); }
+.cell .dtop .n { font-weight: 600; color: var(--ink); font-size: 14px; }
+.cell .fp { font-family: var(--f-mono); font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.cell .who { font-size: 12px; line-height: 1.35; color: var(--muted); overflow-wrap: anywhere; }
+.cell.ok { background: var(--ok-bg); } .cell.fora { background: var(--warn-bg); } .cell.nao { background: var(--bad-bg); }
+.cell.prog { background: var(--surface); border-color: var(--line); } .cell.hoje { background: var(--surface); border: 2px solid var(--accent); }
+.st { font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+.ok .st, .st.ok { color: var(--ok); } .fora .st, .st.fora { color: var(--warn); } .nao .st, .st.nao { color: var(--bad); } .prog .st, .hoje .st, .st.prog { color: var(--idle); }
+.hoje .st { color: var(--accent); }
+
+.chip { font-family: var(--f-mono); font-weight: 600; font-size: 12px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 4px; display: inline-grid; place-items: center; color: #fff; }
+.chip.A { background: var(--la); } .chip.B { background: var(--lb); } .chip.C { background: var(--lc); } .chip.D { background: var(--ld); } .chip.X { background: var(--idle); }
+:root[data-theme="dark"] .chip { color: #0e1418; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip { color: #0e1418; } }
+
+/* Letras */
+.letters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.lcard { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 10px; }
+.lcard .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lcard .top .chip { height: 32px; min-width: 32px; font-size: 16px; }
+.lcard .pct { font-family: var(--f-display); font-size: 32px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.lcard .pct small { font-size: 13px; font-weight: 500; color: var(--muted); font-family: var(--f-body); }
+.lcard dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; font-size: 13px; }
+.lcard dt { color: var(--muted); } .lcard dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.lcard .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+.badge.ok { background: var(--ok-bg); color: var(--ok); } .badge.fora { background: var(--warn-bg); color: var(--warn); } .badge.nao { background: var(--bad-bg); color: var(--bad); } .badge.prog { background: var(--idle-bg); color: var(--idle); }
+.lcard .falhas { font-size: 12px; color: var(--muted); }
+
+/* Duas colunas */
+.split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.split > section { min-width: 0; }
+
+/* Operadores */
+.ops { display: grid; gap: 6px; }
+.op { display: grid; grid-template-columns: minmax(0, 1fr) 40px; gap: 4px 10px; align-items: center; }
+.op .nm { display: flex; gap: 8px; align-items: center; min-width: 0; font-size: 13px; }
+.op .nm span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.op .nm .chip { height: 18px; min-width: 18px; font-size: 10px; padding: 0 4px; }
+.op .c { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.op .bar { grid-column: 1 / -1; height: 5px; background: var(--sunken); border-radius: 3px; overflow: hidden; }
+.op .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+
+/* Filtros */
+.filters { display: grid; gap: 8px; }
+.frow { display: grid; grid-template-columns: 64px 44px minmax(0, 1fr) 54px; gap: 10px; align-items: center; font-size: 13px; }
+.frow .fp { font-family: var(--f-mono); font-weight: 600; }
+
+/* Tabelas */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--f-mono); font-weight: 600; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+tr:last-child td { border-bottom: 0; }
+tr.sel td { background: var(--sunken); }
+tr.clk { cursor: pointer; }
+td .obs { color: var(--muted); max-width: 46ch; }
+.flag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; margin: 1px 4px 1px 0; white-space: nowrap; }
+.empty { padding: 20px; text-align: center; color: var(--muted); }
+footer { font-size: 12px; color: var(--muted); display: grid; gap: 4px; max-width: 80ch; }
+
+@media (max-width: 900px) {
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .letters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .importer { justify-items: start; } .fonte { text-align: left; }
+}
+@media (max-width: 520px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .letters { grid-template-columns: minmax(0, 1fr); }
+  h1 { font-size: 25px; } .headline { font-size: 18px; }
+}
+@media (prefers-reduced-motion: no-preference) { .meter i, .op .bar i { transition: width .3s ease; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="t">
+      <span class="eyebrow">Ponta Ubu · Turno · Filtros prensa U00-76</span>
+      <h1>Gestão de limpeza dos filtros prensa</h1>
+      <div class="rota" aria-label="Rota semanal fixa">
+        <span>SEG <b>FP001</b></span><span>TER <b>FP002</b></span><span>QUA <b>FP005</b></span><span>QUI <b>FP003</b></span><span>SEX <b>FP004</b></span>
+      </div>
+    </div>
+    <div class="importer">
+      <div class="drop" id="drop">
+        <span class="muted" style="font-size:13px">Arraste a planilha de limpeza aqui ou</span>
+        <button class="btn" id="btnImport" type="button">Importar planilha</button>
+        <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
+      </div>
+      <div class="fonte" id="fonte"></div>
+      <div id="msg" hidden></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="monthnav">
+      <button type="button" id="prev" aria-label="Mês anterior">‹</button>
+      <select id="mes" aria-label="Mês"></select>
+      <button type="button" id="next" aria-label="Próximo mês">›</button>
+    </div>
+    <label for="inicio">Início da gestão <input type="date" id="inicio"></label>
+  </div>
+
+  <section>
+    <p class="headline" id="headline"></p>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <h2>Rota do mês</h2>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--ok)"></i>Realizada no dia</span>
+        <span><i class="dot" style="background:var(--warn)"></i>Realizada em outro dia</span>
+        <span><i class="dot" style="background:var(--bad)"></i>Não realizada</span>
+        <span><i class="dot" style="background:var(--idle)"></i>Programada</span>
+      </div>
+    </div>
+    <div class="calwrap"><div class="cal" id="cal"></div></div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <h2>Desempenho por letra</h2>
+      <span class="muted" style="font-size:12px">A responsável é a letra no turno 1 (07–19h) no dia da rota.</span>
+    </div>
+    <div class="letters" id="letters"></div>
+  </section>
+
+  <div class="split">
+    <section>
+      <div class="sechead"><h2>Limpezas por operador</h2><span class="muted num" id="opsTotal" style="font-size:12px"></span></div>
+      <div class="ops" id="ops"></div>
+    </section>
+    <section>
+      <div class="sechead"><h2>Por filtro</h2></div>
+      <div class="filters" id="filters"></div>
+    </section>
+  </div>
+
+  <section>
+    <div class="sechead"><h2>Histórico mensal</h2><span class="muted" style="font-size:12px">Clique num mês para abrir.</span></div>
+    <div class="tbl"><table id="hist"></table></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>Registros do mês</h2><span class="muted" style="font-size:12px" id="regInfo"></span></div>
+    <div class="tbl"><table id="regs"></table></div>
+  </section>
+
+  <footer>
+    <span>Como a conta é feita: cada dia útil tem um filtro fixo na rota. Um registro conta para o dia da rota quando o filtro e a data batem. Se o filtro foi limpo até 3 dias antes ou depois, conta como "realizada em outro dia". Registros repetidos (mesmo dia, filtro e letra) contam uma vez. Registros cuja observação diz que a limpeza não foi feita não contam. O que sobra entra como limpeza extra.</span>
+    <span>A escala de revezamento (2026–2030) já está dentro desta página. A planilha importada fica salva só neste navegador.</span>
+  </footer>
+</div>
+
+<script>
+const DADOS = {"escala":{"2026":{"1":{"A":"1122FFFF1122FFFF1122FFFF1122FFF","B":"22FFFF1122FFFF1122FFFF1122FFFF1","C":"FF1122FFFF1122FFFF1122FFFF1122F","D":"FFFF1122FFFF1122FFFF1122FFFF112"},"2":{"A":"F1122FFFF1122FFFF1122FFFF112","B":"122FFFF1122FFFF1122FFFF1122F","C":"FFF1122FFFF1122FFFF1122FFFF1","D":"2FFFF1122FFFF1122FFFF1122FFF"},"3":{"A":"2FFFF1122FFFF1122FFFF1122FFFF11","B":"FFF1122FFFF1122FFFF1122FFFF1122","C":"122FFFF1122FFFF1122FFFF1122FFFF","D":"F1122FFFF1122FFFF1122FFFF1122FF"},"4":{"A":"22FFFF1122FFFF1122FFFF1122FFFF","B":"FFFF1122FFFF1122FFFF1122FFFF11","C":"1122FFFF1122FFFF1122FFFF1122FF","D":"FF1122FFFF1122FFFF1122FFFF1122"},"5":{"A":"1122FFFF1122FFFF1122FFFF1122FFF","B":"22FFFF1122FFFF1122FFFF1122FFFF1","C":"FF1122FFFF1122FFFF1122FFFF1122F","D":"FFFF1122FFFF1122FFFF1122FFFF112"},"6":{"A":"F1122FFFF1122FFFF1122FFFF1122F","B":"122FFFF1122FFFF1122FFFF1122FFF","C":"FFF1122FFFF1122FFFF1122FFFF112","D":"2FFFF1122FFFF1122FFFF1122FFFF1"},"7":{"A":"FFF1122FFFF1122FFFF1122FFFF1122","B":"F1122FFFF1122FFFF1122FFFF1122FF","C":"2FFFF1122FFFF1122FFFF1122FFFF11","D":"122FFFF1122FFFF1122FFFF1122FFFF"},"8":{"A":"FFFF1122FFFF1122FFFF1122FFFF112","B":"FF1122FFFF1122FFFF1122FFFF1122F","C":"22FFFF1122FFFF1122FFFF1122FFFF1","D":"1122FFFF1122FFFF1122FFFF1122FFF"},"9":{"A":"2FFFF1122FFFF1122FFFF1122FFFF1","B":"FFF1122FFFF1122FFFF1122FFFF112","C":"122FFFF1122FFFF1122FFFF1122FFF","D":"F1122FFFF1122FFFF1122FFFF1122F"},"10":{"A":"122FFFF1122FFFF1122FFFF1122FFFF","B":"2FFFF1122FFFF1122FFFF1122FFFF11","C":"F1122FFFF1122FFFF1122FFFF1122FF","D":"FFF1122FFFF1122FFFF1122FFFF1122"},"11":{"A":"1122FFFF1122FFFF1122FFFF1122FF","B":"22FFFF1122FFFF1122FFFF1122FFFF","C":"FF1122FFFF1122FFFF1122FFFF1122","D":"FFFF1122FFFF1122FFFF1122FFFF11"},"12":{"A":"FF1122FFFF1122FFFF1122FFFF1122F","B":"1122FFFF1122FFFF1122FFFF1122FFF","C":"FFFF1122FFFF1122FFFF1122FFFF112","D":"22FFFF1122FFFF1122FFFF1122FFFF1"}},"2027":{"1":{"A":"FFF1122FFFF1122FFFF1122FFFF1122","B":"F1122FFFF1122FFFF1122FFFF1122FF","C":"2FFFF1122FFFF1122FFFF1122FFFF11","D":"122FFFF1122FFFF1122FFFF1122FFFF"},"2":{"A":"FFFF1122FFFF1122FFFF1122FFFF","B":"FF1122FFFF1122FFFF1122FFFF11","C":"22FFFF1122FFFF1122FFFF1122FF","D":"1122FFFF1122FFFF1122FFFF1122"},"3":{"A":"1122FFFF1122FFFF1122FFFF1122FFF","B":"22FFFF1122FFFF1122FFFF1122FFFF1","C":"FF1122FFFF1122FFFF1122FFFF1122F","D":"FFFF1122FFFF1122FFFF1122FFFF112"},"4":{"A":"F1122FFFF1122FFFF1122FFFF1122F","B":"122FFFF1122FFFF1122FFFF1122FFF","C":"FFF1122FFFF1122FFFF1122FFFF112","D":"2FFFF1122FFFF1122FFFF1122FFFF1"},"5":{"A":"FFF1122FFFF1122FFFF1122FFFF1122","B":"F1122FFFF1122FFFF1122FFFF1122FF","C":"2FFFF1122FFFF1122FFFF1122FFFF11","D":"122FFFF1122FFFF1122FFFF1122FFFF"},"6":{"A":"FFFF1122FFFF1122FFFF1122FFFF11","B":"FF1122FFFF1122FFFF1122FFFF1122","C":"22FFFF1122FFFF1122FFFF1122FFFF","D":"1122FFFF1122FFFF1122FFFF1122FF"},"7":{"A":"22FFFF1122FFFF1122FFFF1122FFFF1","B":"FFFF1122FFFF1122FFFF1122FFFF112","C":"1122FFFF1122FFFF1122FFFF1122FFF","D":"FF1122FFFF1122FFFF1122FFFF1122F"},"8":{"A":"122FFFF1122FFFF1122FFFF1122FFFF","B":"2FFFF1122FFFF1122FFFF1122FFFF11","C":"F1122FFFF1122FFFF1122FFFF1122FF","D":"FFF1122FFFF1122FFFF1122FFFF1122"},"9":{"A":"1122FFFF1122FFFF1122FFFF1122FF","B":"22FFFF1122FFFF1122FFFF1122FFFF","C":"FF1122FFFF1122FFFF1122FFFF1122","D":"FFFF1122FFFF1122FFFF1122FFFF11"},"10":{"A":"FF1122FFFF1122FFFF1122FFFF1122F","B":"1122FFFF1122FFFF1122FFFF1122FFF","C":"FFFF1122FFFF1122FFFF1122FFFF112","D":"22FFFF1122FFFF1122FFFF1122FFFF1"},"11":{"A":"FFF1122FFFF1122FFFF1122FFFF112","B":"F1122FFFF1122FFFF1122FFFF1122F","C":"2FFFF1122FFFF1122FFFF1122FFFF1","D":"122FFFF1122FFFF1122FFFF1122FFF"},"12":{"A":"2FFFF1122FFFF1122FFFF1122FFFF11","B":"FFF1122FFFF1122FFFF1122FFFF1122","C":"122FFFF1122FFFF1122FFFF1122FFFF","D":"F1122FFFF1122FFFF1122FFFF1122FF"}},"2028":{"1":{"A":"22FFFF1122FFFF1122FFFF1122FFFF1","B":"FFFF1122FFFF1122FFFF1122FFFF112","C":"1122FFFF1122FFFF1122FFFF1122FFF","D":"FF1122FFFF1122FFFF1122FFFF1122F"},"2":{"A":"122FFFF1122FFFF1122FFFF1122FF","B":"2FFFF1122FFFF1122FFFF1122FFFF","C":"F1122FFFF1122FFFF1122FFFF1122","D":"FFF1122FFFF1122FFFF1122FFFF11"},"3":{"A":"FF1122FFFF1122FFFF1122FFFF1122F","B":"1122FFFF1122FFFF1122FFFF1122FFF","C":"FFFF1122FFFF1122FFFF1122FFFF112","D":"22FFFF1122FFFF1122FFFF1122FFFF1"},"4":{"A":"FFF1122FFFF1122FFFF1122FFFF112","B":"F1122FFFF1122FFFF1122FFFF1122F","C":"2FFFF1122FFFF1122FFFF1122FFFF1","D":"122FFFF1122FFFF1122FFFF1122FFF"},"5":{"A":"2FFFF1122FFFF1122FFFF1122FFFF11","B":"FFF1122FFFF1122FFFF1122FFFF1122","C":"122FFFF1122FFFF1122FFFF1122FFFF","D":"F1122FFFF1122FFFF1122FFFF1122FF"},"6":{"A":"22FFFF1122FFFF1122FFFF1122FFFF","B":"FFFF1122FFFF1122FFFF1122FFFF11","C":"1122FFFF1122FFFF1122FFFF1122FF","D":"FF1122FFFF1122FFFF1122FFFF1122"},"7":{"A":"1122FFFF1122FFFF1122FFFF1122FFF","B":"22FFFF1122FFFF1122FFFF1122FFFF1","C":"FF1122FFFF1122FFFF1122FFFF1122F","D":"FFFF1122FFFF1122FFFF1122FFFF112"},"8":{"A":"F1122FFFF1122FFFF1122FFFF1122FF","B":"122FFFF1122FFFF1122FFFF1122FFFF","C":"FFF1122FFFF1122FFFF1122FFFF1122","D":"2FFFF1122FFFF1122FFFF1122FFFF11"},"9":{"A":"FF1122FFFF1122FFFF1122FFFF1122","B":"1122FFFF1122FFFF1122FFFF1122FF","C":"FFFF1122FFFF1122FFFF1122FFFF11","D":"22FFFF1122FFFF1122FFFF1122FFFF"},"10":{"A":"FFFF1122FFFF1122FFFF1122FFFF112","B":"FF1122FFFF1122FFFF1122FFFF1122F","C":"22FFFF1122FFFF1122FFFF1122FFFF1","D":"1122FFFF1122FFFF1122FFFF1122FFF"},"11":{"A":"2FFFF1122FFFF1122FFFF1122FFFF1","B":"FFF1122FFFF1122FFFF1122FFFF112","C":"122FFFF1122FFFF1122FFFF1122FFF","D":"F1122FFFF1122FFFF1122FFFF1122F"},"12":{"A":"122FFFF1122FFFF1122FFFF1122FFFF","B":"2FFFF1122FFFF1122FFFF1122FFFF11","C":"F1122FFFF1122FFFF1122FFFF1122FF","D":"FFF1122FFFF1122FFFF1122FFFF1122"}},"2029":{"1":{"A":"1122FFFF1122FFFF1122FFFF1122FFF","B":"22FFFF1122FFFF1122FFFF1122FFFF1","C":"FF1122FFFF1122FFFF1122FFFF1122F","D":"FFFF1122FFFF1122FFFF1122FFFF112"},"2":{"A":"F1122FFFF1122FFFF1122FFFF112","B":"122FFFF1122FFFF1122FFFF1122F","C":"FFF1122FFFF1122FFFF1122FFFF1","D":"2FFFF1122FFFF1122FFFF1122FFF"},"3":{"A":"2FFFF1122FFFF1122FFFF1122FFFF11","B":"FFF1122FFFF1122FFFF1122FFFF1122","C":"122FFFF1122FFFF1122FFFF1122FFFF","D":"F1122FFFF1122FFFF1122FFFF1122FF"},"4":{"A":"22FFFF1122FFFF1122FFFF1122FFFF","B":"FFFF1122FFFF1122FFFF1122FFFF11","C":"1122FFFF1122FFFF1122FFFF1122FF","D":"FF1122FFFF1122FFFF1122FFFF1122"},"5":{"A":"1122FFFF1122FFFF1122FFFF1122FFF","B":"22FFFF1122FFFF1122FFFF1122FFFF1","C":"FF1122FFFF1122FFFF1122FFFF1122F","D":"FFFF1122FFFF1122FFFF1122FFFF112"},"6":{"A":"F1122FFFF1122FFFF1122FFFF1122F","B":"122FFFF1122FFFF1122FFFF1122FFF","C":"FFF1122FFFF1122FFFF1122FFFF112","D":"2FFFF1122FFFF1122FFFF1122FFFF1"},"7":{"A":"FFF1122FFFF1122FFFF1122FFFF1122","B":"F1122FFFF1122FFFF1122FFFF1122FF","C":"2FFFF1122FFFF1122FFFF1122FFFF11","D":"122FFFF1122FFFF1122FFFF1122FFFF"},"8":{"A":"FFFF1122FFFF1122FFFF1122FFFF112","B":"FF1122FFFF1122FFFF1122FFFF1122F","C":"22FFFF1122FFFF1122FFFF1122FFFF1","D":"1122FFFF1122FFFF1122FFFF1122FFF"},"9":{"A":"2FFFF1122FFFF1122FFFF1122FFFF1","B":"FFF1122FFFF1122FFFF1122FFFF112","C":"122FFFF1122FFFF1122FFFF1122FFF","D":"F1122FFFF1122FFFF1122FFFF1122F"},"10":{"A":"122FFFF1122FFFF1122FFFF1122FFFF","B":"2FFFF1122FFFF1122FFFF1122FFFF11","C":"F1122FFFF1122FFFF1122FFFF1122FF","D":"FFF1122FFFF1122FFFF1122FFFF1122"},"11":{"A":"1122FFFF1122FFFF1122FFFF1122FF","B":"22FFFF1122FFFF1122FFFF1122FFFF","C":"FF1122FFFF1122FFFF1122FFFF1122","D":"FFFF1122FFFF1122FFFF1122FFFF11"},"12":{"A":"FF1122FFFF1122FFFF1122FFFF1122F","B":"1122FFFF1122FFFF1122FFFF1122FFF","C":"FFFF1122FFFF1122FFFF1122FFFF112","D":"22FFFF1122FFFF1122FFFF1122FFFF1"}},"2030":{"1":{"A":"FFF1122FFFF1122FFFF1122FFFF1122","B":"F1122FFFF1122FFFF1122FFFF1122FF","C":"2FFFF1122FFFF1122FFFF1122FFFF11","D":"122FFFF1122FFFF1122FFFF1122FFFF"},"2":{"A":"FFFF1122FFFF1122FFFF1122FFFF","B":"FF1122FFFF1122FFFF1122FFFF11","C":"22FFFF1122FFFF1122FFFF1122FF","D":"1122FFFF1122FFFF1122FFFF1122"},"3":{"A":"1122FFFF1122FFFF1122FFFF1122FFF","B":"22FFFF1122FFFF1122FFFF1122FFFF1","C":"FF1122FFFF1122FFFF1122FFFF1122F","D":"FFFF1122FFFF1122FFFF1122FFFF112"},"4":{"A":"F1122FFFF1122FFFF1122FFFF1122F","B":"122FFFF1122FFFF1122FFFF1122FFF","C":"FFF1122FFFF1122FFFF1122FFFF112","D":"2FFFF1122FFFF1122FFFF1122FFFF1"},"5":{"A":"FFF1122FFFF1122FFFF1122FFFF1122","B":"F1122FFFF1122FFFF1122FFFF1122FF","C":"2FFFF1122FFFF1122FFFF1122FFFF11","D":"122FFFF1122FFFF1122FFFF1122FFFF"},"6":{"A":"FFFF1122FFFF1122FFFF1122FFFF11","B":"FF1122FFFF1122FFFF1122FFFF1122","C":"22FFFF1122FFFF1122FFFF1122FFFF","D":"1122FFFF1122FFFF1122FFFF1122FF"},"7":{"A":"22FFFF1122FFFF1122FFFF1122FFFF1","B":"FFFF1122FFFF1122FFFF1122FFFF112","C":"1122FFFF1122FFFF1122FFFF1122FFF","D":"FF1122FFFF1122FFFF1122FFFF1122F"},"8":{"A":"122FFFF1122FFFF1122FFFF1122FFFF","B":"2FFFF1122FFFF1122FFFF1122FFFF11","C":"F1122FFFF1122FFFF1122FFFF1122FF","D":"FFF1122FFFF1122FFFF1122FFFF1122"},"9":{"A":"1122FFFF1122FFFF1122FFFF1122FF","B":"22FFFF1122FFFF1122FFFF1122FFFF","C":"FF1122FFFF1122FFFF1122FFFF1122","D":"FFFF1122FFFF1122FFFF1122FFFF11"},"10":{"A":"FF1122FFFF1122FFFF1122FFFF1122F","B":"1122FFFF1122FFFF1122FFFF1122FFF","C":"FFFF1122FFFF1122FFFF1122FFFF112","D":"22FFFF1122FFFF1122FFFF1122FFFF1"},"11":{"A":"FFF1122FFFF1122FFFF1122FFFF112","B":"F1122FFFF1122FFFF1122FFFF1122F","C":"2FFFF1122FFFF1122FFFF1122FFFF1","D":"122FFFF1122FFFF1122FFFF1122FFF"},"12":{"A":"2FFFF1122FFFF1122FFFF1122FFFF11","B":"FFF1122FFFF1122FFFF1122FFFF1122","C":"122FFFF1122FFFF1122FFFF1122FFFF","D":"F1122FFFF1122FFFF1122FFFF1122FF"}}},"linhas":[["ID","Hora de início","Hora de conclusão","Email","Nome","Hora da última modificação","Nome2","Data","Letra","Filtro que foi realizada a limpeza","Observações:"],[1,46223.70294,46223.704919,"anonymous",null,null,"Ryan e Raony",46223.0,"A","FP001","Realizado a limpeza em todos os setores do FP001, nas calhas do FP001, nos drenos, na bandeja e nas laterais do FP001."],[2,46224.758241,46224.75941,"anonymous",null,null,"Bruno Henrique Braga ",46224.0,"A","FP002","Realizado limpeza nos setores, estruturas, piso, orelhas, calhas e drenos."],[3,46225.760856,46225.76375,"anonymous",null,null,"Saulo Brandão da Silva ",46225.0,"C","FP005","Realizada a limpeza no Filtro Matec, parado as 15:20 retornou as 17:30"],[4,46226.758472,46226.800046,"anonymous",null,null,"Saulo Brandão Da Silva ",46226.0,"C","FP003","Filtro 3 parado as 16:25 para ser realizada a rota de limpeza, retorno do mesmo às 17:35"],[5,46227.738912,46227.74037,"anonymous",null,null,"Marcus Vinícius Semedo ",37667.0,"D","FP004","LIMPEZA REALIZADA NO U00-76FP004 CONFORME ROTA DE LIMPEZA REPASSADA. "],[6,46230.274653,46230.275845,"anonymous",null,null,"Marcos Douglas ",46229.0,"B","FP001","Feito 1 dia antes do programado, pois aproveitamos o filtro parado."],[7,46231.726169,46231.726644,"anonymous",null,null,"David ",46231.0,"A","FP002","Realizado limpeza no FP002 conforme a rota de limpeza a semanal."],[8,46232.745845,46232.746505,"anonymous",null,null,"Ryan, David e Raony.",46232.0,"A","FP005","Realizado limpeza no filtro matec conforme a programação."],[9,46233.753113,46233.753727,"anonymous",null,null,"Naubert Silva",46233.0,"C","FP003","Filtro 1 foi feita também."],[10,46234.752975,46234.754398,"anonymous",null,null,"Saulo Brandão ",46234.0,"C","FP004","Realizada rota de limpeza no filtro 4 parada as 16:14 retorno às 17:25"],[11,46235.866053,46235.866678,"anonymous",null,null,"Marcus, Luiz, Diana e Erick ",46235.0,"D","FP001","FOI FEITA A TROCA GERAL DOS TECIDOS DO FP1 E REALIZADA A MONTAGEM DO FILTRO. AO TODO FORAM TROCADOS 31 TECIDOS DO FILTRO. "],[12,46238.337569,46238.338218,"anonymous",null,null,"Marcos Douglas ",46237.0,"B","FP001","Limpeza para manutenção atuar "],[13,46239.758206,46239.759306,"anonymous",null,null,"Raony, Bruno, Ryan e David",46239.0,"A","FP005","Realizado rota de limpeza no filtro matec."],[14,46240.732928,46240.733437,"anonymous",null,null,"Ryan, Raony, David e Bruno.",46240.0,"A","FP003","Realizado limpeza no FP003 conforme a rota de limpeza."],[15,46240.737512,46240.738611,"anonymous",null,null,"Raony, Ryan, Bruno e David",46240.0,"A","FP003","Realizada rota de limpeza no FP003."],[16,46241.745289,46241.746319,"anonymous",null,null,"Vitor dantas",46241.0,"C","FP004","Também aproveitado a parada da planta 2 foi realizada a limpeza no filtro 3"],[17,46245.752465,46245.755463,"anonymous",null,null,"Marcos Douglas de Souza Santos ",46245.0,"B","FP003",null],[18,46245.837581,46245.841898,"anonymous",null,null,"Marcos Douglas de Souza Santos ",46237.0,"B","FP001","Foi feito a limpeza no FP 001 e o mesmo continua parado com falhas no sistema hidráulico"],[19,46245.988183,46245.990394,"anonymous",null,null,"Alef, Diana, Marcus Vinícius, Luis Henrique ",46244.0,"D","FP001","Foi realizado a limpeza no U0076FP001, pela equipe."],[20,46247.728125,46247.728576,"anonymous",null,null,"Ryan e Raony ",46247.0,"A","FP003","Realizado rota de limpeza no FP003."],[21,46251.692315,46251.694097,"anonymous",null,null,"Marcus Vinícius, Alef, Diana e Luiz Henrique ",46251.0,"D","FP002","REALIZADA A LIMPEZA NO U00-76FP002 NA SEGUNDA (17) DEVIDO AO U00-76FP001 ESTÁ INDISPONÍVEL PARA A LIMPEZA. "],[22,46253.749167,46253.749722,"anonymous",null,null,"Alex, Marcos Douglas , Kauan e Felipe Silva ",46253.0,"B","FP005","Feito limpeza "],[23,46255.734861,46255.735278,"anonymous",null,null,"Ryan e Raony ",46255.0,"A","FP004","Realizado rota de limpeza no FP004."],[24,46258.757454,46258.769815,"anonymous",null,null,"Saulo Brandão ",46258.0,"C","FP002","Realizada a rota de limpeza filtro 2"],[25,46264.243067,46264.244549,"anonymous",null,null,"Marcos Douglas de Souza Santos ",46261.0,"B","FP003","Feito a limpeza do filtro e canaletas do mesmo e lubrificação dos trilhos "],[26,46264.24331,46264.244792,"anonymous",null,null,"Marcos Douglas de Souza Santos ",46261.0,"B","FP003","Feito a limpeza do filtro e canaletas do mesmo e lubrificação dos trilhos "],[27,46264.246806,46264.247998,"anonymous",null,null,"Marcos Douglas de Souza Santos ",46262.0,"B","FP004","Feito a limpeza do filtro F4 e canaletas do mesmo e lubrificação dos trilhos "],[28,46266.752998,46266.753414,"anonymous",null,null,"Equipe Letra C",46266.0,"C","FP002",null],[29,46272.255764,46272.257882,"anonymous",null,null,"Marcos Douglas de Souza Santos ",46269.0,"B","FP004","Limpeza do filtro e canaletas do mesmo e lubrificação dos trilhos "],[30,46274.71706,46274.717627,"anonymous",null,null,"Saulo Brandão ",46274.0,"C","FP005","⁠Realizada a Rota de limpeza no Filtro matec Parado as 15:20 horas com retorno às 17:00 horas."],[31,46280.678056,46280.678437,"anonymous",null,null,"Raony, Ryan, David e Edgard",46280.0,"A","FP002","Realizado rota de limpeza no FP002."],[32,46282.62169,46282.691424,"anonymous",null,null,"Flavio Moraes Nogueira ",46282.0,"C","FP003","Realizado limpeza nas canaletas,nós tecidos,no painel, em todo FP003 ."],[33,46287.784005,46287.78463,"anonymous",null,null,"Raony, ryan, david e gabriel libard",46287.0,"A","FP002","Feita rota de limpeza no FP002"],[34,46289.739965,46289.740255,"anonymous",null,null,"Letra C",46289.0,"C","FP003","Limpeza geral."],[35,46290.754502,46290.756308,"anonymous",null,null,"Flavio Moraes Nogueira ",46290.0,"C","FP004","Início 15:15hrs   Término às  16:57hrs ."],[36,46296.036146,46296.037454,"anonymous",null,null,"Filipe Silva ",46295.0,"B","FP002","Limpeza do filtro e canaletas  mesmo."],[37,46296.036227,46296.037546,"anonymous",null,null,"Filipe Silva ",46295.0,"B","FP002","Limpeza do filtro e canaletas  mesmo."],[38,46297.741852,46297.742743,"anonymous",null,null,"Flavio Moraes Nogueira ",46297.0,"C","FP004","Início da rota de limpeza às 15:45hrs e término às 16:50hrs."],[39,46297.909225,46297.910012,"anonymous",null,null,"David ferreira de Oliveira ",46296.0,"A","FP003","Não foi feita a limpeza do filtro pois estávamos envolvidos em outra atividade de troca de tecido"],[40,46300.822431,46300.822928,"anonymous",null,null,"Marquinho, Luiz, Alef e Emerson ",46300.0,"D","FP001","Realizada limpeza no U00-76FP001 seguindo a rota de limpeza. "],[41,46302.536782,46302.537581,"anonymous",null,null,"Marcos Douglas de Souza Santos ",46301.0,"B","FP002","Limpeza do filtro 2 e canaletas do mesmo e lubrificação dos trilhos "],[42,46303.714271,46303.714676,"anonymous",null,null,"Ryan Souza ",46303.0,"A","FP003","Realizado rota de limpeza no FP003."],[43,46304.739097,46304.739664,"anonymous",null,null,"Raony Vasco Machado Amaral ",46304.0,"A","FP004","Feita rota de limpeza do FP004."],[44,46307.751655,46307.752234,"anonymous",null,null,"Marquinho, Alef, Luiz e Emerson ",46307.0,"D","FP001","REALIZADA LIMPEZA NO U00-76FP001 DE ACORDO COM A ROTA DE LIMPEZA "],[45,46311.80897,46311.809213,"anonymous",null,null,"Raony, Brener, Cassio e Simone",46311.0,"A","FP004","Feita rota de limpeza "],[46,46311.983981,46311.986458,"anonymous",null,null,"Marcos Douglas de Souza Santos ",46310.0,"B","FP005","Feito a limpeza do filtro matec e canaleta e gradil da correria do mesmo, limpeza do painel de comando "],[47,46314.735231,46314.735775,"anonymous",null,null,"Vitor dantas",46314.0,"C","FP001","Realizada rota de limpeza dos filtros prensa "],[48,46315.786782,46315.787396,"anonymous",null,null,"Marquinho, Alef, Emerson e Luiz ",46315.0,"D","FP002","Realizada limpeza no filtro 02 - Letra D - 20/10/36 "]]};
+const ESCALA = DADOS.escala;
+const INICIAL = { arquivo: "Limpeza_dos_Filtros_Prensa1-48.xlsx", linhas: DADOS.linhas };
+// getUTCDay(): 1=SEG ... 5=SEX → número do filtro. Sequência fixa da rota.
+const ROTA = { 1: 1, 2: 2, 3: 5, 4: 3, 5: 4 };
+const DIAS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const LETRAS = ["A", "B", "C", "D"];
+const JANELA = 3; // dias de tolerância para limpeza fora do dia
+const LS = "limpezaFP.v1";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sem = (s) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+const fp = (n) => "FP00" + n;
+
+// ---------- datas (sempre em UTC, como texto AAAA-MM-DD) ----------
+const toISO = (d) => d.toISOString().slice(0, 10);
+const fromISO = (s) => new Date(s + "T00:00:00Z");
+const addDays = (s, n) => toISO(new Date(fromISO(s).getTime() + n * 864e5));
+const diffDays = (a, b) => Math.round((fromISO(a) - fromISO(b)) / 864e5);
+const fmt = (s) => s ? s.slice(8, 10) + "/" + s.slice(5, 7) : "";
+const fmtFull = (s) => s ? fmt(s) + "/" + s.slice(0, 4) : "";
+const hojeISO = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const ym = (s) => s.slice(0, 7);
+const ymLabel = (k) => MESES[+k.slice(5, 7) - 1] + "/" + k.slice(0, 4);
+
+function parseData(v) {
+  if (v == null || v === "") return null;
+  if (typeof v === "number" && isFinite(v)) return toISO(new Date(Math.round((v - 25569) * 864e5)));
+  if (v instanceof Date && !isNaN(v)) return v.getFullYear() + "-" + String(v.getMonth() + 1).padStart(2, "0") + "-" + String(v.getDate()).padStart(2, "0");
+  const s = String(v).trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return m[1] + "-" + m[2].padStart(2, "0") + "-" + m[3].padStart(2, "0");
+  m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+  if (m) { const y = m[3].length === 2 ? "20" + m[3] : m[3]; return y + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0"); }
+  return null;
+}
+
+function letraTurno1(iso) {
+  const y = +iso.slice(0, 4), m = +iso.slice(5, 7), d = +iso.slice(8, 10);
+  const mes = ESCALA[y] && ESCALA[y][m];
+  if (!mes) return null;
+  for (const L of LETRAS) if (mes[L] && mes[L][d - 1] === "1") return L;
+  return null;
+}
+
+// ---------- leitura da planilha de limpeza ----------
+function lerLinhas(linhas) {
+  const hi = linhas.findIndex((r) => r && r.some((c) => sem(c) === "letra"));
+  if (hi < 0) throw new Error("Não achei a coluna \"Letra\". Confira se é a planilha exportada do formulário de limpeza dos filtros.");
+  const H = linhas[hi].map(sem);
+  const col = (fn) => H.findIndex(fn);
+  const cData = col((h) => h === "data");
+  const cLetra = col((h) => h === "letra");
+  const cFiltro = col((h) => h.includes("filtro"));
+  const cObs = col((h) => h.startsWith("observa"));
+  const cIni = col((h) => h.includes("inicio"));
+  const cId = col((h) => h === "id");
+  const nomes = H.map((h, i) => (h.startsWith("nome") && !h.includes("modifica") ? i : -1)).filter((i) => i >= 0);
+  if (cData < 0 || cFiltro < 0) throw new Error("Faltam as colunas \"Data\" ou \"Filtro que foi realizada a limpeza\".");
+  const regs = [];
+  linhas.slice(hi + 1).forEach((r, k) => {
+    if (!r || r.every((c) => c == null || c === "")) return;
+    const ini = cIni >= 0 ? parseData(r[cIni]) : null;
+    let data = parseData(r[cData]);
+    const flags = [];
+    if (!data || (ini && Math.abs(diffDays(data, ini)) > 45)) {
+      if (ini) { flags.push({ c: "warn", t: "Data corrigida" + (data ? " (estava " + fmtFull(data) + ")" : "") }); data = ini; }
+    }
+    if (!data) return;
+    const fTxt = sem(r[cFiltro]);
+    let filtro = fTxt.includes("matec") ? 5 : +((fTxt.match(/(\d+)/) || [])[1] || 0);
+    if (!(filtro >= 1 && filtro <= 5)) filtro = 0;
+    const lt = String(r[cLetra] ?? "").toUpperCase().match(/[ABCD]/);
+    let nome = "";
+    for (const i of nomes) { const v = String(r[i] ?? "").trim(); if (v && v.toLowerCase() !== "anonymous") nome = v; }
+    const obs = cObs >= 0 ? String(r[cObs] ?? "").trim() : "";
+    regs.push({
+      id: cId >= 0 && r[cId] != null ? r[cId] : k + 1,
+      data, filtro, letra: lt ? lt[0] : "", nome, obs, flags,
+      naoFeita: /n[aã]o\s+(foi\s+)?(feit|realiz)/i.test(obs),
+    });
+  });
+  return regs;
+}
+
+// ---------- nomes dos operadores ----------
+const MINUS = new Set(["de", "da", "do", "das", "dos", "e"]);
+const titulo = (s) => s.toLowerCase().split(/\s+/).map((w, i) => (i && MINUS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(" ");
+function separarNomes(txt) {
+  return String(txt || "").split(/,|;|\/|&|\s+e\s+/i).map((s) => s.replace(/[.\s]+$/, "").trim()).filter(Boolean)
+    .filter((s) => !/^(equipe|letra|turma)\b/i.test(s));
+}
+// junta "Saulo Brandão" com "Saulo Brandão da Silva", "Ryan" com "Ryan Souza"… quando só existe um nome completo possível
+function mapaNomes(todos) {
+  const keys = new Map();
+  todos.forEach((n) => { const k = sem(n).replace(/\s+/g, " "); if (!keys.has(k)) keys.set(k, n); });
+  const lista = [...keys.keys()];
+  const canon = new Map();
+  for (const k of lista) {
+    let atual = k;
+    for (;;) {
+      const maiores = lista.filter((o) => o !== atual && o.startsWith(atual + " "));
+      const topo = maiores.filter((o) => !maiores.some((p) => p !== o && p.startsWith(o + " ")));
+      if (topo.length !== 1) break;
+      atual = topo[0];
+    }
+    canon.set(k, titulo(keys.get(atual)));
+  }
+  return (n) => canon.get(sem(n).replace(/\s+/g, " ")) || titulo(n);
+}
+
+// ---------- cálculo da gestão ----------
+function calcular(regs, inicio, hoje) {
+  const ultimo = regs.reduce((m, r) => (r.data > m ? r.data : m), hoje);
+  const fimMes = (k) => { const [y, m] = k.split("-").map(Number); return toISO(new Date(Date.UTC(y, m, 0))); };
+  const proxMes = (k) => { const [y, m] = k.split("-").map(Number); return m === 12 ? (y + 1) + "-01" : y + "-" + String(m + 1).padStart(2, "0"); };
+  const fim = fimMes(proxMes(ym(ultimo)));
+
+  const slots = [];
+  for (let d = inicio; d <= fim; d = addDays(d, 1)) {
+    const dow = fromISO(d).getUTCDay();
+    if (!ROTA[dow]) continue;
+    slots.push({ data: d, dow, filtro: ROTA[dow], letra: letraTurno1(d), reg: null, nota: null });
+  }
+  const porData = new Map(slots.map((s) => [s.data, s]));
+
+  // registros válidos: tira duplicados e os que dizem que não foi feita
+  const vistos = new Set();
+  regs.forEach((r) => {
+    r.tipo = null; r.slot = null;
+    if (!r.filtro) { r.tipo = "invalido"; r.flags.push({ c: "nao", t: "Filtro não identificado" }); return; }
+    const esc1 = letraTurno1(r.data);
+    if (esc1 && r.letra && esc1 !== r.letra) r.flags.push({ c: "prog", t: "Escala: letra " + esc1 + " no turno 1" });
+    if (r.naoFeita) { r.tipo = "naoFeita"; return; }
+    const k = r.data + "|" + r.filtro + "|" + r.letra;
+    if (vistos.has(k)) { r.tipo = "duplicado"; return; }
+    vistos.add(k);
+  });
+  const validos = regs.filter((r) => !r.tipo).sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : 0));
+
+  // 1º: data e filtro exatos
+  validos.forEach((r) => {
+    const s = porData.get(r.data);
+    if (s && s.filtro === r.filtro && !s.reg) { s.reg = r; r.slot = s; r.tipo = "noDia"; }
+  });
+  // 2º: mesmo filtro até 3 dias antes ou depois, no dia da rota mais próximo ainda aberto
+  validos.forEach((r) => {
+    if (r.tipo) return;
+    let best = null;
+    for (let k = -JANELA; k <= JANELA; k++) {
+      const s = porData.get(addDays(r.data, k));
+      if (s && s.filtro === r.filtro && !s.reg && (!best || Math.abs(k) < Math.abs(best.k))) best = { s, k };
+    }
+    if (best) { best.s.reg = r; r.slot = best.s; r.tipo = "fora"; r.desvio = -best.k; }
+    else r.tipo = r.data < inicio ? "antes" : "extra";
+  });
+  // justificativa de "não foi feita" vai para o dia da rota correspondente
+  regs.filter((r) => r.tipo === "naoFeita").forEach((r) => { const s = porData.get(r.data); if (s && !s.reg) s.nota = r; });
+
+  slots.forEach((s) => {
+    if (s.reg) s.status = s.reg.tipo === "noDia" ? "ok" : "fora";
+    else if (s.data < hoje) s.status = "nao";
+    else if (s.data === hoje) s.status = "hoje";
+    else s.status = "prog";
+  });
+  return { slots, regs, fim };
+}
+
+function resumo(slots) {
+  const r = { prev: slots.length, ok: 0, fora: 0, nao: 0, abertas: 0 };
+  slots.forEach((s) => { if (s.status === "ok") r.ok++; else if (s.status === "fora") r.fora++; else if (s.status === "nao") r.nao++; else r.abertas++; });
+  r.feitas = r.ok + r.fora;
+  r.vencidas = r.feitas + r.nao;
+  r.ader = r.vencidas ? r.feitas / r.vencidas : null;
+  return r;
+}
+const pct = (x) => (x == null ? "—" : Math.round(x * 100) + "%");
+
+// ---------- estado ----------
+let base = null;       // { arquivo, quando, linhas }
+let mesSel = null;
+let inicioSel = null;
+
+function carregar() {
+  try { const s = JSON.parse(localStorage.getItem(LS) || "null"); if (s && s.linhas) base = s; } catch (e) {}
+  if (!base) base = { ...INICIAL, quando: null, exemplo: true };
+  try { const p = JSON.parse(localStorage.getItem(LS + ".pref") || "{}"); inicioSel = p.inicio || null; } catch (e) {}
+}
+function salvarPref() { try { localStorage.setItem(LS + ".pref", JSON.stringify({ inicio: inicioSel })); } catch (e) {} }
+
+function aviso(txt, tipo) {
+  const m = $("msg"); m.className = "msg " + tipo; m.textContent = txt; m.hidden = false;
+  clearTimeout(aviso.t); aviso.t = setTimeout(() => (m.hidden = true), 7000);
+}
+
+async function importar(file) {
+  if (!file) return;
+  try {
+    if (typeof XLSX === "undefined") throw new Error("O leitor de planilhas não carregou. Verifique a internet e recarregue a página.");
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array", cellDates: false });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const linhas = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+    const regs = lerLinhas(linhas);
+    if (!regs.length) throw new Error("A planilha não tem nenhum registro com data.");
+    base = { arquivo: file.name, quando: new Date().toISOString(), linhas };
+    try { localStorage.setItem(LS, JSON.stringify(base)); } catch (e) {}
+    mesSel = null;
+    render();
+    aviso(regs.length + " registros importados de " + file.name + ".", "ok");
+  } catch (e) {
+    aviso(e.message || String(e), "err");
+  }
+}
+
+// ---------- tela ----------
+function render() {
+  const hoje = hojeISO();
+  let regs;
+  try { regs = lerLinhas(base.linhas); } catch (e) { aviso(e.message, "err"); regs = []; }
+  const primeiro = regs.reduce((m, r) => (!m || r.data < m ? r.data : m), null) || hoje;
+  const segDe = (d) => addDays(d, -((fromISO(d).getUTCDay() + 6) % 7));
+  const inicio = inicioSel || segDe(primeiro);
+  $("inicio").value = inicio;
+
+  const { slots } = calcular(regs, inicio, hoje);
+  const nomeDe = mapaNomes(regs.flatMap((r) => separarNomes(r.nome)));
+
+  // meses disponíveis
+  const meses = [...new Set(slots.map((s) => ym(s.data)))];
+  if (!mesSel || !meses.includes(mesSel)) mesSel = meses.includes(ym(hoje)) ? ym(hoje) : meses[meses.length - 1];
+  $("mes").innerHTML = meses.map((k) => `<option value="${k}"${k === mesSel ? " selected" : ""}>${ymLabel(k)}</option>`).join("");
+  const iM = meses.indexOf(mesSel);
+  $("prev").disabled = iM <= 0; $("next").disabled = iM >= meses.length - 1;
+
+  $("fonte").innerHTML = `Dados: <b>${esc(base.arquivo)}</b> · ${regs.length} registros` +
+    (base.quando ? ` · importada em ${new Date(base.quando).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}` : " · carregada junto com a página");
+
+  const sm = slots.filter((s) => ym(s.data) === mesSel);
+  const rm = regs.filter((r) => ym(r.data) === mesSel);
+  const R = resumo(sm);
+  const extras = rm.filter((r) => r.tipo === "extra").length;
+  const passado = mesSel < ym(hoje), futuro = mesSel > ym(hoje);
+
+  // manchete
+  const nomeMes = MESES[+mesSel.slice(5, 7) - 1].toLowerCase();
+  $("headline").innerHTML = futuro
+    ? `Em ${nomeMes} estão programadas <strong>${R.prev} limpezas</strong>. Nenhuma venceu ainda.`
+    : `Em ${nomeMes} ${passado ? "estavam" : "estão"} previstas <strong>${R.prev} limpezas</strong>. ` +
+      `Foram realizadas <strong>${R.feitas}</strong>` + (R.nao ? ` e <strong>${R.nao}</strong> não foram feitas` : "") +
+      (R.abertas && !passado ? `. Faltam ${R.abertas} até o fim do mês.` : ".");
+
+  const kp = [
+    ["Previstas no mês", R.prev, ""],
+    ["Realizadas", R.feitas, "ok", R.fora ? `${R.ok} no dia · ${R.fora} em outro dia` : ""],
+    ["Não realizadas", R.nao, R.nao ? "bad" : ""],
+    ["Aderência à rota", pct(R.ader), "acc", R.vencidas ? `${R.feitas} de ${R.vencidas} vencidas` : "sem limpezas vencidas"],
+    [passado ? "Limpezas extras" : "A realizar", passado ? extras : R.abertas, "", passado ? "fora da rota" : (extras ? `+ ${extras} extra${extras > 1 ? "s" : ""} fora da rota` : "até o fim do mês")],
+  ];
+  $("kpis").innerHTML = kp.map(([l, v, c, sub]) => `<div class="kpi ${c}"><span class="l">${l}</span><span class="v">${v}</span>${sub ? `<span class="l">${sub}</span>` : ""}</div>`).join("");
+
+  renderCal(sm, nomeDe, hoje);
+  renderLetras(sm, rm);
+  renderOps(rm, nomeDe);
+  renderFiltros(sm);
+  renderHist(meses, slots, regs, hoje);
+  renderRegs(rm, nomeDe);
+}
+
+const stTxt = { ok: "Realizada", fora: "Outro dia", nao: "Não realizada", hoje: "Hoje", prog: "Programada" };
+
+function renderCal(sm, nomeDe, hoje) {
+  const [y, m] = mesSel.split("-").map(Number);
+  const first = mesSel + "-01";
+  const last = toISO(new Date(Date.UTC(y, m, 0)));
+  let d = addDays(first, -((fromISO(first).getUTCDay() + 6) % 7));
+  const porData = new Map(sm.map((s) => [s.data, s]));
+  let html = ["SEG", "TER", "QUA", "QUI", "SEX"].map((n, i) => `<div class="dh">${n} · <b>${fp(ROTA[i + 1])}</b></div>`).join("");
+  for (; d <= last; d = addDays(d, 7)) {
+    for (let i = 0; i < 5; i++) {
+      const dd = addDays(d, i);
+      const s = porData.get(dd);
+      if (!s) { html += `<div class="cell out" aria-hidden="true"></div>`; continue; }
+      let quem = "";
+      if (s.reg) {
+        const nomes = separarNomes(s.reg.nome).map((n) => nomeDe(n).split(" ")[0]);
+        quem = (nomes.length ? esc(nomes.join(", ")) : `<span>Letra ${esc(s.reg.letra)}</span>`);
+        if (s.status === "fora") quem = `Feita ${fmt(s.reg.data)} · ` + quem;
+        if (s.reg.letra && s.reg.letra !== s.letra) quem += ` <span class="chip ${s.reg.letra}" title="Feita pela letra ${s.reg.letra}" style="height:16px;min-width:16px;font-size:10px">${s.reg.letra}</span>`;
+      } else if (s.nota) quem = esc(s.nota.obs);
+      const tip = s.reg ? `${s.reg.nome} — ${s.reg.obs}` : s.nota ? s.nota.obs : "";
+      html += `<div class="cell ${s.status}" title="${esc(tip)}">
+        <div class="dtop"><span class="n num">${+dd.slice(8)}</span><span class="st">${stTxt[s.status]}</span></div>
+        <div class="fp">${fp(s.filtro)} <span class="chip ${s.letra || "X"}" title="Letra no turno 1">${s.letra || "?"}</span></div>
+        <div class="who">${quem}</div></div>`;
+    }
+  }
+  $("cal").innerHTML = html;
+}
+
+function renderLetras(sm, rm) {
+  $("letters").innerHTML = LETRAS.map((L) => {
+    const R = resumo(sm.filter((s) => s.letra === L));
+    const enviados = rm.filter((r) => r.letra === L && ["noDia", "fora", "extra"].includes(r.tipo)).length;
+    const falhas = sm.filter((s) => s.letra === L && s.status === "nao");
+    let badge;
+    if (!R.prev) badge = `<span class="badge prog">Sem limpeza no mês</span>`;
+    else if (!R.vencidas) badge = `<span class="badge prog">Ainda não venceu</span>`;
+    else if (R.nao === 0) badge = `<span class="badge ok">Em dia</span>`;
+    else if (R.ader >= 0.5) badge = `<span class="badge fora">${R.nao} pendente${R.nao > 1 ? "s" : ""}</span>`;
+    else badge = `<span class="badge nao">Não está limpando</span>`;
+    const w = (n) => (R.prev ? (n / R.prev) * 100 : 0).toFixed(1) + "%";
+    return `<div class="lcard">
+      <div class="top"><span class="chip ${L}">${L}</span>${badge}</div>
+      <div class="pct">${pct(R.ader)} <small>aderência</small></div>
+      <div class="meter" title="Realizadas, outro dia, não realizadas, a realizar">
+        <i style="width:${w(R.ok)};background:var(--ok)"></i><i style="width:${w(R.fora)};background:var(--warn)"></i><i style="width:${w(R.nao)};background:var(--bad)"></i></div>
+      <dl>
+        <dt>Previstas no mês</dt><dd>${R.prev}</dd>
+        <dt>Realizadas</dt><dd>${R.feitas}</dd>
+        <dt>Não realizadas</dt><dd>${R.nao}</dd>
+        <dt>A realizar</dt><dd>${R.abertas}</dd>
+        <dt>Registros enviados</dt><dd>${enviados}</dd>
+      </dl>
+      ${falhas.length ? `<div class="falhas">Faltou: ${falhas.map((s) => `${fmt(s.data)} ${fp(s.filtro)}`).join(" · ")}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+function renderOps(rm, nomeDe) {
+  const cont = new Map();
+  rm.filter((r) => ["noDia", "fora", "extra"].includes(r.tipo)).forEach((r) => {
+    const ns = separarNomes(r.nome);
+    if (!ns.length) ns.push("Sem nome (letra " + (r.letra || "?") + ")");
+    new Set(ns.map(nomeDe)).forEach((n) => {
+      const o = cont.get(n) || { n, c: 0, letras: new Set() };
+      o.c++; if (r.letra) o.letras.add(r.letra); cont.set(n, o);
+    });
+  });
+  const lista = [...cont.values()].sort((a, b) => b.c - a.c || a.n.localeCompare(b.n));
+  const max = lista.length ? lista[0].c : 1;
+  $("opsTotal").textContent = lista.length ? `${lista.length} operador${lista.length > 1 ? "es" : ""}` : "";
+  $("ops").innerHTML = lista.length ? lista.map((o) => `<div class="op">
+      <div class="nm">${[...o.letras].sort().map((L) => `<span class="chip ${L}">${L}</span>`).join("")}<span class="t" title="${esc(o.n)}">${esc(o.n)}</span></div>
+      <div class="c">${o.c}</div><div class="bar"><i style="width:${(o.c / max) * 100}%"></i></div></div>`).join("")
+    : `<div class="empty">Nenhuma limpeza registrada neste mês.</div>`;
+}
+
+function renderFiltros(sm) {
+  $("filters").innerHTML = [1, 2, 5, 3, 4].map((f) => {
+    const R = resumo(sm.filter((s) => s.filtro === f));
+    const w = (n) => (R.prev ? (n / R.prev) * 100 : 0).toFixed(1) + "%";
+    return `<div class="frow"><span class="fp">${fp(f)}</span><span class="muted">${DIAS[+Object.keys(ROTA).find((k) => ROTA[k] === f)]}</span>
+      <div class="meter" title="${R.feitas} de ${R.prev}"><i style="width:${w(R.ok)};background:var(--ok)"></i><i style="width:${w(R.fora)};background:var(--warn)"></i><i style="width:${w(R.nao)};background:var(--bad)"></i></div>
+      <span class="num" style="text-align:right">${R.feitas}/${R.prev}</span></div>`;
+  }).join("");
+}
+
+function renderHist(meses, slots, regs, hoje) {
+  let h = `<thead><tr><th>Mês</th><th class="r">Previstas</th><th class="r">Realizadas</th><th class="r">Não realizadas</th><th class="r">Extras</th><th class="r">Aderência</th>${LETRAS.map((L) => `<th class="r">Letra ${L}</th>`).join("")}</tr></thead><tbody>`;
+  meses.filter((k) => k <= ym(hoje) || k === mesSel).slice().reverse().forEach((k) => {
+    const sm = slots.filter((s) => ym(s.data) === k);
+    const R = resumo(sm);
+    const ex = regs.filter((r) => ym(r.data) === k && r.tipo === "extra").length;
+    const porL = LETRAS.map((L) => { const x = resumo(sm.filter((s) => s.letra === L)); return `<td class="r">${x.vencidas ? `${x.feitas}/${x.vencidas}` : "—"}</td>`; }).join("");
+    h += `<tr class="clk${k === mesSel ? " sel" : ""}" data-m="${k}"><td>${ymLabel(k)}</td><td class="r">${R.prev}</td><td class="r">${R.feitas}</td><td class="r">${R.nao}</td><td class="r">${ex}</td><td class="r"><b>${pct(R.ader)}</b></td>${porL}</tr>`;
+  });
+  $("hist").innerHTML = h + "</tbody>";
+}
+
+const tipoFlag = {
+  noDia: ["ok", "No dia da rota"], extra: ["prog", "Extra (fora da rota)"], antes: ["prog", "Antes do início da gestão"],
+  duplicado: ["prog", "Repetido, não conta"], naoFeita: ["nao", "Não realizada"], invalido: ["nao", "Inválido"],
+};
+function renderRegs(rm, nomeDe) {
+  const lista = rm.slice().sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : 0));
+  $("regInfo").textContent = lista.length ? `${lista.length} registro${lista.length > 1 ? "s" : ""} na planilha` : "";
+  if (!lista.length) { $("regs").innerHTML = `<tbody><tr><td class="empty">Nenhum registro neste mês.</td></tr></tbody>`; return; }
+  const cor = { ok: "badge ok", fora: "badge fora", nao: "badge nao", prog: "badge prog", warn: "badge fora" };
+  $("regs").innerHTML = `<thead><tr><th>Data</th><th>Dia</th><th>Filtro</th><th>Letra</th><th>Operadores</th><th>Situação</th><th>Observações</th></tr></thead><tbody>` +
+    lista.map((r) => {
+      let [c, t] = tipoFlag[r.tipo] || ["prog", ""];
+      if (r.tipo === "fora") { c = "fora"; t = `Conta para ${fmt(r.slot.data)} (${r.desvio > 0 ? r.desvio + "d atrasada" : -r.desvio + "d antecipada"})`; }
+      const flags = [{ c, t }, ...r.flags].map((f) => `<span class="flag ${cor[f.c]}">${esc(f.t)}</span>`).join("");
+      const ns = separarNomes(r.nome).map(nomeDe);
+      return `<tr><td class="num">${fmtFull(r.data)}</td><td>${DIAS[fromISO(r.data).getUTCDay()]}</td><td class="mono">${r.filtro ? fp(r.filtro) : "?"}</td>
+        <td>${r.letra ? `<span class="chip ${r.letra}">${r.letra}</span>` : "—"}</td><td>${esc(ns.join(", ") || r.nome || "—")}</td><td>${flags}</td><td><div class="obs">${esc(r.obs)}</div></td></tr>`;
+    }).join("") + "</tbody>";
+}
+
+// ---------- eventos ----------
+$("btnImport").addEventListener("click", () => $("file").click());
+$("file").addEventListener("change", (e) => { importar(e.target.files[0]); e.target.value = ""; });
+const drop = $("drop");
+["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => importar(e.dataTransfer.files[0]));
+$("mes").addEventListener("change", (e) => { mesSel = e.target.value; render(); });
+$("prev").addEventListener("click", () => { const o = $("mes"); if (o.selectedIndex > 0) { mesSel = o.options[o.selectedIndex - 1].value; render(); } });
+$("next").addEventListener("click", () => { const o = $("mes"); if (o.selectedIndex < o.options.length - 1) { mesSel = o.options[o.selectedIndex + 1].value; render(); } });
+$("inicio").addEventListener("change", (e) => { inicioSel = e.target.value || null; salvarPref(); render(); });
+$("hist").addEventListener("click", (e) => { const tr = e.target.closest("tr[data-m]"); if (tr) { mesSel = tr.dataset.m; render(); window.scrollTo({ top: 0, behavior: "smooth" }); } });
+
+carregar();
+render();
+</script>
+</body>
+</html>
