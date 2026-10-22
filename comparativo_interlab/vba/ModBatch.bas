@@ -401,6 +401,12 @@ Public Sub LimparBatch()
     Nm("bIncAcomp").Value = "Sim"
     RestaurarComentariosAuto True
     Nm("bFasesMsg").MergeArea.ClearContents
+    ' pellet feed ultra fino: composto do dia anterior a data do report (buscado no MES)
+    Nm("bPfData").Formula = "=IF(ISNUMBER(bData),bData-cfgPfDias,"""")"
+    For i = 1 To NPF
+        Nm("bPf" & Split(PF_CHAVES, "|")(i - 1)).ClearContents
+    Next i
+    Nm("bPfMsg").MergeArea.ClearContents
     Nm("bNHor").Formula = "=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))"
     For p = 1 To NP
         Nm("bTol_" & PChave(p)).Formula = "=padTol_" & PChave(p)

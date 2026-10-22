@@ -87,6 +87,18 @@ Public Sub TesteLO()
        Not NaEscala(pSi, 1, DateSerial(2026, 10, 10) + TimeSerial(21, 30, 0)), "escala 03:30 + 4 h: 23:30 sim, 21:30 nao"
     Ok CLng(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_NP).Value) = 7, "7 pares S.E. no grafico"
     Ok CStr(shGraf.Cells(2 + 7, (pSE - 1) * G_BLOCO + 1).Value) = "Média", "rotulo Media apos os pares"
+    ' pellet feed ultra fino: composto do dia anterior a data do report
+    Ok Abs(CDbl(V("bPfData")) - (CDbl(V("bData")) - 1)) < 0.0001, "PFUF: data do composto = report - 1"
+    Ok ENumero(V("bPfFe")) And ENumero(V("bPfSiO2")) And ENumero(V("bPfP")) And ENumero(V("bPfSE")), _
+       "PFUF: Fe, SiO2, P e S.E. simulados"
+    Ok InStr(gUltimaMsg, "PFUF (composto de") > 0, "PFUF na mensagem do Buscar no MES"
+    Ok InStr(CStr(V("eResumo")), "PFUF (composto diário") > 0, "PFUF no resumo: " & V("eResumo")
+    Ok InStr(CStr(shPainel.Cells(Nm("pSt_SE").Row - 1, 13).Value), "COMPOSTO DIÁRIO — PFUF · ") = 1, _
+       "PFUF: titulo do quadro no painel (" & shPainel.Cells(Nm("pSt_SE").Row - 1, 13).Value & ")"
+    gUltimaMsg = ""
+    BuscarPFUF
+    Ok InStr(gUltimaMsg, "4 de 4") > 0, "Buscar so o PFUF: " & gUltimaMsg
+    Nm("bPfFe").Value = 66.12
     Nm("bAcomp").Value = "Acompanhamento editado"
     salvo1 = Celula(3, pSi, 0)
     salvo2 = Celula(5, pSE, 1)
@@ -96,6 +108,7 @@ Public Sub TesteLO()
     Ok r > 0, "291 salvo no historico (linha " & r & ")"
     Ok Vazio(V("bId")) And Not ENumero(Celula(1, pSE, 0)), "salvar deixa a aba Batch em branco para o proximo"
     Ok Nm("bTol_SE").HasFormula And CDbl(V("bTol_SE")) = 150, "tolerancia volta ao padrao depois de salvar"
+    Ok Not ENumero(V("bPfFe")) And Nm("bPfData").HasFormula, "PFUF em branco no proximo batch"
     Ok CDbl(shHist.Cells(r, H_COL1 + 15).Value) = 999, "tolerancia do batch gravada no historico"
     nL = 0
     For i = 2 To 2000
@@ -115,6 +128,7 @@ Public Sub TesteLO()
     Ok Celula(3, pSi, 0) = salvo1 And Celula(5, pSE, 1) = salvo2, "reabrir 291 com os mesmos valores"
     Ok Abs(CDbl(V("bDef")) - 51) < 0.01, "reabrir 291 com a defasagem"
     Ok CStr(V("bAcomp")) = "Acompanhamento editado", "comentario editado reaberto"
+    Ok Abs(CDbl(V("bPfFe")) - 66.12) < 0.0001, "PFUF reaberto do historico (" & V("bPfFe") & ")"
     ' selecao pelo painel
     Nm("pSel").Value = 284
     SelecionarBatch
@@ -208,7 +222,8 @@ Public Sub TesteLO()
     Ok InStr(gUltimaMsg, "não reconheceu a função do MES") > 0 And _
        (Len(gUltimaMsg) - Len(Replace(gUltimaMsg, "não reconheceu a função", ""))) = Len("não reconheceu a função"), _
        "sem Aspen: aviso #NOME? uma vez"
-    Ok Not shDadosMES.Range("A40").HasFormula And Not shDadosMES.Range("A10").HasFormula, "consulta desligada depois da falha"
+    Ok Not shDadosMES.Range("A40").HasFormula And Not shDadosMES.Range("A10").HasFormula And _
+       Not shDadosMES.Range("A70").HasFormula, "consulta desligada depois da falha"
     Nm("cfgFonte").Value = "SIMULAÇÃO"
 
     Ok Limpo("M4250010000-0004-ABLQ" & vbTab) = "M4250010000-0004-ABLQ", "tag com tabulacao no fim e limpa"

@@ -7,12 +7,12 @@ Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTM
 
 | Aba | Para quê |
 |---|---|
-| **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários** e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo. |
-| **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); **comentários do report** (parâmetros fora e acompanhamento automáticos e editáveis + 6 tópicos); a grade de **leituras por horário**; no fim, ajustes opcionais. As diferenças por horário ficam só no Painel. Linhas e colunas sem uso ficam ocultas (também no Painel). Botões: Buscar no MES, Salvar no histórico, Ver painel, Limpar leituras. **Salvar no histórico** já deixa a aba em branco para o próximo batch (tolerâncias, títulos e comentários voltam aos padrões de Configurações). Abre com um batch em branco. |
-| **Enviar** | Resumo curto para o corpo do e-mail (batch, parâmetros fora da tolerância e os comentários) e o assunto. Botões: Copiar resumo e Copiar painel (imagem). |
+| **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **pellet feed ultra fino** (composto diário do dia anterior: Fe, SiO₂, P, S.E.) e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo. |
+| **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); ④ **pellet feed ultra fino** (data do composto e os 4 resultados, buscados no MES e editáveis; botão Buscar só o PFUF); **comentários do report** (parâmetros fora e acompanhamento automáticos e editáveis + 6 tópicos); a grade de **leituras por horário**; no fim, ajustes opcionais. As diferenças por horário ficam só no Painel. Linhas e colunas sem uso ficam ocultas (também no Painel). Botões: Buscar no MES, Salvar no histórico, Ver painel, Limpar leituras. **Salvar no histórico** já deixa a aba em branco para o próximo batch (tolerâncias, títulos e comentários voltam aos padrões de Configurações). Abre com um batch em branco. |
+| **Enviar** | Resumo curto para o corpo do e-mail (batch, parâmetros fora da tolerância, PFUF e os comentários) e o assunto. Botões: Copiar resumo e Copiar painel (imagem). |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. |
 | **BD_Leituras** | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
-| **Configurações** | Tags do MES, consulta, atraso por nível dos tanques, padrões de batch novo e títulos dos gráficos. |
+| **Configurações** | Tags do MES (batch e PFUF), consulta, atraso por nível dos tanques, padrões de batch novo e títulos dos gráficos. |
 
 Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cálculos do farol).
 
@@ -52,6 +52,18 @@ Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cá
   `M4650060010-0016-HHLFU` (<325#), `M650030010-0004/-0008/-0013-HHLQU` (SiO₂, P, PPC).
   Tags do Mineroduto 2 (para a futura ponderação por volume): `M250010000-17-ABLQ`, `-16-ABLF`, `-4-ABLQ`,
   `-8-ABLQ`, `-13-ABLQ`. Tabulações e quebras de linha coladas junto com a tag são removidas.
+
+## Pellet feed ultra fino (elutriação) — composto diário
+
+- **Composto do dia anterior** à data do report (ex.: report de 22/10 → composto de 21/10). A data fica no Batch
+  (`data do report − 1`, configurável em *Dias antes da data do report*) e pode ser trocada à mão.
+- O **Buscar no MES** também traz o PFUF; o botão **Buscar só o PFUF** consulta só ele. Uma consulta
+  `GetCalculationValues` do início do dia (00:00, configurável) até o mesmo horário do dia seguinte, intervalo `24h`
+  (configurável); vale o 1º resultado válido de cada análise. Os que o MES não devolver ficam como estão.
+- Tags (servidor UBU, aba Configurações): `M0650024000-0003-DDLQU` (Fe — no MES "PF Elutriação - FeO"),
+  `M0650024000-0004-DDLQU` (SiO₂), `M0650024000-0008-DDLQU` (P), `M0650024000-0017-DDLFU` (S.E.).
+  O rótulo mostrado no painel também é editável lá. Mesmo tratamento de tag recusada/variante de código do batch.
+- Os 4 valores e a data do composto vão para o histórico (colunas *PFUF ...*).
 
 ## Histórico
 

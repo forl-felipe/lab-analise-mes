@@ -20,6 +20,10 @@ Private Const ANC_G As String = "A10"
 Private Const OUT_G As String = "A12"
 Private Const ANC_U As String = "A40"
 Private Const OUT_U As String = "A42"
+' Pellet feed ultra fino (composto diario): "laboratorio" 2
+Private Const ANC_P As String = "A70"
+Private Const OUT_P As String = "A72"
+Private Const LAB_PF As Long = 2
 
 Private mOcupado As Boolean
 ' Funcao do Aspen nao reconhecida nesta busca (#NOME?): nao repete o aviso para o 2o laboratorio
@@ -31,7 +35,7 @@ Private mInvalidas As String
 Public Sub BuscarMES()
     Dim n As Long, nG As Long, iniU As Date, iniG As Date
     Dim resG As Variant, resU As Variant, simulado As Boolean, okG As Boolean, okU As Boolean
-    Dim qG As Long, qU As Long, msg As String, semTag As String
+    Dim qG As Long, qU As Long, msg As String, semTag As String, pf As String
 
     If mOcupado Then
         Aviso "Consulta ao MES em andamento. Aguarde.", vbInformation, "MES"
@@ -93,6 +97,9 @@ Public Sub BuscarMES()
 
     qG = GravarResultados(0, resG, nG, okG, iniG)
     qU = GravarResultados(1, resU, n, okU, iniU)
+    Application.StatusBar = "Consultando MES - pellet feed ultra fino..."
+    pf = AtualizarPFUF()
+    Application.StatusBar = False
     Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & IIf(simulado, " (SIMULAÇÃO)", "")
     AjustarGraficos
     msg = "Resultados gravados no batch " & CfgTxt("bId") & ":" & vbCrLf & vbCrLf & _
@@ -109,6 +116,7 @@ Public Sub BuscarMES()
     If semTag <> "" And semTag <> "TODAS" Then
         msg = msg & vbCrLf & vbCrLf & "Sem tag (lançamento manual): " & semTag
     End If
+    If pf <> "" Then msg = msg & vbCrLf & vbCrLf & pf
     If simulado Then msg = msg & vbCrLf & vbCrLf & "Fonte: SIMULAÇÃO (dados fictícios)."
     Aviso msg, vbInformation, "MES"
 Fim:
@@ -126,8 +134,30 @@ End Sub
 ' ---------------------------------------------------------------- tags (aba Configuracoes)
 Public Function TagCfg(ByVal p As Long, ByVal lab As Long, ByVal campo As Long) As String
     Dim v As Variant
-    v = shConfig.Cells(C_ROW_TAG0 + 2 * (p - 1) + lab, campo).Value
+    v = shConfig.Cells(LinhaCfg(p, lab), campo).Value
     If IsError(v) Then TagCfg = "" Else TagCfg = Limpo(CStr(v))
+End Function
+
+' Linha da tag na aba Configuracoes: lab 0/1 = tabela Germano/Ubu; lab 2 = pellet feed ultra fino
+Private Function LinhaCfg(ByVal p As Long, ByVal lab As Long) As Long
+    If lab = LAB_PF Then
+        LinhaCfg = C_ROW_PF0 + p - 1
+    Else
+        LinhaCfg = C_ROW_TAG0 + 2 * (p - 1) + lab
+    End If
+End Function
+
+Private Function NItens(ByVal lab As Long) As Long
+    If lab = LAB_PF Then NItens = NPF Else NItens = NP
+End Function
+
+Private Function RotuloItem(ByVal p As Long, ByVal lab As Long) As String
+    If lab = LAB_PF Then
+        RotuloItem = TagCfg(p, lab, C_COL_LAB)
+        If RotuloItem = "" Then RotuloItem = Split(PF_CHAVES, "|")(p - 1)
+    Else
+        RotuloItem = PRotulo(p)
+    End If
 End Function
 
 ' Sem tabulacao, quebra de linha e espaco duro (vem junto quando a tag e copiada de outro programa)
@@ -193,7 +223,7 @@ End Function
 
 Private Function ParamsLab(ByVal lab As Long) As String
     Dim p As Long, t As String, r As String
-    For p = 1 To NP
+    For p = 1 To NItens(lab)
         t = TagAtual(p, lab)
         If t <> "" And Not TagInvalida(t) Then
             If r <> "" Then r = r & ","
@@ -325,8 +355,10 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
 End Function
 
 ' 0 = sem resposta, 1 = resultados prontos, 2 = respondeu sem dados, 3 = tag recusada
-Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Date, ByVal limite As Double) As Long
+Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Date, ByVal limite As Double, _
+                         Optional ByVal tol As Double = -1) As Long
     Dim t0 As Single, tEst As Single, assin As String, ant As String, v As Variant, pronto As Boolean, tj As Date
+    If tol < 0 Then tol = HORAS_SLOT / 24 + 1 / 1440
     t0 = Timer
     tEst = Timer
     Do
@@ -339,7 +371,7 @@ Private Function Esperar(ByVal anc As Range, ByVal sai As Range, ByVal ini As Da
         End If
         v = sai.Cells(1, 1).Value
         pronto = False
-        If ComoData(v, tj, ini) Then pronto = (Abs(CDbl(tj) - CDbl(ini)) <= HORAS_SLOT / 24 + 1 / 1440)
+        If ComoData(v, tj, ini) Then pronto = (Abs(CDbl(tj) - CDbl(ini)) <= tol)
         assin = Assinatura(anc, sai)
         If assin <> ant Then
             ant = assin
@@ -435,13 +467,13 @@ End Function
 ' Grava na aba Configuracoes as variantes de tag que funcionaram; devolve a lista
 Private Function CorrigirTags(ByVal lab As Long) As String
     Dim p As Long, t As String, r As String
-    For p = 1 To NP
+    For p = 1 To NItens(lab)
         t = TagAtual(p, lab)
         If t <> "" And t <> TagCfg(p, lab, C_COL_TAG) And Not TagInvalida(t) Then
-            r = r & "  - " & PRotulo(p) & ": " & TagCfg(p, lab, C_COL_TAG) & "  ->  " & t & vbCrLf
+            r = r & "  - " & RotuloItem(p, lab) & ": " & TagCfg(p, lab, C_COL_TAG) & "  ->  " & t & vbCrLf
             On Error Resume Next
             shConfig.Unprotect
-            shConfig.Cells(C_ROW_TAG0 + 2 * (p - 1) + lab, C_COL_TAG).Value = t
+            shConfig.Cells(LinhaCfg(p, lab), C_COL_TAG).Value = t
             Proteger shConfig
             On Error GoTo 0
         End If
@@ -451,10 +483,10 @@ End Function
 
 Private Function ListaInvalidas(ByVal lab As Long) As String
     Dim p As Long, t As String, r As String
-    For p = 1 To NP
+    For p = 1 To NItens(lab)
         t = TagAtual(p, lab)
         If TagInvalida(t) Then
-            r = r & "  - " & PRotulo(p) & ": " & TagCfg(p, lab, C_COL_TAG)
+            r = r & "  - " & RotuloItem(p, lab) & ": " & TagCfg(p, lab, C_COL_TAG)
             If t <> TagCfg(p, lab, C_COL_TAG) Then r = r & "  (e " & t & ")"
             r = r & vbCrLf
         End If
@@ -491,7 +523,7 @@ End Function
 
 Public Function ArgumentosLab(ByVal lab As Long, ByVal ps As String, ByVal anc As Range, ByVal sai As Range) As String
     Dim lst As Variant, i As Long, p As Long, tags As String, servs As String, mapas As String
-    Dim s As String, m As String, ci As String, cf As String, calc As String
+    Dim s As String, m As String, ci As String, cf As String, calc As String, intervalo As String
     lst = Split(ps, ",")
     For i = LBound(lst) To UBound(lst)
         p = CLng(lst(i))
@@ -508,17 +540,23 @@ Public Function ArgumentosLab(ByVal lab As Long, ByVal ps As String, ByVal anc A
         servs = servs & s
         mapas = mapas & m
     Next i
+    intervalo = "2h"
     If lab = 0 Then
         ci = "Dados_MES!$B$3"
         cf = "Dados_MES!$B$4"
-    Else
+    ElseIf lab = 1 Then
         ci = "Dados_MES!$B$6"
         cf = "Dados_MES!$B$7"
+    Else
+        ci = "Dados_MES!$B$9"
+        cf = "Dados_MES!$B$10"
+        intervalo = Replace(CfgTxt("cfgPfIntervalo"), """", "")
+        If intervalo = "" Then intervalo = "24h"
     End If
     calc = CfgTxt("cfgCalc")
     If calc = "" Then calc = "1"
     ArgumentosLab = """time,attribute""," & Literal(tags) & "," & Literal(servs) & "," & Literal(mapas) & _
-        "," & ci & "," & cf & ",""2h"",0,"""",0,""" & calc & """,0,1560,0,0,1,1," & _
+        "," & ci & "," & cf & ",""" & intervalo & """,0,"""",0,""" & calc & """,0,1560,0,0,1,1," & _
         "ADDRESS(ROW(Dados_MES!" & anc.Address(False, False) & "),COLUMN(Dados_MES!" & anc.Address(False, False) & _
         "),1,,""Dados_MES""),""Dados_MES!" & sai.Address(False, False) & """,1)"
 End Function
@@ -612,15 +650,18 @@ Private Sub RestaurarSaida(ByVal anc As Range, ByVal sai As Range, ByVal nLin As
         ender & "),1,,""Dados_MES"")," & ender & ", 0)"
 End Sub
 
-' Inicio/fim do periodo nas celulas usadas pela formula (Dados_MES!B3:B4 Germano, B6:B7 Ubu)
+' Inicio/fim do periodo nas celulas usadas pela formula (Dados_MES!B3:B4 Germano, B6:B7 Ubu, B9:B10 PFUF)
 Private Sub GravarPeriodo(ByVal lab As Long, ByVal ini As Date, ByVal fim As Date)
     Dim ci As Range, cf As Range, modo As String
     If lab = 0 Then
         Set ci = Nm("mesIniG")
         Set cf = Nm("mesFimG")
-    Else
+    ElseIf lab = 1 Then
         Set ci = Nm("mesIniU")
         Set cf = Nm("mesFimU")
+    Else
+        Set ci = Nm("mesIniP")
+        Set cf = Nm("mesFimP")
     End If
     modo = UCase$(CfgTxt("cfgFormatoData"))
     If InStr(modo, "MM/DD") > 0 Then
@@ -703,6 +744,182 @@ Public Sub RestaurarHorarios()
             "=IF(AND(ISNUMBER(gJanU)," & i & "<=bNHor),gJanU+" & (i - 1) & "/12+cfgMinAntes/1440,"""")"
     Next i
 End Sub
+
+' ---------------------------------------------------------------- pellet feed ultra fino (composto diario)
+' Botao "Buscar so o PFUF" (aba Batch): so o composto diario, sem as leituras do batch
+Public Sub BuscarPFUF()
+    Dim msg As String
+    If mOcupado Then
+        Aviso "Consulta ao MES em andamento. Aguarde.", vbInformation, "MES"
+        Exit Sub
+    End If
+    mOcupado = True
+    mSemAspen = False
+    Ampulheta True
+    On Error GoTo Falha
+    Application.StatusBar = "Consultando MES - pellet feed ultra fino..."
+    msg = AtualizarPFUF()
+    Application.StatusBar = False
+    Ampulheta False
+    mOcupado = False
+    If msg <> "" Then Aviso msg, vbInformation, "MES - PFUF"
+    Exit Sub
+Falha:
+    Application.StatusBar = False
+    Ampulheta False
+    mOcupado = False
+    Aviso "Erro ao consultar o PFUF no MES: " & Err.Description, vbExclamation, "MES - PFUF"
+End Sub
+
+' Composto diario do dia bPfData (padrao: data do report - 1): grava Fe, SiO2, P e S.E. nos campos bPf*
+' (so os que o MES devolveu; os demais ficam como estao). Devolve uma linha para a mensagem.
+Public Function AtualizarPFUF() As String
+    Dim dia As Double, h As Double, ini As Date, fim As Date, res As Variant, k As Long, q As Long
+    Dim simulado As Boolean, ok As Boolean, falta As String, tip As String, txtDia As String
+
+    Recalcular
+    If Not EData(Nm("bPfData").Value) Then
+        AtualizarPFUF = "PFUF: sem data do composto (aba Batch)."
+        Exit Function
+    End If
+    dia = Int(CDbl(CDate(Nm("bPfData").Value)))
+    h = 0
+    If ENumero(Nm("cfgPfHora").Value) Then h = CDbl(Nm("cfgPfHora").Value) - Int(CDbl(Nm("cfgPfHora").Value))
+    ini = CDate(dia + h)
+    fim = CDate(dia + h + 1)
+    txtDia = Format$(CDate(dia), "dd\/mm\/yyyy")
+    simulado = (Left$(UCase$(CfgTxt("cfgFonte")), 3) = "SIM")
+    ReDim res(1 To NPF)
+    If simulado Then
+        Randomize
+        For k = 1 To NPF
+            tip = TagCfg(k, LAB_PF, C_COL_TIP)
+            If IsNumeric(tip) And tip <> "" Then res(k) = Round(CDbl(tip) * (1 + (Rnd() - 0.5) * 0.04), PfDec(k) + 1)
+        Next k
+        ok = True
+    Else
+        If ParamsLab(LAB_PF) = "" And mInvalidas = "" Then
+            AtualizarPFUF = "PFUF: sem tags na aba Configurações (lançamento manual)."
+            Exit Function
+        End If
+        If CDbl(ini) > CDbl(Now) Then
+            AtualizarPFUF = "PFUF: o dia " & txtDia & " ainda não começou."
+            Exit Function
+        End If
+        ok = ConsultarPF(ini, fim, res)
+    End If
+    If Not ok Then
+        AtualizarPFUF = "PFUF (composto de " & txtDia & "): consulta falhou."
+        Exit Function
+    End If
+
+    ModoCarga True
+    Desproteger shBatch
+    For k = 1 To NPF
+        If ENumero(res(k)) Then
+            Nm("bPf" & PfChave(k)).Value = CDbl(res(k))
+            q = q + 1
+        Else
+            If falta <> "" Then falta = falta & ", "
+            falta = falta & RotuloItem(k, LAB_PF)
+        End If
+    Next k
+    Nm("bPfMsg").Value = "'" & IIf(simulado, "SIMULAÇÃO", "MES") & " " & Format$(Now, "dd\/mm hh:mm") & _
+                         " · " & q & " de " & NPF
+    Proteger shBatch
+    ModoCarga False
+    gAlterado = True
+    AtualizarPFUF = "PFUF (composto de " & txtDia & "): " & q & " de " & NPF & " resultados" & _
+                    IIf(falta <> "", " - sem resultado: " & falta, "") & "."
+End Function
+
+' Uma consulta (intervalo cfgPfIntervalo, padrao 24h) do inicio ao fim do dia do composto.
+' res(1..NPF): 1o resultado valido de cada analise
+Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByRef res As Variant) As Boolean
+    Dim anc As Range, sai As Range, ps As String, rodada As Long, limite As Double, estado As Long, e2 As Long
+    Dim restaurado As Boolean, lst As Variant, r As Long, i As Long, k As Long, v As Variant, x As Double
+    Dim tj As Date, resp As String, invalidas As String, corrigidas As String, d() As Variant
+
+    ReDim d(1 To NPF)
+    res = d
+    If mSemAspen Then Exit Function
+    Set anc = shDadosMES.Range(ANC_P)
+    Set sai = shDadosMES.Range(OUT_P)
+    limite = 120
+    If ENumero(Nm("cfgTimeout").Value) Then limite = CDbl(Nm("cfgTimeout").Value)
+    GravarPeriodo LAB_PF, ini, fim
+    For rodada = 0 To MAX_RODADAS
+        ps = ParamsLab(LAB_PF)
+        If ps = "" Then Exit For
+        LimparSaida sai
+        If Not EscreverConsulta(anc, ArgumentosLab(LAB_PF, ps, anc, sai)) Then
+            Nm("mesRespP").Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  #NOME? (suplemento Aspen)"
+            anc.Value = "'Suplemento Aspen não reconhecido (#NOME?)"
+            LimparSaida sai
+            mSemAspen = True
+            Exit Function
+        End If
+        ' o resultado pode vir com a hora do inicio ou do fim do dia: aceita qualquer hora ate o fim
+        estado = Esperar(anc, sai, ini, limite, 1 + 1 / 1440)
+        If estado = 3 Then
+            If ColetarInvalidas(anc, sai) = 0 Then Exit For
+        ElseIf (estado = 0 Or estado = 2) And Not restaurado Then
+            restaurado = True
+            RestaurarSaida anc, sai, 2, UBound(Split(ps, ",")) + 2
+            anc.Calculate
+            sai.Resize(2, UBound(Split(ps, ",")) + 2).Calculate
+            e2 = Esperar(anc, sai, ini, limite, 1 + 1 / 1440)
+            If e2 = 1 Or estado = 0 Then estado = e2
+            Exit For
+        Else
+            Exit For
+        End If
+    Next rodada
+    If estado = 1 Then corrigidas = CorrigirTags(LAB_PF)
+    If corrigidas <> "" Then
+        Aviso "Tags do pellet feed ultra fino corrigidas na aba Configurações (o MES aceitou o código em outro " & _
+              "formato):" & vbCrLf & vbCrLf & corrigidas, vbInformation, "MES - tags"
+    End If
+    invalidas = ListaInvalidas(LAB_PF)
+    If invalidas <> "" Then
+        Nm("mesInvalidas").Value = "'" & Replace(invalidas, vbCrLf, " ")
+        Aviso "O MES não reconheceu estas tags do pellet feed ultra fino (ficam como estão):" & vbCrLf & vbCrLf & _
+              invalidas & vbCrLf & "Corrigir na aba Configurações.", vbExclamation, "MES - tags inválidas"
+    End If
+    resp = Left$(Trim$(anc.Text) & "  |  1a célula: " & Trim$(sai.Cells(1, 1).Text) & "  " & _
+                 Trim$(sai.Cells(1, 2).Text), 250)
+    Nm("mesRespP").Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & resp
+    If estado = 0 Then
+        DesligarConsulta anc, sai
+        Exit Function
+    End If
+    lst = Split(ParamsLab(LAB_PF), ",")
+    If estado = 1 Then
+        For r = 1 To NMAX + 2
+            If Not ComoData(sai.Cells(r, 1).Value, tj, ini) Then Exit For
+            For i = LBound(lst) To UBound(lst)
+                k = CLng(lst(i))
+                If Not ENumero(d(k)) Then
+                    v = sai.Cells(r, 2 + i - LBound(lst)).Value
+                    If ComoNumero(v, x) Then
+                        If ValorValido(k, LAB_PF, x) Then d(k) = x
+                    End If
+                End If
+            Next i
+        Next r
+    End If
+    res = d
+    DesligarConsulta anc, sai
+    ConsultarPF = True
+End Function
+
+Private Function PfChave(ByVal k As Long) As String
+    PfChave = Split(PF_CHAVES, "|")(k - 1)
+End Function
+
+Private Function PfDec(ByVal k As Long) As Long
+    PfDec = CLng(Split(PF_DECIMAIS, "|")(k - 1))
+End Function
 
 ' ---------------------------------------------------------------- simulacao
 ' Em torno do "valor tipico" (aba Configuracoes). Ubu: S.E. a cada 2 h, quimica a cada 4 h,

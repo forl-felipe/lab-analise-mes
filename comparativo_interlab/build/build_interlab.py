@@ -93,6 +93,12 @@ TAGS = {('SE', 0): 'M4250010000-0017-ABLQ', ('SE', 1): 'M4650060010-0017-HHLFU',
         ('P', 0): 'M4250010000-0008-ABLQ', ('P', 1): 'M650030010-0008-HHLQU',
         ('PPC', 0): 'M4250010000-0013-ABLQ', ('PPC', 1): 'M650030010-0013-HHLQU'}
 MAPA_PADRAO = 'IP_MESVALOR'
+# Pellet Feed Ultra Fino (elutriacao) - composto diario de Ubu, tags informadas pelo laboratorio (22/10/2026)
+# (chave, rotulo no painel, tag, descricao no MES, decimais, faixa valida, valor tipico (simulacao))
+PFUF = [('Fe', 'Fe', 'M0650024000-0003-DDLQU', 'PF Elutriação - FeO', 2, (0, 80), 67.5),
+        ('SiO2', 'SiO₂', 'M0650024000-0004-DDLQU', 'PF Elutriação - SiO2', 2, (0, 20), 1.30),
+        ('P', 'P', 'M0650024000-0008-DDLQU', 'PF Elutriação - P', 3, (0, 1), 0.035),
+        ('SE', 'S.E.', 'M0650024000-0017-DDLFU', 'PF Elutriação Superfície Específica', 0, (300, 5000), 2200)]
 
 
 def fmt_num(d, milhar=False):
@@ -117,7 +123,7 @@ B_COL_TG = 3              # D  data/hora Germano
 B_COL_V1 = 4              # E  1o valor (SE A); valor (p, lab) em B_COL_V1 + 2p + lab
 B_COL_D1 = 15             # P  1a diferenca
 B_COL_R1 = 20             # U  1o "rank" (par A/B para os graficos)
-B_ROW_G0 = 27             # 1a linha de leituras
+B_ROW_G0 = 31             # 1a linha de leituras
 B_ROW_MED = B_ROW_G0 + NMAX
 B_ROW_CNT = B_ROW_MED + 1
 
@@ -131,6 +137,7 @@ G_ROW_X = G_ROW_ST + NP + 2   # linha dos totais / listas
 # ---------------------------------------------------------------- Configurações (0-based)
 C_ROW_TAG0 = 7            # 1a linha da tabela de tags
 C_COL = dict(PARAM=1, LAB=2, TAG=3, SERV=4, MAPA=5, VMIN=6, VMAX=7, TIP=8, FREQ=9, HORA1=10)
+C_ROW_PF0 = C_ROW_TAG0 + 2 * NP + 3   # 1a linha das tags do PFUF (mesmas colunas; LAB = rotulo no painel)
 # Frequencia das analises (h) e 1o horario da escala. O MES devolve a analise de 4 h em duas janelas de 2 h
 # (valor repetido); so os horarios da escala ficam. Ubu: quimica de 4 em 4 h a partir de 03:30 (03:30, 07:30,
 # 11:30, 15:30, 19:30, 23:30), como no painel do laboratorio. Ubu lancando de 2 em 2 h: frequencia 2.
@@ -148,7 +155,8 @@ CAMPOS = ([('bId', 'Batch'), ('bData', 'Data do report'), ('bMin', 'Mineroduto')
           [('bTol_%s' % p[0], 'Tol %s' % p[1]) for p in PARAMS] +
           [('bIncFrase', 'Frase automática'), ('bIncAcomp', 'Acompanhamento no report'),
            ('bFrase', 'Texto parâmetros fora'), ('bAcomp', 'Texto acompanhamento')] +
-          [('bCom%d' % i, 'Comentário %d' % i) for i in range(1, 7)])
+          [('bCom%d' % i, 'Comentário %d' % i) for i in range(1, 7)] +
+          [('bPfData', 'PFUF data do composto')] + [('bPf%s' % k[0], 'PFUF %s' % k[1]) for k in PFUF])
 H_COLS = ([h for _, h in CAMPOS] +
           sum([['%s média A' % p[1], '%s média B' % p[1], '%s diferença' % p[1], '%s status' % p[1]]
                for p in PARAMS], []) +
@@ -339,7 +347,51 @@ class Construtor:
                        self.f(font_size=9, font_color=INK2, text_wrap=True, valign='top', bg_color='#F5F8FD',
                               left=5, left_color=NAVY2))
 
-        r = C_ROW_TAG0 + 2 * NP + 1
+        # pellet feed ultra fino (elutriacao): composto diario
+        r = C_ROW_PF0 - 2
+        self.secao(ws, r, 1, 10, 'PELLET FEED ULTRA FINO (ELUTRIAÇÃO) — COMPOSTO DIÁRIO DE UBU')
+        hdr_pf = ['Análise', 'Rótulo no painel', 'Tag', 'Servidor', 'Mapa', 'Mín. válido', 'Máx. válido',
+                  'Típico (simulação)', 'Descrição no MES']
+        for i, h in enumerate(hdr_pf):
+            if i == len(hdr_pf) - 1:
+                ws.merge_range(C_ROW_PF0 - 1, 1 + i, C_ROW_PF0 - 1, 2 + i, h, fh)
+            else:
+                ws.write(C_ROW_PF0 - 1, 1 + i, h, fh)
+        for k, pf in enumerate(PFUF):
+            rr = C_ROW_PF0 + k
+            ws.write(rr, C_COL['PARAM'], pf[3].replace('PF Elutriação', '').strip(' -') or pf[1], fl)
+            ws.write_string(rr, C_COL['LAB'], pf[1], self.fi(align='center'))
+            ws.write_string(rr, C_COL['TAG'], pf[2], self.fi(font_name='Consolas', font_size=9.5))
+            ws.write(rr, C_COL['SERV'], SERVIDOR_PADRAO, self.fi(align='center'))
+            ws.write(rr, C_COL['MAPA'], MAPA_PADRAO, self.fi(align='center'))
+            ws.write(rr, C_COL['VMIN'], pf[5][0], self.fi(align='center'))
+            ws.write(rr, C_COL['VMAX'], pf[5][1], self.fi(align='center'))
+            ws.write(rr, C_COL['TIP'], pf[6], self.fi(align='center'))
+            ws.merge_range(rr, C_COL['FREQ'], rr, C_COL['HORA1'], pf[3], self.f(font_size=8.5, font_color=MUTED,
+                                                                                border=1, border_color=LINE2))
+        self.nome('cfgPfTags', ws, C_ROW_PF0, 1, C_ROW_PF0 + len(PFUF) - 1, 8)
+        fr = self.f(bold=True, font_size=9.5)
+        fd = self.f(font_size=8.5, font_color=MUTED, text_wrap=True)
+        r = C_ROW_PF0 + len(PFUF)
+        itens_pf = [('cfgPfDias', 'Dias antes da data do report', 1, '1 = composto do dia anterior (o enviado no report)'),
+                    ('cfgPfHora', 'Início do dia do composto (hora)', dtm.time(0, 0),
+                     'O dia do composto vai desta hora até a mesma hora do dia seguinte'),
+                    ('cfgPfIntervalo', 'Intervalo da consulta', '24h',
+                     'Uma janela só (o dia inteiro). Vale o 1º resultado válido devolvido pelo MES')]
+        for i, (nm, rot, val, desc) in enumerate(itens_pf):
+            rr = r + i
+            ws.write(rr, 1, rot, fr)
+            fmt = self.fi(align='center', num_format='hh:mm') if isinstance(val, dtm.time) else self.fi(align='center')
+            if isinstance(val, dtm.time):
+                ws.write_datetime(rr, 2, dtm.datetime.combine(dtm.date(1899, 12, 31), val), fmt)
+            elif isinstance(val, str):
+                ws.write_string(rr, 2, val, fmt)
+            else:
+                ws.write_number(rr, 2, val, fmt)
+            ws.merge_range(rr, 3, rr, 8, desc, fd)
+            self.nome(nm, ws, rr, 2)
+
+        r = r + len(itens_pf) + 1
         self.secao(ws, r, 1, 8, 'CONSULTA AO MES')
         fr = self.f(bold=True, font_size=9.5)
         fd = self.f(font_size=8.5, font_color=MUTED, text_wrap=True)
@@ -530,8 +582,27 @@ class Construtor:
         ws.set_row(RV, 22)
         ws.set_row(RV + 1, 8)
 
-        # --- comentarios do report (logo abaixo da conferencia, para editar antes de salvar)
+        # --- pellet feed ultra fino: composto diario do dia anterior (Buscar no MES; da para corrigir)
         r = 15
+        self.secao(ws, r, 1, 13, '④  PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO DIA ANTERIOR (MES · dá para corrigir)')
+        ws.merge_range(r + 1, 1, r + 1, 2, 'DATA DO COMPOSTO', fl)
+        self.entrada(ws, r + 2, 1, 2, '=IF(ISNUMBER(bData),bData-cfgPfDias,"")',
+                     self.f(align='center', num_format='dd/mm/yyyy', bg_color='#F3F7FC', border=1, border_color=LINE2,
+                            locked=False, font_size=9.5), 'bPfData')
+        for k, pf in enumerate(PFUF):
+            c = 3 + k
+            ws.write(r + 1, c, pf[1].upper(), self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom',
+                                                    align='center'))
+            ws.write_blank(r + 2, c, None, self.fi(align='center', num_format=fmt_num(pf[4]), font_size=9.5))
+            self.nome('bPf%s' % pf[0], ws, r + 2, c)
+        ws.merge_range(r + 2, 7, r + 2, 9, '', self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True))
+        self.nome('bPfMsg', ws, r + 2, 7)
+        ws.set_row(r + 1, 14)
+        ws.set_row(r + 2, 22)
+        ws.set_row(r + 3, 8)
+
+        # --- comentarios do report (logo abaixo da conferencia, para editar antes de salvar)
+        r = 19
         self.secao(ws, r, 1, 13, 'COMENTÁRIOS DO REPORT  (os dois primeiros são automáticos — dá para editar)')
         fauto = self.fi(italic=True, font_size=9.5, font_color=INK2, text_wrap=True, bg_color='#F3F7FC')
         for rr, rot, form, nm, nm_inc in [(r + 1, 'Parâmetros fora', '=gFrase', 'bFrase', 'bIncFrase'),
@@ -683,6 +754,7 @@ class Construtor:
         self.botao(ws, 5, 10, 'Salvar no histórico', 'SalvarHistorico', 260, 34, 'g', x=12, y=10)
         self.botao(ws, 8, 10, 'Ver painel →', 'IrPainel', 126, 26, 'n', x=12, y=4)
         self.botao(ws, 8, 12, 'Limpar leituras', 'LimparLeituras', 126, 26, 'd', x=6, y=4)
+        self.botao(ws, 16, 10, 'Buscar só o PFUF', 'BuscarPFUF', 200, 26, 's', x=12, y=10)
         ws.print_area(0, 0, self.b_fim, 13)
         ws.fit_to_pages(1, 0)
         ws.set_paper(9)
@@ -950,7 +1022,8 @@ class Construtor:
         ws.merge_range(r, 1, r, 6, '', secf)
         ws.write_formula(r, 1, '=UPPER("Batch "&bId&IF(bMin<>""," - Mineroduto "&bMin,""))',
                          secf)
-        ws.merge_range(r, 8, r, 13, 'COMENTÁRIOS', secf)
+        ws.merge_range(r, 8, r, 10, 'COMENTÁRIOS', secf)
+        ws.merge_range(r, 12, r, 13, 'PELLET FEED ULTRA FINO', secf)
         # farol: cabecalho
         rh = r + 1
         ws.set_row(rh, 28)
@@ -993,8 +1066,27 @@ class Construtor:
                                                                      indent=1))
         # comentarios
         fcm = self.f(font_size=10, font_color=INK2, text_wrap=True, valign='top', border=1, border_color=LINE, indent=1)
-        ws.merge_range(rh, 8, rl, 13, '', fcm)
+        ws.merge_range(rh, 8, rl, 10, '', fcm)
         ws.write_formula(rh, 8, '=gComentarios', fcm)
+        # pellet feed ultra fino: composto diario do dia anterior
+        fcap = self.f(bold=True, font_size=7.5, font_color=INK2, bg_color=BG, align='center', left=1, right=1,
+                      border_color=LINE)
+        ws.merge_range(rh, 12, rh, 13, '', fcap)
+        ws.write_formula(rh, 12, '="COMPOSTO DIÁRIO — PFUF"&IF(ISNUMBER(bPfData)," · "&TEXT(DAY(bPfData),"00")&"/"'
+                                 '&TEXT(MONTH(bPfData),"00")&"/"&RIGHT(YEAR(bPfData),2),"")', fcap)
+        for k, pf in enumerate(PFUF):
+            rr = rh + 1 + k
+            nm = 'bPf%s' % pf[0]
+            ws.write_formula(rr, 12, "=IF(TRIM(%s!$%s$%d&\"\")=\"\",\"%s\",%s!$%s$%d)"
+                             % (quote(self.ws_cfg), colname(C_COL['LAB']), C_ROW_PF0 + k + 1, pf[1],
+                                quote(self.ws_cfg), colname(C_COL['LAB']), C_ROW_PF0 + k + 1),
+                             self.f(bold=True, font_size=10, border=1, border_color='#D5D9E2', indent=1))
+            ws.write_formula(rr, 13, '=IF(ISNUMBER(%s),%s,"—")' % (nm, nm),
+                             self.f(font_size=10, align='center', border=1, border_color='#D5D9E2',
+                                    num_format=fmt_num(pf[4])))
+        for rr in range(rh + 1 + len(PFUF), rl + 1):
+            ws.write_blank(rr, 12, None, self.f(left=1, border_color=LINE, bottom=1 if rr == rl else 0))
+            ws.write_blank(rr, 13, None, self.f(right=1, border_color=LINE, bottom=1 if rr == rl else 0))
         ws.set_row(rl + 1, 10)
 
         # ---- graficos: 2 por linha (P | SiO2), (PPC | <325#), S.E. inteiro
@@ -1125,12 +1217,17 @@ class Construtor:
         ws.set_column(3, 3, 34)
         self.faixa(ws, 1, 1, 3, 'ENVIAR REPORTE')
         self.secao(ws, 4, 1, 1, 'RESUMO PARA O CORPO DO E-MAIL')
+        pf_txt = ('&IF(COUNT(%s)=0,"",CHAR(10)&"PFUF (composto diário"&IF(ISNUMBER(bPfData)," "&TEXT(DAY(bPfData),"00")'
+                  '&"/"&TEXT(MONTH(bPfData),"00"),"")&"): "%s)'
+                  % (','.join('bPf%s' % k[0] for k in PFUF),
+                     '&" · "'.join('&IF(ISNUMBER(bPf{0}),"{1} "&FIXED(bPf{0},{2},TRUE),"{1} —")'.format(k[0], k[1], k[4])
+                                   for k in PFUF)))
         coments = ''.join('&IF(TRIM(bCom%d&"")<>"",CHAR(10)&"•  "&TRIM(bCom%d&""),"")' % (i, i) for i in range(1, 7))
         f = ('="Comparativo "&bLabA&" × "&bLabB&" — Batch "&bId&IF(bMin<>""," (mineroduto "&bMin&")","")'
              '&" · "&gDataTxt&CHAR(10)'
              '&IF(gAval=0,"Sem pares "&bLabA&"/"&bLabB&" para avaliar.",'
              'IF(gNok=0,"Todos os parâmetros dentro da tolerância.",'
-             'gNok&" de "&gAval&" fora da tolerância: "&gNokDet&"."))' + coments)
+             'gNok&" de "&gAval&" fora da tolerância: "&gNokDet&"."))' + pf_txt + coments)
         fbox = self.f(font_size=10.5, font_color=INK2, text_wrap=True, valign='top', bg_color='#F8F9FB', border=1,
                       border_color=LINE)
         ws.merge_range(5, 1, 14, 1, '', fbox)
@@ -1254,7 +1351,7 @@ class Construtor:
         ws.write(0, 0, 'Consultas ao MES (Aspen IP.21) - não editar', self.f(bold=True, font_size=13, font_color=NAVY2))
         fdt = self.f(num_format='dd/mm/yyyy hh:mm:ss', bg_color=SEC, align='left')
         rot = self.f(bold=True)
-        for j, (lab, nm) in enumerate([('Germano', 'G'), ('Ubu', 'U')]):
+        for j, (lab, nm) in enumerate([('Germano', 'G'), ('Ubu', 'U'), ('PFUF', 'P')]):
             r = 2 + j * 3
             ws.write(r, 0, '%s - início' % lab, rot)
             ws.write_blank(r, 1, None, fdt)
@@ -1277,6 +1374,9 @@ class Construtor:
         ws.write(6, 3, 'Resposta Ubu', rot)
         ws.write_blank(6, 4, None)
         self.nome('mesRespU', ws, 6, 4)
+        ws.write(7, 3, 'Resposta PFUF', rot)
+        ws.write_blank(7, 4, None)
+        self.nome('mesRespP', ws, 7, 4)
         # ancoras: Germano A10 (saida A12), Ubu A40 (saida A42)
         for lab, anc, out in [('Germano', 9, 11), ('Ubu', 39, 41)]:
             ws.write(anc - 1, 0, 'Consulta %s (a fórmula é escrita pelo botão Buscar no MES)' % lab,
@@ -1285,6 +1385,13 @@ class Construtor:
             ws.write(anc + 1, 0, 'Data/hora', self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
             for p, pr in enumerate(PARAMS):
                 ws.write(anc + 1, 1 + p, pr[1], self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
+        # PFUF (composto diario): ancora A70, saida A72
+        ws.write(68, 0, 'Consulta PFUF - composto diário (a fórmula é escrita pelo botão Buscar no MES)',
+                 self.f(bold=True, font_color=MUTED))
+        ws.write(69, 0, 'Aguardando a primeira consulta', self.f(font_size=8))
+        ws.write(70, 0, 'Data/hora', self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
+        for k, pf in enumerate(PFUF):
+            ws.write(70, 1 + k, pf[1], self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
         self.botao(ws, 0, 7, 'Voltar às Configurações', 'OcultarDadosMES', 200, 28, 'n', y=2)
 
     # ------------------------------------------------------------ VBA
@@ -1302,7 +1409,12 @@ class Construtor:
              "Public Const B_COL_V1 As Long = %d" % (B_COL_V1 + 1),
              "Public Const B_COL_D1 As Long = %d" % (B_COL_D1 + 1),
              "' aba Configuracoes: tabela de tags (1-based)",
-             "Public Const C_ROW_TAG0 As Long = %d" % (C_ROW_TAG0 + 1)]
+             "Public Const C_ROW_TAG0 As Long = %d" % (C_ROW_TAG0 + 1),
+             "' aba Configuracoes: tags do pellet feed ultra fino (1-based; mesmas colunas)",
+             "Public Const C_ROW_PF0 As Long = %d" % (C_ROW_PF0 + 1),
+             "Public Const NPF As Long = %d" % len(PFUF),
+             'Public Const PF_CHAVES As String = "%s"' % '|'.join(k[0] for k in PFUF),
+             'Public Const PF_DECIMAIS As String = "%s"' % '|'.join(str(k[4]) for k in PFUF)]
         for k, v in C_COL.items():
             L.append("Public Const C_COL_%s As Long = %d" % (k, v + 1))
         L += ["' aba _Graf",
