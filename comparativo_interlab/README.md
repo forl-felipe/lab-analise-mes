@@ -61,6 +61,8 @@ Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cá
 - O composto do dia é gravado no MES às **23:30 do próprio dia** (Configurações: *Horário de lançamento no MES*).
   A consulta usa janelas de **2 h**, como as leituras do batch, de 12 h antes a 12 h depois do dia do composto; vale a
   janela que contém as 23:30. As demais janelas com resultado aparecem na mensagem, para conferir o horário.
+  Análise sem valor às 23:30 usa o último valor do **mesmo dia** do composto (a mensagem avisa o horário); valor
+  fora da faixa válida (Configurações) é descartado e a mensagem mostra qual foi. Faixa da S.E. do PFUF: 100 a 20000.
   Os valores que o MES não devolver ficam como estão.
 - Tags (servidor UBU, aba Configurações): `M0650024000-0003-DDLQU` (Fe — no MES "PF Elutriação - FeO"),
   `M0650024000-0004-DDLQU` (SiO₂), `M0650024000-0008-DDLQU` (P), `M0650024000-0017-DDLFU` (S.E.).

@@ -241,6 +241,9 @@ Public Sub TesteLO()
     Ok TesteMapas("Erro:(M0650024000-0003-DDLQU) Map Name IP_MESVALOR is invalid(M0650024000-0004-DDLQU) Map Name " & _
        "IP_MESVALOR is invalid") = "2|IP_DiscreteMap|IP_AnalogMap", "mapa recusado: 2 tags, troca para o proximo mapa"
 
+    ' --- leitura do PFUF: janela das 23:30; S.E. gravado em outro horario do mesmo dia; Fe fora da faixa
+    Ok TesteLeituraPF() = "-|1250|31|2350000|nota SE|nota Fe", "PFUF: leitura da saida do MES (" & TesteLeituraPF() & ")"
+
     ' --- respostas do Aspen em texto
     Dim tj As Date, xx As Double
     Ok ComoData("12/10/2026 15:00:00", tj) And Abs(CDbl(tj) - CDbl(DateSerial(2026, 10, 12) + TimeSerial(15, 0, 0))) < 0.0001, _

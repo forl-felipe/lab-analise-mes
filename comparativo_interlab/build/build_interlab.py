@@ -100,7 +100,7 @@ MAPA_PFUF = 'IP_AnalogMap'
 PFUF = [('Fe', 'Fe', 'M0650024000-0003-DDLQU', 'PF Elutriação - FeO', 2, (0, 80), 67.5),
         ('SiO2', 'SiO₂', 'M0650024000-0004-DDLQU', 'PF Elutriação - SiO2', 2, (0, 20), 1.30),
         ('P', 'P', 'M0650024000-0008-DDLQU', 'PF Elutriação - P', 3, (0, 1), 0.035),
-        ('SE', 'S.E.', 'M0650024000-0017-DDLFU', 'PF Elutriação Superfície Específica', 0, (300, 5000), 2200)]
+        ('SE', 'S.E.', 'M0650024000-0017-DDLFU', 'PF Elutriação Superfície Específica', 0, (100, 20000), 2200)]
 
 
 def fmt_num(d, milhar=False):

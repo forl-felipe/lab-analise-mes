@@ -39,6 +39,8 @@ Private mEtapa As String
 Private mErroPF As String
 ' Dias em que o MES tem resultado do PFUF na ultima consulta ("19/10 (4), 20/10 (4)")
 Private mDiasPF As String
+' Por analise do PFUF: onde o valor foi achado / por que ficou de fora (para a mensagem)
+Private mNotaPF(1 To 10) As String
 ' PFUF: janelas de 2 h (igual as leituras do batch, que funcionam) de 12 h antes do dia do composto ate 12 h
 ' depois; o resultado vale na janela do horario de lancamento (cfgPfHora, 23:30)
 Private Const PF_JANELAS As Long = 24
@@ -982,6 +984,11 @@ Public Function AtualizarPFUF() As String
     gAlterado = True
     AtualizarPFUF = "PFUF (composto de " & txtDia & "): " & q & " de " & NPF & " resultados" & _
                     IIf(falta <> "", " - sem resultado: " & falta, "") & IIf(simulado, "", " (" & seg & " s)") & "."
+    If Not simulado Then
+        For k = 1 To NPF
+            If mNotaPF(k) <> "" Then AtualizarPFUF = AtualizarPFUF & vbCrLf & "  " & RotuloItem(k, LAB_PF) & ": " & mNotaPF(k)
+        Next k
+    End If
     If Not simulado And q < NPF Then
         If mDiasPF <> "" Then
             AtualizarPFUF = AtualizarPFUF & vbCrLf & "Resultados do PFUF no MES (janelas de 2 h de " & _
@@ -1002,7 +1009,7 @@ End Function
 Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByVal alvo As Date, ByRef res As Variant) As Boolean
     Dim anc As Range, sai As Range, ps As String, rodada As Long, limite As Double, estado As Long, e2 As Long
     Dim restaurado As Boolean, lst As Variant, r As Long, i As Long, k As Long, v As Variant, x As Double
-    Dim tj As Date, resp As String, invalidas As String, corrigidas As String, d() As Variant, n As Long
+    Dim tj As Date, resp As String, invalidas As String, corrigidas As String, d As Variant, n As Long
 
     ReDim d(1 To NPF)
     res = d
@@ -1010,6 +1017,9 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByVal alvo As
         mErroPF = "suplemento Aspen não reconhecido (#NOME?)"
         Exit Function
     End If
+    For k = 1 To NPF
+        mNotaPF(k) = ""
+    Next k
     mEtapa = "pellet feed ultra fino"
     Set anc = shDadosMES.Range(ANC_P)
     Set sai = shDadosMES.Range(OUT_P)
@@ -1068,32 +1078,89 @@ Private Function ConsultarPF(ByVal ini As Date, ByVal fim As Date, ByVal alvo As
         DesligarConsulta anc, sai
         Exit Function
     End If
-    lst = Split(ParamsLab(LAB_PF), ",")
-    If estado = 1 Then
-        For r = 1 To NMAX + 2
-            If Not ComoData(sai.Cells(r, 1).Value, tj, ini) Then Exit For
-            n = 0
-            For i = LBound(lst) To UBound(lst)
-                k = CLng(lst(i))
-                v = sai.Cells(r, 2 + i - LBound(lst)).Value
-                If ComoNumero(v, x) Then
-                    If ValorValido(k, LAB_PF, x) Then
-                        n = n + 1
-                        If CDbl(tj) <= CDbl(alvo) + 1 / 1440 And CDbl(alvo) < CDbl(tj) + HORAS_SLOT / 24 - 1 / 1440 Then d(k) = x
-                    End If
-                End If
-            Next i
-            If n > 0 Then
-                If mDiasPF <> "" Then mDiasPF = mDiasPF & ", "
-                mDiasPF = mDiasPF & Format$(tj, "dd\/mm hh:mm") & "-" & Format$(CDate(CDbl(tj) + HORAS_SLOT / 24), "hh:mm") & _
-                          " (" & n & ")"
-            End If
-        Next r
-    End If
+    If estado = 1 Then d = LerSaidaPF(sai, ini, alvo, ParamsLab(LAB_PF))
     res = d
     If mDiasPF <> "" Then Nm("mesRespP").Value = CStr(Nm("mesRespP").Value) & "  |  dias com resultado: " & mDiasPF
     DesligarConsulta anc, sai
     ConsultarPF = True
+End Function
+
+' Le a saida da consulta do PFUF (ps = analises na ordem das colunas): valor da janela de alvo; sem ele, o
+' ultimo do mesmo dia do composto. Preenche mDiasPF e mNotaPF.
+Private Function LerSaidaPF(ByVal sai As Range, ByVal ini As Date, ByVal alvo As Date, ByVal ps As String) As Variant
+    Dim lst As Variant, r As Long, i As Long, k As Long, v As Variant, x As Double, tj As Date, n As Long, d() As Variant
+    Dim noDia() As Variant, tDia() As Double, foraFaixa() As String, txtJan As String, dia As Double
+    lst = Split(ps, ",")
+    ReDim d(1 To NPF)
+    ReDim noDia(1 To NPF)
+    ReDim tDia(1 To NPF)
+    ReDim foraFaixa(1 To NPF)
+    dia = Int(CDbl(alvo))
+    For k = 1 To NPF
+        mNotaPF(k) = ""
+    Next k
+    For r = 1 To NMAX + 2
+        If Not ComoData(sai.Cells(r, 1).Value, tj, ini) Then Exit For
+        txtJan = Format$(tj, "dd\/mm hh:mm") & "-" & Format$(CDate(CDbl(tj) + HORAS_SLOT / 24), "hh:mm")
+        n = 0
+        For i = LBound(lst) To UBound(lst)
+            k = CLng(lst(i))
+            v = sai.Cells(r, 2 + i - LBound(lst)).Value
+            If ComoNumero(v, x) Then
+                If ValorValido(k, LAB_PF, x) Then
+                    n = n + 1
+                    If CDbl(tj) <= CDbl(alvo) + 1 / 1440 And CDbl(alvo) < CDbl(tj) + HORAS_SLOT / 24 - 1 / 1440 Then d(k) = x
+                    ' outro horario do mesmo dia do composto: fica de reserva (vale o ultimo do dia)
+                    If CDbl(tj) >= dia - 1 / 1440 And CDbl(tj) < dia + 1 - 1 / 1440 Then
+                        noDia(k) = x
+                        tDia(k) = CDbl(tj)
+                    End If
+                Else
+                    If foraFaixa(k) = "" Then foraFaixa(k) = CStr(x) & " em " & txtJan
+                End If
+            End If
+        Next i
+        If n > 0 Then
+            If mDiasPF <> "" Then mDiasPF = mDiasPF & ", "
+            mDiasPF = mDiasPF & txtJan & " (" & n & ")"
+        End If
+    Next r
+    For k = 1 To NPF
+        If Not ENumero(d(k)) And ENumero(noDia(k)) Then
+            d(k) = noDia(k)
+            mNotaPF(k) = "achado às " & Format$(CDate(tDia(k)), "hh:mm") & "-" & _
+                         Format$(CDate(tDia(k) + HORAS_SLOT / 24), "hh:mm") & " (fora das " & Format$(alvo, "hh:mm") & ")"
+        ElseIf Not ENumero(d(k)) And foraFaixa(k) <> "" Then
+            mNotaPF(k) = "valor " & foraFaixa(k) & " fora da faixa válida (" & TagCfg(k, LAB_PF, C_COL_VMIN) & _
+                         " a " & TagCfg(k, LAB_PF, C_COL_VMAX) & ", aba Configurações)"
+        End If
+    Next k
+    LerSaidaPF = d
+End Function
+
+' Usado so na validacao automatica: saida simulada do MES (S.E. as 08:00 do dia, Fe fora da faixa)
+Public Function TesteLeituraPF() As String
+    Dim sai As Range, d As Variant, ini As Date, k As Long, r As String
+    Set sai = shDadosMES.Range(OUT_P)
+    LimparSaida sai
+    ini = DateSerial(2026, 10, 20) + TimeSerial(12, 0, 0)
+    For k = 0 To 23
+        sai.Cells(k + 1, 1).Value = CDate(CDbl(ini) + k / 12)
+    Next k
+    ' janela 21/10 22:00 (linha 18): Fe 999 (fora), SiO2 1.25, P 0.031; S.E. so em 21/10 08:00 (linha 11)
+    sai.Cells(18, 2).Value = 999
+    sai.Cells(18, 3).Value = 1.25
+    sai.Cells(18, 4).Value = 0.031
+    sai.Cells(11, 5).Value = 2350
+    sai.Cells(23, 5).Value = 2400            ' 22/10 08:00: outro dia, nao vale
+    mDiasPF = ""
+    d = LerSaidaPF(sai, ini, DateSerial(2026, 10, 21) + TimeSerial(23, 30, 0), "1,2,3,4")
+    For k = 1 To NPF
+        r = r & IIf(ENumero(d(k)), Format$(CDbl(d(k)) * 1000, "0"), "-") & "|"
+    Next k
+    TesteLeituraPF = r & IIf(InStr(mNotaPF(4), "08:00") > 0, "nota SE", "") & "|" & _
+                     IIf(InStr(mNotaPF(1), "fora da faixa") > 0, "nota Fe", "")
+    LimparSaida sai
 End Function
 
 Private Function PfChave(ByVal k As Long) As String
