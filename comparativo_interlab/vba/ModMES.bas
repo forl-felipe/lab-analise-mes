@@ -18,11 +18,11 @@ Private Const MAX_RODADAS As Long = 10
 ' Celulas da aba Dados_MES (consulta de Germano e de Ubu)
 Private Const ANC_G As String = "A10"
 Private Const OUT_G As String = "A12"
-Private Const ANC_U As String = "A40"
-Private Const OUT_U As String = "A42"
+Private Const ANC_U As String = "A70"
+Private Const OUT_U As String = "A72"
 ' Pellet feed ultra fino (composto diario): "laboratorio" 2
-Private Const ANC_P As String = "A70"
-Private Const OUT_P As String = "A72"
+Private Const ANC_P As String = "A130"
+Private Const OUT_P As String = "A132"
 Private Const LAB_PF As Long = 2
 
 Private mOcupado As Boolean
@@ -32,6 +32,11 @@ Private mSemAspen As Boolean
 Private mInvalidas As String
 ' Mapas recusados pelo MES nesta sessao ("Map Name X is invalid"), no formato |TAG>MAPA|
 Private mMapasRuins As String
+' Germano em sequencia: resultados achados na ultima consulta (na ordem) e o horario de cada um
+Private mContG As Long
+Private mTG(1 To 60) As Double
+' Linhas lidas da saida de uma consulta (Germano em sequencia usa janelas de 1 h: ate 2 x NMAX + 1)
+Private Const LIN_SAIDA As Long = 52
 ' Contador da consulta na barra de status: o que esta sendo consultado
 Private mEtapa As String
 ' Mapas tentados quando o MES recusa o da aba Configuracoes (o que funcionar fica gravado la)
@@ -108,14 +113,17 @@ Public Sub BuscarMES()
     Else
         Application.StatusBar = "Consultando MES - " & CfgTxt("bLabA") & "..."
         If nG > 0 Then okG = ConsultarLab(0, iniG, nG, resG) Else okG = True
+        If okG Then AjustarNHorG nG, n
         Application.StatusBar = "Consultando MES - " & CfgTxt("bLabB") & "..."
         okU = ConsultarLab(1, iniU, n, resU)
     End If
     Application.StatusBar = False
     If Not okG And Not okU Then GoTo Fim
 
+    If simulado Then mContG = 0
     qG = GravarResultados(0, resG, nG, okG, iniG)
     qU = GravarResultados(1, resU, n, okU, iniU)
+    If okG Then GravarHorariosG nG
     Application.StatusBar = "Consultando MES - pellet feed ultra fino..."
     pf = AtualizarPFUF()
     Application.StatusBar = False
@@ -188,11 +196,16 @@ Private Sub BuscarAcompanhamento()
     If simulado Then
         resG = DadosSimulados(0, nG, iniG)
         okG = True
+        mContG = 0
     Else
         okG = ConsultarLab(0, iniG, nG, resG)
+        If okG Then AjustarNHorG nG, n
     End If
     Application.StatusBar = False
-    If okG Then qG = GravarResultados(0, resG, nG, okG, iniG)
+    If okG Then
+        qG = GravarResultados(0, resG, nG, okG, iniG)
+        GravarHorariosG nG
+    End If
     ' Ubu do batch em processamento e lancado na aba Acompanhamento: o que estiver na aba Batch e de outro
     ' batch e nao pode ir para o bloco
     LimparUbuBatch
@@ -336,9 +349,24 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
     Dim anc As Range, sai As Range, ps As String, rodada As Long, limite As Double, nJan As Long
     Dim fim As Date, t0 As Single, d() As Variant, lst As Variant, i As Long, r As Long, s As Long, v As Variant
     Dim estado As Long, nomeLab As String, invalidas As String, tj As Date, x As Double, resp As String
-    Dim restaurado As Boolean, e2 As Long, corrigidas As String
+    Dim restaurado As Boolean, e2 As Long, corrigidas As String, seq As Boolean, passo As Double, qIni As Date
+    Dim nTot As Long
 
-    ReDim d(1 To n, 1 To NP)
+    ' Germano em sequencia: janelas de 1 h comecando 30 min depois da grade (cada resultado do MES, 01:00, 03:00...
+    ' e o de fechamento 23:59, cai numa janela so); os resultados entram um atras do outro, sem coluna vazia
+    seq = (lab = 0 And SequenciaG())
+    If seq Then
+        ReDim d(1 To NMAX, 1 To NP)
+        passo = 1
+        qIni = CDate(CDbl(ini) + 0.5 / 24)
+        nTot = 2 * n
+    Else
+        ReDim d(1 To n, 1 To NP)
+        passo = HORAS_SLOT
+        qIni = ini
+        nTot = n
+    End If
+    If lab = 0 Then mContG = 0
     res = d
     If mSemAspen Then Exit Function
     nomeLab = IIf(lab = 0, CfgTxt("bLabA"), CfgTxt("bLabB"))
@@ -356,20 +384,20 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
         Exit Function
     End If
     ' nunca pede ao MES janelas que ainda nao comecaram
-    nJan = n
-    If CDbl(ini) + nJan * HORAS_SLOT / 24 > CDbl(Now) Then
-        nJan = Int((CDbl(Now) - CDbl(ini)) * 24 / HORAS_SLOT) + 1
-        If nJan > n Then nJan = n
+    nJan = nTot
+    If CDbl(qIni) + nJan * passo / 24 > CDbl(Now) Then
+        nJan = Int((CDbl(Now) - CDbl(qIni)) * 24 / passo) + 1
+        If nJan > nTot Then nJan = nTot
     End If
     If nJan < 1 Then
         ConsultarLab = True          ' batch ainda nao chegou a este laboratorio
         Exit Function
     End If
-    fim = CDate(CDbl(ini) + nJan * HORAS_SLOT / 24)
+    fim = CDate(CDbl(qIni) + nJan * passo / 24)
     limite = 120
     If ENumero(Nm("cfgTimeout").Value) Then limite = CDbl(Nm("cfgTimeout").Value)
 
-    GravarPeriodo lab, ini, fim
+    GravarPeriodo lab, qIni, fim
     For rodada = 0 To MAX_RODADAS
         ps = ParamsLab(lab)
         If ps = "" Then Exit For
@@ -385,7 +413,7 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
                   "laboratório físico). Depois feche e abra a planilha.", vbExclamation, "MES"
             Exit Function
         End If
-        estado = Esperar(anc, sai, ini, limite)
+        estado = Esperar(anc, sai, qIni, limite)
         If estado = 3 Then
             ' tag recusada: guarda e consulta de novo sem ela (ou com a variante do codigo)
             If ColetarInvalidas(anc, sai) = 0 Then Exit For
@@ -401,7 +429,7 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
             RestaurarSaida anc, sai, nJan, UBound(Split(ps, ",")) + 2
             anc.Calculate
             sai.Resize(nJan, UBound(Split(ps, ",")) + 2).Calculate
-            e2 = Esperar(anc, sai, ini, limite)
+            e2 = Esperar(anc, sai, qIni, limite)
             If e2 = 1 Or estado = 0 Then estado = e2
             Exit For
         Else
@@ -438,7 +466,9 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
 
     ' le a matriz: 1a coluna = inicio da janela; demais = analises na ordem de ps
     lst = Split(ParamsLab(lab), ",")
-    If estado = 1 Then
+    If estado = 1 And seq Then
+        mContG = LerSequenciaG(sai, qIni, ParamsLab(lab), d)
+    ElseIf estado = 1 Then
         For r = 1 To NMAX + 2
             If Not ComoData(sai.Cells(r, 1).Value, tj, ini) Then Exit For
             s = CLng((CDbl(tj) - CDbl(ini)) * 24 / HORAS_SLOT) + 1
@@ -456,6 +486,114 @@ Private Function ConsultarLab(ByVal lab As Long, ByVal ini As Date, ByVal n As L
     DesligarConsulta anc, sai
     ConsultarLab = True
 End Function
+
+Public Function SequenciaG() As Boolean
+    SequenciaG = (UCase$(Left$(CfgTxt("cfgSeqG"), 1)) <> "N")
+End Function
+
+' Germano em sequencia: cada linha da saida com algum resultado valido vira o proximo bi-horario (1, 2, 3...);
+' linhas sem resultado nao ocupam coluna. Guarda o horario de cada resultado (centro da janela de 1 h) em mTG.
+' Devolve quantos resultados achou.
+Private Function LerSequenciaG(ByVal sai As Range, ByVal qIni As Date, ByVal ps As String, d() As Variant) As Long
+    Dim lst As Variant, r As Long, i As Long, k As Long, v As Variant, x As Double, tj As Date, tem As Boolean
+    Dim vals() As Variant
+    lst = Split(ps, ",")
+    ReDim vals(LBound(lst) To UBound(lst))
+    For r = 1 To LIN_SAIDA
+        If Not ComoData(sai.Cells(r, 1).Value, tj, qIni) Then Exit For
+        tem = False
+        For i = LBound(lst) To UBound(lst)
+            vals(i) = Empty
+            v = sai.Cells(r, 2 + i - LBound(lst)).Value
+            If ComoNumero(v, x) Then
+                If ValorValido(CLng(lst(i)), 0, x) Then
+                    vals(i) = x
+                    tem = True
+                End If
+            End If
+        Next i
+        If tem Then
+            k = k + 1
+            If k <= NMAX Then
+                For i = LBound(lst) To UBound(lst)
+                    If Not IsEmpty(vals(i)) Then d(k, CLng(lst(i))) = vals(i)
+                Next i
+                mTG(k) = CDbl(tj) + 0.5 / 24
+            End If
+        End If
+    Next r
+    LerSequenciaG = k
+End Function
+
+' Usado so na validacao automatica: saida simulada do MES de Germano (batch 295: sem 11:00 e 13:00; 23:00 e
+' 23:59 separados) -> "resultados|SiO2 x 100 do 6o|do 10o|do 11o|hora do 6o"
+Public Function TesteSequenciaG() As String
+    Dim sai As Range, d() As Variant, q As Date, k As Long, n As Long, j As Long, pSi As Long
+    Dim horas As Variant, sio2 As Variant
+    Set sai = shDadosMES.Range(OUT_G)
+    LimparSaida sai
+    pSi = PIndice("SiO2")
+    q = DateSerial(2026, 10, 21) + TimeSerial(0, 30, 0)
+    horas = Array(1, 3, 5, 7, 9, 15, 17, 19, 21, 23, 23.98)
+    sio2 = Array(2.18, 1.78, 1.5, 1.54, 1.68, 1.78, 2.14, 1.95, 2.13, 2.07, 2.02)
+    For k = 0 To 23
+        sai.Cells(k + 1, 1).Value = CDate(CDbl(q) + k / 24)
+    Next k
+    For j = 0 To 10
+        k = Int((horas(j) - 0.5) + 0.000001)          ' janela de 1 h que contem o horario
+        sai.Cells(k + 1, 2).Value = sio2(j)
+    Next j
+    ReDim d(1 To NMAX, 1 To NP)
+    n = LerSequenciaG(sai, q, CStr(pSi), d)
+    TesteSequenciaG = n & "|" & Format$(CDbl(d(6, pSi)) * 100, "0") & "|" & Format$(CDbl(d(10, pSi)) * 100, "0") & "|" & _
+                      Format$(CDbl(d(11, pSi)) * 100, "0") & "|" & Format$(CDate(mTG(6)), "hh:mm")
+    LimparSaida sai
+End Function
+
+' Depois da consulta de Germano em sequencia: horario de cada resultado na coluna de Germano da aba Batch
+' (as colunas alem dos resultados ficam sem horario)
+Private Sub GravarHorariosG(ByVal n As Long)
+    Dim k As Long, c As Range
+    If mContG = 0 Then
+        RestaurarHorariosG                ' sem resultado em sequencia: horarios da grade
+        Exit Sub
+    End If
+    ModoCarga True
+    Desproteger shBatch
+    For k = 1 To NMAX
+        Set c = shBatch.Cells(B_ROW_G0 + k - 1, B_COL_TG)
+        If k <= mContG And k <= n Then
+            c.Value = CDate(mTG(k))
+        Else
+            c.ClearContents
+        End If
+    Next k
+    Proteger shBatch
+    ModoCarga False
+End Sub
+
+' Horarios de Germano voltam a ser calculados pela grade (mesma formula de build_interlab.f_hora_g)
+Public Sub RestaurarHorariosG()
+    Dim i As Long, cu As String
+    For i = 1 To NMAX
+        cu = shBatch.Cells(B_ROW_G0 + i - 1, B_COL_TU).Address(False, False)
+        shBatch.Cells(B_ROW_G0 + i - 1, B_COL_TG).Formula = "=IF(ISNUMBER(" & cu & "),IF(ISNUMBER(gJanG),IF(" & i & _
+            "<=gNG,gJanG+" & (i - 1) & "/12+cfgMinG/1440,"""")," & cu & "),"""")"
+    Next i
+End Sub
+
+' Mais resultados de Germano que bi-horarios: o Nº de horarios do batch passa a ser o Nº de resultados
+Private Sub AjustarNHorG(ByRef nG As Long, ByRef n As Long)
+    If mContG <= nG Then Exit Sub
+    nG = mContG
+    If nG > NMAX Then nG = NMAX
+    If nG > n Then
+        n = nG
+        Desproteger shBatch
+        Nm("bNHor").Value = n
+        Proteger shBatch
+    End If
+End Sub
 
 ' 0 = sem resposta, 1 = resultados prontos, 2 = respondeu sem dados, 3 = tag recusada, 4 = mapa recusado,
 ' 5 = outro erro do Aspen
@@ -524,7 +662,7 @@ End Function
 
 Private Function Assinatura(ByVal anc As Range, ByVal sai As Range) As String
     Dim arr As Variant, i As Long, j As Long, n As Long, soma As Double
-    arr = sai.Resize(NMAX + 1, NP + 1).Value
+    arr = sai.Resize(LIN_SAIDA, NP + 1).Value
     For i = 1 To UBound(arr, 1)
         For j = 1 To UBound(arr, 2)
             If Not Vazio(arr(i, j)) Then
@@ -755,6 +893,7 @@ Public Function ArgumentosLab(ByVal lab As Long, ByVal ps As String, ByVal anc A
         mapas = mapas & m
     Next i
     intervalo = "2h"
+    If lab = 0 And SequenciaG() Then intervalo = "1h"
     If lab = 0 Then
         ci = "Dados_MES!$B$3"
         cf = "Dados_MES!$B$4"
@@ -845,7 +984,7 @@ End Sub
 Private Sub LimparSaida(ByVal sai As Range)
     Dim area As Range, c As Range
     On Error Resume Next
-    Set area = sai.Resize(NMAX + 2, NP + 1)
+    Set area = sai.Resize(LIN_SAIDA, NP + 1)
     For Each c In area.Cells
         If c.HasArray Then c.CurrentArray.ClearContents
     Next c

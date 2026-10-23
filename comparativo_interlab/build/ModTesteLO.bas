@@ -152,7 +152,7 @@ Public Sub TesteLO()
     ' --- MES: formula e tags recusadas
     shConfig.Cells(C_ROW_TAG0 + 1, C_COL_TAG).Value = "TAG-UBU-SE"
     shConfig.Cells(C_ROW_TAG0 + 2 * (pSi - 1) + 1, C_COL_TAG).Value = "TAG-UBU-SIO2"
-    s = ArgumentosLab(1, "1," & pSi, shDadosMES.Range("A40"), shDadosMES.Range("A42"))
+    s = ArgumentosLab(1, "1," & pSi, shDadosMES.Range("A70"), shDadosMES.Range("A72"))
     Ok InStr(s, """TAG-UBU-SE,TAG-UBU-SIO2"",""UBU,UBU"",""IP_MESVALOR,IP_MESVALOR"",Dados_MES!$B$6,Dados_MES!$B$7,""2h""") > 0, _
        "argumentos da consulta Ubu: " & Left$(s, 140)
     s = TesteTagsInvalidas("Error: Tag Name TAG-UBU-SIO2 is invalid")
@@ -308,11 +308,16 @@ Public Sub TesteLO()
     Ok InStr(gUltimaMsg, "não reconheceu a função do MES") > 0 And _
        (Len(gUltimaMsg) - Len(Replace(gUltimaMsg, "não reconheceu a função", ""))) = Len("não reconheceu a função"), _
        "sem Aspen: aviso #NOME? uma vez"
-    Ok Not shDadosMES.Range("A40").HasFormula And Not shDadosMES.Range("A10").HasFormula And _
-       Not shDadosMES.Range("A70").HasFormula, "consulta desligada depois da falha"
+    Ok Not shDadosMES.Range("A70").HasFormula And Not shDadosMES.Range("A10").HasFormula And _
+       Not shDadosMES.Range("A130").HasFormula, "consulta desligada depois da falha"
     Nm("cfgFonte").Value = "SIMULAÇÃO"
 
     Ok Limpo("M4250010000-0004-ABLQ" & vbTab) = "M4250010000-0004-ABLQ", "tag com tabulacao no fim e limpa"
+
+    ' --- Germano em sequencia (como na tela do MES): horario sem resultado nao deixa coluna vazia;
+    '     23:00 e 23:59 ficam separados (antes a janela de 2 h tirava a media dos dois)
+    Ok TesteSequenciaG() = "11|178|207|202|15:00", "Germano em sequencia (" & TesteSequenciaG() & ")"
+    Ok SequenciaG(), "Germano em sequencia ligado por padrao"
 
     ' --- variantes do codigo da tag
     Ok VarianteTag("M4650060010-0008-HHLQU") = "M4650060010-8-HHLQU", "variante -0008- -> -8-"

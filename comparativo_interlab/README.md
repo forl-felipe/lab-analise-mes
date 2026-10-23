@@ -43,6 +43,12 @@ oculta ao sair e ao abrir o arquivo — a senha fica na constante `SENHA_CFG` do
 - Janelas de 2 h: **Ubu** na grade 07:00, 09:00, 11:00… (horário 07:30); **Germano** na grade 00:00, 02:00…, para
   os resultados de Germano (01:00, 03:00…) caírem no meio da janela (horário mostrado 01:00). A 1ª janela é a
   primeira completa depois do início. Grades em Configurações.
+- **Germano em sequência** (Configurações, padrão Sim): como na tela do MES e nos relatórios do laboratório, cada
+  resultado de Germano vira o próximo bi-horário — horário sem resultado no MES **não deixa coluna vazia**. A consulta
+  de Germano usa janelas de **1 h** começando 30 min depois da grade (00:30–01:30 pega o resultado de 01:00), então
+  cada resultado fica separado, inclusive o de fechamento do batch (ex.: 23:00 e 23:59 em colunas próprias; antes a
+  janela de 2 h tirava a média dos dois). O horário real de cada resultado vai para "Origem em Germano". Se houver
+  mais resultados que bi-horários, o Nº de horários do batch passa a ser o Nº de resultados.
 - **Nº de bi-horários = o de Germano** (EB06, do início ao término do bombeamento); Ubu tem os mesmos.
   O bi-horário 1 de Germano é comparado com o 1 de Ubu, e assim por diante. **Horário oficial = Ubu**: a hora de
   Germano aparece só como referência de origem.

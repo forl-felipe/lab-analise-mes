@@ -439,6 +439,9 @@ class Construtor:
             ('cfgMinG', 'Horário de Germano após o início da janela (min)', 60,
              'Janela 00:00-02:00 aparece como 01:00 (horário do resultado em Germano; só referência)'),
             ('cfgCalc', 'Tipo de cálculo do Aspen', '1', '1 = média da janela (como nos relatórios do físico)'),
+            ('cfgSeqG', 'Germano em sequência (sem colunas vazias)', 'Sim',
+             'Sim: cada resultado de Germano no MES vira o próximo bi-horário, como na tela do MES (horário sem '
+             'resultado não deixa coluna vazia). Não: janelas fixas de 2 h'),
             ('cfgFaseG', 'Fase de Germano no evento do MES', 'EB06', 'Linha usada ao colar as Fases do Evento'),
             ('cfgFaseU', 'Fase de Ubu no evento do MES', 'UBU', 'Começo do código (UBU3, UBU1...)'),
         ]
@@ -458,6 +461,8 @@ class Construtor:
             self.cfg_rows[nm] = rr
         ws.data_validation(self.cfg_rows['cfgFonte'], 2, self.cfg_rows['cfgFonte'], 2,
                            {'validate': 'list', 'source': ['MES', 'SIMULAÇÃO']})
+        ws.data_validation(self.cfg_rows['cfgSeqG'], 2, self.cfg_rows['cfgSeqG'], 2,
+                           {'validate': 'list', 'source': ['Sim', 'Não']})
         ws.data_validation(self.cfg_rows['cfgFormatoData'], 2, self.cfg_rows['cfgFormatoData'], 2,
                            {'validate': 'list', 'source': ['Data do Excel', 'Texto dd/mm/aaaa', 'Texto mm/dd/aaaa']})
         self.botao(ws, r + 1, 10, 'Ver consultas (Dados_MES)', 'MostrarDadosMES', 200, 28, 's', x=10)
@@ -1458,8 +1463,8 @@ class Construtor:
         ws.write(7, 3, 'Resposta PFUF', rot)
         ws.write_blank(7, 4, None)
         self.nome('mesRespP', ws, 7, 4)
-        # ancoras: Germano A10 (saida A12), Ubu A40 (saida A42)
-        for lab, anc, out in [('Germano', 9, 11), ('Ubu', 39, 41)]:
+        # ancoras: Germano A10 (saida A12; ate 2 x NMAX janelas de 1 h), Ubu A70 (saida A72), PFUF A130 (saida A132)
+        for lab, anc, out in [('Germano', 9, 11), ('Ubu', 69, 71)]:
             ws.write(anc - 1, 0, 'Consulta %s (a fórmula é escrita pelo botão Buscar no MES)' % lab,
                      self.f(bold=True, font_color=MUTED))
             ws.write(anc, 0, 'Aguardando a primeira consulta', self.f(font_size=8))
@@ -1467,12 +1472,12 @@ class Construtor:
             for p, pr in enumerate(PARAMS):
                 ws.write(anc + 1, 1 + p, pr[1], self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
         # PFUF (composto diario): ancora A70, saida A72
-        ws.write(68, 0, 'Consulta PFUF - composto diário (a fórmula é escrita pelo botão Buscar no MES)',
+        ws.write(128, 0, 'Consulta PFUF - composto diário (a fórmula é escrita pelo botão Buscar no MES)',
                  self.f(bold=True, font_color=MUTED))
-        ws.write(69, 0, 'Aguardando a primeira consulta', self.f(font_size=8))
-        ws.write(70, 0, 'Data/hora', self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
+        ws.write(129, 0, 'Aguardando a primeira consulta', self.f(font_size=8))
+        ws.write(130, 0, 'Data/hora', self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
         for k, pf in enumerate(PFUF):
-            ws.write(70, 1 + k, pf[1], self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
+            ws.write(130, 1 + k, pf[1], self.f(bold=True, bg_color=NAVY2, font_color=BRANCO))
         self.botao(ws, 0, 7, 'Voltar às Configurações', 'OcultarDadosMES', 200, 28, 'n', y=2)
 
     # ------------------------------------------------------------ VBA

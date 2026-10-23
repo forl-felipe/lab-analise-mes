@@ -249,6 +249,7 @@ Public Sub AbrirBatch(ByVal id As Variant)
     ' leituras
     shBatch.Range(shBatch.Cells(B_ROW_G0, B_COL_V1), shBatch.Cells(B_ROW_G0 + NMAX - 1, B_COL_V1 + 2 * NP - 1)).ClearContents
     RestaurarHorarios
+    RestaurarHorariosG
     Recalcular
     For rL = 2 To UltimaLinhaL()
         v = shLeituras.Cells(rL, 1).Value
@@ -259,6 +260,17 @@ Public Sub AbrirBatch(ByVal id As Variant)
                 If i >= 1 And i <= NMAX And p > 0 Then
                     tU = shLeituras.Cells(rL, 3).Value
                     Set c = shBatch.Cells(B_ROW_G0 + i - 1, B_COL_TU)
+                    If EData(tU) Then
+                        prev = c.Value
+                        If Not EData(prev) Then
+                            c.Value = CDate(tU)
+                        ElseIf Abs(CDbl(prev) - CDbl(tU)) > 1 / 1440 Then
+                            c.Value = CDate(tU)
+                        End If
+                    End If
+                    ' horario de Germano gravado (resultados em sequencia)
+                    tU = shLeituras.Cells(rL, 4).Value
+                    Set c = shBatch.Cells(B_ROW_G0 + i - 1, B_COL_TG)
                     If EData(tU) Then
                         prev = c.Value
                         If Not EData(prev) Then
@@ -427,6 +439,7 @@ Public Sub LimparBatch()
     Next i
     shBatch.Range(shBatch.Cells(B_ROW_G0, B_COL_V1), shBatch.Cells(B_ROW_G0 + NMAX - 1, B_COL_V1 + 2 * NP - 1)).ClearContents
     RestaurarHorarios
+    RestaurarHorariosG
     Nm("pSel").MergeArea.ClearContents
     Proteger shBatch
     ModoCarga False
@@ -442,6 +455,7 @@ Public Sub LimparLeituras()
     Desproteger shBatch
     shBatch.Range(shBatch.Cells(B_ROW_G0, B_COL_V1), shBatch.Cells(B_ROW_G0 + NMAX - 1, B_COL_V1 + 2 * NP - 1)).ClearContents
     RestaurarHorarios
+    RestaurarHorariosG
     Proteger shBatch
     ModoCarga False
     gAlterado = True
