@@ -30,10 +30,14 @@ Private Const COR_FUNDO As Long = 16250355        ' #F3F5F7
 Private Const COR_ENTRADA As Long = 14809343      ' #FFF8E1 (celulas para lancar)
 Private Const COR_BRANCO As Long = 16777215
 Private Const COR_DIGITAR As Long = 13431551       ' #FFF2CC amarelo claro: celulas para lancar
+Private Const COR_DOURADO As Long = 37055          ' #BF9000 borda das celulas para lancar
 Private Const COR_OK As Long = 5274634             ' #0A7C50
 Private Const COR_OK_BG As Long = 15529187         ' #E3F4EC
 Private Const COR_NOK As Long = 2631878            ' #C62828
 Private Const COR_NOK_BG As Long = 15132411        ' #FBE6E6
+
+' planilha online aberta por esta macro (fecha depois)
+Private mAbertaAqui As Workbook
 
 Public Function ModoAcomp() As Boolean
     ModoAcomp = (InStr(1, CfgTxt("bModo"), "ACOMP", vbTextCompare) > 0)
@@ -43,23 +47,22 @@ End Function
 ' Modelo fixo com dois blocos: 1 = batch ANTERIOR (em cima), 2 = batch EM PROCESSAMENTO (embaixo).
 ' Buscar no MES so preenche: o batch da aba Batch atualiza o bloco dele; um batch novo (numero maior que o
 ' em processamento) passa o em processamento para anterior (com tudo o que foi lancado) e entra embaixo.
-' Ubu vem SO do que foi lancado no proprio bloco (nunca da aba Batch).
+' Ubu e observacao vem SO do que foi lancado no proprio bloco (nunca da aba Batch).
+' Planilha online (SharePoint, .xlsx sem macros): mesma aba, para o fisico e o quimico lancarem juntos no navegador.
+' Com ela configurada, a busca atualiza a online (que e a que vale para Ubu) e esta aba vira copia dela.
 
 Private Function ChavesAcomp() As String
     ChavesAcomp = ACOMP_Q & "|" & ACOMP_F
-End Function
-
-Private Function NQuim() As Long
-    NQuim = UBound(Split(ACOMP_Q, "|")) + 1
 End Function
 
 Private Function NAnalises() As Long
     NAnalises = UBound(Split(ChavesAcomp(), "|")) + 1
 End Function
 
-' Linhas: Batch, Data, Inicio (Ubu) e 3 por analise (Germano, Alimentacao 04, Diferenca)
+' Linhas: Batch, Data, Inicio (Ubu); por analise Germano, Alimentacao 04, Diferenca e uma linha de folga;
+' no fim, Observacao
 Public Function AlturaBloco() As Long
-    AlturaBloco = 3 + 3 * NAnalises()
+    AlturaBloco = 3 + 4 * NAnalises()
 End Function
 
 ' 1a linha do bloco i (1 = anterior, 2 = em processamento); a linha de cima e o titulo do bloco
@@ -69,28 +72,37 @@ End Function
 
 ' 1a linha (Germano) da analise k do bloco que comeca em r
 Private Function LinhaAnalise(ByVal r As Long, ByVal k As Long) As Long
-    LinhaAnalise = r + 3 + 3 * (k - 1)
+    LinhaAnalise = r + 3 + 4 * (k - 1)
 End Function
 
-' Numero do batch do bloco i (Empty = bloco vazio)
+Private Function LinhaObs(ByVal r As Long) As Long
+    LinhaObs = r + AlturaBloco() - 1
+End Function
+
+' Numero do batch do bloco i da aba Acompanhamento (Empty = bloco vazio)
 Public Function IdBloco(ByVal i As Long) As Variant
+    IdBloco = IdBlocoEm(shAcomp, i)
+End Function
+
+Private Function IdBlocoEm(ByVal ws As Worksheet, ByVal i As Long) As Variant
     Dim v As Variant
-    IdBloco = Empty
-    v = shAcomp.Cells(LinhaBlocoN(i), A_COL_V1).Value
+    IdBlocoEm = Empty
+    v = ws.Cells(LinhaBlocoN(i), A_COL_V1).Value
     ' so celula numerica ("—" do modelo em branco nao e numero)
     If VarType(v) = vbDouble Or VarType(v) = vbLong Or VarType(v) = vbInteger Or VarType(v) = vbCurrency Then
-        IdBloco = CDbl(v)
+        IdBlocoEm = CDbl(v)
     End If
 End Function
 
-' Bloco (1 ou 2) do batch; 0 = nao esta na aba
+' 1a linha do bloco do batch; 0 = nao esta na aba
 Public Function LinhaBloco(ByVal ws As Worksheet, ByVal id As Variant) As Long
-    Dim i As Long
+    Dim i As Long, v As Variant
     LinhaBloco = 0
     If Not ENumero(id) Then Exit Function
     For i = 1 To 2
-        If ENumero(IdBloco(i)) Then
-            If CDbl(IdBloco(i)) = CDbl(id) Then
+        v = IdBlocoEm(ws, i)
+        If ENumero(v) Then
+            If CDbl(v) = CDbl(id) Then
                 LinhaBloco = LinhaBlocoN(i)
                 Exit Function
             End If
@@ -110,33 +122,43 @@ Private Function ColunaMedia(ByVal ws As Worksheet, ByVal r As Long) As Long
     Next c
 End Function
 
-' Le o bloco i: numero de horarios, horarios de Ubu e de Germano, Germano e Ubu por analise
-Private Sub LerBloco(ByVal i As Long, ByRef n As Long, tU() As Variant, tG() As Variant, ger() As Variant, _
-                     ubu() As Variant)
+' Le o bloco i de ws: numero, horarios, horarios de Ubu, Germano e Ubu por analise e a observacao
+Private Sub LerBloco(ByVal ws As Worksheet, ByVal i As Long, ByRef id As Variant, ByRef n As Long, tU() As Variant, _
+                     ger() As Variant, ubu() As Variant, ByRef obs As Variant)
     Dim r As Long, s As Long, k As Long, c As Long
     r = LinhaBlocoN(i)
-    n = ColunaMedia(shAcomp, r) - A_COL_V1
+    id = IdBlocoEm(ws, i)
+    n = ColunaMedia(ws, r) - A_COL_V1
     If n < 0 Then n = 0
     ReDim tU(1 To NMAX)
-    ReDim tG(1 To NMAX)
     ReDim ger(1 To NAnalises(), 1 To NMAX)
     ReDim ubu(1 To NAnalises(), 1 To NMAX)
     For s = 1 To n
         c = A_COL_V1 + s - 1
-        tU(s) = shAcomp.Cells(r + 2, c).Value
+        tU(s) = ws.Cells(r + 2, c).Value
         For k = 1 To NAnalises()
-            ger(k, s) = shAcomp.Cells(LinhaAnalise(r, k), c).Value
-            ubu(k, s) = shAcomp.Cells(LinhaAnalise(r, k) + 1, c).Value
+            ger(k, s) = ws.Cells(LinhaAnalise(r, k), c).Value
+            ubu(k, s) = ws.Cells(LinhaAnalise(r, k) + 1, c).Value
         Next k
     Next s
+    obs = Empty
+    If CStr(ws.Cells(LinhaObs(r), A_COL_ROT).Value) = "Observação" Then obs = ws.Cells(LinhaObs(r), A_COL_V1).Value
+End Sub
+
+' Copia os dois blocos de uma aba para outra (online -> esta, ou esta -> online)
+Private Sub EspelharBlocos(ByVal origem As Worksheet, ByVal destino As Worksheet)
+    Dim i As Long, id As Variant, n As Long, tU() As Variant, ger() As Variant, ubu() As Variant, obs As Variant
+    For i = 1 To 2
+        LerBloco origem, i, id, n, tU, ger, ubu, obs
+        DesenharBloco destino, i, id, n, tU, ger, ubu, obs
+    Next i
 End Sub
 
 ' Monta/atualiza o bloco do batch da aba Batch; devolve uma linha para a mensagem
 Public Function MontarAcompanhamento() As String
-    Dim id As Variant, n As Long, s As Long, k As Long, p As Long, ps As Variant, alvo As Long, msg As String
-    Dim tU() As Variant, tG() As Variant, ger() As Variant, ubu() As Variant, v As Variant
-    Dim nV As Long, vU() As Variant, vG() As Variant, vGer() As Variant, vUbu() As Variant
-    Dim id1 As Variant, id2 As Variant, vazios As String, temG As Boolean
+    Dim id As Variant, n As Long, s As Long, k As Long, p As Long, ps As Variant, msg As String
+    Dim tU() As Variant, tG() As Variant, ger() As Variant, v As Variant, vazios As String, temG As Boolean
+    Dim wbO As Workbook, wsO As Worksheet, msgO As String, r As String
 
     id = Nm("bId").Value
     If Not ENumero(id) Then Exit Function
@@ -150,7 +172,6 @@ Public Function MontarAcompanhamento() As String
     ReDim tU(1 To NMAX)
     ReDim tG(1 To NMAX)
     ReDim ger(1 To NAnalises(), 1 To NMAX)
-    ReDim ubu(1 To NAnalises(), 1 To NMAX)
     For s = 1 To n
         tU(s) = shBatch.Cells(B_ROW_G0 + s - 1, B_COL_TU).Value
         tG(s) = shBatch.Cells(B_ROW_G0 + s - 1, B_COL_TG).Value
@@ -172,44 +193,32 @@ Public Function MontarAcompanhamento() As String
         End If
     Next s
 
-    id1 = IdBloco(1)
-    id2 = IdBloco(2)
-    If ENumero(id2) And CDbl(id2) = id Then
-        alvo = 2
-    ElseIf ENumero(id1) And CDbl(id1) = id Then
-        alvo = 1
-    ElseIf Not ENumero(id2) Then
-        alvo = 2
-    ElseIf id > CDbl(id2) Then
-        ' batch novo: o em processamento passa a anterior, com tudo o que foi lancado
-        LerBloco 2, nV, vU, vG, vGer, vUbu
-        DesenharBloco 1, id2, nV, vU, vG, vGer, vUbu
-        DesenharBloco 2, Empty, 0, vU, vG, vGer, vUbu
-        msg = "Batch " & id2 & " passou para ""batch anterior"". "
-        alvo = 2
-    Else
-        If Aviso("O batch " & id & " é anterior ao em processamento (" & id2 & ")." & vbCrLf & vbCrLf & _
-                 "Colocar o " & id & " como batch anterior" & IIf(ENumero(id1), ", no lugar do " & id1, "") & "?", _
-                 vbQuestion + vbYesNo, "Acompanhamento", 6) <> vbYes Then
-            MontarAcompanhamento = "Aba Acompanhamento não alterada."
-            Exit Function
+    ' planilha online: e la que o fisico e o quimico lancam Ubu; atualiza la e copia para esta aba
+    If CfgTxt("cfgArqOnline") <> "" Then
+        Set wbO = AbrirOnline(msgO)
+        If Not wbO Is Nothing Then
+            Set wsO = AbaOnline(wbO)
+            r = AtualizarBlocos(wsO, id, n, tU, ger)
+            If r <> "CANCELADO" Then
+                wbO.Save
+                EspelharBlocos wsO, shAcomp
+                msgO = "Planilha online atualizada (" & wbO.Name & ")."
+            End If
+            FecharOnline wbO, False
+        Else
+            r = AtualizarBlocos(shAcomp, id, n, tU, ger)
         End If
-        alvo = 1
+    Else
+        r = AtualizarBlocos(shAcomp, id, n, tU, ger)
     End If
-    ' Ubu: so o que ja estava lancado no bloco deste batch (por horario de Ubu; sem horario, pela posicao)
-    If LinhaBloco(shAcomp, id) > 0 Then
-        LerBloco alvo, nV, vU, vG, vGer, vUbu
-        For s = 1 To n
-            For k = 1 To NAnalises()
-                ubu(k, s) = ValorVelho(vU, vUbu, nV, k, s, tU(s))
-            Next k
-        Next s
+    If r = "CANCELADO" Then
+        MontarAcompanhamento = "Aba Acompanhamento não alterada."
+        Exit Function
     End If
-    DesenharBloco alvo, id, n, tU, tG, ger, ubu
     RegistrarAcomp id
     AtualizarUltimos
-    msg = msg & "Aba Acompanhamento: batch " & id & IIf(alvo = 2, " em processamento", " (batch anterior)") & _
-          ", " & n & " horários."
+    msg = r
+    If msgO <> "" Then msg = msg & vbCrLf & msgO
     If Not EData(tU(1)) Then msg = msg & vbCrLf & _
         "Sem os horários de Ubu: informe a chegada em Ubu (UBU3) e o nível dos tanques (ou o início no processo) " & _
         "e busque de novo."
@@ -218,14 +227,62 @@ Public Function MontarAcompanhamento() As String
     MontarAcompanhamento = msg
 End Function
 
-' Desenha o bloco i (id vazio = modelo em branco) com os dados passados
-Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long, tU() As Variant, tG() As Variant, _
-                          ger() As Variant, ubu() As Variant)
-    Dim ws As Worksheet, ps As Variant, h As Long, r As Long, k As Long, s As Long, p As Long, c As Long
-    Dim cM As Long, cT As Long, cS As Long, rr As Long, dec As Long, fmt As String, rg As Range, nomeUbu As String
-    Dim chave As String, cG As String, cU As String, area As Range, aux As Range
+' Coloca o batch nos blocos de ws (anterior / em processamento) com Germano e horarios novos; Ubu e observacao
+' ficam os que ja estavam no bloco do batch. Devolve a mensagem ("CANCELADO" se o usuario desistiu).
+Private Function AtualizarBlocos(ByVal ws As Worksheet, ByVal id As Double, ByVal n As Long, tU() As Variant, _
+                                 ger() As Variant) As String
+    Dim alvo As Long, s As Long, k As Long, msg As String, id1 As Variant, id2 As Variant
+    Dim ubu() As Variant, obs As Variant
+    Dim vId As Variant, nV As Long, vU() As Variant, vGer() As Variant, vUbu() As Variant, vObs As Variant
 
-    Set ws = shAcomp
+    GarantirModeloEm ws
+    ReDim ubu(1 To NAnalises(), 1 To NMAX)
+    id1 = IdBlocoEm(ws, 1)
+    id2 = IdBlocoEm(ws, 2)
+    If ENumero(id2) And CDbl(id2) = id Then
+        alvo = 2
+    ElseIf ENumero(id1) And CDbl(id1) = id Then
+        alvo = 1
+    ElseIf Not ENumero(id2) Then
+        alvo = 2
+    ElseIf id > CDbl(id2) Then
+        ' batch novo: o em processamento passa a anterior, com tudo o que foi lancado
+        LerBloco ws, 2, vId, nV, vU, vGer, vUbu, vObs
+        DesenharBloco ws, 1, vId, nV, vU, vGer, vUbu, vObs
+        DesenharBloco ws, 2, Empty, 0, vU, vGer, vUbu, Empty
+        msg = "Batch " & id2 & " passou para ""batch anterior"". "
+        alvo = 2
+    Else
+        If Aviso("O batch " & id & " é anterior ao em processamento (" & id2 & ")." & vbCrLf & vbCrLf & _
+                 "Colocar o " & id & " como batch anterior" & IIf(ENumero(id1), ", no lugar do " & id1, "") & "?", _
+                 vbQuestion + vbYesNo, "Acompanhamento", 6) <> vbYes Then
+            AtualizarBlocos = "CANCELADO"
+            Exit Function
+        End If
+        alvo = 1
+    End If
+    ' Ubu e observacao: so o que ja estava lancado no bloco deste batch (por horario de Ubu; sem horario, posicao)
+    If LinhaBloco(ws, id) > 0 Then
+        LerBloco ws, alvo, vId, nV, vU, vGer, vUbu, vObs
+        For s = 1 To n
+            For k = 1 To NAnalises()
+                ubu(k, s) = ValorVelho(vU, vUbu, nV, k, s, tU(s))
+            Next k
+        Next s
+        obs = vObs
+    End If
+    DesenharBloco ws, alvo, id, n, tU, ger, ubu, obs
+    AtualizarBlocos = msg & "Aba Acompanhamento: batch " & id & IIf(alvo = 2, " em processamento", " (batch anterior)") & _
+                      ", " & n & " horários."
+End Function
+
+' Desenha o bloco i de ws (id vazio = modelo em branco) com os dados passados
+Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Variant, ByVal n As Long, tU() As Variant, _
+                          ger() As Variant, ubu() As Variant, ByVal obs As Variant)
+    Dim ps As Variant, h As Long, r As Long, k As Long, s As Long, p As Long, c As Long
+    Dim cM As Long, cT As Long, cS As Long, rr As Long, dec As Long, fmt As String, rg As Range, nomeUbu As String
+    Dim chave As String, cG As String, cU As String, area As Range, aux As Range, ro As Long
+
     ps = Split(ChavesAcomp(), "|")
     h = AlturaBloco()
     r = LinhaBlocoN(i)
@@ -241,7 +298,7 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
     cM = A_COL_V1 + n
     cT = cM + 1
     cS = cM + 2
-    ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 17
+    ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 18
     ws.Rows(r).RowHeight = 26
     ws.Rows(r - 1).RowHeight = 22
 
@@ -294,14 +351,9 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
         ws.Cells(r + 1, c).NumberFormat = "dd/mm"
         ws.Cells(r + 2, c).NumberFormat = "hh:mm"
     Next s
-    ' canto da Media/Tol./Status: quando o bloco foi atualizado
     Set rg = ws.Range(ws.Cells(r + 1, cM), ws.Cells(r + 2, cS))
-    Celulas rg, COR_FUNDO, COR_AZUL_TIT, False
+    Celulas rg, COR_BRANCO, COR_AZUL_TIT, False
     rg.Merge
-    If ENumero(id) Then rg.Cells(1, 1).Value = "Atualizado em " & Format$(Now, "dd\/mm hh:mm")
-    rg.Font.Size = 8
-    rg.WrapText = True
-    rg.HorizontalAlignment = -4108
 
     ' analises (quimicas e fisicas juntas): nome | Germano (MES) / Alimentacao 04 (a mao) / Diferenca (Ubu - Germano)
     For k = 1 To NAnalises()
@@ -320,28 +372,35 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
         Rotulo ws.Cells(rr, A_COL_SUB), "Germano", COR_AZUL_MEDIO, COR_BRANCO, True
         Rotulo ws.Cells(rr + 1, A_COL_SUB), ChrW(9998) & " " & nomeUbu, COR_AMARELO, COR_AZUL_PROF, True
         Rotulo ws.Cells(rr + 2, A_COL_SUB), "Diferença", COR_CINZA_CLARO, COR_AZUL_TIT, False
+        Set rg = ws.Range(ws.Cells(rr, cT), ws.Cells(rr + 2, cT))
+        Celulas rg, COR_FUNDO, COR_AZUL_TIT, False
+        rg.Merge
+        ' tolerancia (Configuracoes); na planilha online vai o numero (ela nao depende desta)
+        If ws.Parent Is ThisWorkbook Then
+            rg.Cells(1, 1).Formula = "=padTol_" & chave
+        Else
+            rg.Cells(1, 1).Value = CDbl(Nm("padTol_" & chave).Value)
+        End If
+        rg.NumberFormat = fmt
+        rg.HorizontalAlignment = -4108
+        rg.VerticalAlignment = -4108
         For s = 1 To n
             c = A_COL_V1 + s - 1
-            Celulas ws.Cells(rr, c), COR_BRANCO, COR_AZUL_PROF, True
-            Celulas ws.Cells(rr + 1, c), COR_DIGITAR, COR_AZUL_PROF, True
+            ' MES e calculo: cinza (nao digita); lancamento: amarelo com borda dourada
+            Celulas ws.Cells(rr, c), COR_FUNDO, COR_AZUL_PROF, True
             Celulas ws.Cells(rr + 2, c), COR_FUNDO, COR_AZUL_TIT, False
-            ' celula para lancar: amarela com borda dourada
-            With ws.Cells(rr + 1, c).Borders
-                .LineStyle = 1
-                .Color = COR_AMARELO
-            End With
+            CelulaDigitar ws.Cells(rr + 1, c)
             If ENumero(id) Then
                 If ENumero(ger(k, s)) Then ws.Cells(rr, c).Value = CDbl(ger(k, s))
                 If ENumero(ubu(k, s)) Then ws.Cells(rr + 1, c).Value = CDbl(ubu(k, s))
             End If
-            ws.Cells(rr + 1, c).Locked = False
             cG = ws.Cells(rr, c).Address(False, False)
             cU = ws.Cells(rr + 1, c).Address(False, False)
             ws.Cells(rr + 2, c).Formula = "=IF(AND(ISNUMBER(" & cU & "),ISNUMBER(" & cG & "))," & cU & "-" & cG & ","""")"
             ws.Range(ws.Cells(rr, c), ws.Cells(rr + 2, c)).NumberFormat = fmt
-            ' diferenca do bi-horario fora da tolerancia: vermelho
+            ' diferenca do bi-horario fora da tolerancia (celula Tol. do bloco): vermelho
             Set aux = ws.Cells(rr + 2, A_COL_AUX + s)
-            aux.Formula = ForaTol(ws.Cells(rr + 2, c), dec, chave)
+            aux.Formula = ForaTol(ws.Cells(rr + 2, c), dec, ws.Cells(rr, cT))
             MarcarForaTol ws.Cells(rr + 2, c), aux
         Next s
         ' Media (de todas as leituras), Tol. e Status (media da diferenca x tolerancia)
@@ -356,15 +415,8 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
         Celulas ws.Cells(rr + 2, cM), COR_CINZA_CLARO, COR_AZUL_PROF, True
         ws.Range(ws.Cells(rr, cM), ws.Cells(rr + 2, cM)).NumberFormat = fmt
         Set aux = ws.Cells(rr + 2, A_COL_AUX)
-        aux.Formula = ForaTol(ws.Cells(rr + 2, cM), dec, chave)
+        aux.Formula = ForaTol(ws.Cells(rr + 2, cM), dec, ws.Cells(rr, cT))
         MarcarForaTol ws.Cells(rr + 2, cM), aux
-        Set rg = ws.Range(ws.Cells(rr, cT), ws.Cells(rr + 2, cT))
-        Celulas rg, COR_FUNDO, COR_AZUL_TIT, False
-        rg.Merge
-        rg.Cells(1, 1).Formula = "=padTol_" & chave
-        rg.NumberFormat = fmt
-        rg.HorizontalAlignment = -4108
-        rg.VerticalAlignment = -4108
         Set rg = ws.Range(ws.Cells(rr, cS), ws.Cells(rr + 2, cS))
         Celulas rg, COR_BRANCO, COR_AZUL_TIT, True
         rg.Merge
@@ -374,21 +426,49 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
         rg.HorizontalAlignment = -4108
         rg.VerticalAlignment = -4108
         MarcarStatus rg
-        ' separacao entre analises
-        With ws.Range(ws.Cells(rr + 2, A_COL_ROT), ws.Cells(rr + 2, cS)).Borders(9)
-            .LineStyle = 1
-            .Weight = -4138
-            .Color = COR_AZUL
-        End With
+        ' folga entre as analises
+        If k < NAnalises() Then ws.Rows(rr + 3).RowHeight = 6
     Next k
-    ws.Range(ws.Cells(r + 1, A_COL_V1), ws.Cells(r + h - 1, cM)).HorizontalAlignment = -4108
+    ws.Range(ws.Cells(r + 1, A_COL_V1), ws.Cells(r + h - 2, cM)).HorizontalAlignment = -4108
+
+    ' observacao (para comentar o que ficou fora da tolerancia)
+    ro = LinhaObs(r)
+    ws.Rows(ro).RowHeight = 36
+    Juntar ws.Range(ws.Cells(ro, A_COL_ROT), ws.Cells(ro, A_COL_SUB)), "Observação", COR_AMARELO, COR_AZUL_PROF, True
+    ws.Cells(ro, A_COL_ROT).Value = "Observação"
+    ws.Range(ws.Cells(ro, A_COL_ROT), ws.Cells(ro, A_COL_SUB)).VerticalAlignment = -4108
+    Set rg = ws.Range(ws.Cells(ro, A_COL_V1), ws.Cells(ro, cS))
+    CelulaDigitar rg
+    rg.Merge
+    rg.HorizontalAlignment = -4131
+    rg.VerticalAlignment = -4160
+    rg.WrapText = True
+    rg.Font.Bold = False
+    rg.IndentLevel = 1
+    If ENumero(id) And Not Vazio(obs) Then rg.Cells(1, 1).Value = obs
+    With ws.Range(ws.Cells(ro, A_COL_ROT), ws.Cells(ro, cS)).Borders(9)
+        .LineStyle = 1
+        .Weight = -4138
+        .Color = COR_AZUL
+    End With
     ws.Range(ws.Columns(A_COL_AUX), ws.Columns(A_COL_AUX + NMAX)).Hidden = True
     Proteger ws
 End Sub
 
-Private Function ForaTol(ByVal c As Range, ByVal dec As Long, ByVal chave As String) As String
-    ForaTol = "=AND(ISNUMBER(" & c.Address(False, False) & "),ABS(ROUND(" & c.Address(False, False) & "," & dec & _
-              "))>padTol_" & chave & "+1E-9)"
+' Celula para lancar: amarela, borda dourada, desbloqueada
+Private Sub CelulaDigitar(ByVal rg As Range)
+    Celulas rg, COR_DIGITAR, COR_AZUL_PROF, True
+    On Error Resume Next
+    With rg.Borders
+        .LineStyle = 1
+        .Color = COR_DOURADO
+    End With
+    rg.Locked = False
+End Sub
+
+Private Function ForaTol(ByVal c As Range, ByVal dec As Long, ByVal tol As Range) As String
+    ForaTol = "=AND(ISNUMBER(" & c.Address(False, False) & "),ISNUMBER(" & tol.Address(True, True) & "),ABS(ROUND(" & _
+              c.Address(False, False) & "," & dec & "))>" & tol.Address(True, True) & "+1E-9)"
 End Function
 
 Private Sub Juntar(ByVal rg As Range, ByVal texto As String, ByVal fundo As Long, ByVal cor As Long, _
@@ -414,14 +494,18 @@ End Sub
 
 ' Modelo em branco nos dois blocos (aba nova, ou depois de limpar)
 Public Sub GarantirModeloAcomp()
-    Dim i As Long, vU() As Variant, vG() As Variant, vGer() As Variant, vUbu() As Variant
+    GarantirModeloEm shAcomp
+End Sub
+
+Private Sub GarantirModeloEm(ByVal ws As Worksheet)
+    Dim i As Long, vU() As Variant, vGer() As Variant, vUbu() As Variant
     ReDim vU(1 To NMAX)
-    ReDim vG(1 To NMAX)
     ReDim vGer(1 To NAnalises(), 1 To NMAX)
     ReDim vUbu(1 To NAnalises(), 1 To NMAX)
     For i = 1 To 2
-        If CStr(shAcomp.Cells(LinhaBlocoN(i), A_COL_ROT).Value) <> "Batch" Then
-            DesenharBloco i, Empty, 0, vU, vG, vGer, vUbu
+        If CStr(ws.Cells(LinhaBlocoN(i), A_COL_ROT).Value) <> "Batch" Or _
+           CStr(ws.Cells(LinhaObs(LinhaBlocoN(i)), A_COL_ROT).Value) <> "Observação" Then
+            DesenharBloco ws, i, Empty, 0, vU, vGer, vUbu, Empty
         End If
     Next i
 End Sub
@@ -465,18 +549,6 @@ Private Sub Celulas(ByVal rg As Range, ByVal fundo As Long, ByVal cor As Long, B
     rg.Borders.Color = COR_CINZA_LOGO
 End Sub
 
-Private Sub Faixa(ByVal ws As Worksheet, ByVal r As Long, ByVal cM As Long, ByVal texto As String)
-    Dim rg As Range
-    Set rg = ws.Range(ws.Cells(r, A_COL_ROT), ws.Cells(r, cM))
-    Celulas rg, COR_AMARELO, COR_AZUL_PROF, True
-    rg.Merge
-    rg.Cells(1, 1).Value = texto
-    rg.Font.Size = 8.5
-    rg.HorizontalAlignment = -4131
-    rg.IndentLevel = 1
-    ws.Rows(r).RowHeight = 14
-End Sub
-
 Private Sub LinhaAmarela(ByVal rg As Range)
     On Error Resume Next
     With rg.Borders(9)
@@ -503,16 +575,235 @@ Private Sub MarcarForaTol(ByVal c As Range, ByVal aux As Range)
     fc.Interior.Color = RGB(251, 230, 230)
 End Sub
 
+' ---------------------------------------------------------------- planilha online (SharePoint)
+' Arquivo .xlsx sem macros com a mesma aba Acompanhamento: o fisico e o quimico lancam juntos no navegador
+' (coautoria do SharePoint). Endereco em Configuracoes (cfgArqOnline): link do arquivo no SharePoint ou caminho
+' na pasta sincronizada do OneDrive.
+
+Private Function AbrirOnline(ByRef msg As String, Optional ByVal soLeitura As Boolean = False) As Workbook
+    Dim arq As String, wb As Workbook, nome As String
+    arq = CfgTxt("cfgArqOnline")
+    If arq = "" Then Exit Function
+    nome = Mid$(arq, InStrRev(Replace(arq, "/", "\"), "\") + 1)
+    If InStr(nome, "?") > 0 Then nome = Left$(nome, InStr(nome, "?") - 1)
+    nome = Replace(nome, "%20", " ")                ' link do SharePoint: espacos vem como %20
+    Set mAbertaAqui = Nothing
+    On Error Resume Next
+    Set wb = Workbooks(nome)                       ' ja aberta neste Excel: usa e nao fecha
+    Err.Clear
+    If wb Is Nothing Then
+        Application.StatusBar = "Abrindo a planilha online..."
+        Set wb = Workbooks.Open(arq, 0, soLeitura)      ' sem argumento nomeado (LibreOffice)
+        Application.StatusBar = False
+        If Not wb Is Nothing Then Set mAbertaAqui = wb
+    End If
+    If wb Is Nothing Or Err.Number <> 0 Then
+        msg = "Não consegui abrir a planilha online (" & arq & "): " & Err.Description & _
+              " - atualizado só nesta planilha."
+        Set wb = Nothing
+        Set mAbertaAqui = Nothing
+    End If
+    Set AbrirOnline = wb
+End Function
+
+Private Sub FecharOnline(ByVal wb As Workbook, ByVal salvar As Boolean)
+    On Error Resume Next
+    If salvar Then wb.Save
+    If wb Is mAbertaAqui Then wb.Close SaveChanges:=False     ' so fecha se foi aberta pela macro
+    Set mAbertaAqui = Nothing
+    ThisWorkbook.Activate
+End Sub
+
+' Aba de acompanhamento da planilha online (cria se nao existir)
+Private Function AbaOnline(ByVal wb As Workbook) As Worksheet
+    Dim ws As Worksheet
+    On Error Resume Next
+    Set ws = wb.Worksheets("Acompanhamento")
+    On Error GoTo 0
+    If ws Is Nothing Then
+        Set ws = wb.Worksheets(1)
+        ws.Name = "Acompanhamento"
+    End If
+    PrepararAbaOnline ws
+    Set AbaOnline = ws
+End Function
+
+' Larguras, titulo e congelamento iguais aos da aba Acompanhamento
+Private Sub PrepararAbaOnline(ByVal ws As Worksheet)
+    Dim c As Long
+    On Error Resume Next
+    Desproteger ws
+    ws.Parent.Windows(1).DisplayGridlines = False
+    ws.Columns(1).ColumnWidth = 1.5
+    ws.Columns(A_COL_ROT).ColumnWidth = 9
+    ws.Columns(A_COL_SUB).ColumnWidth = 18
+    For c = A_COL_V1 To A_COL_V1 + NMAX + 3
+        ws.Columns(c).ColumnWidth = 8.4
+    Next c
+    With ws.Range(ws.Cells(2, 2), ws.Cells(2, 17))
+        .UnMerge
+        .ClearContents
+        .Merge
+        .Cells(1, 1).Value = "ACOMPANHAMENTO DO BATCH EM PROCESSAMENTO"
+        .Interior.Color = COR_AZUL
+        .Font.Color = COR_BRANCO
+        .Font.Bold = True
+        .Font.Size = 14
+        .Font.Name = "Segoe UI"
+        .RowHeight = 30
+        .IndentLevel = 1
+    End With
+    LinhaAmarela ws.Range(ws.Cells(2, 2), ws.Cells(2, 17))
+    With ws.Range(ws.Cells(3, 2), ws.Cells(3, 17))
+        .UnMerge
+        .ClearContents
+        .Merge
+        .Cells(1, 1).Value = "Germano vem do MES. " & CfgTxt("padNomeUbuAcomp") & ": lançar a cada 2 h nas células amarelas (" & _
+                 ChrW(9998) & "). Em cima o batch anterior, embaixo o em processamento."
+        .Interior.Color = COR_AZUL_MEDIO
+        .Font.Color = COR_BRANCO
+        .Font.Bold = True
+        .Font.Size = 9.5
+        .Font.Name = "Segoe UI"
+        .IndentLevel = 1
+    End With
+End Sub
+
+' Cria (ou refaz) a planilha online a partir desta aba. Se ela ja existe, traz antes o que foi lancado nela.
+Public Sub GerarPlanilhaOnline()
+    Dim arq As Variant, wb As Workbook, ws As Worksheet, msg As String, nova As Boolean
+    arq = CfgTxt("cfgArqOnline")
+    If arq <> "" Then
+        If Aviso("Atualizar a planilha online com os blocos desta aba?" & vbCrLf & vbCrLf & CStr(arq) & vbCrLf & vbCrLf & _
+                 "(o que já foi lançado nela é mantido)", vbQuestion + vbYesNo, "Planilha online", 6) <> vbYes Then Exit Sub
+        Set wb = AbrirOnline(msg)
+        If wb Is Nothing Then
+            Aviso msg & vbCrLf & vbCrLf & "Confira o endereço na aba Configurações.", vbExclamation, "Planilha online"
+            Exit Sub
+        End If
+        Set ws = AbaOnline(wb)
+        ' o que foi lancado online vale: traz para ca antes
+        GarantirModeloEm ws
+        MesclarLancamentos ws, shAcomp
+        EspelharBlocos shAcomp, ws
+        Proteger ws
+        FecharOnline wb, True
+        Aviso "Planilha online atualizada: " & CStr(arq), vbInformation, "Planilha online"
+        Exit Sub
+    End If
+    arq = Application.GetSaveAsFilename(InitialFileName:="Acompanhamento Germano x Ubu.xlsx", _
+                                        FileFilter:="Pasta de Trabalho do Excel (*.xlsx),*.xlsx", _
+                                        Title:="Salvar a planilha online (pasta do SharePoint sincronizada)")
+    If VarType(arq) = vbBoolean Then Exit Sub
+    If Not CriarPlanilhaOnline(CStr(arq)) Then
+        Aviso "Não foi possível criar a planilha online em " & CStr(arq) & ".", vbExclamation, "Planilha online"
+        Exit Sub
+    End If
+    GuardarEnderecoOnline CStr(arq)
+    Aviso "Planilha online criada: " & CStr(arq) & vbCrLf & vbCrLf & _
+          "Se a pasta não for a do SharePoint sincronizada, envie o arquivo para o SharePoint e cole o link dele em " & _
+          "Configurações > Planilha de acompanhamento online. A partir daí o Buscar no MES (acompanhamento) " & _
+          "atualiza a online e o físico e o químico lançam lá, juntos, pelo navegador.", vbInformation, "Planilha online"
+End Sub
+
+' Cria o arquivo .xlsx com a aba de acompanhamento (copia dos blocos desta aba)
+Public Function CriarPlanilhaOnline(ByVal arq As String) As Boolean
+    Dim wb As Workbook, ws As Worksheet
+    On Error GoTo Falha
+    Application.DisplayAlerts = False
+    Set wb = Workbooks.Add
+    Do While wb.Worksheets.Count > 1
+        wb.Worksheets(wb.Worksheets.Count).Delete
+    Loop
+    Set ws = AbaOnline(wb)
+    EspelharBlocos shAcomp, ws
+    ws.Activate
+    ws.Cells(A_ROW0, 4).Select
+    ActiveWindow.FreezePanes = False
+    ActiveWindow.FreezePanes = True
+    Proteger ws
+    wb.SaveAs Filename:=arq, FileFormat:=51
+    wb.Close SaveChanges:=False
+    Application.DisplayAlerts = True
+    ThisWorkbook.Activate
+    CriarPlanilhaOnline = True
+    Exit Function
+Falha:
+    Application.DisplayAlerts = True
+    On Error Resume Next
+    If Not wb Is Nothing Then wb.Close SaveChanges:=False
+End Function
+
+Private Sub GuardarEnderecoOnline(ByVal arq As String)
+    On Error Resume Next
+    Desproteger shConfig
+    Nm("cfgArqOnline").Value = "'" & arq
+    Proteger shConfig
+End Sub
+
+' Ubu e observacao lancados na online passam para esta aba (bloco do mesmo batch)
+Private Sub MesclarLancamentos(ByVal origem As Worksheet, ByVal destino As Worksheet)
+    Dim i As Long, j As Long, id As Variant, n As Long, tU() As Variant, ger() As Variant, ubu() As Variant
+    Dim obs As Variant, dId As Variant, dn As Long, dU() As Variant, dGer() As Variant, dUbu() As Variant
+    Dim dObs As Variant, s As Long, k As Long, v As Variant
+    For i = 1 To 2
+        LerBloco origem, i, id, n, tU, ger, ubu, obs
+        If ENumero(id) Then
+            For j = 1 To 2
+                LerBloco destino, j, dId, dn, dU, dGer, dUbu, dObs
+                If ENumero(dId) Then
+                    If CDbl(dId) = CDbl(id) Then
+                        For s = 1 To dn
+                            For k = 1 To NAnalises()
+                                v = ValorVelho(tU, ubu, n, k, s, dU(s))
+                                If ENumero(v) Then dUbu(k, s) = v
+                            Next k
+                        Next s
+                        If Not Vazio(obs) Then dObs = obs
+                        DesenharBloco destino, j, dId, dn, dU, dGer, dUbu, dObs
+                    End If
+                End If
+            Next j
+        End If
+    Next i
+End Sub
+
+' Botao: traz para esta aba o que foi lancado na planilha online
+Public Sub TrazerDoOnline()
+    Dim wb As Workbook, msg As String
+    If CfgTxt("cfgArqOnline") = "" Then
+        Aviso "Nenhuma planilha online configurada (botão Gerar planilha online).", vbInformation, "Planilha online"
+        Exit Sub
+    End If
+    Set wb = AbrirOnline(msg, True)
+    If wb Is Nothing Then
+        Aviso msg, vbExclamation, "Planilha online"
+        Exit Sub
+    End If
+    EspelharBlocos AbaOnline(wb), shAcomp
+    FecharOnline wb, False
+    Aviso "Lançamentos da planilha online trazidos para a aba Acompanhamento.", vbInformation, "Planilha online"
+End Sub
+
 ' ---------------------------------------------------------------- copiar (e-mail do turno)
 ' Copia como imagem o bloco onde esta a celula selecionada (fora dos blocos: o batch em processamento)
 Public Sub CopiarAcompanhamento()
-    Dim i As Long, r As Long, cM As Long, area As Range, id As Variant
+    Dim i As Long, r As Long, cM As Long, area As Range, id As Variant, wb As Workbook, msg As String
     i = 2
     On Error Resume Next
     If ActiveSheet Is shAcomp Then
         If ActiveCell.Row < LinhaBlocoN(2) - 1 Then i = 1
     End If
     On Error GoTo 0
+    ' com planilha online: copia com o que foi lancado la
+    If CfgTxt("cfgArqOnline") <> "" Then
+        Set wb = AbrirOnline(msg, True)
+        If Not wb Is Nothing Then
+            EspelharBlocos AbaOnline(wb), shAcomp
+            FecharOnline wb, False
+        End If
+        shAcomp.Activate
+    End If
     r = LinhaBlocoN(i)
     id = IdBloco(i)
     If Not ENumero(id) Then

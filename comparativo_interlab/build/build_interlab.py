@@ -443,6 +443,9 @@ class Construtor:
              'Sim: cada resultado de Germano no MES vira o próximo bi-horário, como na tela do MES (horário sem '
              'resultado não deixa coluna vazia). Não: janelas fixas de 2 h'),
             ('cfgFaseG', 'Fase de Germano no evento do MES', 'EB06', 'Linha usada ao colar as Fases do Evento'),
+            ('cfgArqOnline', 'Planilha de acompanhamento online', '',
+             'Link do arquivo .xlsx no SharePoint (ou caminho na pasta sincronizada). Preenchido pelo botão Gerar '
+             'planilha online da aba Acompanhamento. Em branco = só esta planilha'),
             ('cfgFaseU', 'Fase de Ubu no evento do MES', 'UBU', 'Começo do código (UBU3, UBU1...)'),
         ]
         self.cfg_rows = {}
@@ -1299,8 +1302,11 @@ class Construtor:
         ws.write_formula(2, 1, '="Germano vem do MES (aba Batch, tipo da busca = Acompanhamento). "&padNomeUbuAcomp&'
                                '": lançar a cada 2 h nas células amarelas (✎). Em cima o batch anterior, embaixo o em processamento."',
                          self.f(font_size=9.5, bold=True, font_color=BRANCO, bg_color=NAVY2, indent=1))
-        self.botao(ws, 1, 13, 'Copiar acompanhamento', 'CopiarAcompanhamento', 190, 30, 'a', x=0, y=6)
-        self.botao(ws, 1, 16, '← Batch', 'IrBatch', 90, 30, 's', x=4, y=6)
+        # botoes na faixa do titulo (mesma ancora, deslocados em pixels)
+        self.botao(ws, 1, 8, 'Copiar acompanhamento', 'CopiarAcompanhamento', 170, 30, 'a', x=0, y=6)
+        self.botao(ws, 1, 8, 'Gerar planilha online', 'GerarPlanilhaOnline', 160, 30, 'p', x=178, y=6)
+        self.botao(ws, 1, 8, 'Trazer do online', 'TrazerDoOnline', 130, 30, 's', x=346, y=6)
+        self.botao(ws, 1, 8, '← Batch', 'IrBatch', 70, 30, 's', x=484, y=6)
         ws.freeze_panes(A_ROW0, 3)
         # os dois blocos (batch anterior e em processamento) sao desenhados pelo VBA ao abrir o arquivo
         ws.protect('', {'format_columns': True, 'format_rows': True})

@@ -247,7 +247,7 @@ Public Sub TesteLO()
     Ok CStr(shAcomp.Cells(rb + 4, 3).Value) = ChrW(9998) & " Alimentação 04", "rotulo Alimentacao 04 (para lancar)"
     Ok ENumero(shAcomp.Cells(rb + 3, 4).Value), "SiO2 Germano no bloco"
     Ok Not ENumero(shAcomp.Cells(rb + 4, 4).Value), "Ubu de outro batch (aba Batch) nao entra no bloco"
-    kSE = rb + 3 + 3 * 3
+    kSE = rb + 3 + 4 * 3
     Ok CStr(shAcomp.Cells(kSE, 2).Value) = PRotulo(PIndice("SE")) And ENumero(shAcomp.Cells(kSE, 4).Value), _
        "S.E. no mesmo bloco (fisico)"
     Ok Abs(CDbl(shAcomp.Cells(rb + 2, 4).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value)) < 0.0001, _
@@ -275,6 +275,8 @@ Public Sub TesteLO()
     shAcomp.Calculate
     Ok ENumero(shAcomp.Cells(rb + 4, 4 + n).Value), "media de Ubu"
     ubu = CDbl(shAcomp.Cells(rb + 4, 4).Value)
+    Ok CStr(shAcomp.Cells(rb + AlturaBloco() - 1, 2).Value) = "Observação", "linha de observacao no fim do bloco"
+    shAcomp.Cells(rb + AlturaBloco() - 1, 4).Value = "SiO2 acima na 1a leitura"
     BuscarMES
     rb = LinhaBloco(shAcomp, 295)
     Ok rb = LinhaBlocoN(2) And Abs(CDbl(shAcomp.Cells(rb + 4, 4).Value) - ubu) < 0.0001, "Ubu lancado fica depois de buscar de novo"
@@ -295,6 +297,8 @@ Public Sub TesteLO()
     rb2 = LinhaBloco(shAcomp, 295)
     Ok rb = LinhaBlocoN(2) And rb2 = LinhaBlocoN(1), "295 anterior em cima, 296 em processamento embaixo (" & rb2 & ", " & rb & ")"
     Ok Abs(CDbl(shAcomp.Cells(rb2 + 4, 4).Value) - ubu) < 0.0001, "Ubu do 295 vai junto para o bloco anterior"
+    Ok CStr(shAcomp.Cells(rb2 + AlturaBloco() - 1, 4).Value) = "SiO2 acima na 1a leitura", "observacao vai junto com o bloco"
+    Ok Vazio(shAcomp.Cells(rb + AlturaBloco() - 1, 4).Value), "296 sem observacao"
     Ok Not ENumero(shAcomp.Cells(rb + 4, 4).Value), "296 sem Ubu (nao repete o do 295)"
     Ok ENumero(shAcomp.Cells(rb2 + 3, 4).Value) And ENumero(shAcomp.Cells(rb + 3, 4).Value), "Germano nos dois blocos"
     ' 297: 296 vira anterior e o 295 sai da aba
