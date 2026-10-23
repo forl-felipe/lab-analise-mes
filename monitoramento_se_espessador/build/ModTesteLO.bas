@@ -1,0 +1,144 @@
+Option Explicit
+
+' Teste automatico (LibreOffice headless): grava o resultado em _Graf (nome gTeste; texto, linhas separadas por |)
+Private mLog As String
+Private mFalhas As Long
+
+Private Sub Ok(ByVal cond As Boolean, ByVal desc As String)
+    If cond Then
+        mLog = mLog & "OK   " & desc & "|"
+    Else
+        mLog = mLog & "FALHA " & desc & "|"
+        mFalhas = mFalhas + 1
+    End If
+End Sub
+
+Private Function H(ByVal r As Long, ByVal c As Long) As Variant
+    H = shHist.Cells(r, c).Value
+End Function
+
+Private Function Perto(ByVal v As Variant, ByVal alvo As Double, ByVal tol As Double) As Boolean
+    If ENumero(v) Then Perto = (Abs(CDbl(v) - alvo) <= tol)
+End Function
+
+Private Sub Data(ByVal d As Date)
+    Desproteger shDia
+    Nm("dData").Value = d
+    Proteger shDia
+    CarregarDia
+End Sub
+
+Public Sub TesteLO()
+    Dim r As Long, r2 As Long, r3 As Long, s As String, tj As Date, xx As Double, k As Long
+    On Error GoTo Erro
+    gSilencioso = True
+    gTesteLO = True
+    mLog = ""
+    mFalhas = 0
+    Recalcular
+
+    ' --- base importada da planilha antiga (exemplo do Word: 18/08/2026)
+    r = LinhaHist(DateSerial(2026, 8, 18))
+    Ok r > 0, "18/08/2026 no histórico importado (linha " & r & ")"
+    Ok H(r, H_COL_EB6) = 2184 And H(r, H_COL_CONCC3) = 23979 And H(r, H_COL_CONCC2) = 19601, _
+       "18/08: EB6 2184, conc C3 23979, conc C2 19601"
+    Ok Perto(H(r, H_COL_ESPP), 2266.07, 0.01), "18/08: ESP C2+C3 ponderada 2266,07 (" & H(r, H_COL_ESPP) & ")"
+    Ok Perto(H(r, H_COL_EB4P), 2155.21, 0.01), "18/08: EB4+ESP C3 ponderada 2155,21 (" & H(r, H_COL_EB4P) & ")"
+    Ok Perto(H(r, H_COL_DIFK), -82.07, 0.01) And Perto(H(r, H_COL_DIFJ), 28.79, 0.01), "18/08: diferenças -82,07 e +28,79"
+    Ok Perto(H(r, H_COL_PCTLAMA), 0, 0.000001), "18/08: % lama 0"
+    r = LinhaHist(DateSerial(2026, 10, 14))
+    Ok H(r, H_COL_LAMAC3) = 412 And H(r, H_COL_LAMAC2) = 50 And H(r, H_COL_LAMA) = 462, "14/10: lama 412 + 50 = 462"
+    Ok Perto(H(r, H_COL_PCTLAMA), 462 / (16694 + 21216), 0.0000001), "14/10: % lama " & H(r, H_COL_PCTLAMA)
+    Ok UltimoDiaHist() = CLng(DateSerial(2026, 10, 15)), "último dia do histórico 15/10/2026"
+
+    ' --- Report: 15 dias até 15/10
+    Ok DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 15)) And DiasReport() = 15, "Report abre em 15/10, 15 dias"
+    Ok DiaDe(shGraf.Cells(2, 1).Value) = CLng(DateSerial(2026, 10, 1)), "1º dia dos gráficos 01/10"
+    Ok CStr(shGraf.Cells(2, 2).Value) = "01/10", "rótulo 01/10 (" & shGraf.Cells(2, 2).Value & ")"
+    Ok Nm("gUlt_eb6").Value = 2210 And Nm("gN_eb6").Value = 15, "último EB6 2210 e 15 dias com valor"
+    Ok Perto(Nm("gMed_difK").Value, Application.WorksheetFunction.Average(shGraf.Range("E2:E16")), 0.001), _
+       "média do período da diferença (" & Nm("gMed_difK").Value & ")"
+    Ok InStr(shGraf.Cells(17, 4).Text, "#N") = 1, "16º dia fora do período = #N/D (" & shGraf.Cells(17, 4).Text & ")"
+
+    ' --- leitura da saida do MES (janela E) e tags
+    Ok TesteLeitura() = "23000|23|2011|12", "leitura da janela E: soma 23000 (23 h), média 2011 (12 resultados): " & TesteLeitura()
+    Ok VarianteTag("M0239010000-0596-HHCC") = "M0239010000-596-HHCC", "variante de tag -0596- -> -596-"
+    s = TesteTagsInvalidas("Erro: Tag Name M0239010000-0596-HHCC is invalid")
+    Ok s = "|M0239010000-596-HHCC", "tag recusada: a consulta passa a usar a variante (" & s & ")"
+    Ok TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_MESVALOR is invalid") = "1|IP_AnalogMap|IP_MESVALOR", _
+       "mapa recusado: troca só a tag recusada"
+    Ok ComoData("12/10/2026 15:00:00", tj) And Abs(CDbl(tj) - CDbl(DateSerial(2026, 10, 12) + TimeSerial(15, 0, 0))) < 0.0001, _
+       "data do Aspen em texto"
+    Ok ComoNumero("2052.0", xx) And Abs(xx - 2052) < 0.0001, "número em texto 2052.0"
+    Ok Not ComoNumero("Tag Name X is invalid", xx), "texto de erro não é número"
+
+    ' --- simulacao: dia novo, buscar, salvar
+    Desproteger shConfig
+    Nm("cfgFonte").Value = "SIMULAÇÃO"
+    Proteger shConfig
+    Data DateSerial(2026, 10, 16)
+    Ok Vazio(Nm("d_eb6").Value) And Nm("d_fator").Value = 160, "dia novo 16/10: em branco, fator 160 do dia anterior"
+    gUltimaMsg = ""
+    BuscarMES
+    Ok ENumero(Nm("d_eb6").Value) And ENumero(Nm("d_prodC2").Value) And ENumero(Nm("d_concC2").Value), _
+       "Buscar no MES (simulação) preenche EB6, produção e concentrado"
+    k = IIndice("tk01")
+    Ok Vazio(Nm("d_tk01").Value) And shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).Value = "sem tag: lançar à mão", _
+       "TK 01 sem tag: lançar à mão"
+    Ok shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_NRES).Value = 13, "EB6: 13 resultados no dia"
+    Ok InStr(gUltimaMsg, "11 de 12") > 0 Or InStr(gUltimaMsg, "10 de 10") > 0, "mensagem da busca: " & Left$(gUltimaMsg, 120)
+    Desproteger shDia
+    Nm("d_tk01").Value = 2111
+    Nm("d_obs").Value = "teste"
+    Proteger shDia
+    SalvarDia
+    r = LinhaHist(DateSerial(2026, 10, 16))
+    Ok r = LinhaHist(DateSerial(2026, 10, 15)) + 1, "16/10 salvo logo depois de 15/10 (linha " & r & ")"
+    Ok H(r, H_COL_TK01) = 2111 And H(r, H_COL_ORIGEM) = "MES" And H(r, H_COL_OBS) = "teste" And H(r, H_COL_FATOR) = 160, _
+       "16/10: TK 01, origem, observação e fator gravados"
+    Ok Perto(H(r, H_COL_ESPP), (H(r, H_COL_ESPC3) * H(r, H_COL_PRODC3) + H(r, H_COL_ESPC2) * H(r, H_COL_PRODC2)) / _
+       (H(r, H_COL_PRODC3) + H(r, H_COL_PRODC2)), 0.001), "16/10: ponderada calculada na linha nova"
+    Ok DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 16)), "Report avança para 16/10"
+    Ok Nm("gUlt_eb6").Value = H(r, H_COL_EB6), "último dia do Report = 16/10"
+
+    ' --- fora de ordem: 20/10 antes de 18/10
+    Data DateSerial(2026, 10, 20)
+    BuscarMES
+    SalvarDia
+    Data DateSerial(2026, 10, 18)
+    BuscarMES
+    SalvarDia
+    r2 = LinhaHist(DateSerial(2026, 10, 18))
+    r3 = LinhaHist(DateSerial(2026, 10, 20))
+    Ok r2 > 0 And r3 = r2 + 1, "histórico em ordem: 18/10 antes de 20/10 (" & r2 & ", " & r3 & ")"
+    Ok Perto(H(r3, H_COL_DIFK), H(r3, H_COL_EB6) - H(r3, H_COL_ESPP), 0.001), "20/10: diferença da própria linha depois de ordenar"
+    ' salvar de novo o mesmo dia nao duplica
+    SalvarDia
+    Ok LinhaHist(DateSerial(2026, 10, 18)) = r2 And Vazio(H(r3 + 1, H_COL_DATA)), "salvar de novo não duplica o dia"
+
+    ' --- periodo: 17 a 19/10, mantendo o TK 01 lancado a mao em 18/10
+    shHist.Cells(r2, H_COL_TK01).Value = 2222
+    shHist.Cells(r2, H_COL_FATOR).Value = 170
+    Desproteger shDia
+    Nm("dDe").Value = DateSerial(2026, 10, 17)
+    Nm("dAte").Value = DateSerial(2026, 10, 19)
+    Proteger shDia
+    BuscarPeriodo
+    Ok LinhaHist(DateSerial(2026, 10, 17)) = LinhaHist(DateSerial(2026, 10, 16)) + 1 And _
+       LinhaHist(DateSerial(2026, 10, 19)) = LinhaHist(DateSerial(2026, 10, 20)) - 1, "período 17 a 19/10 salvo e em ordem"
+    r2 = LinhaHist(DateSerial(2026, 10, 18))
+    Ok H(r2, H_COL_TK01) = 2222 And H(r2, H_COL_FATOR) = 170, "período mantém TK 01 e fator lançados à mão"
+    Ok H(LinhaHist(DateSerial(2026, 10, 19)), H_COL_FATOR) = 170, "19/10 repete o fator do dia anterior (170)"
+    Ok InStr(gUltimaMsg, "3 de 3") > 0, "mensagem do período: 3 de 3 dias"
+    Data DateSerial(2026, 10, 18)
+    Ok Nm("d_tk01").Value = 2222 And shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_SIT).Value = "do histórico", _
+       "trocar a data abre o dia do histórico"
+    Ok Perto(Nm("_difK").Value, Nm("d_eb6").Value - Nm("_espP").Value, 0.001), "resultado do dia na aba Dia"
+
+    GoTo Fim
+Erro:
+    mLog = mLog & "ERRO " & Err.Number & " " & Err.Description & "|"
+    mFalhas = mFalhas + 1
+Fim:
+    Nm("gTeste").Value = "'" & IIf(mFalhas = 0, "TUDO OK", mFalhas & " FALHA(S)") & "|" & mLog
+End Sub
