@@ -1,0 +1,20 @@
+coluna_planilha;campo;tela_MES;receita_MES;item_na_tela;janela;agregacao;fase_item;tag;status_tag;conferencia_18_08_2026
+A;Data do report;-;-;-;dia D;-;-;-;-;18/08/2026
+B;Produção C3 (t);Dados Horários (VIEW_RECVIEW_GER_HH_02);15-G2-HH INDICES PRODUCAO;Ritmo Produção Concentrador III;D-1 23:00 a D 21:00;soma (a confirmar);-;(sem tag; hipótese M4239010000-0596-HHCC);FALTA;26983
+C;Produção C2 (t);Dados Horários (VIEW_RECVIEW_GER_HH_02);15-G2-HH INDICES PRODUCAO;Ritmo Produção Concentrador II;D-1 23:00 a D 21:00;soma (a confirmar);239010000-596-HH-CC;M0239010000-0596-HHCC;na lista;18006
+D;Média ESP C3 (S.E.);Dados Horários (VIEW_RECVIEW_GER_HH_03);40-G3-HH ALIMENTACAO ESPESSADO;SE;D-1 23:00 a D 21:00 (caderno não diz; assumido igual ao C2);média;4238010000-2888-HH-LQ;M4238010000-2888-HHLQ;na lista (item 2888 ≠ 17 do C2: conferir);2146
+E;Média ESP C2 (S.E.);Dados Horários (VIEW_RECVIEW_GER_HH_02);40-G2-HH ALIMENTACAO ESPESSADO;SE;D-1 23:00 a D 21:00;média;238010000-17-HH-LQ;M0238010000-0017-HHLQ;na lista;2446
+G;Média Batch EB4 (S.E.);Dados Horários (VIEW_RECVIEW_GER_HH_02);50-G2-HH AMOSTRAGEM BATCH;SE;D 00:00 a D 23:59;média de todos os resultados;-;M250010000-17-ABLQ (do projeto do batch, Mineroduto 2);fora da lista - confirmar;2169
+I;Média Batch EB6 (S.E.);Dados Horários (VIEW_RECVIEW_GER_HH_03);50-G3-HH AMOSTRAGEM BATCH;SE;D 00:00 a D 23:59;média de todos os resultados (13 no dia, inclui 23:59);-;M4250010000-0017-ABLQ (do projeto do batch, Mineroduto 3);fora da lista - já validada no batch;2184 (MES: 2184,08)
+L;TK 01 - EB6 (S.E.);?;?;?;D 00:00 a D 23:59;média;-;-;FALTA;2069
+M;TK 02 - EB6 (S.E.);?;?;?;D 00:00 a D 23:59;média;-;-;FALTA;2065
+N;Fator;manual;-;-;-;-;-;-;não vem do MES;160
+O (parte C3);Lama incorporada C3 (tms);Importações DVR (VIEW_RECVIEW_DVR);BOLETIM DVR;Lama incorporada no concentrado (tms);D 00:00 a D 23:59 (valor das 23:59);valor do dia;4239000000-781-DD-DVR;M4239000000-0781-DDDVR;na lista (C3 presumido);0
+O (parte C2);Lama incorporada C2 (tms);Word: Importações DVR / caderno: Dados Horários;Word: 00-G2-DD BALANCO DVR · caderno: 25-G2-HH LAMA (USINA);Lama incorporada no concentrado (tms);D 00:00 a D 23:59;valor do dia;239000000-781-DD-DVR;M0239000000-0781-DDDVR;DIVERGÊNCIA de fonte (Word × caderno);0
+P;Concentrado C3 (tms);Importações DVR (VIEW_RECVIEW_DVR);BOLETIM DVR;Beneficiamento - Concentrado C3 (tms);D 00:00 a D 23:59;valor do dia;?;(candidata M4239010000-1445-DDDVRCC "Concen C3 transf Mineroduto 3");FALTA confirmar;23979
+Q;Concentrado C2 (tms);Importações DVR (VIEW_RECVIEW_DVR);BOLETIM DVR;Esp. Conc DVR (tms);D 00:00 a D 23:59;valor do dia;238010000-1445-DD-DVR;M0238010000-1445-DDDVR;na lista (há também M4238010000-1445-DDDVR: conferir qual é a do boletim);19601
+F;Média ESP C2+C3 ponderada;calculado;-;-;-;(D·B + E·C)/(B+C);-;-;-;2266,07
+H;Média Batch EB4 + ESP C3 ponderada;calculado;-;-;-;(G·C + D·B)/(B+C);-;-;-;2155,21
+J;Diferença EB6 − (EB4 + ESP C3);calculado;-;-;-;I − H;-;-;-;28,79
+K;Diferença EB6 − (ESP C2 + C3);calculado;-;-;-;I − F;-;-;-;-82,07
+R;% lama;calculado;-;-;-;O/(P+Q);-;-;-;0
