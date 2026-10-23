@@ -266,6 +266,10 @@ End Sub
 Public Sub Desproteger(ByVal ws As Worksheet)
     On Error Resume Next
     ws.Unprotect Password:=SenhaAba(ws)
+    If ws.ProtectContents Then
+        Err.Clear
+        ws.Unprotect SenhaAba(ws)        ' sem argumento nomeado (LibreOffice)
+    End If
 End Sub
 
 ' Configuracoes tem senha propria (SENHA_CFG); as demais abas, SENHA

@@ -10,9 +10,12 @@ Option Explicit
 
 ' Coluna auxiliar (oculta) com o teste de tolerancia da media: a formatacao condicional so aponta para ela
 ' (formula de formatacao condicional e escrita no idioma do Excel; referencia simples funciona em todos)
-Private Const A_COL_AUX As Long = 30
+Private Const A_COL_AUX As Long = 40
+' colunas do bloco: B = analise (ou "Batch"/"Data"...), C = Germano / Alimentacao 04 / Diferenca, D... = bi-horarios,
+' depois Media, Tol. e Status
 Private Const A_COL_ROT As Long = 2
-Private Const A_COL_V1 As Long = 3
+Private Const A_COL_SUB As Long = 3
+Private Const A_COL_V1 As Long = 4
 ' Paleta Samarco (kit visual): RGB() da cor
 Private Const COR_AZUL As Long = 5911296          ' #00335A Azul Samarco
 Private Const COR_AZUL_MEDIO As Long = 7356416    ' #004070 Azul medio
@@ -26,6 +29,11 @@ Private Const COR_CINZA_CLARO As Long = 15262684  ' #DCE3E8
 Private Const COR_FUNDO As Long = 16250355        ' #F3F5F7
 Private Const COR_ENTRADA As Long = 14809343      ' #FFF8E1 (celulas para lancar)
 Private Const COR_BRANCO As Long = 16777215
+Private Const COR_DIGITAR As Long = 13431551       ' #FFF2CC amarelo claro: celulas para lancar
+Private Const COR_OK As Long = 5274634             ' #0A7C50
+Private Const COR_OK_BG As Long = 15529187         ' #E3F4EC
+Private Const COR_NOK As Long = 2631878            ' #C62828
+Private Const COR_NOK_BG As Long = 15132411        ' #FBE6E6
 
 Public Function ModoAcomp() As Boolean
     ModoAcomp = (InStr(1, CfgTxt("bModo"), "ACOMP", vbTextCompare) > 0)
@@ -49,10 +57,9 @@ Private Function NAnalises() As Long
     NAnalises = UBound(Split(ChavesAcomp(), "|")) + 1
 End Function
 
-' Linhas: Batch, Data, Inicio (Ubu), Origem em Germano, faixa QUIMICO, 3 por analise quimica, faixa FISICO,
-' 3 por analise fisica
+' Linhas: Batch, Data, Inicio (Ubu) e 3 por analise (Germano, Alimentacao 04, Diferenca)
 Public Function AlturaBloco() As Long
-    AlturaBloco = 4 + 2 + 3 * NAnalises()
+    AlturaBloco = 3 + 3 * NAnalises()
 End Function
 
 ' 1a linha do bloco i (1 = anterior, 2 = em processamento); a linha de cima e o titulo do bloco
@@ -62,7 +69,7 @@ End Function
 
 ' 1a linha (Germano) da analise k do bloco que comeca em r
 Private Function LinhaAnalise(ByVal r As Long, ByVal k As Long) As Long
-    LinhaAnalise = r + 5 + 3 * (k - 1) + IIf(k > NQuim(), 1, 0)
+    LinhaAnalise = r + 3 + 3 * (k - 1)
 End Function
 
 ' Numero do batch do bloco i (Empty = bloco vazio)
@@ -117,7 +124,6 @@ Private Sub LerBloco(ByVal i As Long, ByRef n As Long, tU() As Variant, tG() As 
     For s = 1 To n
         c = A_COL_V1 + s - 1
         tU(s) = shAcomp.Cells(r + 2, c).Value
-        tG(s) = shAcomp.Cells(r + 3, c).Value
         For k = 1 To NAnalises()
             ger(k, s) = shAcomp.Cells(LinhaAnalise(r, k), c).Value
             ubu(k, s) = shAcomp.Cells(LinhaAnalise(r, k) + 1, c).Value
@@ -216,8 +222,8 @@ End Function
 Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long, tU() As Variant, tG() As Variant, _
                           ger() As Variant, ubu() As Variant)
     Dim ws As Worksheet, ps As Variant, h As Long, r As Long, k As Long, s As Long, p As Long, c As Long
-    Dim cM As Long, rr As Long, dec As Long, fmt As String, rg As Range, nomeUbu As String, chave As String
-    Dim cG As String, cU As String, area As Range
+    Dim cM As Long, cT As Long, cS As Long, rr As Long, dec As Long, fmt As String, rg As Range, nomeUbu As String
+    Dim chave As String, cG As String, cU As String, area As Range, aux As Range
 
     Set ws = shAcomp
     ps = Split(ChavesAcomp(), "|")
@@ -228,13 +234,15 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
     If n < 1 Then n = 12                       ' modelo em branco
     Desproteger ws
     ' limpa a area do bloco (com o titulo) sem mexer nas linhas da aba
-    Set area = ws.Range(ws.Cells(r - 1, 1), ws.Cells(r + h, A_COL_AUX))
+    Set area = ws.Range(ws.Cells(r - 1, 1), ws.Cells(r + h, A_COL_AUX + NMAX))
     area.UnMerge
     area.Clear
     SemFormatoCondicional area
     cM = A_COL_V1 + n
-    ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 16.5
-    ws.Rows(r).RowHeight = 24
+    cT = cM + 1
+    cS = cM + 2
+    ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 17
+    ws.Rows(r).RowHeight = 26
     ws.Rows(r - 1).RowHeight = 22
 
     ' titulo do bloco
@@ -246,14 +254,14 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
         .Font.Color = COR_AZUL_TIT
         .VerticalAlignment = -4107
     End With
-    With ws.Range(ws.Cells(r - 1, A_COL_ROT), ws.Cells(r - 1, cM)).Borders(9)
+    With ws.Range(ws.Cells(r - 1, A_COL_ROT), ws.Cells(r - 1, cS)).Borders(9)
         .LineStyle = 1
         .Weight = -4138
         .Color = COR_AMARELO
     End With
 
-    ' cabecalho: Batch / Data / Inicio aproximado no processo (Ubu) / Origem em Germano
-    Rotulo ws.Cells(r, A_COL_ROT), "Batch", COR_AZUL, COR_BRANCO, True
+    ' cabecalho: Batch / Data / Inicio aproximado no processo (horario oficial = Ubu)
+    Juntar ws.Range(ws.Cells(r, A_COL_ROT), ws.Cells(r, A_COL_SUB)), "Batch", COR_AZUL, COR_BRANCO, True
     Set rg = ws.Range(ws.Cells(r, A_COL_V1), ws.Cells(r, cM - 1))
     Celulas rg, COR_AZUL, COR_BRANCO, True
     rg.Merge
@@ -263,53 +271,65 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
         rg.Cells(1, 1).Value = "—"
     End If
     rg.Cells(1, 1).NumberFormat = """Batch ""0"
-    rg.Font.Size = 13
+    rg.Font.Size = 14
     rg.HorizontalAlignment = -4108
     Rotulo ws.Cells(r, cM), "Média", COR_AZUL_MEDIO, COR_BRANCO, True
-    LinhaAmarela ws.Range(ws.Cells(r, A_COL_ROT), ws.Cells(r, cM))
-    Rotulo ws.Cells(r + 1, A_COL_ROT), "Data", COR_CINZA_CLARO, COR_AZUL_TIT, True
-    Rotulo ws.Cells(r + 2, A_COL_ROT), "Início aproximado no processo", COR_CINZA_CLARO, COR_AZUL_TIT, True
-    Rotulo ws.Cells(r + 3, A_COL_ROT), "Origem em Germano", COR_FUNDO, COR_AZUL_TIT, False
+    Rotulo ws.Cells(r, cT), "Tol. (±)", COR_AZUL_MEDIO, COR_BRANCO, True
+    Rotulo ws.Cells(r, cS), "Status", COR_AZUL_MEDIO, COR_BRANCO, True
+    LinhaAmarela ws.Range(ws.Cells(r, A_COL_ROT), ws.Cells(r, cS))
+    Juntar ws.Range(ws.Cells(r + 1, A_COL_ROT), ws.Cells(r + 1, A_COL_SUB)), "Data", COR_CINZA_CLARO, COR_AZUL_TIT, True
+    Juntar ws.Range(ws.Cells(r + 2, A_COL_ROT), ws.Cells(r + 2, A_COL_SUB)), "Início aproximado no processo", _
+           COR_CINZA_CLARO, COR_AZUL_TIT, True
     ws.Cells(r + 2, A_COL_ROT).Font.Size = 8.5
-    ws.Cells(r + 3, A_COL_ROT).Font.Size = 8
     For s = 1 To n
         c = A_COL_V1 + s - 1
         Celulas ws.Cells(r + 1, c), COR_BRANCO, COR_AZUL_TIT, False
         Celulas ws.Cells(r + 2, c), COR_BRANCO, COR_LARANJA, True
-        Celulas ws.Cells(r + 3, c), COR_FUNDO, COR_AZUL_TIT, False
         If ENumero(id) Then
             If EData(tU(s)) Then
                 ws.Cells(r + 1, c).Value = CDate(Int(CDbl(tU(s))))
                 ws.Cells(r + 2, c).Value = CDate(tU(s))
             End If
-            If EData(tG(s)) Then ws.Cells(r + 3, c).Value = CDate(tG(s))
         End If
-        ws.Cells(r + 1, c).NumberFormat = "dd/mm/yy"
+        ws.Cells(r + 1, c).NumberFormat = "dd/mm"
         ws.Cells(r + 2, c).NumberFormat = "hh:mm"
-        ws.Cells(r + 3, c).NumberFormat = "dd/mm hh:mm"
-        ws.Cells(r + 3, c).Font.Size = 7
     Next s
-    Celulas ws.Range(ws.Cells(r + 1, cM), ws.Cells(r + 3, cM)), COR_BRANCO, COR_AZUL_TIT, False
+    ' canto da Media/Tol./Status: quando o bloco foi atualizado
+    Set rg = ws.Range(ws.Cells(r + 1, cM), ws.Cells(r + 2, cS))
+    Celulas rg, COR_FUNDO, COR_AZUL_TIT, False
+    rg.Merge
+    If ENumero(id) Then rg.Cells(1, 1).Value = "Atualizado em " & Format$(Now, "dd\/mm hh:mm")
+    rg.Font.Size = 8
+    rg.WrapText = True
+    rg.HorizontalAlignment = -4108
 
-    ' faixas QUIMICO / FISICO
-    Faixa ws, r + 4, cM, "ANÁLISES QUÍMICAS"
-    Faixa ws, LinhaAnalise(r, NQuim() + 1) - 1, cM, "ANÁLISES FÍSICAS"
-
-    ' analises: Germano (MES), Ubu (a mao), Diferenca (Ubu - Germano); Media de todas as leituras
+    ' analises (quimicas e fisicas juntas): nome | Germano (MES) / Alimentacao 04 (a mao) / Diferenca (Ubu - Germano)
     For k = 1 To NAnalises()
         chave = CStr(ps(k - 1))
         p = PIndice(chave)
         dec = PDec(p)
         If dec = 0 Then fmt = "0" Else fmt = "0." & String$(dec, "0")
         rr = LinhaAnalise(r, k)
-        Rotulo ws.Cells(rr, A_COL_ROT), PRotulo(p) & " Germano", COR_AZUL_MEDIO, COR_BRANCO, True
-        Rotulo ws.Cells(rr + 1, A_COL_ROT), PRotulo(p) & " " & nomeUbu, COR_AZUL_CLARO, COR_AZUL_PROF, True
-        Rotulo ws.Cells(rr + 2, A_COL_ROT), "Diferença", COR_CINZA_CLARO, COR_AZUL_TIT, True
+        Set rg = ws.Range(ws.Cells(rr, A_COL_ROT), ws.Cells(rr + 2, A_COL_ROT))
+        Celulas rg, COR_AZUL, COR_BRANCO, True
+        rg.Merge
+        rg.Cells(1, 1).Value = PRotulo(p)
+        rg.Font.Size = 12
+        rg.HorizontalAlignment = -4108
+        rg.VerticalAlignment = -4108
+        Rotulo ws.Cells(rr, A_COL_SUB), "Germano", COR_AZUL_MEDIO, COR_BRANCO, True
+        Rotulo ws.Cells(rr + 1, A_COL_SUB), ChrW(9998) & " " & nomeUbu, COR_AMARELO, COR_AZUL_PROF, True
+        Rotulo ws.Cells(rr + 2, A_COL_SUB), "Diferença", COR_CINZA_CLARO, COR_AZUL_TIT, False
         For s = 1 To n
             c = A_COL_V1 + s - 1
             Celulas ws.Cells(rr, c), COR_BRANCO, COR_AZUL_PROF, True
-            Celulas ws.Cells(rr + 1, c), COR_ENTRADA, COR_AZUL_PROF, False
+            Celulas ws.Cells(rr + 1, c), COR_DIGITAR, COR_AZUL_PROF, True
             Celulas ws.Cells(rr + 2, c), COR_FUNDO, COR_AZUL_TIT, False
+            ' celula para lancar: amarela com borda dourada
+            With ws.Cells(rr + 1, c).Borders
+                .LineStyle = 1
+                .Color = COR_AMARELO
+            End With
             If ENumero(id) Then
                 If ENumero(ger(k, s)) Then ws.Cells(rr, c).Value = CDbl(ger(k, s))
                 If ENumero(ubu(k, s)) Then ws.Cells(rr + 1, c).Value = CDbl(ubu(k, s))
@@ -319,7 +339,12 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
             cU = ws.Cells(rr + 1, c).Address(False, False)
             ws.Cells(rr + 2, c).Formula = "=IF(AND(ISNUMBER(" & cU & "),ISNUMBER(" & cG & "))," & cU & "-" & cG & ","""")"
             ws.Range(ws.Cells(rr, c), ws.Cells(rr + 2, c)).NumberFormat = fmt
+            ' diferenca do bi-horario fora da tolerancia: vermelho
+            Set aux = ws.Cells(rr + 2, A_COL_AUX + s)
+            aux.Formula = ForaTol(ws.Cells(rr + 2, c), dec, chave)
+            MarcarForaTol ws.Cells(rr + 2, c), aux
         Next s
+        ' Media (de todas as leituras), Tol. e Status (media da diferenca x tolerancia)
         Set rg = ws.Range(ws.Cells(rr, A_COL_V1), ws.Cells(rr, cM - 1))
         ws.Cells(rr, cM).Formula = "=IF(COUNT(" & rg.Address(False, False) & ")=0,"""",AVERAGE(" & rg.Address(False, False) & "))"
         Set rg = ws.Range(ws.Cells(rr + 1, A_COL_V1), ws.Cells(rr + 1, cM - 1))
@@ -330,14 +355,61 @@ Private Sub DesenharBloco(ByVal i As Long, ByVal id As Variant, ByVal n As Long,
         Celulas ws.Range(ws.Cells(rr, cM), ws.Cells(rr + 1, cM)), COR_AZUL, COR_BRANCO, True
         Celulas ws.Cells(rr + 2, cM), COR_CINZA_CLARO, COR_AZUL_PROF, True
         ws.Range(ws.Cells(rr, cM), ws.Cells(rr + 2, cM)).NumberFormat = fmt
-        ' media fora da tolerancia (Configuracoes) em vermelho
-        ws.Cells(rr + 2, A_COL_AUX).Formula = "=AND(ISNUMBER(" & ws.Cells(rr + 2, cM).Address(False, False) & "),ABS(ROUND(" & _
-            ws.Cells(rr + 2, cM).Address(False, False) & "," & dec & "))>padTol_" & chave & "+1E-9)"
-        MarcarForaTol ws.Cells(rr + 2, cM), ws.Cells(rr + 2, A_COL_AUX)
+        Set aux = ws.Cells(rr + 2, A_COL_AUX)
+        aux.Formula = ForaTol(ws.Cells(rr + 2, cM), dec, chave)
+        MarcarForaTol ws.Cells(rr + 2, cM), aux
+        Set rg = ws.Range(ws.Cells(rr, cT), ws.Cells(rr + 2, cT))
+        Celulas rg, COR_FUNDO, COR_AZUL_TIT, False
+        rg.Merge
+        rg.Cells(1, 1).Formula = "=padTol_" & chave
+        rg.NumberFormat = fmt
+        rg.HorizontalAlignment = -4108
+        rg.VerticalAlignment = -4108
+        Set rg = ws.Range(ws.Cells(rr, cS), ws.Cells(rr + 2, cS))
+        Celulas rg, COR_BRANCO, COR_AZUL_TIT, True
+        rg.Merge
+        rg.Cells(1, 1).Formula = "=IF(" & ws.Cells(rr + 2, cM).Address(False, False) & "="""","""",IF(" & _
+            aux.Address(False, False) & ",""NOK"",""OK""))"
+        rg.Font.Size = 11
+        rg.HorizontalAlignment = -4108
+        rg.VerticalAlignment = -4108
+        MarcarStatus rg
+        ' separacao entre analises
+        With ws.Range(ws.Cells(rr + 2, A_COL_ROT), ws.Cells(rr + 2, cS)).Borders(9)
+            .LineStyle = 1
+            .Weight = -4138
+            .Color = COR_AZUL
+        End With
     Next k
     ws.Range(ws.Cells(r + 1, A_COL_V1), ws.Cells(r + h - 1, cM)).HorizontalAlignment = -4108
-    ws.Columns(A_COL_AUX).Hidden = True
+    ws.Range(ws.Columns(A_COL_AUX), ws.Columns(A_COL_AUX + NMAX)).Hidden = True
     Proteger ws
+End Sub
+
+Private Function ForaTol(ByVal c As Range, ByVal dec As Long, ByVal chave As String) As String
+    ForaTol = "=AND(ISNUMBER(" & c.Address(False, False) & "),ABS(ROUND(" & c.Address(False, False) & "," & dec & _
+              "))>padTol_" & chave & "+1E-9)"
+End Function
+
+Private Sub Juntar(ByVal rg As Range, ByVal texto As String, ByVal fundo As Long, ByVal cor As Long, _
+                   ByVal negrito As Boolean)
+    Celulas rg, fundo, cor, negrito
+    rg.Merge
+    rg.Cells(1, 1).Value = texto
+    rg.HorizontalAlignment = -4108
+End Sub
+
+' Status OK (verde) / NOK (vermelho): condicao por valor da celula (independe do idioma do Excel)
+Private Sub MarcarStatus(ByVal rg As Range)
+    Dim fc As Object
+    On Error Resume Next
+    If gTesteLO Then Exit Sub
+    Set fc = rg.FormatConditions.Add(Type:=1, Operator:=3, Formula1:="=""NOK""")
+    fc.Font.Color = COR_NOK
+    fc.Interior.Color = COR_NOK_BG
+    Set fc = rg.FormatConditions.Add(Type:=1, Operator:=3, Formula1:="=""OK""")
+    fc.Font.Color = COR_OK
+    fc.Interior.Color = COR_OK_BG
 End Sub
 
 ' Modelo em branco nos dois blocos (aba nova, ou depois de limpar)
@@ -449,7 +521,7 @@ Public Sub CopiarAcompanhamento()
         Exit Sub
     End If
     cM = ColunaMedia(shAcomp, r)
-    Set area = shAcomp.Range(shAcomp.Cells(r - 1, A_COL_ROT), shAcomp.Cells(r + AlturaBloco() - 1, cM))
+    Set area = shAcomp.Range(shAcomp.Cells(r - 1, A_COL_ROT), shAcomp.Cells(r + AlturaBloco() - 1, cM + 2))
     If CopiarAreaImagem(shAcomp, area) Then
         Aviso "Acompanhamento do batch " & id & " copiado. Cole no e-mail com Ctrl+V.", vbInformation, _
               "Copiar acompanhamento"

@@ -1292,15 +1292,16 @@ class Construtor:
     def abas_acomp(self):
         ws = self.ws_aco
         ws.set_column(0, 0, 1.5)
-        ws.set_column(1, 1, 27)
-        ws.set_column(2, NMAX + 3, 8.4)
+        ws.set_column(1, 1, 9)          # analise (SiO2, P...)
+        ws.set_column(2, 2, 18)         # Germano / Alimentacao 04 / Diferenca
+        ws.set_column(3, NMAX + 6, 8.4)
         self.faixa(ws, 1, 1, 16, 'ACOMPANHAMENTO DO BATCH EM PROCESSAMENTO', '')
         ws.write_formula(2, 1, '="Germano vem do MES (aba Batch, tipo da busca = Acompanhamento). "&padNomeUbuAcomp&'
-                               '": lançar a cada 2 h nas células amarelas. Batch mais recente em cima."',
+                               '": lançar a cada 2 h nas células amarelas (✎). Em cima o batch anterior, embaixo o em processamento."',
                          self.f(font_size=9.5, bold=True, font_color=BRANCO, bg_color=NAVY2, indent=1))
         self.botao(ws, 1, 13, 'Copiar acompanhamento', 'CopiarAcompanhamento', 190, 30, 'a', x=0, y=6)
         self.botao(ws, 1, 16, '← Batch', 'IrBatch', 90, 30, 's', x=4, y=6)
-        ws.freeze_panes(A_ROW0, 2)
+        ws.freeze_panes(A_ROW0, 3)
         # os dois blocos (batch anterior e em processamento) sao desenhados pelo VBA ao abrir o arquivo
         ws.protect('', {'format_columns': True, 'format_rows': True})
         ws = self.ws_reg
