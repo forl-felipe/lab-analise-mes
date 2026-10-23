@@ -627,7 +627,7 @@ Private Function CorrigirMapas(ByVal lab As Long) As String
             If m <> "" And UCase$(m) <> UCase$(TagCfg(p, lab, C_COL_MAPA)) And TagCfg(p, lab, C_COL_MAPA) <> "" Then
                 r = r & "  - " & RotuloItem(p, lab) & ": mapa " & TagCfg(p, lab, C_COL_MAPA) & "  ->  " & m & vbCrLf
                 On Error Resume Next
-                shConfig.Unprotect
+                Desproteger shConfig
                 shConfig.Cells(LinhaCfg(p, lab), C_COL_MAPA).Value = m
                 Proteger shConfig
                 On Error GoTo 0
@@ -673,7 +673,7 @@ Private Function CorrigirTags(ByVal lab As Long) As String
         If t <> "" And t <> TagCfg(p, lab, C_COL_TAG) And Not TagInvalida(t) Then
             r = r & "  - " & RotuloItem(p, lab) & ": " & TagCfg(p, lab, C_COL_TAG) & "  ->  " & t & vbCrLf
             On Error Resume Next
-            shConfig.Unprotect
+            Desproteger shConfig
             shConfig.Cells(LinhaCfg(p, lab), C_COL_TAG).Value = t
             Proteger shConfig
             On Error GoTo 0

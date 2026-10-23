@@ -47,7 +47,7 @@ Public Sub TesteLO()
     Ok PRotulo(pSi) = "SiO" & ChrW(8322), "rotulo SiO2 com subscrito"
 
     ' --- simulacao: novo batch + buscar no MES
-    shConfig.Unprotect
+    Desproteger shConfig
     Nm("cfgFonte").Value = "SIMULAÇÃO"
     NovoBatch
     Ok Vazio(V("bId")), "novo batch com numero em branco"
@@ -233,27 +233,29 @@ Public Sub TesteLO()
     BuscarMES
     Ok InStr(gUltimaMsg, "Acompanhamento do batch 295") > 0, "acompanhamento: busca so Germano (" & gUltimaMsg & ")"
     Ok ENumero(Celula(1, pSi, 0)) And Not ENumero(Celula(1, pSi, 1)), "acompanhamento: Germano sim, Ubu nao"
-    rb = LinhaBloco(shAcompQ, 295)
-    Ok rb = A_ROW0, "bloco do 295 no topo da aba Acomp. Quimico (" & rb & ")"
-    Ok LinhaBloco(shAcompF, 295) = A_ROW0, "bloco do 295 na aba Acomp. Fisico"
-    Ok CStr(shAcompQ.Cells(rb + 3, 2).Value) = PRotulo(pSi) & " Germano", "rotulo SiO2 Germano"
-    Ok CStr(shAcompQ.Cells(rb + 4, 2).Value) = PRotulo(pSi) & " Alimentação 04", "rotulo SiO2 Alimentacao 04"
-    Ok ENumero(shAcompQ.Cells(rb + 3, 3).Value), "SiO2 Germano no bloco"
-    Ok Abs(CDbl(shAcompQ.Cells(rb + 2, 3).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value)) < 0.0001, _
+    rb = LinhaBloco(shAcomp, 295)
+    Ok rb = A_ROW0, "bloco do 295 no topo da aba Acompanhamento (" & rb & ")"
+    Ok CStr(shAcomp.Cells(rb + 14, 2).Value) = PRotulo(PIndice("SE")) & " Germano", "S.E. no mesmo bloco (fisico) (" & _
+       shAcomp.Cells(rb + 14, 2).Value & ")"
+    Ok ENumero(shAcomp.Cells(rb + 14, 3).Value), "S.E. Germano no bloco"
+    Ok CStr(shAcomp.Cells(rb + 4, 2).Value) = PRotulo(pSi) & " Germano", "rotulo SiO2 Germano"
+    Ok CStr(shAcomp.Cells(rb + 5, 2).Value) = PRotulo(pSi) & " Alimentação 04", "rotulo SiO2 Alimentacao 04"
+    Ok ENumero(shAcomp.Cells(rb + 4, 3).Value), "SiO2 Germano no bloco"
+    Ok Abs(CDbl(shAcomp.Cells(rb + 2, 3).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value)) < 0.0001, _
        "inicio aproximado no processo = horario de Ubu"
     n = CLng(V("bNHor"))
-    Ok CStr(shAcompQ.Cells(rb, 3 + n).Value) = "Média", "coluna Media depois dos " & n & " horarios"
+    Ok CStr(shAcomp.Cells(rb, 3 + n).Value) = "Média", "coluna Media depois dos " & n & " horarios"
     ' Ubu lancado a mao: diferenca e media; refazer a busca nao apaga
-    shAcompQ.Unprotect
-    shAcompQ.Cells(rb + 4, 3).Value = CDbl(shAcompQ.Cells(rb + 3, 3).Value) + 0.1
-    shAcompQ.Calculate
-    Ok Abs(CDbl(shAcompQ.Cells(rb + 5, 3).Value) - 0.1) < 0.0001, "diferenca Ubu - Germano"
-    Ok ENumero(shAcompQ.Cells(rb + 4, 3 + n).Value), "media de Ubu"
-    ubu = CDbl(shAcompQ.Cells(rb + 4, 3).Value)
+    shAcomp.Unprotect
+    shAcomp.Cells(rb + 5, 3).Value = CDbl(shAcomp.Cells(rb + 4, 3).Value) + 0.1
+    shAcomp.Calculate
+    Ok Abs(CDbl(shAcomp.Cells(rb + 6, 3).Value) - 0.1) < 0.0001, "diferenca Ubu - Germano"
+    Ok ENumero(shAcomp.Cells(rb + 5, 3 + n).Value), "media de Ubu"
+    ubu = CDbl(shAcomp.Cells(rb + 5, 3).Value)
     BuscarMES
-    rb = LinhaBloco(shAcompQ, 295)
-    Ok Abs(CDbl(shAcompQ.Cells(rb + 4, 3).Value) - ubu) < 0.0001, "Ubu lancado fica depois de buscar de novo"
-    Ok LinhaBloco(shAcompQ, 295) = A_ROW0 And LinhaBloco(shAcompQ, 0) = 0, "um bloco so do 295"
+    rb = LinhaBloco(shAcomp, 295)
+    Ok Abs(CDbl(shAcomp.Cells(rb + 5, 3).Value) - ubu) < 0.0001, "Ubu lancado fica depois de buscar de novo"
+    Ok LinhaBloco(shAcomp, 295) = A_ROW0 And LinhaBloco(shAcomp, 0) = 0, "um bloco so do 295"
     gUltimaMsg = ""
     SalvarHistorico
     Ok LinhaHistorico(295) = 0 And InStr(gUltimaMsg, "Acompanhamento") > 0, "acompanhamento nao vai para o historico"
@@ -267,10 +269,10 @@ Public Sub TesteLO()
     Ok CStr(shBatch.Cells(B_ROW_ULT, U_COL_ORIGEM).Value) = "Acompanhamento", "ultimo batch: origem acompanhamento"
     Ok InStr(CStr(shBatch.Cells(B_ROW_ULT + 1, U_COL_BATCH).Value), "Batch 2") = 1, "2o ultimo batch do historico"
     BuscarMES
-    rb = LinhaBloco(shAcompQ, 296)
-    rb2 = LinhaBloco(shAcompQ, 295)
+    rb = LinhaBloco(shAcomp, 296)
+    rb2 = LinhaBloco(shAcomp, 295)
     Ok rb = A_ROW0 And rb2 > rb, "296 em cima do 295 (" & rb & ", " & rb2 & ")"
-    Ok Abs(CDbl(shAcompQ.Cells(rb2 + 4, 3).Value) - ubu) < 0.0001, "Ubu do 295 continua la"
+    Ok Abs(CDbl(shAcomp.Cells(rb2 + 5, 3).Value) - ubu) < 0.0001, "Ubu do 295 continua la"
     ' depois, comparativo do 295: chegada e nivel vem do acompanhamento
     Nm("bModo").Value = "Comparativo (batch processado)"
     LimparBatch

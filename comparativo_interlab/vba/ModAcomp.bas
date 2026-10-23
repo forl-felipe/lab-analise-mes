@@ -2,8 +2,8 @@ Option Explicit
 
 ' ============================================================================
 '  ModAcomp - batch em processamento (tipo da busca = Acompanhamento)
-'    Buscar no MES traz so Germano e monta o bloco do batch nas abas Acomp. Quimico e Acomp. Fisico
-'    (uma aba para cada laboratorio, todos os batches nela, o mais recente em cima). Ubu e preenchido
+'    Buscar no MES traz so Germano e monta o bloco do batch na aba Acompanhamento (quimico e fisico
+'    juntos, todos os batches nela, o mais recente em cima). Ubu e preenchido
 '    a mao a cada 2 h (planilha no SharePoint); ao refazer a busca os valores de Ubu ficam.
 '  Tambem: tabela "Ultimos batches em Ubu" da aba Batch (historico + acompanhamento).
 ' ============================================================================
@@ -13,13 +13,26 @@ Option Explicit
 Private Const A_COL_AUX As Long = 30
 Private Const A_COL_ROT As Long = 2
 Private Const A_COL_V1 As Long = 3
+' Paleta Samarco (kit visual): RGB() da cor
+Private Const COR_AZUL As Long = 5911296          ' #00335A Azul Samarco
+Private Const COR_AZUL_MEDIO As Long = 7356416    ' #004070 Azul medio
+Private Const COR_AZUL_TIT As Long = 7092992      ' #003B6C Azul de titulo
+Private Const COR_AZUL_PROF As Long = 4400640     ' #002643 Azul profundo
+Private Const COR_AMARELO As Long = 49407         ' #FFC000 Amarelo
+Private Const COR_AZUL_CLARO As Long = 15910489   ' #59C6F2 Azul claro
+Private Const COR_LARANJA As Long = 2191603       ' #F37021 Laranja
+Private Const COR_CINZA_LOGO As Long = 12893877   ' #B5BEC4 Cinza da marca
+Private Const COR_CINZA_CLARO As Long = 15262684  ' #DCE3E8
+Private Const COR_FUNDO As Long = 16250355        ' #F3F5F7
+Private Const COR_ENTRADA As Long = 14809343      ' #FFF8E1 (celulas para lancar)
+Private Const COR_BRANCO As Long = 16777215
 
 Public Function ModoAcomp() As Boolean
     ModoAcomp = (InStr(1, CfgTxt("bModo"), "ACOMP", vbTextCompare) > 0)
 End Function
 
-' ---------------------------------------------------------------- blocos das abas de acompanhamento
-' Monta/atualiza o bloco do batch da aba Batch nas duas abas; devolve uma linha para a mensagem
+' ---------------------------------------------------------------- bloco do batch na aba Acompanhamento
+' Monta/atualiza o bloco do batch da aba Batch; devolve uma linha para a mensagem
 Public Function MontarAcompanhamento() As String
     Dim id As Variant, n As Long, s As Long
     Dim tU() As Variant
@@ -33,18 +46,32 @@ Public Function MontarAcompanhamento() As String
     For s = 1 To n
         tU(s) = shBatch.Cells(B_ROW_G0 + s - 1, B_COL_TU).Value
     Next s
-    MontarBloco shAcompQ, ACOMP_Q, id, n, tU
-    MontarBloco shAcompF, ACOMP_F, id, n, tU
+    MontarBloco shAcomp, id, n, tU
     RegistrarAcomp id
     AtualizarUltimos
-    MontarAcompanhamento = "Abas Acomp. Químico e Acomp. Físico atualizadas (batch " & id & ", " & n & " horários)."
+    MontarAcompanhamento = "Aba Acompanhamento atualizada (batch " & id & ", " & n & " horários)."
     If Not EData(tU(1)) Then MontarAcompanhamento = MontarAcompanhamento & vbCrLf & _
         "Sem os horários de Ubu: informe a chegada em Ubu (UBU3) e o nível dos tanques (ou o início no processo) " & _
         "e busque de novo."
 End Function
 
-Private Function AlturaBloco(ByVal chaves As String) As Long
-    AlturaBloco = 3 + 3 * (UBound(Split(chaves, "|")) + 1)
+' Analises do bloco: quimicas e fisicas (nesta ordem)
+Private Function ChavesAcomp() As String
+    ChavesAcomp = ACOMP_Q & "|" & ACOMP_F
+End Function
+
+Private Function NQuim() As Long
+    NQuim = UBound(Split(ACOMP_Q, "|")) + 1
+End Function
+
+' Linhas: Batch, Data, Inicio, faixa QUIMICO, 3 por analise quimica, faixa FISICO, 3 por analise fisica
+Public Function AlturaBloco() As Long
+    AlturaBloco = 3 + 2 + 3 * (UBound(Split(ChavesAcomp(), "|")) + 1)
+End Function
+
+' 1a linha (Germano) da analise k do bloco que comeca em r
+Private Function LinhaAnalise(ByVal r As Long, ByVal k As Long) As Long
+    LinhaAnalise = r + 4 + 3 * (k - 1) + IIf(k > NQuim(), 1, 0)
 End Function
 
 ' Linha do bloco do batch (0 = nao existe)
@@ -64,15 +91,25 @@ Public Function LinhaBloco(ByVal ws As Worksheet, ByVal id As Variant) As Long
     Next r
 End Function
 
-Private Sub MontarBloco(ByVal ws As Worksheet, ByVal chaves As String, ByVal id As Variant, ByVal n As Long, _
-                        tU() As Variant)
-    Dim ps As Variant, np As Long, h As Long, r As Long, k As Long, s As Long, p As Long, j As Long, nVelho As Long
-    Dim velhoT() As Variant, velhoU() As Variant, v As Variant, c As Long, cM As Long, rr As Long, dec As Long
-    Dim fmt As String, rg As Range, nomeUbu As String, chave As String
+' Coluna "Media" do bloco que comeca em r
+Private Function ColunaMedia(ByVal ws As Worksheet, ByVal r As Long) As Long
+    Dim c As Long
+    For c = A_COL_V1 To A_COL_V1 + NMAX
+        If CStr(ws.Cells(r, c).Value) = "Média" Then
+            ColunaMedia = c
+            Exit Function
+        End If
+    Next c
+End Function
 
-    ps = Split(chaves, "|")
+Private Sub MontarBloco(ByVal ws As Worksheet, ByVal id As Variant, ByVal n As Long, tU() As Variant)
+    Dim ps As Variant, np As Long, h As Long, r As Long, k As Long, s As Long, p As Long, nVelho As Long
+    Dim velhoT() As Variant, velhoU() As Variant, v As Variant, c As Long, cM As Long, rr As Long, dec As Long
+    Dim fmt As String, rg As Range, nomeUbu As String, chave As String, cG As String, cU As String
+
+    ps = Split(ChavesAcomp(), "|")
     np = UBound(ps) + 1
-    h = AlturaBloco(chaves)
+    h = AlturaBloco()
     nomeUbu = CfgTxt("padNomeUbuAcomp")
     If nomeUbu = "" Then nomeUbu = "Ubu"
     Desproteger ws
@@ -81,15 +118,12 @@ Private Sub MontarBloco(ByVal ws As Worksheet, ByVal chaves As String, ByVal id 
     r = LinhaBloco(ws, id)
     If r > 0 Then
         ' guarda o que ja foi lancado de Ubu (por horario; sem horario, pela posicao) e refaz o bloco
-        nVelho = 0
-        Do While nVelho < NMAX
-            If CStr(ws.Cells(r, A_COL_V1 + nVelho).Value) = "Média" Then Exit Do
-            nVelho = nVelho + 1
-        Loop
+        nVelho = ColunaMedia(ws, r) - A_COL_V1
+        If nVelho < 0 Then nVelho = 0
         For s = 1 To nVelho
             velhoT(s) = ws.Cells(r + 2, A_COL_V1 + s - 1).Value
             For k = 1 To np
-                velhoU(k, s) = ws.Cells(r + 3 + 3 * (k - 1) + 1, A_COL_V1 + s - 1).Value
+                velhoU(k, s) = ws.Cells(LinhaAnalise(r, k) + 1, A_COL_V1 + s - 1).Value
             Next k
         Next s
         ws.Rows(r & ":" & (r + h)).Delete
@@ -100,25 +134,27 @@ Private Sub MontarBloco(ByVal ws As Worksheet, ByVal chaves As String, ByVal id 
     ws.Rows(r & ":" & (r + h)).Insert
     ws.Range(ws.Cells(r, 1), ws.Cells(r + h, A_COL_AUX)).Clear
     cM = A_COL_V1 + n
-    ws.Rows(r & ":" & (r + h)).RowHeight = 15.75
+    ws.Rows(r & ":" & (r + h)).RowHeight = 16.5
+    ws.Rows(r).RowHeight = 24
 
-    ' cabecalho: Batch / Data / Inicio aproximado no processo
-    Rotulo ws.Cells(r, A_COL_ROT), "Batch", RGB(217, 217, 217), RGB(0, 0, 0), True
+    ' cabecalho: Batch (Azul Samarco, linha amarela) / Data / Inicio aproximado no processo
+    Rotulo ws.Cells(r, A_COL_ROT), "Batch", COR_AZUL, COR_BRANCO, True
     Set rg = ws.Range(ws.Cells(r, A_COL_V1), ws.Cells(r, cM - 1))
-    Celulas rg, RGB(26, 60, 110), RGB(255, 255, 255), True
+    Celulas rg, COR_AZUL, COR_BRANCO, True
     rg.Merge
     rg.Cells(1, 1).Value = CDbl(id)
-    rg.Font.Size = 14
+    rg.Cells(1, 1).NumberFormat = """Batch ""0"
+    rg.Font.Size = 13
     rg.HorizontalAlignment = -4108
-    Rotulo ws.Cells(r, cM), "Média", RGB(47, 92, 158), RGB(255, 255, 255), True
-    ws.Cells(r, cM).HorizontalAlignment = -4108
-    Rotulo ws.Cells(r + 1, A_COL_ROT), "Data", RGB(217, 217, 217), RGB(0, 0, 0), True
-    Rotulo ws.Cells(r + 2, A_COL_ROT), "Início aproximado no processo", RGB(26, 60, 110), RGB(255, 255, 255), True
-    ws.Cells(r + 2, A_COL_ROT).Font.Size = 8
+    Rotulo ws.Cells(r, cM), "Média", COR_AZUL_MEDIO, COR_BRANCO, True
+    LinhaAmarela ws.Range(ws.Cells(r, A_COL_ROT), ws.Cells(r, cM))
+    Rotulo ws.Cells(r + 1, A_COL_ROT), "Data", COR_CINZA_CLARO, COR_AZUL_TIT, True
+    Rotulo ws.Cells(r + 2, A_COL_ROT), "Início aproximado no processo", COR_CINZA_CLARO, COR_AZUL_TIT, True
+    ws.Cells(r + 2, A_COL_ROT).Font.Size = 8.5
     For s = 1 To n
         c = A_COL_V1 + s - 1
-        Celulas ws.Cells(r + 1, c), RGB(255, 255, 255), RGB(0, 0, 0), False
-        Celulas ws.Cells(r + 2, c), RGB(255, 255, 255), RGB(220, 0, 0), True
+        Celulas ws.Cells(r + 1, c), COR_BRANCO, COR_AZUL_TIT, False
+        Celulas ws.Cells(r + 2, c), COR_BRANCO, COR_LARANJA, True
         If EData(tU(s)) Then
             ws.Cells(r + 1, c).Value = CDate(Int(CDbl(tU(s))))
             ws.Cells(r + 2, c).Value = CDate(tU(s))
@@ -126,7 +162,11 @@ Private Sub MontarBloco(ByVal ws As Worksheet, ByVal chaves As String, ByVal id 
         ws.Cells(r + 1, c).NumberFormat = "dd/mm/yy"
         ws.Cells(r + 2, c).NumberFormat = "hh:mm"
     Next s
-    Celulas ws.Range(ws.Cells(r + 1, cM), ws.Cells(r + 2, cM)), RGB(255, 255, 255), RGB(0, 0, 0), False
+    Celulas ws.Range(ws.Cells(r + 1, cM), ws.Cells(r + 2, cM)), COR_BRANCO, COR_AZUL_TIT, False
+
+    ' faixas QUIMICO / FISICO
+    Faixa ws, r + 3, cM, "ANÁLISES QUÍMICAS"
+    Faixa ws, LinhaAnalise(r, NQuim() + 1) - 1, cM, "ANÁLISES FÍSICAS"
 
     ' analises: Germano (MES), Ubu (a mao), Diferenca (Ubu - Germano); Media de todas as leituras
     For k = 1 To np
@@ -134,15 +174,15 @@ Private Sub MontarBloco(ByVal ws As Worksheet, ByVal chaves As String, ByVal id 
         p = PIndice(chave)
         dec = PDec(p)
         If dec = 0 Then fmt = "0" Else fmt = "0." & String$(dec, "0")
-        rr = r + 3 + 3 * (k - 1)
-        Rotulo ws.Cells(rr, A_COL_ROT), PRotulo(p) & " Germano", RGB(26, 60, 110), RGB(255, 255, 255), True
-        Rotulo ws.Cells(rr + 1, A_COL_ROT), PRotulo(p) & " " & nomeUbu, RGB(91, 143, 208), RGB(255, 255, 255), True
-        Rotulo ws.Cells(rr + 2, A_COL_ROT), "Diferença", RGB(191, 197, 206), RGB(0, 0, 0), True
+        rr = LinhaAnalise(r, k)
+        Rotulo ws.Cells(rr, A_COL_ROT), PRotulo(p) & " Germano", COR_AZUL_MEDIO, COR_BRANCO, True
+        Rotulo ws.Cells(rr + 1, A_COL_ROT), PRotulo(p) & " " & nomeUbu, COR_AZUL_CLARO, COR_AZUL_PROF, True
+        Rotulo ws.Cells(rr + 2, A_COL_ROT), "Diferença", COR_CINZA_CLARO, COR_AZUL_TIT, True
         For s = 1 To n
             c = A_COL_V1 + s - 1
-            Celulas ws.Cells(rr, c), RGB(255, 255, 255), RGB(0, 0, 0), True
-            Celulas ws.Cells(rr + 1, c), RGB(255, 248, 225), RGB(0, 0, 0), False
-            Celulas ws.Cells(rr + 2, c), RGB(217, 220, 226), RGB(0, 0, 0), False
+            Celulas ws.Cells(rr, c), COR_BRANCO, COR_AZUL_PROF, True
+            Celulas ws.Cells(rr + 1, c), COR_ENTRADA, COR_AZUL_PROF, False
+            Celulas ws.Cells(rr + 2, c), COR_FUNDO, COR_AZUL_TIT, False
             v = shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 0)).Value
             If ENumero(v) Then ws.Cells(rr, c).Value = CDbl(v)
             ' Ubu: o que ja estava no bloco; senao, o que houver na aba Batch
@@ -150,20 +190,20 @@ Private Sub MontarBloco(ByVal ws As Worksheet, ByVal chaves As String, ByVal id 
             If Not ENumero(v) Then v = shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 1)).Value
             If ENumero(v) Then ws.Cells(rr + 1, c).Value = CDbl(v)
             ws.Cells(rr + 1, c).Locked = False
-            ws.Cells(rr + 2, c).Formula = "=IF(AND(ISNUMBER(" & ws.Cells(rr + 1, c).Address(False, False) & _
-                "),ISNUMBER(" & ws.Cells(rr, c).Address(False, False) & "))," & ws.Cells(rr + 1, c).Address(False, False) & _
-                "-" & ws.Cells(rr, c).Address(False, False) & ","""")"
+            cG = ws.Cells(rr, c).Address(False, False)
+            cU = ws.Cells(rr + 1, c).Address(False, False)
+            ws.Cells(rr + 2, c).Formula = "=IF(AND(ISNUMBER(" & cU & "),ISNUMBER(" & cG & "))," & cU & "-" & cG & ","""")"
             ws.Range(ws.Cells(rr, c), ws.Cells(rr + 2, c)).NumberFormat = fmt
         Next s
         Set rg = ws.Range(ws.Cells(rr, A_COL_V1), ws.Cells(rr, cM - 1))
         ws.Cells(rr, cM).Formula = "=IF(COUNT(" & rg.Address(False, False) & ")=0,"""",AVERAGE(" & rg.Address(False, False) & "))"
         Set rg = ws.Range(ws.Cells(rr + 1, A_COL_V1), ws.Cells(rr + 1, cM - 1))
         ws.Cells(rr + 1, cM).Formula = "=IF(COUNT(" & rg.Address(False, False) & ")=0,"""",AVERAGE(" & rg.Address(False, False) & "))"
-        ws.Cells(rr + 2, cM).Formula = "=IF(AND(ISNUMBER(" & ws.Cells(rr + 1, cM).Address(False, False) & "),ISNUMBER(" & _
-            ws.Cells(rr, cM).Address(False, False) & "))," & ws.Cells(rr + 1, cM).Address(False, False) & "-" & _
-            ws.Cells(rr, cM).Address(False, False) & ","""")"
-        Celulas ws.Range(ws.Cells(rr, cM), ws.Cells(rr + 1, cM)), RGB(47, 92, 158), RGB(255, 255, 255), True
-        Celulas ws.Cells(rr + 2, cM), RGB(217, 220, 226), RGB(0, 0, 0), True
+        cG = ws.Cells(rr, cM).Address(False, False)
+        cU = ws.Cells(rr + 1, cM).Address(False, False)
+        ws.Cells(rr + 2, cM).Formula = "=IF(AND(ISNUMBER(" & cU & "),ISNUMBER(" & cG & "))," & cU & "-" & cG & ","""")"
+        Celulas ws.Range(ws.Cells(rr, cM), ws.Cells(rr + 1, cM)), COR_AZUL, COR_BRANCO, True
+        Celulas ws.Cells(rr + 2, cM), COR_CINZA_CLARO, COR_AZUL_PROF, True
         ws.Range(ws.Cells(rr, cM), ws.Cells(rr + 2, cM)).NumberFormat = fmt
         ' media fora da tolerancia (Configuracoes) em vermelho
         ws.Cells(rr + 2, A_COL_AUX).Formula = "=AND(ISNUMBER(" & ws.Cells(rr + 2, cM).Address(False, False) & "),ABS(ROUND(" & _
@@ -207,10 +247,31 @@ Private Sub Celulas(ByVal rg As Range, ByVal fundo As Long, ByVal cor As Long, B
     rg.Interior.Color = fundo
     rg.Font.Color = cor
     rg.Font.Bold = negrito
-    rg.Font.Name = "Arial"
+    rg.Font.Name = "Segoe UI"
     rg.Font.Size = 10
     rg.Borders.LineStyle = 1
-    rg.Borders.Color = RGB(166, 166, 166)
+    rg.Borders.Color = COR_CINZA_LOGO
+End Sub
+
+Private Sub Faixa(ByVal ws As Worksheet, ByVal r As Long, ByVal cM As Long, ByVal texto As String)
+    Dim rg As Range
+    Set rg = ws.Range(ws.Cells(r, A_COL_ROT), ws.Cells(r, cM))
+    Celulas rg, COR_AMARELO, COR_AZUL_PROF, True
+    rg.Merge
+    rg.Cells(1, 1).Value = texto
+    rg.Font.Size = 8.5
+    rg.HorizontalAlignment = -4131
+    rg.IndentLevel = 1
+    ws.Rows(r).RowHeight = 14
+End Sub
+
+Private Sub LinhaAmarela(ByVal rg As Range)
+    On Error Resume Next
+    With rg.Borders(9)
+        .LineStyle = 1
+        .Weight = -4138
+        .Color = COR_AMARELO
+    End With
 End Sub
 
 Private Sub MarcarForaTol(ByVal c As Range, ByVal aux As Range)
@@ -219,8 +280,48 @@ Private Sub MarcarForaTol(ByVal c As Range, ByVal aux As Range)
     If gTesteLO Then Exit Sub
     c.FormatConditions.Delete
     Set fc = c.FormatConditions.Add(Type:=2, Formula1:="=" & aux.Address(True, True))
-    fc.Font.Color = RGB(255, 0, 0)
+    fc.Font.Color = RGB(198, 40, 40)
     fc.Font.Bold = True
+    fc.Interior.Color = RGB(251, 230, 230)
+End Sub
+
+' ---------------------------------------------------------------- copiar (e-mail do turno)
+' Copia como imagem o bloco do batch onde esta a celula selecionada (ou o mais recente, no topo)
+Public Sub CopiarAcompanhamento()
+    Dim r As Long, rr As Long, cM As Long, area As Range, id As Variant
+    On Error Resume Next
+    If ActiveSheet Is shAcomp Then
+        For rr = ActiveCell.Row To A_ROW0 Step -1
+            If CStr(shAcomp.Cells(rr, A_COL_ROT).Value) = "Batch" Then
+                r = rr
+                Exit For
+            End If
+        Next rr
+        If r > 0 Then
+            If ActiveCell.Row > r + AlturaBloco() - 1 Then r = 0
+        End If
+    End If
+    On Error GoTo 0
+    If r = 0 Then r = A_ROW0
+    If CStr(shAcomp.Cells(r, A_COL_ROT).Value) <> "Batch" Then
+        Aviso "Nenhum batch em acompanhamento ainda (aba Batch: tipo da busca = Acompanhamento e Buscar no MES).", _
+              vbInformation, "Copiar acompanhamento"
+        Exit Sub
+    End If
+    id = shAcomp.Cells(r, A_COL_V1).Value
+    cM = ColunaMedia(shAcomp, r)
+    Set area = shAcomp.Range(shAcomp.Cells(r, A_COL_ROT), shAcomp.Cells(r + AlturaBloco() - 1, cM))
+    If CopiarAreaImagem(shAcomp, area) Then
+        Aviso "Acompanhamento do batch " & id & " copiado. Cole no e-mail com Ctrl+V.", vbInformation, _
+              "Copiar acompanhamento"
+    Else
+        Aviso "Não foi possível copiar a imagem. Use Windows + Shift + S.", vbExclamation, "Copiar acompanhamento"
+    End If
+End Sub
+
+Public Sub IrAcomp()
+    On Error Resume Next
+    shAcomp.Activate
 End Sub
 
 ' ---------------------------------------------------------------- registro (aba oculta _Acomp)

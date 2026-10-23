@@ -30,6 +30,7 @@ Public Const U_COL_ORIGEM As Long = 13
 Public Const A_ROW0 As Long = 5
 Public Const ACOMP_Q As String = "SiO2|P|PPC"
 Public Const ACOMP_F As String = "SE|325"
+Public Const SENHA_CFG As String = "Samarco@Lab"
 Public Const REG_NCOL As Long = 9
 ' Historico: coluna (na tabela, 1-based) de campos usados nos ultimos batches
 Public Const H_COL_INIU As Long = 4

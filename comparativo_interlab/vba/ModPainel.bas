@@ -117,37 +117,61 @@ Private Function CopiarBitmap() As Boolean
 End Function
 
 ' Coloca o PNG na area de transferencia (via figura temporaria na aba)
-Private Function CopiarArquivoImagem(ByVal arq As String) As Boolean
+Private Function CopiarArquivoImagem(ByVal arq As String, Optional ByVal ws As Worksheet) As Boolean
     Dim img As Object
+    If ws Is Nothing Then Set ws = shPainel
     On Error GoTo Falha
-    Desproteger shPainel
-    Set img = shPainel.Shapes.AddPicture(arq, False, True, 0, 0, -1, -1)
+    Desproteger ws
+    Set img = ws.Shapes.AddPicture(arq, False, True, 0, 0, -1, -1)
     img.Copy
     img.Delete
-    Proteger shPainel
+    Proteger ws
     CopiarArquivoImagem = True
     Exit Function
 Falha:
     On Error Resume Next
     If Not img Is Nothing Then img.Delete
-    Proteger shPainel
+    Proteger ws
+End Function
+
+' Copia uma area como imagem (PNG em alta resolucao; se falhar, bitmap da tela)
+Public Function CopiarAreaImagem(ByVal ws As Worksheet, ByVal area As Range) As Boolean
+    Dim arq As String, tentativa As Long
+    arq = ExportarAreaPNG(ws, area, "")
+    If arq <> "" Then
+        CopiarAreaImagem = CopiarArquivoImagem(arq, ws)
+        On Error Resume Next
+        Kill arq
+        Exit Function
+    End If
+    On Error Resume Next
+    For tentativa = 1 To 3
+        Err.Clear
+        area.CopyPicture Appearance:=XL_SCREEN, Format:=XL_BITMAP
+        If Err.Number = 0 Then Exit For
+        DoEvents
+    Next tentativa
+    CopiarAreaImagem = (Err.Number = 0)
 End Function
 
 ' Exporta a area do report como PNG em alta resolucao. Devolve o caminho ("" se falhar).
 Public Function ExportarPNG(Optional ByVal destino As String = "") As String
-    Dim area As Range, co As Object, fig As Object, tentativa As Long, arq As String
+    ExportarPNG = ExportarAreaPNG(shPainel, Nm("pArea"), destino)
+End Function
+
+Public Function ExportarAreaPNG(ByVal ws As Worksheet, ByVal area As Range, ByVal destino As String) As String
+    Dim co As Object, fig As Object, tentativa As Long, arq As String
     On Error GoTo Falha
-    Set area = Nm("pArea")
     If destino = "" Then
         arq = Environ$("TEMP") & "\Report_Batch_" & CfgTxt("bId") & "_" & Format$(Now, "hhnnss") & ".png"
     Else
         arq = destino
     End If
-    shPainel.Activate
+    ws.Activate
     ActiveWindow.ScrollRow = 1
     ActiveWindow.ScrollColumn = 1
     Application.CutCopyMode = False
-    Desproteger shPainel
+    Desproteger ws
     ' 1) figura vetorial da area (inclui os graficos) - texto continua nitido ao ampliar
     On Error Resume Next
     For tentativa = 1 To 3
@@ -159,7 +183,7 @@ Public Function ExportarPNG(Optional ByVal destino As String = "") As String
     If Err.Number <> 0 Then GoTo Falha
     On Error GoTo Falha
     ' 2) grafico temporario ampliado com a figura ocupando todo o espaco
-    Set co = shPainel.ChartObjects.Add(area.Left, area.Top, area.Width * ESCALA, area.Height * ESCALA)
+    Set co = ws.ChartObjects.Add(area.Left, area.Top, area.Width * ESCALA, area.Height * ESCALA)
     co.Activate
     co.Chart.Paste
     Set fig = co.Chart.Shapes(co.Chart.Shapes.Count)
@@ -171,15 +195,15 @@ Public Function ExportarPNG(Optional ByVal destino As String = "") As String
     co.Chart.ChartArea.Format.Line.Visible = 0
     co.Chart.Export arq, "PNG"
     co.Delete
-    shPainel.Range("A1").Select
-    Proteger shPainel
-    ExportarPNG = arq
+    area.Cells(1, 1).Select
+    Proteger ws
+    ExportarAreaPNG = arq
     Exit Function
 Falha:
     On Error Resume Next
     If Not co Is Nothing Then co.Delete
-    Proteger shPainel
-    ExportarPNG = ""
+    Proteger ws
+    ExportarAreaPNG = ""
 End Function
 
 

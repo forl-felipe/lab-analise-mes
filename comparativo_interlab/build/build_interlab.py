@@ -31,32 +31,39 @@ RAIZ = os.path.dirname(AQUI)
 VBA_DIR = os.path.join(RAIZ, 'vba')
 TESTE = '--teste' in sys.argv
 SAIDA = os.path.join(RAIZ, 'Comparativo_Interlab_Germano_Ubu%s.xlsm' % ('_TESTE' if TESTE else ''))
-LOGO = os.path.join(AQUI, 'assets', 'logo_branco.png')
+LOGO = os.path.join(AQUI, 'assets', 'logo_samarco.png')   # kit visual Samarco (fundo escuro)
 HIST_USUARIO = os.path.join(AQUI, 'historico.json')
 
-# ---------------------------------------------------------------- paleta do painel HTML
-NAVY = '#14253D'
-NAVY2 = '#1A3C6E'
-BLUE = '#2F5C9E'
-INK = '#1A2744'
-INK2 = '#3A4A66'
-MUTED = '#6A7A94'
-LINE = '#C8CDD6'
-LINE2 = '#E0E3EA'
-BG = '#EEF1F5'
-SEC = '#F0F2F5'
-TH = '#E8EBF0'
+# ---------------------------------------------------------------- paleta Samarco (kit visual para paineis)
+NAVY = '#00335A'         # Azul Samarco: fundo principal, cabecalhos e barras de titulo
+NAVY2 = '#004070'        # Azul medio: paineis secundarios e subtitulos
+AZUL_TIT = '#003B6C'     # Azul de titulo: titulos sobre fundo branco
+AZUL_PROF = '#002643'    # Azul profundo: contraste e rodapes
+AMARELO = '#FFC000'      # Amarelo: destaques e linhas de apoio
+AZUL_CLARO = '#59C6F2'   # Azul claro: setas, fluxos e icones
+LARANJA = '#F37021'      # Laranja: alertas e valores em evidencia
+CINZA_LOGO = '#B5BEC4'   # Cinza da marca
+AZUL_CINZA = '#61889B'   # Azul acinzentado: contornos e linhas de graficos
+BLUE = NAVY2
+INK = '#1D2B36'
+INK2 = '#4A5A66'
+MUTED = '#5B6B77'
+LINE = '#C9D1D7'
+LINE2 = '#DDE3E8'
+BG = '#F3F5F7'
+SEC = '#F3F5F7'
+TH = '#E6EBEF'
 OK = '#0A7C50'
 OK_BG = '#E3F4EC'
 NOK = '#C62828'
 NOK_BG = '#FBE6E6'
 NOK_ROW = '#FDF3F3'
-COR_A = '#AECBEE'        # barras do laboratorio A (Germano)
-COR_A_MEDIA = '#5F8AC8'
-COR_B = '#E0E4EA'        # barras do laboratorio B (Ubu)
-COR_B_MEDIA = '#A7B0BB'
-COR_DIF = '#E08A00'
-COR_DIF_TXT = '#9A5F00'
+COR_A = '#A3D9F3'        # barras do laboratorio A (Germano): azul claro suave
+COR_A_MEDIA = NAVY2
+COR_B = '#D5DBDF'        # barras do laboratorio B (Ubu): cinza da marca suave
+COR_B_MEDIA = AZUL_CINZA
+COR_DIF = LARANJA
+COR_DIF_TXT = '#B04F12'
 INPUT = '#FFF8E1'
 BRANCO = '#FFFFFF'
 FONTE = 'Segoe UI'
@@ -133,8 +140,10 @@ N_ULT = 3                 # quantos batches anteriores mostrar
 U_COL = dict(BATCH=1, NIVEL=3, CHEG=4, FIM=6, INIP=8, DUR=10, ORIGEM=12)
 # abas de acompanhamento (batch em processamento): 1a linha dos blocos (0-based) e analises de cada aba
 A_ROW0 = 4
-ACOMP = [('Acomp. Químico', 'shAcompQ', ['SiO2', 'P', 'PPC'], 'ACOMPANHAMENTO QUÍMICO'),
-         ('Acomp. Físico', 'shAcompF', ['SE', '325'], 'ACOMPANHAMENTO FÍSICO')]
+ACOMP_Q = ['SiO2', 'P', 'PPC']     # analises quimicas do bloco (nesta ordem)
+ACOMP_F = ['SE', '325']            # analises fisicas
+# Senha da aba Configuracoes (muito oculta; abre pelo botao Configuracoes da aba Batch)
+SENHA_CFG = 'Samarco@Lab'
 REG_COLS = ['Batch', 'Chegada Ubu (UBU3)', 'Término Ubu', 'Nível dos tanques', 'Início no processo',
             'Início Germano (EB06)', 'Término Germano', 'Nº bi-horários', 'Atualizado em']
 MODOS = ['Comparativo (batch processado)', 'Acompanhamento (em processamento)']
@@ -219,7 +228,7 @@ class Construtor:
         return '%s!%s' % (quote(ws), rc(r, c, absoluto, absoluto))
 
     def botao(self, ws, row, col, texto, macro, largura=180, altura=34, estilo='p', x=0, y=0):
-        estilos = {'p': (NAVY2, BRANCO, None), 'g': (OK, BRANCO, None), 's': ('#E8EBF0', INK2, None),
+        estilos = {'a': (AMARELO, AZUL_PROF, None), 'p': (NAVY2, BRANCO, None), 'g': (OK, BRANCO, None), 's': ('#E8EBF0', INK2, None),
                    'd': (BRANCO, NOK, '#F0C4C4'), 'n': (NAVY, BRANCO, None)}
         fundo, cor, borda = estilos[estilo]
         ws.insert_textbox(row, col, texto, {
@@ -236,7 +245,7 @@ class Construtor:
         """Faixa azul-marinho no topo da aba (igual a barra do app HTML)."""
         ws.set_row(r, 34)
         ws.merge_range(r, c1, r, c2, titulo, self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY,
-                                                  indent=1))
+                                                  indent=1, bottom=5, bottom_color=AMARELO))
         if sub is not None:
             ws.set_row(r + 1, 22)
             ws.merge_range(r + 1, c1, r + 1, c2, sub, self.f(font_size=9.5, bold=True, font_color='#D5DEEB',
@@ -245,11 +254,11 @@ class Construtor:
     def secao(self, ws, r, c1, c2, texto, altura=22):
         ws.set_row(r, altura)
         if c1 == c2:
-            ws.write(r, c1, texto, self.f(bold=True, font_size=10, font_color=NAVY2, valign='bottom',
-                                          bottom=2, bottom_color=NAVY2))
+            ws.write(r, c1, texto, self.f(bold=True, font_size=10, font_color=AZUL_TIT, valign='bottom',
+                                          bottom=2, bottom_color=AMARELO))
             return
-        ws.merge_range(r, c1, r, c2, texto, self.f(bold=True, font_size=10, font_color=NAVY2, valign='bottom',
-                                                  bottom=2, bottom_color=NAVY2))
+        ws.merge_range(r, c1, r, c2, texto, self.f(bold=True, font_size=10, font_color=AZUL_TIT, valign='bottom',
+                                                  bottom=2, bottom_color=AMARELO))
 
     def rotulo(self, ws, r, c1, c2, texto):
         f = self.f(bold=True, font_size=8, font_color=MUTED, valign='bottom')
@@ -273,19 +282,19 @@ class Construtor:
     # ============================================================ abas
     def construir(self):
         wb = self.wb
-        self.ws_pai = wb.add_worksheet('Painel')
+        # ordem: preenchimento, acompanhamento, report, historico; o resto oculto
         self.ws_bat = wb.add_worksheet('Batch')
-        self.ws_acomp = [wb.add_worksheet(a[0]) for a in ACOMP]
+        self.ws_aco = wb.add_worksheet('Acompanhamento')
+        self.ws_pai = wb.add_worksheet('Painel')
         self.ws_his = wb.add_worksheet('Histórico')
         self.ws_bdl = wb.add_worksheet('BD_Leituras')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
         self.ws_gra = wb.add_worksheet('_Graf')
         self.ws_reg = wb.add_worksheet('_Acomp')
-        for ws, a in zip(self.ws_acomp, ACOMP):
-            ws.set_vba_name(a[1])
-            ws.hide_gridlines(2)
-            ws.set_tab_color('#B97A12')
+        self.ws_aco.set_vba_name('shAcomp')
+        self.ws_aco.hide_gridlines(2)
+        self.ws_aco.set_tab_color(AMARELO)
         self.ws_reg.set_vba_name('shAcompReg')
         for ws, cn in [(self.ws_pai, 'shPainel'), (self.ws_bat, 'shBatch'),
                        (self.ws_his, 'shHist'), (self.ws_bdl, 'shLeituras'),
@@ -311,8 +320,9 @@ class Construtor:
         self.ws_gra.hide()
         self.ws_bdl.hide()
         self.ws_reg.hide()
+        self.ws_cfg.hide()
         self.abas_acomp()
-        self.ws_pai.activate()
+        self.ws_bat.activate()
 
     # ------------------------------------------------------------ Configurações
     def aba_config(self):
@@ -328,7 +338,7 @@ class Construtor:
         ws.set_column(12, 12, 60)
         self.faixa(ws, 1, 1, 12, 'CONFIGURAÇÕES',
                    'Tags do MES, consulta, padrões de um batch novo e títulos do report')
-        self.botao(ws, 1, 8, 'Voltar ao Batch', 'IrBatch', 150, 26, 'n', x=80, y=4)
+        self.botao(ws, 1, 8, 'Voltar ao Batch', 'FecharConfiguracoes', 150, 26, 'a', x=80, y=4)
 
         self.secao(ws, 4, 1, 10, 'TAGS DO MES (UMA POR ANÁLISE E LABORATÓRIO)')
         ws.merge_range(5, 1, 5, 10, 'Tag em branco = análise fora da consulta (fica para lançamento manual). '
@@ -511,7 +521,7 @@ class Construtor:
         ws.write_formula(r + 3, 3, '=bLabB', self.f(align='center'))
         self.nome('lstLabs', ws, r + 3, 2, r + 3, 3)
         self.cfg_fim = r + 4
-        ws.protect('', {'format_columns': True, 'format_rows': True})
+        ws.protect(SENHA_CFG, {'format_columns': True, 'format_rows': True})
 
     # ------------------------------------------------------------ Batch
     def aba_batch(self):
@@ -526,6 +536,7 @@ class Construtor:
         ws.set_default_row(18, True)   # linhas sem uso ocultas
         ws.set_row(1, 34)
         ws.merge_range(1, 1, 1, 13, 'DADOS DO BATCH', self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY,
+                                                           bottom=5, bottom_color=AMARELO,
                                                            indent=1))
         fdt = self.fi(align='center', num_format='dd/mm/yyyy hh:mm')
         fauto_dt = self.f(align='center', num_format='dd/mm/yy hh:mm', bg_color='#F3F7FC', border=1,
@@ -801,7 +812,9 @@ class Construtor:
         self.b_fim = r + 7
 
         # botoes (na faixa do topo e ao lado dos passos)
-        self.botao(ws, 3, 10, 'Buscar no MES', 'BuscarMES', 260, 34, 'p', x=12, y=2)
+        self.botao(ws, 3, 10, 'Buscar no MES', 'BuscarMES', 260, 34, 'a', x=12, y=2)
+        self.botao(ws, 1, 9, 'Acompanhamento →', 'IrAcomp', 150, 28, 'p', x=20, y=5)
+        self.botao(ws, 1, 12, 'Configurações', 'AbrirConfiguracoes', 120, 28, 's', x=6, y=5)
         self.botao(ws, 5, 10, 'Salvar no histórico', 'SalvarHistorico', 260, 34, 'g', x=12, y=10)
         self.botao(ws, 8, 10, 'Ver painel →', 'IrPainel', 126, 26, 'n', x=12, y=4)
         self.botao(ws, 8, 12, 'Limpar leituras', 'LimparLeituras', 126, 26, 'd', x=6, y=4)
@@ -1051,25 +1064,27 @@ class Construtor:
         hdr = self.f(bg_color=NAVY, font_color=BRANCO, bold=True, font_size=14)
         ws.write_blank(R, 0, None, self.f(bg_color=NAVY))
         ws.merge_range(R, 1, R, 5, '', hdr)
+        # fonte 12: o titulo inteiro cabe nas colunas B:F ("QUALIDADE" saia cortado com 14)
         ws.write_formula(R, 1, '=IF(TRIM(bTit&"")="","COMPARATIVO DE MEDIÇÕES DE QUALIDADE",UPPER(bTit))',
-                         self.f(bg_color=NAVY, font_color=BRANCO, bold=True, font_size=14, indent=1))
+                         self.f(bg_color=NAVY, font_color=BRANCO, bold=True, font_size=12, indent=1))
         ws.merge_range(R, 6, R, 11, '', hdr)
         ws.write_formula(R, 6, '="|    "&UPPER(bSub)',
-                         self.f(bg_color=NAVY, font_color='#BFC8D6', bold=True, font_size=11))
+                         self.f(bg_color=NAVY, font_color=CINZA_LOGO, bold=True, font_size=10))
         ws.merge_range(R, 12, R, 13, '', self.f(bg_color=NAVY))
         ws.write_blank(R, 14, None, self.f(bg_color=NAVY))
-        ws.insert_image(R, 13, LOGO, {'x_scale': 0.26, 'y_scale': 0.26, 'x_offset': 70, 'y_offset': 12,
+        ws.insert_image(R, 13, LOGO, {'x_scale': 0.14, 'y_scale': 0.14, 'x_offset': 52, 'y_offset': 12,
                                       'object_position': 1, 'description': 'Samarco'})
         ws.set_row(R + 1, 22)
-        sub = self.f(bg_color=NAVY2, font_color=BRANCO, bold=True, font_size=10)
-        ws.write_blank(R + 1, 0, None, self.f(bg_color=NAVY2))
+        sub = self.f(bg_color=NAVY2, font_color=BRANCO, bold=True, font_size=10, bottom=5, bottom_color=AMARELO)
+        ws.write_blank(R + 1, 0, None, self.f(bg_color=NAVY2, bottom=5, bottom_color=AMARELO))
         ws.merge_range(R + 1, 1, R + 1, 5, 'REPORT GERENCIAL', self.f(bg_color=NAVY2, font_color=BRANCO, bold=True,
-                                                                    font_size=10, indent=1))
+                                                                    font_size=10, indent=1, bottom=5,
+                                                                    bottom_color=AMARELO))
         ws.merge_range(R + 1, 6, R + 1, 13, '', sub)
         ws.write_formula(R + 1, 6, '="BATCH "&bId&"   |   "&gDataTxt&IF(bMin<>"","   |   Mineroduto "&bMin,"")',
-                         self.f(bg_color=NAVY2, font_color='#E3E9F2', bold=True, font_size=9.5, align='right',
-                                indent=1))
-        ws.write_blank(R + 1, 14, None, self.f(bg_color=NAVY2))
+                         self.f(bg_color=NAVY2, font_color=BRANCO, bold=True, font_size=9.5, align='right',
+                                indent=1, bottom=5, bottom_color=AMARELO))
+        ws.write_blank(R + 1, 14, None, self.f(bg_color=NAVY2, bottom=5, bottom_color=AMARELO))
         ws.set_row(R + 2, 10)
         for c in range(0, 15):
             ws.write_blank(R + 2, c, None, bgw)
@@ -1270,16 +1285,19 @@ class Construtor:
 
     # ------------------------------------------------------------ acompanhamento (batch em processamento)
     def abas_acomp(self):
-        for ws, (nome, cn, ps, tit) in zip(self.ws_acomp, ACOMP):
-            ws.set_column(0, 0, 1.5)
-            ws.set_column(1, 1, 26)
-            ws.set_column(2, NMAX + 3, 8.6)
-            self.faixa(ws, 1, 1, 15, '%s — BATCH EM PROCESSAMENTO' % tit, '')
-            ws.write_formula(2, 1, '="Germano vem do MES (aba Batch, tipo da busca = Acompanhamento). "&padNomeUbuAcomp&'
-                                   '": preencher a cada 2 h nas células amarelas. Batch mais recente em cima."',
-                             self.f(font_size=9.5, bold=True, font_color='#D5DEEB', bg_color=NAVY2, indent=1))
-            ws.freeze_panes(A_ROW0, 2)
-            ws.write(A_ROW0, 1, 'Nenhum batch em acompanhamento ainda.', self.f(italic=True, font_color=MUTED))
+        ws = self.ws_aco
+        ws.set_column(0, 0, 1.5)
+        ws.set_column(1, 1, 27)
+        ws.set_column(2, NMAX + 3, 8.4)
+        self.faixa(ws, 1, 1, 16, 'ACOMPANHAMENTO DO BATCH EM PROCESSAMENTO', '')
+        ws.write_formula(2, 1, '="Germano vem do MES (aba Batch, tipo da busca = Acompanhamento). "&padNomeUbuAcomp&'
+                               '": lançar a cada 2 h nas células amarelas. Batch mais recente em cima."',
+                         self.f(font_size=9.5, bold=True, font_color=BRANCO, bg_color=NAVY2, indent=1))
+        self.botao(ws, 1, 13, 'Copiar acompanhamento', 'CopiarAcompanhamento', 190, 30, 'a', x=0, y=6)
+        self.botao(ws, 1, 16, '← Batch', 'IrBatch', 90, 30, 's', x=4, y=6)
+        ws.freeze_panes(A_ROW0, 2)
+        ws.write(A_ROW0, 1, 'Nenhum batch em acompanhamento ainda.', self.f(italic=True, font_color=MUTED))
+        ws.protect('', {'format_columns': True, 'format_rows': True})
         ws = self.ws_reg
         for i, h in enumerate(REG_COLS):
             ws.write(0, i, h, self.f(bold=True))
@@ -1482,8 +1500,9 @@ class Construtor:
             ["Public Const U_COL_%s As Long = %d" % (k, v + 1) for k, v in U_COL.items()] + \
             ["' abas de acompanhamento: 1a linha dos blocos e analises (chaves) de cada aba",
              "Public Const A_ROW0 As Long = %d" % (A_ROW0 + 1),
-             'Public Const ACOMP_Q As String = "%s"' % '|'.join(ACOMP[0][2]),
-             'Public Const ACOMP_F As String = "%s"' % '|'.join(ACOMP[1][2]),
+             'Public Const ACOMP_Q As String = "%s"' % '|'.join(ACOMP_Q),
+             'Public Const ACOMP_F As String = "%s"' % '|'.join(ACOMP_F),
+             'Public Const SENHA_CFG As String = "%s"' % SENHA_CFG,
              "Public Const REG_NCOL As Long = %d" % len(REG_COLS),
              "' Historico: coluna (na tabela, 1-based) de campos usados nos ultimos batches",
              "Public Const H_COL_INIU As Long = %d" % (H_COLS.index('Chegada Ubu (UBU3)') + 1),
@@ -1583,7 +1602,7 @@ def montar_vba(layout_code):
                     '    If Not Intersect(Target, Nm("bId")) Is Nothing Then\n'
                     '        PreencherDoAcomp\n        AtualizarUltimos\n    End If\nEnd Sub\n'),
     }
-    for cn in ['shPainel', 'shBatch', 'shAcompQ', 'shAcompF', 'shHist', 'shLeituras', 'shConfig', 'shDadosMES',
+    for cn in ['shBatch', 'shAcomp', 'shPainel', 'shHist', 'shLeituras', 'shConfig', 'shDadosMES',
                'shGraf', 'shAcompReg']:
         mods.append({'name': cn, 'kind': 'sheet', 'code': eventos.get(cn, '')})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModBatch', 'ModPainel', 'ModAcomp']:

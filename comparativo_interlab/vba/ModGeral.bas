@@ -31,10 +31,11 @@ Public Sub Inicializar()
     shGraf.Visible = XL_HIDDEN
     shLeituras.Visible = XL_HIDDEN
     shAcompReg.Visible = XL_HIDDEN
+    shConfig.Visible = XL_VERYHIDDEN
     gAlterado = False
     AtualizarUltimos
     AjustarGraficos
-    shPainel.Activate
+    shBatch.Activate
 End Sub
 
 ' ---------------------------------------------------------------- nomes e celulas
@@ -208,6 +209,25 @@ Public Sub IrBatch()
     On Error Resume Next
     shBatch.Activate
     shDadosMES.Visible = XL_HIDDEN
+    shConfig.Visible = XL_VERYHIDDEN
+End Sub
+
+' Configuracoes fica muito oculta (nao aparece em Reexibir); abre so com a senha
+Public Sub AbrirConfiguracoes()
+    Dim s As Variant
+    s = InputBox("Senha da aba Configurações:", "Configurações")
+    If CStr(s) = "" Then Exit Sub
+    If CStr(s) <> SENHA_CFG Then
+        Aviso "Senha incorreta.", vbExclamation, "Configurações"
+        Exit Sub
+    End If
+    On Error Resume Next
+    shConfig.Visible = XL_VISIBLE
+    shConfig.Activate
+End Sub
+
+Public Sub FecharConfiguracoes()
+    IrBatch
 End Sub
 
 
@@ -219,6 +239,7 @@ End Sub
 
 Public Sub OcultarDadosMES()
     On Error Resume Next
+    shConfig.Visible = XL_VISIBLE
     shConfig.Activate
     shDadosMES.Visible = XL_HIDDEN
 End Sub
@@ -243,16 +264,21 @@ End Sub
 ' ---------------------------------------------------------------- protecao das abas
 Public Sub Desproteger(ByVal ws As Worksheet)
     On Error Resume Next
-    ws.Unprotect Password:=SENHA
+    ws.Unprotect Password:=SenhaAba(ws)
 End Sub
+
+' Configuracoes tem senha propria (SENHA_CFG); as demais abas, SENHA
+Private Function SenhaAba(ByVal ws As Worksheet) As String
+    If ws Is shConfig Then SenhaAba = SENHA_CFG Else SenhaAba = SENHA
+End Function
 
 Public Sub Proteger(ByVal ws As Worksheet)
     On Error Resume Next
-    ws.Protect Password:=SENHA, DrawingObjects:=True, Contents:=True, _
+    ws.Protect Password:=SenhaAba(ws), DrawingObjects:=True, Contents:=True, _
                AllowFormattingColumns:=True, AllowFormattingRows:=True
     If Err.Number <> 0 Then
         Err.Clear
-        ws.Protect SENHA
+        ws.Protect SenhaAba(ws)
     End If
 End Sub
 

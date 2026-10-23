@@ -1,5 +1,9 @@
 # Comparativo de Medições de Qualidade — Germano × Ubu
 
+Padrão visual Samarco (kit visual para painéis): Azul Samarco `#00335A`, azul médio `#004070`, azul de título
+`#003B6C`, amarelo `#FFC000` (linhas de destaque e botão Buscar no MES), azul claro `#59C6F2`, laranja `#F37021`
+(diferenças e horários em evidência), cinza da marca `#B5BEC4`, fonte Segoe UI e a logo do kit.
+
 Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTML
 "Comparativo Interlaboratorial Germano × Ubu" (Report Gerencial), com os resultados puxados do MES.
 
@@ -7,14 +11,15 @@ Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTM
 
 | Aba | Para quê |
 |---|---|
+| **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); ④ **pellet feed ultra fino** (data do composto e os 4 resultados, buscados no MES junto com as leituras e editáveis); **comentários do report** (parâmetros fora e acompanhamento automáticos e editáveis + 6 tópicos); a grade de **leituras por horário**; no fim, ajustes opcionais. As diferenças por horário ficam só no Painel. Linhas e colunas sem uso ficam ocultas (também no Painel). Botões: Buscar no MES, Salvar no histórico, Ver painel, Limpar leituras, Acompanhamento e Configurações (com senha). **Salvar no histórico** já deixa a aba em branco para o próximo batch (tolerâncias, títulos e comentários voltam aos padrões de Configurações). Abre com um batch em branco. |
+| **Acompanhamento** | Batch **em processamento**: um bloco por batch (o mais recente em cima) com as análises químicas (SiO₂, P, PPC) e físicas (S.E., <325#) juntas — Data, Início aproximado no processo (horário de Ubu), e para cada análise: Germano (MES), Alimentação 04 (Ubu, lançado a mão a cada 2 h nas células amarelas) e Diferença (Ubu − Germano), com a **Média**; média fora da tolerância em vermelho. Botão **Copiar acompanhamento**: copia como imagem o bloco do batch selecionado (ou o mais recente) para o e-mail do turno. Pode ficar no SharePoint (as macros não rodam no Excel online, as fórmulas sim). |
 | **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **pellet feed ultra fino** (composto diário do dia anterior: Fe, SiO₂, P, S.E.) e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo (texto curto para o corpo do e-mail). |
-| **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); ④ **pellet feed ultra fino** (data do composto e os 4 resultados, buscados no MES junto com as leituras e editáveis); **comentários do report** (parâmetros fora e acompanhamento automáticos e editáveis + 6 tópicos); a grade de **leituras por horário**; no fim, ajustes opcionais. As diferenças por horário ficam só no Painel. Linhas e colunas sem uso ficam ocultas (também no Painel). Botões: Buscar no MES, Salvar no histórico, Ver painel, Limpar leituras. **Salvar no histórico** já deixa a aba em branco para o próximo batch (tolerâncias, títulos e comentários voltam aos padrões de Configurações). Abre com um batch em branco. |
-| **Acomp. Químico** / **Acomp. Físico** | Batch **em processamento**: um bloco por batch (o mais recente em cima), como as planilhas de acompanhamento do laboratório — Data, Início aproximado no processo (horário de Ubu), e para cada análise: Germano (MES), Alimentação 04 (Ubu, lançado a mão a cada 2 h nas células amarelas) e Diferença (Ubu − Germano), com a **Média**; média fora da tolerância em vermelho. Químico: SiO₂, P, PPC. Físico: S.E., <325#. Pode ficar no SharePoint para o físico e o químico lançarem juntos (as macros não rodam no Excel online, as fórmulas sim). |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. |
 | **BD_Leituras** (oculta) | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
-| **Configurações** | Tags do MES (batch e PFUF), consulta, atraso por nível dos tanques, padrões de batch novo e títulos dos gráficos. |
+| **Configurações** (muito oculta, com senha) | Tags do MES (batch e PFUF), consulta, atraso por nível dos tanques, padrões de batch novo e títulos dos gráficos. |
 
-Ocultas: `BD_Leituras`, `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos, farol e resumo) e `_Acomp`
+Ocultas: `Configurações` (abre pelo botão Configurações da aba Batch, com a senha; volta a ficar
+oculta ao sair e ao abrir o arquivo — a senha fica na constante `SENHA_CFG` do gerador), `BD_Leituras`, `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos, farol e resumo) e `_Acomp`
 (registro dos batches em acompanhamento: chegada/término em Ubu, nível, Germano).
 
 ## Regras (iguais às do painel HTML)
@@ -59,8 +64,7 @@ Ocultas: `BD_Leituras`, `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos g
 - Na aba Batch, **Tipo da busca no MES** (embaixo dos botões): *Comparativo (batch processado)* ou
   *Acompanhamento (em processamento)*.
 - Acompanhamento: informar o batch, colar as Fases do Evento (Germano EB06) e, quando houver, a chegada em Ubu e o
-  nível dos tanques. **Buscar no MES** traz só Germano e monta/atualiza o bloco do batch nas abas Acomp. Químico e
-  Acomp. Físico. Buscar de novo atualiza Germano e os horários e **mantém o que já foi lançado de Ubu**.
+  nível dos tanques. **Buscar no MES** traz só Germano e monta/atualiza o bloco do batch nas abas Acompanhamento. Buscar de novo atualiza Germano e os horários e **mantém o que já foi lançado de Ubu**.
 - Sem a chegada em Ubu ainda, o bloco sai sem os horários; ao informar a chegada e buscar de novo, eles entram.
 - Salvar no histórico fica para o comparativo (depois de processado). Ao digitar no Batch um número que já está em
   acompanhamento, chegada, término, nível e Germano já vêm preenchidos.
