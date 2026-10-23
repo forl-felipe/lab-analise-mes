@@ -7,14 +7,15 @@ Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTM
 
 | Aba | Para quê |
 |---|---|
-| **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **pellet feed ultra fino** (composto diário do dia anterior: Fe, SiO₂, P, S.E.) e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo. |
+| **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **pellet feed ultra fino** (composto diário do dia anterior: Fe, SiO₂, P, S.E.) e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo (texto curto para o corpo do e-mail). |
 | **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); ④ **pellet feed ultra fino** (data do composto e os 4 resultados, buscados no MES junto com as leituras e editáveis); **comentários do report** (parâmetros fora e acompanhamento automáticos e editáveis + 6 tópicos); a grade de **leituras por horário**; no fim, ajustes opcionais. As diferenças por horário ficam só no Painel. Linhas e colunas sem uso ficam ocultas (também no Painel). Botões: Buscar no MES, Salvar no histórico, Ver painel, Limpar leituras. **Salvar no histórico** já deixa a aba em branco para o próximo batch (tolerâncias, títulos e comentários voltam aos padrões de Configurações). Abre com um batch em branco. |
-| **Enviar** | Resumo curto para o corpo do e-mail (batch, parâmetros fora da tolerância, PFUF e os comentários) e o assunto. Botões: Copiar resumo e Copiar painel (imagem). |
+| **Acomp. Químico** / **Acomp. Físico** | Batch **em processamento**: um bloco por batch (o mais recente em cima), como as planilhas de acompanhamento do laboratório — Data, Início aproximado no processo (horário de Ubu), e para cada análise: Germano (MES), Alimentação 04 (Ubu, lançado a mão a cada 2 h nas células amarelas) e Diferença (Ubu − Germano), com a **Média**; média fora da tolerância em vermelho. Químico: SiO₂, P, PPC. Físico: S.E., <325#. Pode ficar no SharePoint para o físico e o químico lançarem juntos (as macros não rodam no Excel online, as fórmulas sim). |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. |
-| **BD_Leituras** | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
+| **BD_Leituras** (oculta) | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
 | **Configurações** | Tags do MES (batch e PFUF), consulta, atraso por nível dos tanques, padrões de batch novo e títulos dos gráficos. |
 
-Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cálculos do farol).
+Ocultas: `BD_Leituras`, `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos, farol e resumo) e `_Acomp`
+(registro dos batches em acompanhamento: chegada/término em Ubu, nível, Germano).
 
 ## Regras (iguais às do painel HTML)
 
@@ -52,6 +53,20 @@ Ocultas: `Dados_MES` (consultas ao Aspen) e `_Graf` (séries dos gráficos e cá
   `M4650060010-0016-HHLFU` (<325#), `M650030010-0004/-0008/-0013-HHLQU` (SiO₂, P, PPC).
   Tags do Mineroduto 2 (para a futura ponderação por volume): `M250010000-17-ABLQ`, `-16-ABLF`, `-4-ABLQ`,
   `-8-ABLQ`, `-13-ABLQ`. Tabulações e quebras de linha coladas junto com a tag são removidas.
+
+## Batch em processamento (acompanhamento)
+
+- Na aba Batch, **Tipo da busca no MES** (embaixo dos botões): *Comparativo (batch processado)* ou
+  *Acompanhamento (em processamento)*.
+- Acompanhamento: informar o batch, colar as Fases do Evento (Germano EB06) e, quando houver, a chegada em Ubu e o
+  nível dos tanques. **Buscar no MES** traz só Germano e monta/atualiza o bloco do batch nas abas Acomp. Químico e
+  Acomp. Físico. Buscar de novo atualiza Germano e os horários e **mantém o que já foi lançado de Ubu**.
+- Sem a chegada em Ubu ainda, o bloco sai sem os horários; ao informar a chegada e buscar de novo, eles entram.
+- Salvar no histórico fica para o comparativo (depois de processado). Ao digitar no Batch um número que já está em
+  acompanhamento, chegada, término, nível e Germano já vêm preenchidos.
+- **Últimos batches em Ubu** (aba Batch, abaixo da conferência): os 3 batches anteriores ao da aba (histórico e
+  acompanhamento) com nível dos tanques, chegada e término em Ubu, início no processo e tempo em Ubu — referência
+  para preencher o próximo.
 
 ## Pellet feed ultra fino (elutriação) — composto diário
 

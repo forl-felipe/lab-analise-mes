@@ -5,7 +5,7 @@ Public Const NP As Long = 5
 Public Const NMAX As Long = 24
 Public Const HORAS_SLOT As Double = 2
 ' aba Batch (1-based)
-Public Const B_ROW_G0 As Long = 32
+Public Const B_ROW_G0 As Long = 38
 Public Const B_COL_N As Long = 2
 Public Const B_COL_TU As Long = 3
 Public Const B_COL_TG As Long = 4
@@ -16,6 +16,26 @@ Public Const C_ROW_TAG0 As Long = 8
 ' aba Configuracoes: tags do pellet feed ultra fino (1-based; mesmas colunas)
 Public Const C_ROW_PF0 As Long = 21
 Public Const NPF As Long = 4
+' aba Batch: ultimos batches (1-based) e tipo da busca
+Public Const B_ROW_ULT As Long = 18
+Public Const N_ULT As Long = 3
+Public Const U_COL_BATCH As Long = 2
+Public Const U_COL_NIVEL As Long = 4
+Public Const U_COL_CHEG As Long = 5
+Public Const U_COL_FIM As Long = 7
+Public Const U_COL_INIP As Long = 9
+Public Const U_COL_DUR As Long = 11
+Public Const U_COL_ORIGEM As Long = 13
+' abas de acompanhamento: 1a linha dos blocos e analises (chaves) de cada aba
+Public Const A_ROW0 As Long = 5
+Public Const ACOMP_Q As String = "SiO2|P|PPC"
+Public Const ACOMP_F As String = "SE|325"
+Public Const REG_NCOL As Long = 9
+' Historico: coluna (na tabela, 1-based) de campos usados nos ultimos batches
+Public Const H_COL_INIU As Long = 4
+Public Const H_COL_FIMU As Long = 5
+Public Const H_COL_NIVEL As Long = 6
+Public Const H_COL_INIP As Long = 56
 Public Const PF_CHAVES As String = "Fe|SiO2|P|SE"
 Public Const PF_DECIMAIS As String = "2|2|3|0"
 Public Const C_COL_PARAM As Long = 2

@@ -196,8 +196,9 @@ Public Sub CopiarResumo()
     If CopiarTexto(TextoResumo()) Then
         Aviso "Resumo copiado. Cole no corpo do e-mail com Ctrl+V.", vbInformation, "Copiar resumo"
     Else
-        Aviso "Não foi possível copiar. Selecione o texto da aba Enviar e copie com Ctrl+C.", vbExclamation, _
-              "Copiar resumo"
+        ' sem acesso a area de transferencia: mostra o texto para copiar a mao
+        InputBox "Não foi possível copiar sozinho. Selecione o texto abaixo e copie com Ctrl+C:", _
+                 "Copiar resumo", Replace(TextoResumo(), vbCrLf, " / ")
     End If
 End Sub
 

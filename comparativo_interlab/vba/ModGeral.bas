@@ -29,7 +29,10 @@ Public Sub Inicializar()
     On Error Resume Next
     shDadosMES.Visible = XL_HIDDEN
     shGraf.Visible = XL_HIDDEN
+    shLeituras.Visible = XL_HIDDEN
+    shAcompReg.Visible = XL_HIDDEN
     gAlterado = False
+    AtualizarUltimos
     AjustarGraficos
     shPainel.Activate
 End Sub
@@ -205,11 +208,6 @@ Public Sub IrBatch()
     On Error Resume Next
     shBatch.Activate
     shDadosMES.Visible = XL_HIDDEN
-End Sub
-
-Public Sub IrEnviar()
-    On Error Resume Next
-    shEnviar.Activate
 End Sub
 
 

@@ -5,7 +5,7 @@ Versao em Excel do painel HTML "Comparativo Interlaboratorial Germano x Ubu" (Re
                     (P, SiO2, PPC, <325# e S.E.); botoes de imagem, PNG, PDF e e-mail
   Batch           - cabecalho do batch, tolerancias, comentarios, PFUF e leituras por horario
                     (Germano x Ubu); botao Buscar no MES
-  Enviar          - resumo pronto para o corpo do e-mail
+  Acomp. Químico / Acomp. Físico - batch em processamento: Germano do MES x Ubu lancado a mao (um bloco por batch)
   Histórico       - um batch por linha (tabela tbl_Batches, para o Power BI)
   BD_Leituras     - uma leitura por linha (tabela tbl_Leituras, para o Power BI)
   Configurações   - tags do MES, consulta, padroes e titulos
@@ -125,8 +125,19 @@ B_COL_TG = 3              # D  data/hora Germano
 B_COL_V1 = 4              # E  1o valor (SE A); valor (p, lab) em B_COL_V1 + 2p + lab
 B_COL_D1 = 15             # P  1a diferenca
 B_COL_R1 = 20             # U  1o "rank" (par A/B para os graficos)
-B_ROW_G0 = 31             # 1a linha de leituras
+B_ROW_G0 = 37             # 1a linha de leituras
 B_ROW_MED = B_ROW_G0 + NMAX
+B_ROW_ULT = 17            # 1a linha da tabela dos ultimos batches (preenchida pelo VBA)
+N_ULT = 3                 # quantos batches anteriores mostrar
+# colunas (0-based, inicio de cada campo) da tabela dos ultimos batches
+U_COL = dict(BATCH=1, NIVEL=3, CHEG=4, FIM=6, INIP=8, DUR=10, ORIGEM=12)
+# abas de acompanhamento (batch em processamento): 1a linha dos blocos (0-based) e analises de cada aba
+A_ROW0 = 4
+ACOMP = [('Acomp. Químico', 'shAcompQ', ['SiO2', 'P', 'PPC'], 'ACOMPANHAMENTO QUÍMICO'),
+         ('Acomp. Físico', 'shAcompF', ['SE', '325'], 'ACOMPANHAMENTO FÍSICO')]
+REG_COLS = ['Batch', 'Chegada Ubu (UBU3)', 'Término Ubu', 'Nível dos tanques', 'Início no processo',
+            'Início Germano (EB06)', 'Término Germano', 'Nº bi-horários', 'Atualizado em']
+MODOS = ['Comparativo (batch processado)', 'Acompanhamento (em processamento)']
 B_ROW_CNT = B_ROW_MED + 1
 
 # ---------------------------------------------------------------- aba _Graf (0-based)
@@ -264,13 +275,19 @@ class Construtor:
         wb = self.wb
         self.ws_pai = wb.add_worksheet('Painel')
         self.ws_bat = wb.add_worksheet('Batch')
-        self.ws_env = wb.add_worksheet('Enviar')
+        self.ws_acomp = [wb.add_worksheet(a[0]) for a in ACOMP]
         self.ws_his = wb.add_worksheet('Histórico')
         self.ws_bdl = wb.add_worksheet('BD_Leituras')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
         self.ws_gra = wb.add_worksheet('_Graf')
-        for ws, cn in [(self.ws_pai, 'shPainel'), (self.ws_bat, 'shBatch'), (self.ws_env, 'shEnviar'),
+        self.ws_reg = wb.add_worksheet('_Acomp')
+        for ws, a in zip(self.ws_acomp, ACOMP):
+            ws.set_vba_name(a[1])
+            ws.hide_gridlines(2)
+            ws.set_tab_color('#B97A12')
+        self.ws_reg.set_vba_name('shAcompReg')
+        for ws, cn in [(self.ws_pai, 'shPainel'), (self.ws_bat, 'shBatch'),
                        (self.ws_his, 'shHist'), (self.ws_bdl, 'shLeituras'),
                        (self.ws_cfg, 'shConfig'),
                        (self.ws_mes, 'shDadosMES'), (self.ws_gra, 'shGraf')]:
@@ -279,7 +296,6 @@ class Construtor:
                 ws.hide_gridlines(2)
         self.ws_pai.set_tab_color(NAVY2)
         self.ws_bat.set_tab_color('#FDB913')
-        self.ws_env.set_tab_color(BLUE)
         self.ws_his.set_tab_color(OK)
         self.ws_bdl.set_tab_color(MUTED)
         self.ws_cfg.set_tab_color('#9AA3AD')
@@ -288,11 +304,14 @@ class Construtor:
         self.aba_batch()
         self.aba_graf()
         self.aba_painel()
-        self.aba_enviar()
+        self.resumo_email()
         self.aba_historico()
         self.aba_dados_mes()
         self.ws_mes.hide()
         self.ws_gra.hide()
+        self.ws_bdl.hide()
+        self.ws_reg.hide()
+        self.abas_acomp()
         self.ws_pai.activate()
 
     # ------------------------------------------------------------ Configurações
@@ -452,6 +471,7 @@ class Construtor:
                ('padLabB', 'Laboratório B (barra cinza)', 'Ubu'),
                ('padRef', 'Laboratório de referência', 'Germano'),
                ('padMin', 'Mineroduto', '03'),
+               ('padNomeUbuAcomp', 'Ubu nas abas de acompanhamento', 'Alimentação 04'),
                ('padNHor', 'Nº de horários', NHOR_PADRAO),
                ('padTit', 'Título principal', 'COMPARATIVO DE MEDIÇÕES DE QUALIDADE'),
                ('padSub', 'Subtítulo', 'Batch bombeado e pellet feed recebido'),
@@ -583,8 +603,37 @@ class Construtor:
         ws.set_row(RV, 22)
         ws.set_row(RV + 1, 8)
 
+        # --- ultimos batches em Ubu (referencia para o proximo; o VBA preenche a partir do historico e do
+        #     acompanhamento)
+        r = B_ROW_ULT - 2
+        self.secao(ws, r, 1, 13, 'ÚLTIMOS BATCHES EM UBU  (referência para preencher o próximo)')
+        fu_l = self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom')
+        fu = dict(align='center', font_size=9.5, border=1, border_color=LINE2, bg_color='#FAFBFC')
+        cab = [('BATCH', 'BATCH', None), ('NIVEL', 'NÍVEL TANQUES', None), ('CHEG', 'UBU · CHEGADA (UBU3)', 'dd/mm/yy hh:mm'),
+               ('FIM', 'UBU · TÉRMINO', 'dd/mm/yy hh:mm'), ('INIP', 'INÍCIO NO PROCESSO', 'dd/mm/yy hh:mm'),
+               ('DUR', 'TEMPO EM UBU', '0.0" h"'), ('ORIGEM', 'ORIGEM', None)]
+        largura = dict(BATCH=2, NIVEL=1, CHEG=2, FIM=2, INIP=2, DUR=2, ORIGEM=2)
+        for k, rot, fmt in cab:
+            c1 = U_COL[k]
+            c2 = c1 + largura[k] - 1
+            if c2 > c1:
+                ws.merge_range(r + 1, c1, r + 1, c2, rot, fu_l)
+            else:
+                ws.write(r + 1, c1, rot, fu_l)
+            for i in range(N_ULT):
+                ff = self.f(num_format=fmt, bold=(k == 'BATCH'), **fu) if fmt else self.f(bold=(k == 'BATCH'), **fu)
+                if c2 > c1:
+                    ws.merge_range(B_ROW_ULT + i, c1, B_ROW_ULT + i, c2, '', ff)
+                else:
+                    ws.write_blank(B_ROW_ULT + i, c1, None, ff)
+        for i in range(N_ULT):
+            ws.set_row(B_ROW_ULT + i, 17)
+        ws.set_row(r + 1, 14)
+        ws.set_row(B_ROW_ULT + N_ULT, 8)
+        self.nome('bUltimos', ws, B_ROW_ULT, 1, B_ROW_ULT + N_ULT - 1, 13)
+
         # --- pellet feed ultra fino: composto diario do dia anterior (Buscar no MES; da para corrigir)
-        r = 15
+        r = B_ROW_ULT + N_ULT + 1
         self.secao(ws, r, 1, 13, '④  PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO DIA ANTERIOR (vem junto no Buscar no MES · dá para corrigir)')
         ws.merge_range(r + 1, 1, r + 1, 2, 'DATA DO COMPOSTO', fl)
         self.entrada(ws, r + 2, 1, 2, '=IF(ISNUMBER(bData),bData-cfgPfDias,"")',
@@ -603,7 +652,8 @@ class Construtor:
         ws.set_row(r + 3, 8)
 
         # --- comentarios do report (logo abaixo da conferencia, para editar antes de salvar)
-        r = 19
+        r = B_ROW_ULT + N_ULT + 5
+        assert r + 10 == B_ROW_G0 - 2
         self.secao(ws, r, 1, 13, 'COMENTÁRIOS DO REPORT  (os dois primeiros são automáticos — dá para editar)')
         fauto = self.fi(italic=True, font_size=9.5, font_color=INK2, text_wrap=True, bg_color='#F3F7FC')
         for rr, rot, form, nm, nm_inc in [(r + 1, 'Parâmetros fora', '=gFrase', 'bFrase', 'bIncFrase'),
@@ -755,6 +805,16 @@ class Construtor:
         self.botao(ws, 5, 10, 'Salvar no histórico', 'SalvarHistorico', 260, 34, 'g', x=12, y=10)
         self.botao(ws, 8, 10, 'Ver painel →', 'IrPainel', 126, 26, 'n', x=12, y=4)
         self.botao(ws, 8, 12, 'Limpar leituras', 'LimparLeituras', 126, 26, 'd', x=6, y=4)
+        ws.merge_range(10, 10, 10, 13, 'TIPO DA BUSCA NO MES', self.f(bold=True, font_size=7.5, font_color=MUTED,
+                                                                    valign='bottom'))
+        fmodo = self.fi(align='center', bold=True, font_size=9.5, font_color=NAVY2)
+        ws.merge_range(11, 10, 11, 13, MODOS[0], fmodo)
+        self.nome('bModo', ws, 11, 10)
+        ws.data_validation(11, 10, 11, 10, {'validate': 'list', 'source': MODOS,
+                                            'input_title': 'Tipo da busca',
+                                            'input_message': 'Comparativo: Germano e Ubu (batch já processado). '
+                                                             'Acompanhamento: só Germano, monta as abas Acomp. '
+                                                             'Físico e Químico.'})
         ws.print_area(0, 0, self.b_fim, 13)
         ws.fit_to_pages(1, 0)
         ws.set_paper(9)
@@ -1208,15 +1268,27 @@ class Construtor:
                                     'description': 'Gráfico %s' % k})
         self.graficos.append(k)
 
-    # ------------------------------------------------------------ Enviar
-    def aba_enviar(self):
-        ws = self.ws_env
-        ws.set_column(0, 0, 2)
-        ws.set_column(1, 1, 92)
-        ws.set_column(2, 2, 2)
-        ws.set_column(3, 3, 34)
-        self.faixa(ws, 1, 1, 3, 'ENVIAR REPORTE')
-        self.secao(ws, 4, 1, 1, 'RESUMO PARA O CORPO DO E-MAIL')
+    # ------------------------------------------------------------ acompanhamento (batch em processamento)
+    def abas_acomp(self):
+        for ws, (nome, cn, ps, tit) in zip(self.ws_acomp, ACOMP):
+            ws.set_column(0, 0, 1.5)
+            ws.set_column(1, 1, 26)
+            ws.set_column(2, NMAX + 3, 8.6)
+            self.faixa(ws, 1, 1, 15, '%s — BATCH EM PROCESSAMENTO' % tit, '')
+            ws.write_formula(2, 1, '="Germano vem do MES (aba Batch, tipo da busca = Acompanhamento). "&padNomeUbuAcomp&'
+                                   '": preencher a cada 2 h nas células amarelas. Batch mais recente em cima."',
+                             self.f(font_size=9.5, bold=True, font_color='#D5DEEB', bg_color=NAVY2, indent=1))
+            ws.freeze_panes(A_ROW0, 2)
+            ws.write(A_ROW0, 1, 'Nenhum batch em acompanhamento ainda.', self.f(italic=True, font_color=MUTED))
+        ws = self.ws_reg
+        for i, h in enumerate(REG_COLS):
+            ws.write(0, i, h, self.f(bold=True))
+        ws.set_column(0, len(REG_COLS) - 1, 18)
+
+    # ------------------------------------------------------------ resumo para o e-mail (botao Copiar resumo)
+    def resumo_email(self):
+        ws = self.ws_gra
+        X = G_ROW_X
         pf_txt = ('&IF(COUNT(%s)=0,"",CHAR(10)&"PFUF (composto diário"&IF(ISNUMBER(bPfData)," "&TEXT(DAY(bPfData),"00")'
                   '&"/"&TEXT(MONTH(bPfData),"00"),"")&"): "%s)'
                   % (','.join('bPf%s' % k[0] for k in PFUF),
@@ -1228,18 +1300,9 @@ class Construtor:
              '&IF(gAval=0,"Sem pares "&bLabA&"/"&bLabB&" para avaliar.",'
              'IF(gNok=0,"Todos os parâmetros dentro da tolerância.",'
              'gNok&" de "&gAval&" fora da tolerância: "&gNokDet&"."))' + pf_txt + coments)
-        fbox = self.f(font_size=10.5, font_color=INK2, text_wrap=True, valign='top', bg_color='#F8F9FB', border=1,
-                      border_color=LINE)
-        ws.merge_range(5, 1, 14, 1, '', fbox)
-        ws.write_formula(5, 1, f, fbox)
-        self.nome('eResumo', ws, 5, 1)
-        ws.write(16, 1, 'ASSUNTO DO E-MAIL', self.f(bold=True, font_size=8, font_color=MUTED))
-        ws.write_formula(17, 1, '="Comparativo Germano × Ubu — Batch "&bId&" — "&gDataTxt',
-                         self.f(bold=True, font_color=INK2))
-        self.nome('eAssunto', ws, 17, 1)
-        self.botao(ws, 5, 3, 'Copiar resumo', 'CopiarResumo', 220, 40, 'n', x=6)
-        self.botao(ws, 8, 3, 'Copiar painel (imagem)', 'CopiarImagemPainel', 220, 40, 'p', x=6)
-        ws.protect('', {'format_columns': True, 'format_rows': True})
+        ws.write(X + 21, 0, 'Resumo e-mail')
+        ws.write_formula(X + 21, 1, f)
+        self.nome('eResumo', ws, X + 21, 1)
 
     # ------------------------------------------------------------ Histórico + BD_Leituras
     def stats_batch(self, b):
@@ -1413,6 +1476,20 @@ class Construtor:
              "' aba Configuracoes: tags do pellet feed ultra fino (1-based; mesmas colunas)",
              "Public Const C_ROW_PF0 As Long = %d" % (C_ROW_PF0 + 1),
              "Public Const NPF As Long = %d" % len(PFUF),
+             "' aba Batch: ultimos batches (1-based) e tipo da busca",
+             "Public Const B_ROW_ULT As Long = %d" % (B_ROW_ULT + 1),
+             "Public Const N_ULT As Long = %d" % N_ULT] + \
+            ["Public Const U_COL_%s As Long = %d" % (k, v + 1) for k, v in U_COL.items()] + \
+            ["' abas de acompanhamento: 1a linha dos blocos e analises (chaves) de cada aba",
+             "Public Const A_ROW0 As Long = %d" % (A_ROW0 + 1),
+             'Public Const ACOMP_Q As String = "%s"' % '|'.join(ACOMP[0][2]),
+             'Public Const ACOMP_F As String = "%s"' % '|'.join(ACOMP[1][2]),
+             "Public Const REG_NCOL As Long = %d" % len(REG_COLS),
+             "' Historico: coluna (na tabela, 1-based) de campos usados nos ultimos batches",
+             "Public Const H_COL_INIU As Long = %d" % (H_COLS.index('Chegada Ubu (UBU3)') + 1),
+             "Public Const H_COL_FIMU As Long = %d" % (H_COLS.index('Término Ubu (UBU3)') + 1),
+             "Public Const H_COL_NIVEL As Long = %d" % (H_COLS.index('Nível dos tanques') + 1),
+             "Public Const H_COL_INIP As Long = %d" % (H_COLS.index('Início no processo') + 1),
              'Public Const PF_CHAVES As String = "%s"' % '|'.join(k[0] for k in PFUF),
              'Public Const PF_DECIMAIS As String = "%s"' % '|'.join(str(k[4]) for k in PFUF)]
         for k, v in C_COL.items():
@@ -1502,12 +1579,14 @@ def montar_vba(layout_code):
         'shBatch': ('Option Explicit\n\nPrivate Sub Worksheet_Change(ByVal Target As Range)\n'
                     '    On Error Resume Next\n    MarcarAlterado\n'
                     '    If gCarregando Then Exit Sub\n'
-                    '    If Not Intersect(Target, Nm("bFases")) Is Nothing Then LerFases\nEnd Sub\n'),
+                    '    If Not Intersect(Target, Nm("bFases")) Is Nothing Then LerFases\n'
+                    '    If Not Intersect(Target, Nm("bId")) Is Nothing Then\n'
+                    '        PreencherDoAcomp\n        AtualizarUltimos\n    End If\nEnd Sub\n'),
     }
-    for cn in ['shPainel', 'shBatch', 'shEnviar', 'shHist', 'shLeituras', 'shConfig', 'shDadosMES',
-               'shGraf']:
+    for cn in ['shPainel', 'shBatch', 'shAcompQ', 'shAcompF', 'shHist', 'shLeituras', 'shConfig', 'shDadosMES',
+               'shGraf', 'shAcompReg']:
         mods.append({'name': cn, 'kind': 'sheet', 'code': eventos.get(cn, '')})
-    for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModBatch', 'ModPainel']:
+    for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModBatch', 'ModPainel', 'ModAcomp']:
         mods.append({'name': m, 'kind': 'module', 'code': ler_vba(m + '.bas')})
     if TESTE:
         mods.append({'name': 'ModTesteLO', 'kind': 'module', 'code': ler_vba('../build/ModTesteLO.bas')})

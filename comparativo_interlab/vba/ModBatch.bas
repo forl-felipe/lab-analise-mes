@@ -13,12 +13,12 @@ Private Function CamposBatch() As Variant
 End Function
 
 ' ---------------------------------------------------------------- tabelas
-Private Function PrimeiraLinhaH() As Long
+Public Function PrimeiraLinhaH() As Long
     PrimeiraLinhaH = H_ROW_HDR + 1
 End Function
 
 ' Ultima linha com batch na tabela tbl_Batches (PrimeiraLinhaH - 1 se vazia)
-Private Function UltimaLinhaH() As Long
+Public Function UltimaLinhaH() As Long
     Dim r As Long
     r = PrimeiraLinhaH()
     Do While Not Vazio(shHist.Cells(r, H_COL1).Value)
@@ -78,6 +78,13 @@ End Sub
 Public Sub SalvarHistorico()
     Dim id As Variant, r As Long, novo As Boolean, n As Long
     Recalcular
+    If ModoAcomp() Then
+        Aviso "O tipo da busca está em Acompanhamento (batch em processamento): os dados ficam nas abas " & _
+              "Acomp. Químico e Acomp. Físico, atualizadas a cada Buscar no MES." & vbCrLf & vbCrLf & _
+              "O histórico é para o comparativo do batch já processado: troque o tipo da busca para Comparativo, " & _
+              "busque no MES e salve.", vbInformation, "Salvar no histórico"
+        Exit Sub
+    End If
     id = Nm("bId").Value
     If Not ENumero(id) Then
         Aviso "Informe o número do batch (aba Batch).", vbExclamation, "Salvar no histórico"
@@ -281,6 +288,7 @@ Fim:
     gAlterado = False
     Recalcular
     AjustarGraficos
+    AtualizarUltimos
 End Sub
 
 ' Pergunta se salva o batch atual (alterado) antes de trocar. False = cancelar.
@@ -367,6 +375,7 @@ Public Sub ExcluirDoHistorico(ByVal id As Variant)
     ExcluirLeituras id
     AjustarTabela shLeituras, "tbl_Leituras", 1, 1, L_NCOL, UltimaLinhaL()
     ModoCarga False
+    AtualizarUltimos
 End Sub
 
 ' ---------------------------------------------------------------- novo / limpar
@@ -423,6 +432,7 @@ Public Sub LimparBatch()
     ModoCarga False
     gAlterado = False
     AjustarGraficos
+    AtualizarUltimos
 End Sub
 
 Public Sub LimparLeituras()

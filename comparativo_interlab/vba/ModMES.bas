@@ -57,6 +57,10 @@ Public Sub BuscarMES()
         Exit Sub
     End If
     Recalcular
+    If ModoAcomp() Then
+        BuscarAcompanhamento
+        Exit Sub
+    End If
     If Not EData(Nm("gJanU").Value) Then
         ' sem os horarios do batch: busca so o pellet feed ultra fino
         BuscarSoPFUF "Leituras do batch: não buscadas - falta a chegada em Ubu (cole as Fases do Evento ou " & _
@@ -147,6 +151,67 @@ Falha:
     Ampulheta False
     mOcupado = False
     Aviso "Erro ao consultar o MES: " & Err.Description, vbExclamation, "MES"
+End Sub
+
+' ---------------------------------------------------------------- batch em processamento (acompanhamento)
+' So Germano (Ubu e lancado a mao nas abas Acomp. Quimico / Acomp. Fisico); monta os blocos das duas abas
+Private Sub BuscarAcompanhamento()
+    Dim n As Long, nG As Long, iniG As Date, resG As Variant, okG As Boolean, qG As Long, simulado As Boolean
+    Dim msg As String, t0 As Single, seg As Long
+
+    If Not ENumero(Nm("bId").Value) Then
+        Aviso "Informe o número do batch (passo 1).", vbExclamation, "MES - acompanhamento"
+        Exit Sub
+    End If
+    If Not EData(Nm("gJanG").Value) Then
+        Aviso "Informe o início do bombeamento em Germano (EB06): cole as Fases do Evento (passo 2) ou preencha " & _
+              "Germano · início na aba Batch.", vbExclamation, "MES - acompanhamento"
+        Exit Sub
+    End If
+    n = 0
+    If ENumero(Nm("bNHor").Value) Then n = CLng(Nm("bNHor").Value)
+    If n < 1 Or n > NMAX Then
+        Aviso "Nº de horários deve ficar entre 1 e " & NMAX & ".", vbExclamation, "MES - acompanhamento"
+        Exit Sub
+    End If
+    nG = n
+    If ENumero(Nm("gNG").Value) Then nG = CLng(Nm("gNG").Value)
+    If nG > n Then nG = n
+    iniG = CDate(Nm("gJanG").Value)
+    simulado = (Left$(UCase$(CfgTxt("cfgFonte")), 3) = "SIM")
+
+    mOcupado = True
+    mSemAspen = False
+    Ampulheta True
+    t0 = Timer
+    On Error GoTo Falha
+    If simulado Then
+        resG = DadosSimulados(0, nG, iniG)
+        okG = True
+    Else
+        okG = ConsultarLab(0, iniG, nG, resG)
+    End If
+    Application.StatusBar = False
+    If okG Then qG = GravarResultados(0, resG, nG, okG, iniG)
+    msg = MontarAcompanhamento()
+    seg = Int(Timer - t0)
+    If seg < 0 Then seg = seg + 86400
+    Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & IIf(simulado, " (SIMULAÇÃO)", "  -  " & seg & " s")
+    AjustarGraficos
+    Ampulheta False
+    mOcupado = False
+    msg = "Acompanhamento do batch " & CfgTxt("bId") & " (só " & CfgTxt("bLabA") & "):" & vbCrLf & vbCrLf & _
+          "  " & CfgTxt("bLabA") & ": " & qG & IIf(okG, "", " (consulta falhou)") & "   (" & nG & _
+          " janelas a partir de " & Format$(iniG, "dd\/mm hh:mm") & ")" & vbCrLf & vbCrLf & msg & _
+          IIf(simulado, vbCrLf & vbCrLf & "Fonte: SIMULAÇÃO (dados fictícios).", vbCrLf & vbCrLf & _
+          "Tempo total da consulta: " & seg & " s.")
+    Aviso msg, vbInformation, "MES - acompanhamento"
+    Exit Sub
+Falha:
+    Application.StatusBar = False
+    Ampulheta False
+    mOcupado = False
+    Aviso "Erro no acompanhamento: " & Err.Description, vbExclamation, "MES - acompanhamento"
 End Sub
 
 ' ---------------------------------------------------------------- tags (aba Configuracoes)
