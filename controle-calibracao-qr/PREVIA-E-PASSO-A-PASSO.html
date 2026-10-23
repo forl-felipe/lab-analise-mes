@@ -1,0 +1,729 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}</style></head><body>
+<title>Calibração por QR Code</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: faixa azul de cabeçalho + abas; aba Prévia = celular à esquerda e painel de explicação à direita; aba Passo a passo = trilha numerada com checklist */
+:root {
+  --bg: #eef2f6;
+  --surface: #ffffff;
+  --surface-2: #f5f8fb;
+  --fg: #17202b;
+  --muted: #566273;
+  --line: #d4dce6;
+  --navy: #123b63;
+  --navy-ink: #ffffff;
+  --accent: #1f6fb2;
+  --accent-soft: #e2edf8;
+  --ok: #157347;
+  --ok-soft: #dcefe4;
+  --code-bg: #f1f4f8;
+  --font-display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e151d; --surface: #16202b; --surface-2: #1b2734; --fg: #e4e9ef; --muted: #9aa8b8; --line: #2c3a4a;
+    --navy: #0f2f50; --navy-ink: #ffffff; --accent: #6fb0ea; --accent-soft: #1d3349; --ok: #58c28a; --ok-soft: #173327; --code-bg: #101922;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e151d; --surface: #16202b; --surface-2: #1b2734; --fg: #e4e9ef; --muted: #9aa8b8; --line: #2c3a4a;
+  --navy: #0f2f50; --navy-ink: #ffffff; --accent: #6fb0ea; --accent-soft: #1d3349; --ok: #58c28a; --ok-soft: #173327; --code-bg: #101922;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+code, .mono { font-family: var(--font-mono); font-size: .88em; }
+a { color: var(--accent); }
+button { font: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.band { background: var(--navy); color: var(--navy-ink); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.hero { padding-block: 28px 0; display: grid; gap: 6px; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #a9c4e0; font-weight: 600; }
+.hero h1 { font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -.01em; }
+.hero p { margin: 0; color: #c9d9ea; max-width: 70ch; }
+.tabs { display: flex; gap: 4px; margin-top: 22px; flex-wrap: wrap; }
+.tab { border: 0; background: transparent; color: #c9d9ea; padding: 12px 18px; border-radius: 10px 10px 0 0; cursor: pointer; font-weight: 600; font-size: 15px; }
+.tab[aria-selected="true"] { background: var(--bg); color: var(--fg); }
+.tab:hover:not([aria-selected="true"]) { background: rgba(255,255,255,.08); color: #fff; }
+
+main.wrap { padding-block: 26px 60px; }
+
+/* ---------- Prévia ---------- */
+.preview { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 36px; align-items: start; }
+@media (max-width: 860px) { .preview { grid-template-columns: minmax(0, 1fr); justify-items: center; } .side { width: 100%; } }
+
+.phone { width: 360px; max-width: 100%; height: 720px; background: #0b0f14; border-radius: 44px; padding: 12px; box-shadow: 0 24px 50px -24px rgba(10, 30, 55, .55); position: relative; }
+.phone::before { content: ""; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 92px; height: 22px; background: #0b0f14; border-radius: 12px; z-index: 5; }
+.ph { width: 100%; height: 100%; border-radius: 34px; overflow: hidden; background: #f3f6fa; position: relative; display: flex; flex-direction: column; color: #1f2733; font-family: "Segoe UI", "IBM Plex Sans", system-ui, sans-serif; color-scheme: light; }
+.ph-status { height: 38px; flex: none; background: #123b63; color: #fff; font-size: 12px; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 26px 4px; font-weight: 600; }
+.ph-body { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; scrollbar-width: thin; }
+.ph-head { background: #123b63; color: #fff; padding: 8px 16px 14px; display: flex; gap: 8px; align-items: center; position: sticky; top: 0; z-index: 3; }
+.ph-head .t { font-weight: 700; font-size: 17px; line-height: 1.2; }
+.ph-head .s { font-size: 11.5px; color: #c8d8eb; }
+.ph-head .grow { flex: 1; min-width: 0; }
+.ph-icon { width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; display: grid; place-items: center; flex: none; }
+.ph-icon:hover { background: rgba(255,255,255,.12); }
+.ph-icon svg { width: 20px; height: 20px; }
+.ph-pad { padding: 12px 14px 18px; display: grid; gap: 10px; }
+
+.ph-search { width: 100%; border: 1px solid #bec8d7; border-radius: 8px; padding: 9px 11px; font: inherit; font-size: 13px; background: #fff; color: #1f2733; }
+.tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.tile { border: 2px solid transparent; border-radius: 9px; padding: 6px 2px; cursor: pointer; text-align: center; font-weight: 700; line-height: 1.15; font-size: 9.5px; font-family: inherit; }
+.tile b { display: block; font-size: 17px; }
+.tile.on { border-color: #123b63; }
+.count { font-size: 11px; color: #5a6473; }
+.card { background: #fff; border: 1px solid #dce3ec; border-radius: 4px; padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit; }
+.card:hover { border-color: #9fb3cb; }
+.card .tag { font-weight: 700; color: #123b63; font-size: 15px; }
+.card .d { font-size: 12.5px; }
+.card .l { font-size: 11px; color: #646e7d; }
+.card .r { grid-column: 2; grid-row: 1 / span 3; display: grid; gap: 6px; align-content: center; justify-items: center; }
+.card .px { font-size: 11px; color: #46505f; }
+.pill { font-weight: 700; font-size: 9.5px; letter-spacing: .02em; padding: 5px 8px; text-transform: uppercase; text-align: center; min-width: 96px; }
+.s-valido { background: #d1e7dd; color: #0f5132; }
+.s-proximo { background: #fff3cd; color: #664d03; }
+.s-vencido { background: #f8d7da; color: #842029; }
+.s-recusada { background: #dc3545; color: #fff; }
+.s-manut { background: #cfe2ff; color: #084298; }
+.s-sem { background: #e2e3e5; color: #41464b; }
+
+.eq-card { background: #fff; border: 1px solid #dce3ec; padding: 14px 16px; display: grid; gap: 6px; }
+.eq-card .tag { font-size: 24px; font-weight: 800; color: #123b63; line-height: 1.1; }
+.eq-card .d { font-size: 14.5px; }
+.eq-card .i { font-size: 11.5px; color: #5a6473; }
+.eq-status { font-size: 15px; font-weight: 800; text-align: center; padding: 12px; margin-top: 4px; text-transform: uppercase; letter-spacing: .02em; }
+.eq-dates { font-size: 12px; display: grid; gap: 1px; }
+.eq-alert { background: #fdecee; border: 1px solid #dc3545; color: #842029; font-size: 12px; padding: 9px 12px; }
+.btn-main { width: 100%; border: 0; border-radius: 10px; background: #123b63; color: #fff; font-weight: 700; font-size: 14.5px; padding: 14px; cursor: pointer; font-family: inherit; }
+.btn-main:hover { background: #1e5082; }
+.readonly { background: #e8edf4; color: #5a6473; font-size: 11.5px; text-align: center; padding: 12px; }
+.sec-t { font-weight: 700; color: #123b63; font-size: 14px; margin-top: 4px; }
+.hist { background: #fff; border: 1px solid #dce3ec; padding: 8px 12px; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 11.5px; color: #46505f; }
+.hist .dt { font-weight: 700; color: #123b63; font-size: 13px; }
+.hist .det { grid-column: 1 / -1; }
+.hist .pill { min-width: 0; align-self: center; }
+
+.f-l { font-size: 10px; font-weight: 700; color: #123b63; letter-spacing: .04em; margin-bottom: -6px; }
+.f-in { width: 100%; border: 1px solid #bec8d7; border-radius: 6px; padding: 9px 10px; font: inherit; font-size: 13px; background: #fff; color: #1f2733; }
+textarea.f-in { min-height: 64px; resize: vertical; }
+.res { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.res button { border-radius: 10px; padding: 12px 6px; font-weight: 700; font-size: 13px; cursor: pointer; border: 2px solid; font-family: inherit; }
+.r-ap { border-color: #198754; background: #e8f5e9; color: #198754; }
+.r-ap.on { background: #198754; color: #fff; }
+.r-re { border-color: #dc3545; background: #fdecee; color: #dc3545; }
+.r-re.on { background: #dc3545; color: #fff; }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.chk input { width: 18px; height: 18px; }
+
+.toast { position: absolute; left: 0; right: 0; top: 38px; z-index: 10; padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: #fff; transform: translateY(-120%); transition: transform .25s ease; }
+.toast.show { transform: none; }
+.toast.ok { background: #198754; }
+.toast.err { background: #b02a37; }
+.scan { position: absolute; inset: 0; background: rgba(8, 18, 30, .82); z-index: 20; display: grid; place-items: center; color: #fff; text-align: center; font-size: 13px; }
+.scan .box { width: 170px; height: 170px; border: 3px solid #fff; border-radius: 16px; position: relative; overflow: hidden; margin: 0 auto 14px; }
+.scan .box::after { content: ""; position: absolute; left: 0; right: 0; height: 3px; background: #4fd18b; top: 0; animation: scanline 1s linear infinite; }
+@keyframes scanline { to { top: 100%; } }
+@media (prefers-reduced-motion: reduce) { .scan .box::after { animation: none; top: 50%; } .toast { transition: none; } }
+
+.side { display: grid; gap: 18px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 12px; }
+.panel h2 { font-size: 18px; }
+.panel h3 { font-size: 15px; }
+.panel p { margin: 0; }
+.muted { color: var(--muted); }
+.seg { justify-self: start; display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--fg); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.seg button[aria-pressed="true"] { background: var(--navy); color: #fff; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+select.ctl { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 8px 10px; font: inherit; }
+.btn { border: 1px solid var(--navy); background: var(--navy); color: #fff; border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--accent); border-color: var(--accent); }
+.url { font-family: var(--font-mono); font-size: 12.5px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; overflow-x: auto; white-space: nowrap; }
+.screens { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 520px) { .screens { grid-template-columns: minmax(0, 1fr); } }
+.screens button { text-align: left; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; }
+.screens button[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.screens .n { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.screens .nm { font-weight: 600; }
+.explain ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; }
+.legend span { font-size: 11px; font-weight: 700; padding: 4px 8px; text-transform: uppercase; }
+
+/* ---------- Passo a passo ---------- */
+.guide { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 900px) { .guide { grid-template-columns: minmax(0, 1fr); } .toc { position: static !important; } }
+.toc { position: sticky; top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; }
+.prog { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+.prog i { display: block; height: 100%; background: var(--ok); width: 0; transition: width .3s; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.toc a { display: flex; gap: 8px; align-items: center; text-decoration: none; color: var(--fg); padding: 5px 6px; border-radius: 6px; font-size: 13.5px; }
+.toc a:hover { background: var(--surface-2); }
+.toc .dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); flex: none; display: grid; place-items: center; font-size: 10px; font-weight: 700; color: var(--muted); }
+.toc a.done .dot { background: var(--ok); border-color: var(--ok); color: #fff; }
+
+.steps { display: grid; gap: 22px; min-width: 0; }
+.intro { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; display: grid; gap: 12px; }
+.intro h2 { font-size: 22px; }
+.map { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .map { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.map div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 2px; }
+.map b { font-family: var(--font-display); font-size: 15px; }
+.map span { font-size: 12.5px; color: var(--muted); }
+.phase { font-family: var(--font-display); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-top: 8px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; scroll-margin-top: 16px; }
+.step.done { border-color: var(--ok); }
+.step-h { display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px 6px; }
+.num { width: 38px; height: 38px; border-radius: 10px; background: var(--navy); color: #fff; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 17px; flex: none; }
+.step.done .num { background: var(--ok); }
+.step-h .grow { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.step-h h3 { font-size: 19px; }
+.meta { font-size: 13px; color: var(--muted); }
+.step-b { padding: 6px 20px 18px 72px; display: grid; gap: 12px; }
+@media (max-width: 560px) { .step-b { padding-left: 20px; } }
+.step-b p { margin: 0; max-width: 72ch; }
+.why { background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+.do { margin: 0; padding-left: 22px; display: grid; gap: 8px; }
+.do li::marker { font-weight: 700; color: var(--accent); }
+.kbd { font-family: var(--font-mono); font-size: 12.5px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; white-space: nowrap; }
+.ui { font-weight: 600; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.tbl table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 460px; }
+.tbl th, .tbl td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { background: var(--surface-2); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.tbl tr:last-child td { border-bottom: 0; }
+.tbl td:first-child { font-family: var(--font-mono); font-weight: 500; white-space: nowrap; }
+.warn { border-left: 4px solid #c58a00; background: var(--surface-2); padding: 10px 14px; border-radius: 0 10px 10px 0; font-size: 14px; }
+.code { display: flex; gap: 8px; align-items: stretch; }
+.code pre { flex: 1; min-width: 0; margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; }
+.copy { border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 8px; padding: 0 12px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.ready { display: flex; gap: 10px; align-items: center; border-top: 1px dashed var(--line); padding-top: 12px; flex-wrap: wrap; }
+.ready label { display: flex; gap: 8px; align-items: center; cursor: pointer; font-weight: 600; }
+.ready input { width: 20px; height: 20px; accent-color: var(--ok); }
+.ready .muted { font-size: 13.5px; }
+details.faq { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+details.faq summary { cursor: pointer; font-weight: 600; }
+details.faq p { margin: 8px 0 0; }
+</style>
+
+<div class="band">
+  <div class="wrap hero">
+    <span class="eyebrow">Ideia de valor · Laboratório de Controle de Embarque</span>
+    <h1>Controle de calibração por QR Code</h1>
+    <p>Veja como o app vai ficar no celular e siga o passo a passo para montar no SharePoint e no Power Apps.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-previa" aria-controls="v-previa" aria-selected="true">Prévia do app</button>
+      <button class="tab" role="tab" id="tab-passo" aria-controls="v-passo" aria-selected="false">Passo a passo</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <!-- ================= PRÉVIA ================= -->
+  <section id="v-previa" role="tabpanel" aria-labelledby="tab-previa">
+    <div class="preview">
+      <div class="phone" aria-label="Simulação do app no celular">
+        <div class="ph" id="ph">
+          <div class="ph-status"><span id="clock">9:41</span><span>5G ▮▮▮</span></div>
+          <div class="toast" id="toast"></div>
+          <div class="ph-body" id="phBody"></div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="panel">
+          <h2>Ver o app como</h2>
+          <div class="seg" role="group" aria-label="Perfil do usuário">
+            <button id="role-inst" aria-pressed="true">Instrumentação</button>
+            <button id="role-vis" aria-pressed="false">Outro colaborador</button>
+          </div>
+          <p class="muted" id="roleTxt"></p>
+        </div>
+
+        <div class="panel">
+          <h2>Simular a leitura do QR Code</h2>
+          <div class="row">
+            <select class="ctl" id="qrSel" aria-label="Equipamento"></select>
+            <button class="btn" id="qrGo">Ler QR Code</button>
+          </div>
+          <div class="url" id="qrUrl"></div>
+          <p class="muted" style="font-size:13.5px">O QR Code guarda só esse link. O final <code>equip=TAG</code> diz ao app qual equipamento abrir. O app identifica a pessoa pelo login da empresa.</p>
+        </div>
+
+        <div class="panel explain">
+          <div class="screens" id="screensNav">
+            <button data-go="lista"><span class="n">Tela 1</span><span class="nm">Lista geral</span></button>
+            <button data-go="equip"><span class="n">Tela 2</span><span class="nm">Equipamento</span></button>
+            <button data-go="calib"><span class="n">Tela 3</span><span class="nm">Registrar calibração</span></button>
+          </div>
+          <div id="explain"></div>
+          <div class="legend">
+            <span class="s-valido">Válido</span><span class="s-proximo">Próximo · até 30 dias</span><span class="s-vencido">Vencido</span><span class="s-recusada">Recusada</span><span class="s-manut">Manutenção solicitada</span><span class="s-sem">Sem registro</span>
+          </div>
+          <p class="muted" style="font-size:13px">Dados de exemplo. As datas são relativas a hoje, para os status aparecerem sempre variados. Tudo o que você salvar aqui some ao recarregar a página.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PASSO A PASSO ================= -->
+  <section id="v-passo" role="tabpanel" aria-labelledby="tab-passo" hidden>
+    <div class="guide">
+      <aside class="toc" aria-label="Etapas">
+        <strong>Seu progresso</strong>
+        <div class="prog"><i id="progBar"></i></div>
+        <span class="muted" id="progTxt" style="font-size:13px"></span>
+        <ol id="tocList"></ol>
+      </aside>
+
+      <div class="steps">
+        <div class="intro">
+          <h2>Antes de começar</h2>
+          <p>Você vai montar 4 peças, nesta ordem. Não precisa saber programar: é criar listas, clicar e colar. Separe <b>umas 3 horas</b>, de preferência em dois dias.</p>
+          <div class="map">
+            <div><b>SharePoint</b><span>Onde os dados ficam guardados (a "planilha central")</span></div>
+            <div><b>Power Apps</b><span>O app que abre no celular pelo QR Code</span></div>
+            <div><b>Etiquetas</b><span>Os QR Codes impressos, um por equipamento</span></div>
+            <div><b>Power Automate</b><span>E-mails automáticos (opcional, pode ficar para depois)</span></div>
+          </div>
+          <p><b>Você vai precisar de:</b> login da empresa no Microsoft 365, acesso a <span class="kbd">make.powerapps.com</span>, a lista dos equipamentos e o arquivo <span class="kbd">controle-calibracao-qr.zip</span> que eu te mandei (descompacte numa pasta).</p>
+          <div class="warn">Combine com a TI antes. Às vezes ela precisa liberar o Power Apps ou criar o site do SharePoint para você.</div>
+        </div>
+        <div id="stepsList"></div>
+
+        <h2 style="font-size:20px;margin-top:10px">Deu algum problema?</h2>
+        <details class="faq"><summary>O app abre vazio, sem nenhum equipamento</summary><p>Quase sempre é permissão. Confira se a pessoa tem pelo menos <b>Leitura</b> nas 3 listas (passo 5). Confira também se a coluna <b>Ativo</b> dos equipamentos está como "Sim".</p></details>
+        <details class="faq"><summary>Apareceram muitos X vermelhos depois de colar as telas</summary><p>Cole as 3 telas antes de se preocupar: muitos erros somem sozinhos. Se continuar, o motivo mais comum é nome de coluna diferente do combinado (com acento ou espaço). Compare com a tabela do passo 2. Mande um print do erro que eu te ajudo.</p></details>
+        <details class="faq"><summary>Não consigo colar a tela inteira</summary><p>Plano B: crie uma tela em branco, renomeie para o nome certo (ex.: <span class="kbd">scrLista</span>) e cole o arquivo da pasta <span class="kbd">alternativa-somente-controles</span>. Depois copie o <span class="ui">OnVisible</span> do arquivo da tela inteira para a propriedade OnVisible da tela.</p></details>
+        <details class="faq"><summary>Eu não vejo o botão "Registrar calibração"</summary><p>Seu e-mail precisa estar na lista <b>Calibradores</b>, escrito igual ao seu login da Microsoft. Depois de adicionar, feche e abra o app de novo.</p></details>
+        <details class="faq"><summary>A fórmula dá erro quando eu digito</summary><p>Com o Power Apps em português, a vírgula vira ponto e vírgula. Use as versões que estão neste passo a passo, já convertidas.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  /* ================= Abas ================= */
+  var tabs = { previa: document.getElementById('tab-previa'), passo: document.getElementById('tab-passo') };
+  function showTab(k) {
+    Object.keys(tabs).forEach(function (n) {
+      tabs[n].setAttribute('aria-selected', String(n === k));
+      document.getElementById('v-' + n).hidden = n !== k;
+    });
+    try { history.replaceState(null, '', '#' + k); } catch (e) {}
+  }
+  tabs.previa.onclick = function () { showTab('previa'); };
+  tabs.passo.onclick = function () { showTab('passo'); };
+  if (location.hash === '#passo') showTab('passo');
+
+  /* ================= Dados de exemplo ================= */
+  var HOJE = new Date(); HOJE.setHours(0, 0, 0, 0);
+  function addDias(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+  function addMeses(d, n) { var r = new Date(d), dia = r.getDate(); r.setMonth(r.getMonth() + n); if (r.getDate() !== dia) r.setDate(0); return r; }
+  function fmt(d) { return d ? String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear() : '-'; }
+  function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+  function eq(tag, desc, tipo, fab, serie, local, per, proxOffset, res, resp, motivo, manut) {
+    var prox = addDias(HOJE, proxOffset), ult = addMeses(prox, -per);
+    return { tag: tag, desc: desc, tipo: tipo, fab: fab, serie: serie, local: local, per: per, ult: ult, prox: prox, res: res, resp: resp, motivo: motivo || '', manut: !!manut };
+  }
+  var equips = [
+    eq('BAL-01', 'Balança Prix', 'Balança', 'Prix 3 Fit', 'PX-20931', 'Laboratório - Bancada 1', 6, 170, 'Aprovada', 'Carlos Mendes'),
+    eq('BAL-03', 'Balança analítica', 'Balança', 'Shimadzu AUY220', 'D4521', 'Laboratório - Bancada 2', 12, -40, 'Aprovada', 'Ana Souza'),
+    eq('BAL-04', 'Balança de piso', 'Balança', 'Toledo 2180', 'TL-7781', 'Recebimento', 6, 25, 'Recusada', 'Carlos Mendes', 'Desvio na linearidade'),
+    eq('BAL-05', 'Balança Prix', 'Balança', 'Prix 3 Fit', 'PX-20977', 'Laboratório - Bancada 3', 6, 120, 'Aprovada', 'Ana Souza'),
+    eq('EST-01', 'Estufa de secagem', 'Estufa', 'Solab SL-100', 'SL-0098', 'Laboratório - Estufas', 12, 235, 'Aprovada', 'Carlos Mendes'),
+    eq('REN-01', 'Reneira', 'Reneira', 'Bertel', 'BT-332', 'Laboratório - Peneiras', 6, 88, 'Recusada', 'Ana Souza', 'Falha mecânica / motor', true),
+    eq('REN-02', 'Reneira', 'Reneira', 'Bertel', 'BT-341', 'Laboratório - Peneiras', 6, 12, 'Aprovada', 'Carlos Mendes'),
+    eq('TER-01', 'Termômetro digital', 'Termômetro', 'Incoterm', 'IC-5521', 'Laboratório - Bancada 1', 6, 27, 'Aprovada', 'Ana Souza')
+  ];
+  var hist = {};
+  equips.forEach(function (e, i) {
+    hist[e.tag] = [
+      { data: e.ult, res: e.res, resp: e.resp, cert: 'CERT-' + e.ult.getFullYear() + '-0' + (140 + i), motivo: e.motivo, manut: e.manut },
+      { data: addMeses(e.ult, -e.per), res: 'Aprovada', resp: i % 2 ? 'Carlos Mendes' : 'Ana Souza', cert: 'CERT-' + addMeses(e.ult, -e.per).getFullYear() + '-0' + (90 + i), motivo: '', manut: false }
+    ];
+  });
+  var MOTIVOS = ['Fora da tolerância / erro acima do aceitável', 'Desvio na linearidade', 'Repetibilidade insatisfatória', 'Excentricidade (balança)', 'Falha no display / eletrônica', 'Falha mecânica / motor', 'Dano físico no equipamento', 'Outro'];
+
+  function status(e) {
+    if (e.manut) return 'Manutenção solicitada';
+    if (e.res === 'Recusada') return 'Recusada';
+    if (!e.prox) return 'Sem registro';
+    if (e.prox < HOJE) return 'Vencido';
+    if (e.prox <= addDias(HOJE, 30)) return 'Próximo';
+    return 'Válido';
+  }
+  var CLS = { 'Válido': 's-valido', 'Próximo': 's-proximo', 'Vencido': 's-vencido', 'Recusada': 's-recusada', 'Manutenção solicitada': 's-manut', 'Sem registro': 's-sem' };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  /* ================= Estado ================= */
+  var st = { role: 'inst', tela: 'lista', filtro: '', busca: '', tag: 'BAL-01', resultado: '' };
+  var body = document.getElementById('phBody');
+  var ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+  var ICON_REF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>';
+
+  var toastT;
+  function toast(msg, ok) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show ' + (ok ? 'ok' : 'err');
+    clearTimeout(toastT); toastT = setTimeout(function () { t.className = 'toast'; }, 2600);
+  }
+  function atual() { return equips.find(function (e) { return e.tag === st.tag; }); }
+
+  /* ---------- Tela 1: lista ---------- */
+  function telaLista() {
+    var tiles = [['Válido', 'Válidos'], ['Próximo', 'Próximos'], ['Vencido', 'Vencidos'], ['Recusada', 'Recusados'], ['Manutenção solicitada', 'Manutenção']];
+    body.innerHTML =
+      '<div class="ph-head"><div class="grow"><div class="t">Controle de Calibração</div><div class="s">Laboratório de Controle de Embarque</div></div>' +
+      '<button class="ph-icon" data-a="refresh" aria-label="Atualizar">' + ICON_REF + '</button></div>' +
+      '<div class="ph-pad">' +
+        '<input class="ph-search" id="phBusca" placeholder="Buscar por TAG, descrição ou local" value="' + esc(st.busca) + '">' +
+        '<div class="tiles">' + tiles.map(function (t) {
+          return '<button class="tile ' + CLS[t[0]] + (st.filtro === t[0] ? ' on' : '') + '" data-f="' + t[0] + '"><b data-c="' + t[0] + '"></b>' + t[1] + '</button>';
+        }).join('') + '</div>' +
+        '<div class="count" id="phCount"></div>' +
+        '<div id="phGal" style="display:grid;gap:10px"></div>' +
+      '</div>';
+    document.getElementById('phBusca').addEventListener('input', function (ev) { st.busca = ev.target.value; galeria(); });
+    galeria();
+  }
+  function galeria() {
+    document.querySelectorAll('[data-c]').forEach(function (b) {
+      var k = b.getAttribute('data-c'); b.textContent = equips.filter(function (e) { return status(e) === k; }).length;
+    });
+    var q = st.busca.trim().toLowerCase();
+    var lista = equips.filter(function (e) {
+      return (!st.filtro || status(e) === st.filtro) && (!q || (e.tag + ' ' + e.desc + ' ' + e.local).toLowerCase().indexOf(q) >= 0);
+    }).sort(function (a, b) { return a.tag.localeCompare(b.tag); });
+    document.getElementById('phCount').textContent = st.filtro
+      ? 'Filtro: ' + st.filtro + ' · ' + lista.length + ' equipamento(s) · toque no quadro de novo para limpar'
+      : lista.length + ' equipamento(s)';
+    document.getElementById('phGal').innerHTML = lista.map(function (e) {
+      var s = status(e);
+      return '<button class="card" data-open="' + e.tag + '"><span class="tag">' + e.tag + '</span>' +
+        '<span class="r"><span class="pill ' + CLS[s] + '">' + s + '</span><span class="px">Próx.: ' + fmt(e.prox) + '</span></span>' +
+        '<span class="d">' + esc(e.desc) + '</span><span class="l">Local: ' + esc(e.local) + '</span></button>';
+    }).join('') || '<div class="count">Nenhum equipamento encontrado.</div>';
+  }
+
+  /* ---------- Tela 2: equipamento ---------- */
+  function telaEquip() {
+    var e = atual(), s = status(e), pode = st.role === 'inst';
+    var alerta = '';
+    if (e.res === 'Recusada' || e.manut) {
+      alerta = '<div class="eq-alert">' + (e.res === 'Recusada' ? '<b>Motivo da recusa:</b> ' + esc(e.motivo || '-') + '<br>' : '') +
+        (e.manut ? 'Manutenção solicitada. <b>NÃO utilizar</b> até nova calibração aprovada.' : '') + '</div>';
+    }
+    body.innerHTML =
+      '<div class="ph-head"><button class="ph-icon" data-a="voltar-lista" aria-label="Ver todos os equipamentos">' + ICON_BACK + '</button>' +
+      '<div class="grow"><div class="t">Calibração do equipamento</div><div class="s">Laboratório de Controle de Embarque</div></div></div>' +
+      '<div class="ph-pad">' +
+        '<div class="eq-card"><div class="tag">' + e.tag + '</div><div class="d">' + esc(e.desc) + '</div>' +
+          '<div class="i">Tipo: ' + esc(e.tipo) + ' · Local: ' + esc(e.local) + '<br>Fabricante/Modelo: ' + esc(e.fab) + ' · Nº série: ' + esc(e.serie) + '</div>' +
+          '<div class="eq-status ' + CLS[s] + '">' + s + '</div>' +
+          '<div class="eq-dates"><span>Última calibração: <b>' + fmt(e.ult) + '</b></span><span>Próxima calibração: <b>' + fmt(e.prox) + '</b></span>' +
+          '<span>Último responsável: ' + esc(e.resp) + ' · Periodicidade: ' + e.per + ' meses</span></div></div>' +
+        alerta +
+        (pode ? '<button class="btn-main" data-a="calibrar">Registrar calibração</button>'
+              : '<div class="readonly">Modo visualização: apenas a equipe de instrumentação registra calibrações.</div>') +
+        '<div class="sec-t">Histórico de calibrações</div>' +
+        (hist[e.tag] || []).map(function (h) {
+          return '<div class="hist"><span class="dt">' + fmt(h.data) + '</span><span class="pill ' + (h.res === 'Aprovada' ? 's-valido' : 's-recusada') + '">' + h.res + '</span>' +
+            '<span class="det">Resp.: ' + esc(h.resp) + (h.cert ? ' · Cert.: ' + esc(h.cert) : '') +
+            (h.motivo ? '<br>Motivo: ' + esc(h.motivo) : '') + (h.manut ? ' · Manutenção solicitada' : '') + '</span></div>';
+        }).join('') +
+      '</div>';
+  }
+
+  /* ---------- Tela 3: registrar ---------- */
+  function telaCalib() {
+    var e = atual();
+    st.resultado = '';
+    body.innerHTML =
+      '<div class="ph-head"><button class="ph-icon" data-a="voltar-equip" aria-label="Cancelar e voltar">' + ICON_BACK + '</button>' +
+      '<div class="grow"><div class="t">Registro da calibração</div><div class="s">' + e.tag + ' · ' + esc(e.desc) + '</div></div></div>' +
+      '<form class="ph-pad" id="phForm" novalidate>' +
+        '<label class="f-l" for="fData">DATA DA CALIBRAÇÃO *</label><input class="f-in" type="date" id="fData" value="' + iso(HOJE) + '" max="' + iso(HOJE) + '">' +
+        '<label class="f-l" for="fResp">RESPONSÁVEL *</label><input class="f-in" id="fResp" value="Carlos Mendes" placeholder="Nome do responsável">' +
+        '<label class="f-l" for="fLocal">LOCAL DE INSTALAÇÃO *</label><input class="f-in" id="fLocal" value="' + esc(e.local) + '" placeholder="Área / Setor">' +
+        '<span class="f-l">RESULTADO DA CALIBRAÇÃO *</span>' +
+        '<div class="res"><button type="button" class="r-ap" data-r="Aprovada">✔ APROVADA</button><button type="button" class="r-re" data-r="Recusada">✖ RECUSADA</button></div>' +
+        '<div id="boxMotivo" hidden style="display:grid;gap:10px">' +
+          '<label class="f-l" for="fMotivo">MOTIVO DA RECUSA *</label>' +
+          '<select class="f-in" id="fMotivo"><option value="">Selecione o motivo</option>' + MOTIVOS.map(function (m) { return '<option>' + m + '</option>'; }).join('') + '</select>' +
+          '<input class="f-in" id="fOutro" placeholder="Descreva o motivo da recusa" hidden>' +
+        '</div>' +
+        '<label class="chk"><input type="checkbox" id="fManut"> Solicitar manutenção</label>' +
+        '<label class="f-l" for="fCert">Nº DO CERTIFICADO / RELATÓRIO (opcional)</label><input class="f-in" id="fCert" placeholder="Ex.: CERT-2026-0154">' +
+        '<label class="f-l" for="fObs">OBSERVAÇÕES (opcional)</label><textarea class="f-in" id="fObs" placeholder="Detalhes da calibração ou do problema encontrado"></textarea>' +
+        '<button class="btn-main" type="submit">Enviar / salvar os dados</button>' +
+      '</form>';
+    var form = document.getElementById('phForm');
+    document.getElementById('fMotivo').addEventListener('change', function (ev) { document.getElementById('fOutro').hidden = ev.target.value !== 'Outro'; });
+    form.addEventListener('submit', function (ev) { ev.preventDefault(); salvar(); });
+  }
+  function escolherResultado(r) {
+    st.resultado = r;
+    document.querySelector('.r-ap').classList.toggle('on', r === 'Aprovada');
+    document.querySelector('.r-re').classList.toggle('on', r === 'Recusada');
+    document.getElementById('boxMotivo').hidden = r !== 'Recusada';
+  }
+  function salvar() {
+    var e = atual();
+    var v = function (id) { return document.getElementById(id).value.trim(); };
+    var dataTxt = v('fData'), data = dataTxt ? new Date(dataTxt + 'T00:00:00') : null;
+    if (!data || data > HOJE) return toast('Informe uma data de calibração válida (não pode ser futura).');
+    if (!v('fResp')) return toast('Informe o responsável pela calibração.');
+    if (!v('fLocal')) return toast('Informe o local de instalação.');
+    if (!st.resultado) return toast('Selecione o resultado: Aprovada ou Recusada.');
+    var motivo = '';
+    if (st.resultado === 'Recusada') {
+      if (!v('fMotivo')) return toast('Selecione o motivo da recusa.');
+      motivo = v('fMotivo') === 'Outro' ? v('fOutro') : v('fMotivo');
+      if (!motivo) return toast('Descreva o motivo da recusa.');
+    }
+    var manut = document.getElementById('fManut').checked;
+    hist[e.tag].unshift({ data: data, res: st.resultado, resp: v('fResp'), cert: v('fCert'), motivo: motivo, manut: manut });
+    e.ult = data; e.prox = addMeses(data, e.per); e.res = st.resultado; e.resp = v('fResp'); e.motivo = motivo; e.manut = manut; e.local = v('fLocal');
+    toast('Calibração registrada com sucesso!', true);
+    ir('equip');
+  }
+
+  /* ---------- Navegação ---------- */
+  var EXPLICA = {
+    lista: '<h3>Tela 1 · Lista geral</h3><ul>' +
+      '<li>Abre quando a pessoa entra no app <b>pelo menu</b>, sem QR Code.</li>' +
+      '<li>Os <b>5 quadros coloridos</b> contam os equipamentos por status. Toque em um para filtrar e toque de novo para limpar.</li>' +
+      '<li>A busca procura por TAG, descrição ou local.</li>' +
+      '<li>Toque em um equipamento para abrir a Tela 2.</li></ul>',
+    equip: '<h3>Tela 2 · Equipamento</h3><ul>' +
+      '<li>É a tela que abre <b>direto ao ler o QR Code</b>.</li>' +
+      '<li>Todos veem o status em destaque, as datas, o motivo de recusa (se houver) e o histórico.</li>' +
+      '<li>Só a <b>instrumentação</b> vê o botão <b>Registrar calibração</b>. Os outros veem o aviso "Modo visualização". Troque o perfil acima para comparar.</li></ul>',
+    calib: '<h3>Tela 3 · Registrar calibração</h3><ul>' +
+      '<li>O formulário do seu esboço. A data já vem com hoje, o responsável com o nome de quem está logado e o local com o cadastro.</li>' +
+      '<li>Se marcar <b>Recusada</b>, aparece o motivo (obrigatório). "Outro" pede uma descrição.</li>' +
+      '<li>Ao salvar, o app <b>grava o histórico</b>, calcula a <b>próxima calibração</b> (data + periodicidade) e atualiza a planilha central.</li>' +
+      '<li>Experimente: recuse a REN-02 com "Solicitar manutenção" e veja o status mudar na lista.</li></ul>'
+  };
+  function ir(tela) {
+    if (tela === 'calib' && st.role !== 'inst') { toast('Só a instrumentação registra calibrações. Troque o perfil ao lado.'); tela = 'equip'; }
+    st.tela = tela;
+    ({ lista: telaLista, equip: telaEquip, calib: telaCalib })[tela]();
+    body.scrollTop = 0;
+    document.querySelectorAll('#screensNav button').forEach(function (b) { b.setAttribute('aria-current', String(b.getAttribute('data-go') === tela)); });
+    document.getElementById('explain').innerHTML = EXPLICA[tela];
+  }
+
+  body.addEventListener('click', function (ev) {
+    var t = ev.target.closest('button'); if (!t) return;
+    if (t.dataset.open) { st.tag = t.dataset.open; ir('equip'); }
+    else if (t.dataset.f) { st.filtro = st.filtro === t.dataset.f ? '' : t.dataset.f; telaLista(); }
+    else if (t.dataset.r) escolherResultado(t.dataset.r);
+    else if (t.dataset.a === 'voltar-lista' || t.dataset.a === 'refresh') { ir('lista'); if (t.dataset.a === 'refresh') toast('Lista atualizada.', true); }
+    else if (t.dataset.a === 'voltar-equip') ir('equip');
+    else if (t.dataset.a === 'calibrar') ir('calib');
+  });
+  document.getElementById('screensNav').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (b) ir(b.dataset.go);
+  });
+
+  /* ---------- Perfil ---------- */
+  var ROLE_TXT = {
+    inst: 'Carlos Mendes está na lista <b>Calibradores</b>: ele vê tudo e pode registrar calibrações.',
+    vis: 'Maria (Qualidade) não está na lista Calibradores: ela vê o status e o histórico, mas não consegue registrar.'
+  };
+  function setRole(r) {
+    st.role = r;
+    document.getElementById('role-inst').setAttribute('aria-pressed', String(r === 'inst'));
+    document.getElementById('role-vis').setAttribute('aria-pressed', String(r === 'vis'));
+    document.getElementById('roleTxt').innerHTML = ROLE_TXT[r];
+    ir(st.tela === 'calib' && r !== 'inst' ? 'equip' : st.tela);
+  }
+  document.getElementById('role-inst').onclick = function () { setRole('inst'); };
+  document.getElementById('role-vis').onclick = function () { setRole('vis'); };
+
+  /* ---------- QR ---------- */
+  var sel = document.getElementById('qrSel');
+  sel.innerHTML = equips.map(function (e) { return '<option value="' + e.tag + '">' + e.tag + ' · ' + esc(e.desc) + '</option>'; }).join('');
+  sel.value = 'BAL-04';
+  function urlQr() { document.getElementById('qrUrl').textContent = 'https://apps.powerapps.com/play/e/…/a/…?tenantId=…&equip=' + sel.value; }
+  sel.onchange = urlQr; urlQr();
+  document.getElementById('qrGo').onclick = function () {
+    var ph = document.getElementById('ph');
+    var ov = document.createElement('div');
+    ov.className = 'scan'; ov.innerHTML = '<div><div class="box"></div>Lendo QR Code de ' + sel.value + '…</div>';
+    ph.appendChild(ov);
+    setTimeout(function () { ov.remove(); st.tag = sel.value; ir('equip'); }, 1100);
+  };
+
+  var d = new Date(); document.getElementById('clock').textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+  setRole('inst');
+  ir('lista');
+
+  /* ================= Passo a passo ================= */
+  function copia(txt) { return '<div class="code"><pre>' + esc(txt) + '</pre><button class="copy" data-copy="' + esc(txt) + '">Copiar</button></div>'; }
+  function tabela(cab, linhas) {
+    return '<div class="tbl"><table><thead><tr>' + cab.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      linhas.map(function (l) { return '<tr>' + l.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+  }
+  var STEPS = [
+    { fase: 'Parte A · SharePoint (onde os dados ficam)', t: 'Criar o site do laboratório', min: 5,
+      why: 'O site é a "casa" onde vão ficar as listas. Se o laboratório já tem um site no SharePoint, pule este passo e use o que já existe.',
+      do: ['Abra o navegador e entre em <span class="kbd">sharepoint.com</span> com o login da empresa (ou pelo ícone do SharePoint no Office).',
+           'Clique em <span class="ui">+ Criar site</span> e escolha <span class="ui">Site de equipe</span>.',
+           'Dê o nome <b>Laboratório - Controle de Calibração</b> e clique em <span class="ui">Avançar</span> e depois em <span class="ui">Concluir</span>.'],
+      ok: 'Você está na página inicial do site novo.' },
+    { t: 'Criar a lista "Equipamentos" (a planilha central)', min: 15,
+      why: 'Uma lista do SharePoint é como uma planilha do Excel que fica online. Cada linha é um equipamento e cada coluna é uma informação.',
+      do: ['No site, clique em <span class="ui">+ Novo</span> › <span class="ui">Lista</span> › <span class="ui">Lista em branco</span>. Nome: <b>Equipamentos</b> (sem acento). Clique em <span class="ui">Criar</span>.',
+           'A lista já vem com a coluna <b>Título</b>. Ela vai guardar a <b>TAG</b> (ex.: BAL-01). <b>Não mude o nome dela.</b>',
+           'Para cada linha da tabela abaixo, clique em <span class="ui">+ Adicionar coluna</span>, escolha o tipo, digite o nome <b>exatamente igual</b> e clique em <span class="ui">Salvar</span>.'],
+      extra: function () {
+        return tabela(['Nome exato', 'Tipo', 'Detalhe'], [
+          ['Descricao', 'Texto', ''], ['Tipo', 'Texto', ''], ['FabricanteModelo', 'Texto', ''], ['NumeroSerie', 'Texto', ''], ['Local', 'Texto', ''],
+          ['PeriodicidadeMeses', 'Número', 'Valor padrão: 12'], ['UltimaCalibracao', 'Data e hora', 'Deixe "Incluir hora" desligado'],
+          ['ProximaCalibracao', 'Data e hora', 'Deixe "Incluir hora" desligado'], ['UltimoResultado', 'Texto', ''], ['UltimoResponsavel', 'Texto', ''],
+          ['MotivoRecusa', 'Várias linhas de texto', ''], ['ManutencaoSolicitada', 'Sim/Não', 'Valor padrão: Não'], ['Status', 'Texto', ''], ['Ativo', 'Sim/Não', 'Valor padrão: Sim']
+        ]) + '<div class="warn"><b>O erro mais comum é o nome da coluna.</b> Escreva sem acento e sem espaço, como na tabela: <span class="kbd">UltimaCalibracao</span>, e não "Última calibração". O app procura exatamente esses nomes.</div>';
+      },
+      ok: 'A lista tem as 14 colunas novas, além da coluna Título.' },
+    { t: 'Criar as listas "Calibracoes" e "Calibradores"', min: 10,
+      why: '"Calibracoes" guarda o histórico: cada calibração vira uma linha nova e nada se perde. "Calibradores" é a lista de quem pode registrar calibração.',
+      do: ['Crie uma lista em branco chamada <b>Calibracoes</b> (sem ç e sem acento) e adicione as colunas abaixo. O Título guarda a TAG.'],
+      extra: function () {
+        return tabela(['Nome exato', 'Tipo', 'Detalhe'], [
+          ['EquipamentoID', 'Número', ''], ['DataCalibracao', 'Data e hora', 'Sem hora'], ['Responsavel', 'Texto', ''], ['Local', 'Texto', ''], ['Resultado', 'Texto', ''],
+          ['MotivoRecusa', 'Várias linhas de texto', ''], ['ManutencaoSolicitada', 'Sim/Não', 'Padrão: Não'], ['ProximaCalibracao', 'Data e hora', 'Sem hora'],
+          ['Certificado', 'Texto', ''], ['Observacoes', 'Várias linhas de texto', '']
+        ]) + '<ol class="do" start="2"><li>Crie outra lista em branco chamada <b>Calibradores</b> e adicione só uma coluna: <span class="kbd">Nome</span> (Texto). O Título guarda o <b>e-mail</b> da pessoa.</li></ol>';
+      },
+      ok: 'Você tem 3 listas no site: Equipamentos, Calibracoes e Calibradores.' },
+    { t: 'Cadastrar os equipamentos e as pessoas', min: 10,
+      why: 'Sem equipamentos cadastrados, o app não tem o que mostrar. A TAG de cada um é o que vai dentro do QR Code.',
+      do: ['Abra o arquivo <span class="kbd">1-sharepoint/modelo-equipamentos.xlsx</span> e preencha uma linha por equipamento. Cada TAG precisa ser única (ex.: BAL-01, REN-02).',
+           'No SharePoint, abra a lista Equipamentos e clique em <span class="ui">Editar no modo de grade</span>.',
+           'Copie as linhas do Excel (sem o cabeçalho), clique na primeira célula vazia da grade e cole (Ctrl+V). Clique em <span class="ui">Sair do modo de grade</span>.',
+           'Na lista <b>Calibradores</b>, clique em <span class="ui">+ Novo</span> e cadastre cada pessoa da instrumentação: Título = e-mail corporativo, Nome = nome. Coloque o seu também, para testar.'],
+      ok: 'Os equipamentos aparecem na lista e seu e-mail está em Calibradores.' },
+    { t: 'Ajustar as permissões', min: 5,
+      why: 'É isso que garante que só a instrumentação consegue gravar. Os outros colaboradores só leem.',
+      do: ['Em cada uma das 3 listas: clique na engrenagem ⚙ › <span class="ui">Configurações da lista</span> › <span class="ui">Permissões para esta lista</span>.',
+           'Clique em <span class="ui">Parar de herdar permissões</span> e depois em <span class="ui">Conceder permissões</span>.',
+           'Dê <b>Editar</b> ao grupo da instrumentação (em Equipamentos e Calibracoes) e <b>Leitura</b> a "Todos, exceto usuários externos" (ou ao grupo do laboratório).'],
+      ok: 'A instrumentação pode editar e os demais só ler. Se tiver dúvida neste passo, a TI resolve em 5 minutos.' },
+    { fase: 'Parte B · Power Apps (o aplicativo)', t: 'Criar o app e conectar as listas', min: 10,
+      why: 'Aqui você cria o "casco" do app e liga ele às 3 listas. As telas entram no próximo passo.',
+      do: ['Entre em <span class="kbd">make.powerapps.com</span>.',
+           'Clique em <span class="ui">+ Criar</span> › <span class="ui">Aplicativo em branco</span> › <span class="ui">Aplicativo de tela em branco</span>. Nome: <b>Controle de Calibração</b>. Formato: <b>Telefone</b>. Clique em <span class="ui">Criar</span>.',
+           'No menu da esquerda, clique no ícone de <span class="ui">Dados</span> (um cilindro) › <span class="ui">Adicionar dados</span> › digite <b>SharePoint</b>.',
+           'Escolha o site do passo 1, marque <b>Equipamentos</b>, <b>Calibracoes</b> e <b>Calibradores</b> e clique em <span class="ui">Conectar</span>.'],
+      ok: 'As 3 listas aparecem no painel Dados.' },
+    { t: 'Colar as 3 telas prontas', min: 10,
+      why: 'As telas já estão desenhadas nos arquivos .yaml: cores, botões e fórmulas. Você só copia e cola, sem desenhar nada à mão.',
+      do: ['Na pasta <span class="kbd">2-powerapps</span>, abra <span class="kbd">tela-3-scrCalibrar.yaml</span> no Bloco de Notas. Aperte Ctrl+A e depois Ctrl+C.',
+           'No Power Apps, clique no ícone de <span class="ui">Exibição em árvore</span> (camadas, no menu da esquerda). Clique com o botão direito sobre <b>Screen1</b> e escolha <span class="ui">Colar</span>. Uma tela nova chamada <b>scrCalibrar</b> aparece.',
+           'Repita com <span class="kbd">tela-2-scrEquipamento.yaml</span> e depois com <span class="kbd">tela-1-scrLista.yaml</span>.',
+           'Apague a <b>Screen1</b> (botão direito › Excluir) e arraste a <b>scrLista</b> para o topo.',
+           'Clique com o botão direito em <b>scrLista</b> › <span class="ui">Executar OnVisible</span>. Isso carrega os equipamentos na tela.'],
+      extra: function () { return '<div class="warn">Pode aparecer algum X vermelho no meio do caminho. Cole as três telas antes de se preocupar: a maioria some sozinha. Se não colar de jeito nenhum, veja o "Plano B" em <b>Deu algum problema?</b> no fim da página.</div>'; },
+      ok: 'A árvore mostra scrLista, scrEquipamento e scrCalibrar, e a scrLista mostra seus equipamentos coloridos.' },
+    { t: 'Fazer o QR Code abrir direto no equipamento', min: 3,
+      why: 'Esta é a única fórmula digitada à mão. Ela diz: "se veio TAG pelo QR Code, abra a tela do equipamento; senão, abra a lista".',
+      do: ['Na Exibição em árvore, clique em <b>App</b> (o primeiro item).',
+           'No menu de propriedades, lá em cima à esquerda, escolha <b>StartScreen</b>.',
+           'Apague o que estiver na barra de fórmulas e cole a fórmula abaixo (é a versão do Power Apps em português, com ponto e vírgula):'],
+      extra: function () { return copia('If(IsBlank(Param("equip")); scrLista; scrEquipamento)') + '<p class="muted" style="font-size:13.5px">Se o seu Power Apps estiver em inglês, use: <span class="kbd">If(IsBlank(Param("equip")), scrLista, scrEquipamento)</span></p>'; },
+      ok: 'A fórmula está sem sublinhado vermelho.' },
+    { t: 'Testar antes de publicar', min: 10,
+      why: 'Melhor achar um problema agora do que com o técnico na frente da balança.',
+      do: ['Selecione a <b>scrLista</b> e aperte <b>F5</b> (ou o botão ▷ no canto superior direito).',
+           'Toque num equipamento, depois em <span class="ui">Registrar calibração</span>, preencha e salve.',
+           'Abra a lista Calibracoes no SharePoint: tem que existir uma linha nova. Na lista Equipamentos, as datas daquele equipamento mudaram.',
+           'Teste também uma <b>Recusada</b> com "Solicitar manutenção". O status tem que ficar azul.'],
+      ok: 'O registro aparece no SharePoint e o status mudou de cor.' },
+    { t: 'Publicar, compartilhar e copiar o link', min: 5,
+      why: 'Enquanto não publicar e compartilhar, só você enxerga o app.',
+      do: ['No Power Apps, clique em <span class="ui">Salvar</span> e depois em <span class="ui">Publicar</span>.',
+           'Em make.powerapps.com › <span class="ui">Aplicativos</span>, clique nos 3 pontinhos do app › <span class="ui">Compartilhar</span>. Adicione "Todos, exceto usuários externos" (ou o grupo do laboratório) e clique em <span class="ui">Compartilhar</span>.',
+           'Nos mesmos 3 pontinhos › <span class="ui">Detalhes</span>, copie o <b>Link da Web</b>. Guarde esse link: ele vai dentro dos QR Codes.',
+           'Teste no celular: cole o link no navegador com <span class="kbd">&amp;equip=BAL-01</span> no final. O app tem que abrir direto na BAL-01.'],
+      ok: 'O link abre o app direto no equipamento.' },
+    { fase: 'Parte C · Etiquetas', t: 'Gerar e imprimir as etiquetas QR Code', min: 10,
+      why: 'Cada etiqueta tem o QR Code com o link do app e a TAG daquele equipamento.',
+      do: ['Abra <span class="kbd">4-etiquetas-qr/gerador-etiquetas.html</span> com dois cliques. Ele abre no navegador e funciona sem internet.',
+           'Cole o Link da Web do passo anterior no primeiro campo.',
+           'Cole a lista de equipamentos (TAG; Descrição; Local). Pode copiar as 3 colunas direto do Excel.',
+           'Escolha o tamanho e clique em <span class="ui">Gerar etiquetas</span>. Toque em uma etiqueta para testar e depois clique em <span class="ui">Imprimir</span>.',
+           'Use papel adesivo resistente, principalmente perto de estufas e água.'],
+      ok: 'As etiquetas estão coladas e, ao ler com a câmera do celular, o app abre no equipamento certo.' },
+    { fase: 'Parte D · Automações (opcional)', t: 'E-mails automáticos com Power Automate', min: 30,
+      why: 'O app já funciona sem isso. Os fluxos só mandam avisos: um e-mail para a manutenção quando uma calibração é recusada e um resumo diário do que está vencendo.',
+      do: ['Deixe para depois que o app estiver rodando.',
+           'Siga o arquivo <span class="kbd">3-power-automate/fluxos.md</span>. As fórmulas já estão prontas para copiar.',
+           'Se preferir, me chame nessa hora que eu te guio clique a clique.'],
+      ok: 'Ao recusar uma calibração de teste, chega um e-mail para a manutenção.' }
+  ];
+
+  var KEY = 'calibqr-passos';
+  var feitos = {};
+  try { feitos = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { feitos = {}; }
+
+  var html = '', toc = '';
+  STEPS.forEach(function (s, i) {
+    var n = i + 1, id = 'p' + n;
+    if (s.fase) html += '<div class="phase">' + s.fase + '</div>';
+    html += '<article class="step" id="' + id + '"><div class="step-h"><div class="num">' + n + '</div><div class="grow"><h3>' + s.t + '</h3><span class="meta">cerca de ' + s.min + ' min</span></div></div>' +
+      '<div class="step-b"><div class="why">' + s.why + '</div><ol class="do">' + s.do.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol>' +
+      (s.extra ? s.extra() : '') +
+      '<div class="ready"><label><input type="checkbox" data-step="' + n + '" id="chk-' + n + '"> Concluído</label><span class="muted">Pronto quando: ' + s.ok + '</span></div></div></article>';
+    toc += '<li><a href="#' + id + '" data-toc="' + n + '"><span class="dot">' + n + '</span>' + s.t + '</a></li>';
+  });
+  document.getElementById('stepsList').innerHTML = html;
+  document.getElementById('stepsList').style.cssText = 'display:grid;gap:18px';
+  document.getElementById('tocList').innerHTML = toc;
+
+  function progresso() {
+    var total = STEPS.length, f = 0;
+    for (var n = 1; n <= total; n++) {
+      var on = !!feitos[n]; if (on) f++;
+      document.getElementById('chk-' + n).checked = on;
+      document.getElementById('p' + n).classList.toggle('done', on);
+      document.querySelector('[data-toc="' + n + '"]').classList.toggle('done', on);
+    }
+    document.getElementById('progBar').style.width = (f / total * 100) + '%';
+    document.getElementById('progTxt').textContent = f + ' de ' + total + ' etapas concluídas';
+  }
+  document.getElementById('stepsList').addEventListener('change', function (ev) {
+    var n = ev.target.getAttribute('data-step'); if (!n) return;
+    feitos[n] = ev.target.checked;
+    try { localStorage.setItem(KEY, JSON.stringify(feitos)); } catch (e) {}
+    progresso();
+  });
+  document.getElementById('tocList').addEventListener('click', function (ev) {
+    var a = ev.target.closest('a'); if (!a) return;
+    ev.preventDefault();
+    document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-copy]'); if (!b) return;
+    var txt = b.getAttribute('data-copy');
+    function feito() { b.textContent = 'Copiado'; setTimeout(function () { b.textContent = 'Copiar'; }, 1500); }
+    function selecionar() { var r = document.createRange(); r.selectNodeContents(b.previousElementSibling); var s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Ctrl+C'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(feito, selecionar); else selecionar();
+  });
+  progresso();
+})();
+</script>
+</body></html>

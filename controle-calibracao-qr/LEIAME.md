@@ -24,6 +24,8 @@ Tudo usa ferramentas do Microsoft 365 que a empresa já tem: **SharePoint + Powe
 
 ## Conteúdo do pacote e ordem de execução
 
+> **Comece por aqui:** abra `PREVIA-E-PASSO-A-PASSO.html` no navegador. Ele mostra uma prévia interativa do app e o passo a passo didático com checklist.
+
 | Etapa | Pasta | O que tem | Tempo |
 |---|---|---|---|
 | 1 | `1-sharepoint/` | `estrutura-das-listas.md` (passo a passo), `criar-listas.ps1` (cria tudo automaticamente, opcional), `formatacao-coluna-status.json` (cores), `modelo-equipamentos.xlsx` (carga dos equipamentos) | 30-40 min |
