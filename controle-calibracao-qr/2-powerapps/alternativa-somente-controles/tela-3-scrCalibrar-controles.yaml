@@ -1,0 +1,375 @@
+- recCalHeader:
+    Control: Rectangle@2.3.0
+    Properties:
+      Fill: =RGBA(18, 59, 99, 1)
+      X: =0
+      Y: =0
+      Width: =Parent.Width
+      Height: =110
+- icoCalVoltar:
+    Control: Classic/Icon@2.5.0
+    Properties:
+      Icon: =Icon.ChevronLeft
+      Color: =RGBA(255, 255, 255, 1)
+      Tooltip: ="Cancelar e voltar"
+      X: =10
+      Y: =30
+      Width: =50
+      Height: =50
+      PaddingTop: =6
+      PaddingBottom: =6
+      PaddingLeft: =6
+      PaddingRight: =6
+      OnSelect: =Navigate(scrEquipamento, ScreenTransition.UnCover)
+- lblCalHeader:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Registro da calibração"
+      Color: =RGBA(255, 255, 255, 1)
+      Size: =20
+      FontWeight: =FontWeight.Bold
+      X: =70
+      Y: =14
+      Width: =Parent.Width - 90
+      Height: =46
+- lblCalHeaderEquip:
+    Control: Label@2.5.1
+    Properties:
+      Text: |-
+        =gblEquip.Title & " · " & gblEquip.Descricao
+      Color: =RGBA(200, 216, 235, 1)
+      Size: =13
+      X: =70
+      Y: =58
+      Width: =Parent.Width - 90
+      Height: =34
+- lblCalData:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="DATA DA CALIBRAÇÃO *"
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      X: =20
+      Y: =122
+      Width: =Parent.Width - 40
+      Height: =28
+- dtpCalData:
+    Control: Classic/DatePicker@2.6.0
+    Properties:
+      DefaultDate: =Today()
+      Format: =DateTimeFormat.ShortDate
+      Size: =14
+      X: =20
+      Y: =150
+      Width: =Parent.Width - 40
+      Height: =52
+- lblCalResponsavel:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="RESPONSÁVEL *"
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      X: =20
+      Y: =210
+      Width: =Parent.Width - 40
+      Height: =28
+- txtCalResponsavel:
+    Control: Classic/TextInput@2.3.2
+    Properties:
+      Default: =User().FullName
+      HintText: ="Nome do responsável"
+      Size: =14
+      BorderColor: =RGBA(190, 200, 215, 1)
+      X: =20
+      Y: =238
+      Width: =Parent.Width - 40
+      Height: =52
+- lblCalLocal:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="LOCAL DE INSTALAÇÃO *"
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      X: =20
+      Y: =298
+      Width: =Parent.Width - 40
+      Height: =28
+- txtCalLocal:
+    Control: Classic/TextInput@2.3.2
+    Properties:
+      Default: =gblEquip.Local
+      HintText: ="Área / Setor"
+      Size: =14
+      BorderColor: =RGBA(190, 200, 215, 1)
+      X: =20
+      Y: =326
+      Width: =Parent.Width - 40
+      Height: =52
+- lblCalResultado:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="RESULTADO DA CALIBRAÇÃO *"
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      X: =20
+      Y: =386
+      Width: =Parent.Width - 40
+      Height: =28
+- btnCalAprovada:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Text: ="✔  APROVADA"
+      Fill: =If(locResultado = "Aprovada", RGBA(25, 135, 84, 1), RGBA(232, 245, 233, 1))
+      Color: =If(locResultado = "Aprovada", RGBA(255, 255, 255, 1), RGBA(25, 135, 84, 1))
+      HoverFill: =If(locResultado = "Aprovada", RGBA(25, 135, 84, 1), RGBA(210, 235, 215, 1))
+      HoverColor: =If(locResultado = "Aprovada", RGBA(255, 255, 255, 1), RGBA(25, 135, 84, 1))
+      PressedFill: =RGBA(25, 135, 84, 1)
+      BorderColor: =RGBA(25, 135, 84, 1)
+      BorderThickness: =2
+      Size: =15
+      FontWeight: =FontWeight.Bold
+      RadiusTopLeft: =10
+      RadiusTopRight: =10
+      RadiusBottomLeft: =10
+      RadiusBottomRight: =10
+      X: =20
+      Y: =414
+      Width: =(Parent.Width - 50) / 2
+      Height: =58
+      OnSelect: |-
+        =UpdateContext({locResultado: "Aprovada"});
+        Reset(drpCalMotivo);
+        Reset(txtCalMotivoOutro)
+- btnCalRecusada:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Text: ="✖  RECUSADA"
+      Fill: =If(locResultado = "Recusada", RGBA(220, 53, 69, 1), RGBA(253, 236, 238, 1))
+      Color: =If(locResultado = "Recusada", RGBA(255, 255, 255, 1), RGBA(220, 53, 69, 1))
+      HoverFill: =If(locResultado = "Recusada", RGBA(220, 53, 69, 1), RGBA(248, 215, 218, 1))
+      HoverColor: =If(locResultado = "Recusada", RGBA(255, 255, 255, 1), RGBA(220, 53, 69, 1))
+      PressedFill: =RGBA(220, 53, 69, 1)
+      BorderColor: =RGBA(220, 53, 69, 1)
+      BorderThickness: =2
+      Size: =15
+      FontWeight: =FontWeight.Bold
+      RadiusTopLeft: =10
+      RadiusTopRight: =10
+      RadiusBottomLeft: =10
+      RadiusBottomRight: =10
+      X: =30 + (Parent.Width - 50) / 2
+      Y: =414
+      Width: =(Parent.Width - 50) / 2
+      Height: =58
+      OnSelect: |-
+        =UpdateContext({locResultado: "Recusada"})
+- lblCalMotivo:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =locResultado = "Recusada"
+      Text: ="MOTIVO DA RECUSA *"
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      X: =20
+      Y: =480
+      Width: =Parent.Width - 40
+      Height: =28
+- drpCalMotivo:
+    Control: Classic/DropDown@2.3.1
+    Properties:
+      Visible: =locResultado = "Recusada"
+      Items: |-
+        =[
+            "Fora da tolerância / erro acima do aceitável",
+            "Desvio na linearidade",
+            "Repetibilidade insatisfatória",
+            "Excentricidade (balança)",
+            "Falha no display / eletrônica",
+            "Falha mecânica / motor",
+            "Dano físico no equipamento",
+            "Outro"
+        ]
+      AllowEmptySelection: =true
+      Default: =""
+      Size: =14
+      BorderColor: =RGBA(190, 200, 215, 1)
+      X: =20
+      Y: =508
+      Width: =Parent.Width - 40
+      Height: =52
+- txtCalMotivoOutro:
+    Control: Classic/TextInput@2.3.2
+    Properties:
+      Visible: =locResultado = "Recusada" && drpCalMotivo.Selected.Value = "Outro"
+      Default: =""
+      HintText: ="Descreva o motivo da recusa"
+      Size: =14
+      BorderColor: =RGBA(190, 200, 215, 1)
+      X: =20
+      Y: =566
+      Width: =Parent.Width - 40
+      Height: =52
+- chkCalManutencao:
+    Control: Classic/CheckBox@2.1.0
+    Properties:
+      Text: ="Solicitar manutenção"
+      Default: =false
+      Size: =14
+      Color: =RGBA(40, 45, 55, 1)
+      X: =20
+      Y: =624
+      Width: =Parent.Width - 40
+      Height: =50
+- lblCalCertificado:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Nº DO CERTIFICADO / RELATÓRIO (opcional)"
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      X: =20
+      Y: =680
+      Width: =Parent.Width - 40
+      Height: =28
+- txtCalCertificado:
+    Control: Classic/TextInput@2.3.2
+    Properties:
+      Default: =""
+      HintText: |-
+        ="Ex.: CERT-2026-0154"
+      Size: =14
+      BorderColor: =RGBA(190, 200, 215, 1)
+      X: =20
+      Y: =708
+      Width: =Parent.Width - 40
+      Height: =52
+- lblCalObs:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="OBSERVAÇÕES (opcional)"
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =11
+      FontWeight: =FontWeight.Bold
+      X: =20
+      Y: =768
+      Width: =Parent.Width - 40
+      Height: =28
+- txtCalObs:
+    Control: Classic/TextInput@2.3.2
+    Properties:
+      Default: =""
+      Mode: =TextMode.MultiLine
+      HintText: ="Detalhes da calibração ou do problema encontrado"
+      Size: =14
+      BorderColor: =RGBA(190, 200, 215, 1)
+      X: =20
+      Y: =796
+      Width: =Parent.Width - 40
+      Height: =100
+- btnCalSalvar:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Text: =If(locSalvando, "Salvando...", "Enviar / salvar os dados")
+      DisplayMode: =If(locSalvando, DisplayMode.Disabled, DisplayMode.Edit)
+      Fill: =RGBA(18, 59, 99, 1)
+      Color: =RGBA(255, 255, 255, 1)
+      HoverFill: =RGBA(30, 80, 130, 1)
+      PressedFill: =RGBA(12, 40, 70, 1)
+      Size: =16
+      FontWeight: =FontWeight.Bold
+      RadiusTopLeft: =10
+      RadiusTopRight: =10
+      RadiusBottomLeft: =10
+      RadiusBottomRight: =10
+      X: =20
+      Y: =912
+      Width: =Parent.Width - 40
+      Height: =65
+      OnSelect: |-
+        =If(
+            IsBlank(gblEquip),
+                Notify("Equipamento não identificado. Volte e leia o QR Code novamente.", NotificationType.Error),
+            IsBlank(dtpCalData.SelectedDate) || dtpCalData.SelectedDate > Today(),
+                Notify("Informe uma data de calibração válida (não pode ser futura).", NotificationType.Error),
+            IsBlank(Trim(txtCalResponsavel.Text)),
+                Notify("Informe o responsável pela calibração.", NotificationType.Error),
+            IsBlank(Trim(txtCalLocal.Text)),
+                Notify("Informe o local de instalação.", NotificationType.Error),
+            IsBlank(locResultado),
+                Notify("Selecione o resultado: Aprovada ou Recusada.", NotificationType.Error),
+            locResultado = "Recusada" && IsBlank(drpCalMotivo.Selected.Value),
+                Notify("Selecione o motivo da recusa.", NotificationType.Error),
+            locResultado = "Recusada" && drpCalMotivo.Selected.Value = "Outro" && IsBlank(Trim(txtCalMotivoOutro.Text)),
+                Notify("Descreva o motivo da recusa.", NotificationType.Error),
+
+            // Tudo válido: grava o histórico e atualiza o equipamento
+            UpdateContext({locSalvando: true});
+            With(
+                {
+                    wProxima: DateAdd(dtpCalData.SelectedDate, Coalesce(gblEquip.PeriodicidadeMeses, 12), TimeUnit.Months),
+                    wMotivo: If(
+                        locResultado = "Recusada",
+                        If(drpCalMotivo.Selected.Value = "Outro", Trim(txtCalMotivoOutro.Text), drpCalMotivo.Selected.Value),
+                        ""
+                    ),
+                    wManutencao: chkCalManutencao.Value
+                },
+                With(
+                    {
+                        wStatus: If(
+                            wManutencao, "Manutenção solicitada",
+                            locResultado = "Recusada", "Recusada",
+                            wProxima < Today(), "Vencido",
+                            wProxima <= DateAdd(Today(), 30, TimeUnit.Days), "Próximo",
+                            "Válido"
+                        )
+                    },
+                    IfError(
+                        Patch(
+                            Calibracoes,
+                            Defaults(Calibracoes),
+                            {
+                                Title: gblEquip.Title,
+                                EquipamentoID: gblEquip.ID,
+                                DataCalibracao: dtpCalData.SelectedDate,
+                                Responsavel: Trim(txtCalResponsavel.Text),
+                                Local: Trim(txtCalLocal.Text),
+                                Resultado: locResultado,
+                                MotivoRecusa: wMotivo,
+                                ManutencaoSolicitada: wManutencao,
+                                ProximaCalibracao: wProxima,
+                                Certificado: Trim(txtCalCertificado.Text),
+                                Observacoes: txtCalObs.Text
+                            }
+                        ),
+                        Notify("Erro ao gravar a calibração: " & FirstError.Message, NotificationType.Error),
+
+                        Patch(
+                            Equipamentos,
+                            gblEquip,
+                            {
+                                UltimaCalibracao: dtpCalData.SelectedDate,
+                                ProximaCalibracao: wProxima,
+                                UltimoResultado: locResultado,
+                                UltimoResponsavel: Trim(txtCalResponsavel.Text),
+                                MotivoRecusa: wMotivo,
+                                ManutencaoSolicitada: wManutencao,
+                                Local: Trim(txtCalLocal.Text),
+                                Status: wStatus
+                            }
+                        ),
+                        Notify("A calibração foi gravada, mas o equipamento não foi atualizado: " & FirstError.Message, NotificationType.Error),
+
+                        Set(gblEquip, LookUp(Equipamentos, ID = gblEquip.ID));
+                        Notify("Calibração registrada com sucesso!", NotificationType.Success);
+                        Navigate(scrEquipamento, ScreenTransition.UnCover)
+                    )
+                )
+            );
+            UpdateContext({locSalvando: false})
+        )

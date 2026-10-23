@@ -1,0 +1,352 @@
+Screens:
+  scrLista:
+    Properties:
+      Fill: =RGBA(243, 246, 250, 1)
+      OnVisible: |-
+        =UpdateContext({locFiltro: ""});
+        Refresh(Equipamentos);
+        ClearCollect(
+            colEquip,
+            AddColumns(
+                Filter(Equipamentos, Ativo = true),
+                StatusCalc,
+                If(
+                    ManutencaoSolicitada, "Manutenção solicitada",
+                    UltimoResultado = "Recusada", "Recusada",
+                    IsBlank(ProximaCalibracao), "Sem registro",
+                    ProximaCalibracao < Today(), "Vencido",
+                    ProximaCalibracao <= DateAdd(Today(), 30, TimeUnit.Days), "Próximo",
+                    "Válido"
+                )
+            )
+        )
+    Children:
+      - recListaHeader:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(18, 59, 99, 1)
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =110
+      - lblListaTitulo:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Controle de Calibração"
+            Color: =RGBA(255, 255, 255, 1)
+            Size: =24
+            FontWeight: =FontWeight.Bold
+            X: =20
+            Y: =14
+            Width: =Parent.Width - 100
+            Height: =46
+      - lblListaSubtitulo:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Laboratório de Controle de Embarque"
+            Color: =RGBA(200, 216, 235, 1)
+            Size: =14
+            X: =20
+            Y: =60
+            Width: =Parent.Width - 100
+            Height: =34
+      - icoListaAtualizar:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.Reset
+            Color: =RGBA(255, 255, 255, 1)
+            Tooltip: ="Atualizar"
+            X: =Parent.Width - 70
+            Y: =30
+            Width: =50
+            Height: =50
+            PaddingTop: =8
+            PaddingBottom: =8
+            PaddingLeft: =8
+            PaddingRight: =8
+            OnSelect: |-
+              =Refresh(Equipamentos);
+              ClearCollect(
+                  colEquip,
+                  AddColumns(
+                      Filter(Equipamentos, Ativo = true),
+                      StatusCalc,
+                      If(
+                          ManutencaoSolicitada, "Manutenção solicitada",
+                          UltimoResultado = "Recusada", "Recusada",
+                          IsBlank(ProximaCalibracao), "Sem registro",
+                          ProximaCalibracao < Today(), "Vencido",
+                          ProximaCalibracao <= DateAdd(Today(), 30, TimeUnit.Days), "Próximo",
+                          "Válido"
+                      )
+                  )
+              )
+      - txtBusca:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Buscar por TAG, descrição ou local"
+            Size: =15
+            X: =20
+            Y: =125
+            Width: =Parent.Width - 40
+            Height: =55
+            BorderColor: =RGBA(190, 200, 215, 1)
+            RadiusTopLeft: =8
+            RadiusTopRight: =8
+            RadiusBottomLeft: =8
+            RadiusBottomRight: =8
+      - btnFiltroValido:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =CountIf(colEquip, StatusCalc = "Válido") & Char(10) & "Válidos"
+            Fill: =RGBA(209, 231, 221, 1)
+            Color: =RGBA(15, 81, 50, 1)
+            HoverFill: =RGBA(190, 220, 205, 1)
+            PressedFill: =RGBA(190, 220, 205, 1)
+            HoverColor: =RGBA(15, 81, 50, 1)
+            PressedColor: =RGBA(15, 81, 50, 1)
+            BorderColor: =RGBA(18, 59, 99, 1)
+            BorderThickness: =If(locFiltro = "Válido", 3, 0)
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            X: =20
+            Y: =195
+            Width: =(Parent.Width - 72) / 5
+            Height: =75
+            OnSelect: |-
+              =UpdateContext({locFiltro: If(locFiltro = "Válido", "", "Válido")})
+      - btnFiltroProximo:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =CountIf(colEquip, StatusCalc = "Próximo") & Char(10) & "Próximos"
+            Fill: =RGBA(255, 243, 205, 1)
+            Color: =RGBA(102, 77, 3, 1)
+            HoverFill: =RGBA(250, 232, 180, 1)
+            PressedFill: =RGBA(250, 232, 180, 1)
+            HoverColor: =RGBA(102, 77, 3, 1)
+            PressedColor: =RGBA(102, 77, 3, 1)
+            BorderColor: =RGBA(18, 59, 99, 1)
+            BorderThickness: =If(locFiltro = "Próximo", 3, 0)
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            X: =20 + 1 * ((Parent.Width - 72) / 5 + 8)
+            Y: =195
+            Width: =(Parent.Width - 72) / 5
+            Height: =75
+            OnSelect: |-
+              =UpdateContext({locFiltro: If(locFiltro = "Próximo", "", "Próximo")})
+      - btnFiltroVencido:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =CountIf(colEquip, StatusCalc = "Vencido") & Char(10) & "Vencidos"
+            Fill: =RGBA(248, 215, 218, 1)
+            Color: =RGBA(132, 32, 41, 1)
+            HoverFill: =RGBA(240, 195, 200, 1)
+            PressedFill: =RGBA(240, 195, 200, 1)
+            HoverColor: =RGBA(132, 32, 41, 1)
+            PressedColor: =RGBA(132, 32, 41, 1)
+            BorderColor: =RGBA(18, 59, 99, 1)
+            BorderThickness: =If(locFiltro = "Vencido", 3, 0)
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            X: =20 + 2 * ((Parent.Width - 72) / 5 + 8)
+            Y: =195
+            Width: =(Parent.Width - 72) / 5
+            Height: =75
+            OnSelect: |-
+              =UpdateContext({locFiltro: If(locFiltro = "Vencido", "", "Vencido")})
+      - btnFiltroRecusada:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =CountIf(colEquip, StatusCalc = "Recusada") & Char(10) & "Recusados"
+            Fill: =RGBA(220, 53, 69, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            HoverFill: =RGBA(200, 40, 55, 1)
+            PressedFill: =RGBA(200, 40, 55, 1)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            PressedColor: =RGBA(255, 255, 255, 1)
+            BorderColor: =RGBA(18, 59, 99, 1)
+            BorderThickness: =If(locFiltro = "Recusada", 3, 0)
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            X: =20 + 3 * ((Parent.Width - 72) / 5 + 8)
+            Y: =195
+            Width: =(Parent.Width - 72) / 5
+            Height: =75
+            OnSelect: |-
+              =UpdateContext({locFiltro: If(locFiltro = "Recusada", "", "Recusada")})
+      - btnFiltroManutencao:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =CountIf(colEquip, StatusCalc = "Manutenção solicitada") & Char(10) & "Manutenção"
+            Fill: =RGBA(207, 226, 255, 1)
+            Color: =RGBA(8, 66, 152, 1)
+            HoverFill: =RGBA(185, 210, 250, 1)
+            PressedFill: =RGBA(185, 210, 250, 1)
+            HoverColor: =RGBA(8, 66, 152, 1)
+            PressedColor: =RGBA(8, 66, 152, 1)
+            BorderColor: =RGBA(18, 59, 99, 1)
+            BorderThickness: =If(locFiltro = "Manutenção solicitada", 3, 0)
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            X: =20 + 4 * ((Parent.Width - 72) / 5 + 8)
+            Y: =195
+            Width: =(Parent.Width - 72) / 5
+            Height: =75
+            OnSelect: |-
+              =UpdateContext({locFiltro: If(locFiltro = "Manutenção solicitada", "", "Manutenção solicitada")})
+      - lblListaContagem:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(
+                  IsBlank(locFiltro),
+                  CountRows(galEquip.AllItems) & " equipamento(s)",
+                  "Filtro: " & locFiltro & " · " & CountRows(galEquip.AllItems) & " equipamento(s) · toque no quadro novamente para limpar"
+              )
+            Color: =RGBA(90, 100, 115, 1)
+            Size: =11
+            X: =20
+            Y: =272
+            Width: =Parent.Width - 40
+            Height: =26
+      - galEquip:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =Sort(
+                  Filter(
+                      colEquip,
+                      (IsBlank(locFiltro) || StatusCalc = locFiltro) &&
+                      (IsBlank(txtBusca.Text) || txtBusca.Text in Title || txtBusca.Text in Descricao || txtBusca.Text in Local)
+                  ),
+                  Title
+              )
+            TemplateSize: =120
+            TemplatePadding: =0
+            TemplateFill: =RGBA(0, 0, 0, 0)
+            X: =20
+            Y: =300
+            Width: =Parent.Width - 40
+            Height: =Parent.Height - 310
+            OnSelect: |-
+              =Set(gblTag, ThisItem.Title);
+              Navigate(scrEquipamento, ScreenTransition.Cover)
+          Children:
+            - recItemCard:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  BorderColor: =RGBA(220, 227, 236, 1)
+                  BorderThickness: =1
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth
+                  Height: =Parent.TemplateHeight - 10
+                  OnSelect: =Select(Parent)
+            - lblItemTag:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Title
+                  Color: =RGBA(18, 59, 99, 1)
+                  Size: =18
+                  FontWeight: =FontWeight.Bold
+                  X: =16
+                  Y: =6
+                  Width: =Parent.TemplateWidth - 210
+                  Height: =36
+                  OnSelect: =Select(Parent)
+            - lblItemDescricao:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Descricao
+                  Color: =RGBA(40, 45, 55, 1)
+                  Size: =14
+                  X: =16
+                  Y: =40
+                  Width: =Parent.TemplateWidth - 210
+                  Height: =30
+                  OnSelect: =Select(Parent)
+            - lblItemLocal:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="Local: " & Coalesce(ThisItem.Local, "-")
+                  Color: =RGBA(100, 110, 125, 1)
+                  Size: =12
+                  X: =16
+                  Y: =70
+                  Width: =Parent.TemplateWidth - 210
+                  Height: =30
+                  OnSelect: =Select(Parent)
+            - lblItemStatus:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =Upper(ThisItem.StatusCalc)
+                  Align: =Align.Center
+                  Size: =11
+                  FontWeight: =FontWeight.Bold
+                  Fill: |-
+                    =Switch(
+                        ThisItem.StatusCalc,
+                        "Válido", RGBA(209, 231, 221, 1),
+                        "Próximo", RGBA(255, 243, 205, 1),
+                        "Vencido", RGBA(248, 215, 218, 1),
+                        "Recusada", RGBA(220, 53, 69, 1),
+                        "Manutenção solicitada", RGBA(207, 226, 255, 1),
+                        RGBA(226, 227, 229, 1)
+                    )
+                  Color: |-
+                    =Switch(
+                        ThisItem.StatusCalc,
+                        "Válido", RGBA(15, 81, 50, 1),
+                        "Próximo", RGBA(102, 77, 3, 1),
+                        "Vencido", RGBA(132, 32, 41, 1),
+                        "Recusada", RGBA(255, 255, 255, 1),
+                        "Manutenção solicitada", RGBA(8, 66, 152, 1),
+                        RGBA(65, 70, 75, 1)
+                    )
+                  X: =Parent.TemplateWidth - 185
+                  Y: =14
+                  Width: =170
+                  Height: =40
+                  OnSelect: =Select(Parent)
+            - lblItemProxima:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =If(
+                        IsBlank(ThisItem.ProximaCalibracao),
+                        "Sem data",
+                        "Próx.: " & Text(ThisItem.ProximaCalibracao, "dd/mm/yyyy")
+                    )
+                  Align: =Align.Center
+                  Color: =RGBA(70, 80, 95, 1)
+                  Size: =12
+                  X: =Parent.TemplateWidth - 185
+                  Y: =60
+                  Width: =170
+                  Height: =32
+                  OnSelect: =Select(Parent)

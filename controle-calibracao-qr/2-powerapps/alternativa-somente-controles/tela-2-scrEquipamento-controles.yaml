@@ -1,0 +1,304 @@
+- recEquipHeader:
+    Control: Rectangle@2.3.0
+    Properties:
+      Fill: =RGBA(18, 59, 99, 1)
+      X: =0
+      Y: =0
+      Width: =Parent.Width
+      Height: =110
+- icoEquipVoltar:
+    Control: Classic/Icon@2.5.0
+    Properties:
+      Icon: =Icon.ChevronLeft
+      Color: =RGBA(255, 255, 255, 1)
+      Tooltip: ="Ver todos os equipamentos"
+      X: =10
+      Y: =30
+      Width: =50
+      Height: =50
+      PaddingTop: =6
+      PaddingBottom: =6
+      PaddingLeft: =6
+      PaddingRight: =6
+      OnSelect: =Navigate(scrLista, ScreenTransition.UnCover)
+- lblEquipHeader:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Calibração do equipamento"
+      Color: =RGBA(255, 255, 255, 1)
+      Size: =20
+      FontWeight: =FontWeight.Bold
+      X: =70
+      Y: =14
+      Width: =Parent.Width - 90
+      Height: =46
+- lblEquipHeaderSub:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Laboratório de Controle de Embarque"
+      Color: =RGBA(200, 216, 235, 1)
+      Size: =13
+      X: =70
+      Y: =58
+      Width: =Parent.Width - 90
+      Height: =34
+- lblEquipNaoEncontrado:
+    Control: Label@2.5.1
+    Properties:
+      Text: |-
+        ="Equipamento não encontrado: " & Coalesce(gblTag, "(QR Code sem TAG)") & Char(10) & Char(10) &
+        "Verifique se a TAG da etiqueta está cadastrada na lista Equipamentos."
+      Visible: =IsBlank(gblEquip)
+      Color: =RGBA(132, 32, 41, 1)
+      Fill: =RGBA(248, 215, 218, 1)
+      Size: =15
+      Align: =Align.Center
+      X: =20
+      Y: =130
+      Width: =Parent.Width - 40
+      Height: =180
+- recEquipCard:
+    Control: Rectangle@2.3.0
+    Properties:
+      Visible: =!IsBlank(gblEquip)
+      Fill: =RGBA(255, 255, 255, 1)
+      BorderColor: =RGBA(220, 227, 236, 1)
+      BorderThickness: =1
+      X: =20
+      Y: =125
+      Width: =Parent.Width - 40
+      Height: =330
+- lblEquipTag:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =!IsBlank(gblEquip)
+      Text: =gblEquip.Title
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =26
+      FontWeight: =FontWeight.Bold
+      X: =40
+      Y: =135
+      Width: =Parent.Width - 80
+      Height: =50
+- lblEquipDescricao:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =!IsBlank(gblEquip)
+      Text: =gblEquip.Descricao
+      Color: =RGBA(40, 45, 55, 1)
+      Size: =16
+      X: =40
+      Y: =183
+      Width: =Parent.Width - 80
+      Height: =36
+- lblEquipInfo:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =!IsBlank(gblEquip)
+      Text: |-
+        ="Tipo: " & Coalesce(gblEquip.Tipo, "-") &
+        "   ·   Local: " & Coalesce(gblEquip.Local, "-") & Char(10) &
+        "Fabricante/Modelo: " & Coalesce(gblEquip.FabricanteModelo, "-") &
+        "   ·   Nº série: " & Coalesce(gblEquip.NumeroSerie, "-")
+      Color: =RGBA(90, 100, 115, 1)
+      Size: =13
+      VerticalAlign: =VerticalAlign.Top
+      X: =40
+      Y: =222
+      Width: =Parent.Width - 80
+      Height: =60
+- lblEquipStatus:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =!IsBlank(gblEquip)
+      Text: |-
+        =Upper(
+            If(
+                gblEquip.ManutencaoSolicitada, "Manutenção solicitada",
+                gblEquip.UltimoResultado = "Recusada", "Recusada",
+                IsBlank(gblEquip.ProximaCalibracao), "Sem registro de calibração",
+                gblEquip.ProximaCalibracao < Today(), "Vencido",
+                gblEquip.ProximaCalibracao <= DateAdd(Today(), 30, TimeUnit.Days), "Próximo",
+                "Válido"
+            )
+        )
+      Align: =Align.Center
+      Size: =18
+      FontWeight: =FontWeight.Bold
+      Fill: |-
+        =Switch(
+            Self.Text,
+            "VÁLIDO", RGBA(209, 231, 221, 1),
+            "PRÓXIMO", RGBA(255, 243, 205, 1),
+            "VENCIDO", RGBA(248, 215, 218, 1),
+            "RECUSADA", RGBA(220, 53, 69, 1),
+            "MANUTENÇÃO SOLICITADA", RGBA(207, 226, 255, 1),
+            RGBA(226, 227, 229, 1)
+        )
+      Color: |-
+        =Switch(
+            Self.Text,
+            "VÁLIDO", RGBA(15, 81, 50, 1),
+            "PRÓXIMO", RGBA(102, 77, 3, 1),
+            "VENCIDO", RGBA(132, 32, 41, 1),
+            "RECUSADA", RGBA(255, 255, 255, 1),
+            "MANUTENÇÃO SOLICITADA", RGBA(8, 66, 152, 1),
+            RGBA(65, 70, 75, 1)
+        )
+      X: =40
+      Y: =290
+      Width: =Parent.Width - 80
+      Height: =60
+- lblEquipDatas:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =!IsBlank(gblEquip)
+      Text: |-
+        ="Última calibração: " &
+        If(IsBlank(gblEquip.UltimaCalibracao), "-", Text(gblEquip.UltimaCalibracao, "dd/mm/yyyy")) &
+        Char(10) & "Próxima calibração: " &
+        If(IsBlank(gblEquip.ProximaCalibracao), "-", Text(gblEquip.ProximaCalibracao, "dd/mm/yyyy")) &
+        Char(10) & "Último responsável: " & Coalesce(gblEquip.UltimoResponsavel, "-") &
+        "   ·   Periodicidade: " & Coalesce(Text(gblEquip.PeriodicidadeMeses), "12") & " meses"
+      Color: =RGBA(40, 45, 55, 1)
+      Size: =13
+      VerticalAlign: =VerticalAlign.Top
+      X: =40
+      Y: =360
+      Width: =Parent.Width - 80
+      Height: =90
+- lblEquipAlerta:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =!IsBlank(gblEquip) && (gblEquip.UltimoResultado = "Recusada" || gblEquip.ManutencaoSolicitada)
+      Text: |-
+        =If(
+            gblEquip.UltimoResultado = "Recusada",
+            "Motivo da recusa: " & Coalesce(gblEquip.MotivoRecusa, "-") & Char(10),
+            ""
+        ) &
+        If(gblEquip.ManutencaoSolicitada, "Manutenção solicitada. NÃO utilizar até nova calibração aprovada.", "")
+      Color: =RGBA(132, 32, 41, 1)
+      Fill: =RGBA(253, 236, 238, 1)
+      BorderColor: =RGBA(220, 53, 69, 1)
+      BorderThickness: =1
+      Size: =13
+      PaddingLeft: =16
+      X: =20
+      Y: =465
+      Width: =Parent.Width - 40
+      Height: =70
+- btnEquipRegistrar:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Visible: =!IsBlank(gblEquip) && gblPodeCalibrar
+      Text: ="Registrar calibração"
+      Fill: =RGBA(18, 59, 99, 1)
+      Color: =RGBA(255, 255, 255, 1)
+      HoverFill: =RGBA(30, 80, 130, 1)
+      PressedFill: =RGBA(12, 40, 70, 1)
+      Size: =16
+      FontWeight: =FontWeight.Bold
+      RadiusTopLeft: =10
+      RadiusTopRight: =10
+      RadiusBottomLeft: =10
+      RadiusBottomRight: =10
+      X: =20
+      Y: =548
+      Width: =Parent.Width - 40
+      Height: =65
+      OnSelect: =Navigate(scrCalibrar, ScreenTransition.Cover)
+- lblEquipSomenteLeitura:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =!IsBlank(gblEquip) && !gblPodeCalibrar
+      Text: |-
+        ="Modo visualização: apenas a equipe de instrumentação registra calibrações."
+      Color: =RGBA(90, 100, 115, 1)
+      Fill: =RGBA(232, 237, 244, 1)
+      Size: =12
+      Align: =Align.Center
+      X: =20
+      Y: =548
+      Width: =Parent.Width - 40
+      Height: =65
+- lblEquipHistTitulo:
+    Control: Label@2.5.1
+    Properties:
+      Visible: =!IsBlank(gblEquip)
+      Text: ="Histórico de calibrações"
+      Color: =RGBA(18, 59, 99, 1)
+      Size: =16
+      FontWeight: =FontWeight.Bold
+      X: =20
+      Y: =625
+      Width: =Parent.Width - 40
+      Height: =40
+- galHistorico:
+    Control: Gallery@2.15.0
+    Variant: Vertical
+    Properties:
+      Visible: =!IsBlank(gblEquip)
+      Items: |-
+        =Sort(
+            Filter(Calibracoes, EquipamentoID = gblEquip.ID),
+            DataCalibracao,
+            SortOrder.Descending
+        )
+      TemplateSize: =100
+      TemplatePadding: =0
+      TemplateFill: =RGBA(0, 0, 0, 0)
+      X: =20
+      Y: =668
+      Width: =Parent.Width - 40
+      Height: =Parent.Height - 680
+    Children:
+      - recHistCard:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(255, 255, 255, 1)
+            BorderColor: =RGBA(220, 227, 236, 1)
+            BorderThickness: =1
+            X: =0
+            Y: =0
+            Width: =Parent.TemplateWidth
+            Height: =Parent.TemplateHeight - 8
+      - lblHistData:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Text(ThisItem.DataCalibracao, "dd/mm/yyyy")
+            Color: =RGBA(18, 59, 99, 1)
+            Size: =15
+            FontWeight: =FontWeight.Bold
+            X: =14
+            Y: =6
+            Width: =160
+            Height: =32
+      - lblHistResultado:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Upper(ThisItem.Resultado)
+            Align: =Align.Center
+            Size: =11
+            FontWeight: =FontWeight.Bold
+            Fill: =If(ThisItem.Resultado = "Aprovada", RGBA(209, 231, 221, 1), RGBA(220, 53, 69, 1))
+            Color: =If(ThisItem.Resultado = "Aprovada", RGBA(15, 81, 50, 1), RGBA(255, 255, 255, 1))
+            X: =Parent.TemplateWidth - 150
+            Y: =10
+            Width: =136
+            Height: =30
+      - lblHistDetalhe:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="Resp.: " & ThisItem.Responsavel &
+              If(IsBlank(ThisItem.Certificado), "", "   ·   Cert.: " & ThisItem.Certificado) &
+              If(IsBlank(ThisItem.MotivoRecusa), "", Char(10) & "Motivo: " & ThisItem.MotivoRecusa) &
+              If(ThisItem.ManutencaoSolicitada, "   ·   Manutenção solicitada", "")
+            Color: =RGBA(70, 80, 95, 1)
+            Size: =12
+            VerticalAlign: =VerticalAlign.Top
+            X: =14
+            Y: =40
+            Width: =Parent.TemplateWidth - 28
+            Height: =50
