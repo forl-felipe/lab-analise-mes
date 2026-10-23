@@ -108,7 +108,7 @@ Screens:
           Properties:
             Visible: =!IsBlank(gblEquip)
             Text: |-
-              ="Tipo: " & Coalesce(gblEquip.Tipo, "-") &
+              ="Tipo: " & Coalesce(gblEquip.TipoEquipamento, "-") &
               "   ·   Local: " & Coalesce(gblEquip.Local, "-") & Char(10) &
               "Fabricante/Modelo: " & Coalesce(gblEquip.FabricanteModelo, "-") &
               "   ·   Nº série: " & Coalesce(gblEquip.NumeroSerie, "-")

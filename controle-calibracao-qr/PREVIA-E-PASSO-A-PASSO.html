@@ -592,11 +592,11 @@ details.faq p { margin: 8px 0 0; }
            'Para cada linha da tabela abaixo, clique em <span class="ui">+ Adicionar coluna</span>, escolha o tipo, digite o nome <b>exatamente igual</b> e clique em <span class="ui">Salvar</span>.'],
       extra: function () {
         return tabela(['Nome exato', 'Tipo', 'Detalhe'], [
-          ['Descricao', 'Texto', ''], ['Tipo', 'Texto', ''], ['FabricanteModelo', 'Texto', ''], ['NumeroSerie', 'Texto', ''], ['Local', 'Texto', ''],
+          ['Descricao', 'Texto', ''], ['TipoEquipamento', 'Texto', 'Não use só "Tipo": o SharePoint já tem uma coluna escondida com esse nome'], ['FabricanteModelo', 'Texto', ''], ['NumeroSerie', 'Texto', ''], ['Local', 'Texto', ''],
           ['PeriodicidadeMeses', 'Número', 'Valor padrão: 12'], ['UltimaCalibracao', 'Data e hora', 'Deixe "Incluir hora" desligado'],
           ['ProximaCalibracao', 'Data e hora', 'Deixe "Incluir hora" desligado'], ['UltimoResultado', 'Texto', ''], ['UltimoResponsavel', 'Texto', ''],
           ['MotivoRecusa', 'Várias linhas de texto', ''], ['ManutencaoSolicitada', 'Sim/Não', 'Valor padrão: Não'], ['Status', 'Texto', ''], ['Ativo', 'Sim/Não', 'Valor padrão: Sim']
-        ]) + '<div class="warn"><b>O erro mais comum é o nome da coluna.</b> Escreva sem acento, sem espaço e com as <b>mesmas maiúsculas</b> da tabela: <span class="kbd">UltimaCalibracao</span>, e não "Última calibração"; <span class="kbd">Tipo</span>, e não "tipo". O app procura exatamente esses nomes. Não adicione nenhum item ainda: os equipamentos entram no passo 4.</div>';
+        ]) + '<div class="warn"><b>O erro mais comum é o nome da coluna.</b> Escreva sem acento, sem espaço e com as <b>mesmas maiúsculas</b> da tabela: <span class="kbd">UltimaCalibracao</span>, e não "Última calibração"; <span class="kbd">TipoEquipamento</span>, e não "tipoEquipamento". O app procura exatamente esses nomes. Não adicione nenhum item ainda: os equipamentos entram no passo 4.</div>';
       },
       ok: 'A lista tem as 14 colunas novas, além da coluna Título.' },
     { t: 'Criar as listas "Calibracoes" e "Calibradores"', min: 10,

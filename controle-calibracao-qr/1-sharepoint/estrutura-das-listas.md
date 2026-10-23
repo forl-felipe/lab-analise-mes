@@ -22,7 +22,7 @@ Para criar: **+ Novo > Lista > Lista em branco**. Depois use **+ Adicionar colun
 |---|---|---|---|
 | Título *(já existe)* | Linha de texto | Em configurações da coluna: **Impor valores exclusivos = Sim** | `BAL-01` (TAG) |
 | Descricao | Linha única de texto | | Balança Prix |
-| Tipo | Linha única de texto | | Balança |
+| TipoEquipamento | Linha única de texto | Não use "Tipo": esse nome já existe escondido no SharePoint | Balança |
 | FabricanteModelo | Linha única de texto | | Prix 3 Fit |
 | NumeroSerie | Linha única de texto | | 123456 |
 | Local | Linha única de texto | | Laboratório - Bancada 1 |

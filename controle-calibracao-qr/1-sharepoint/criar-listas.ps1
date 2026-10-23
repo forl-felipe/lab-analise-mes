@@ -57,7 +57,7 @@ function Set-VisaoPadrao([string] $Lista, [string[]] $Campos) {
 # ---------------------------------------------------------------- Equipamentos
 New-Lista 'Equipamentos' 'Cadastro e situação de calibração dos equipamentos do laboratório (Title = TAG do equipamento)'
 Add-Coluna 'Equipamentos' 'Descricao'           'Texto'
-Add-Coluna 'Equipamentos' 'Tipo'                'Texto'
+Add-Coluna 'Equipamentos' 'TipoEquipamento'     'Texto'
 Add-Coluna 'Equipamentos' 'FabricanteModelo'    'Texto'
 Add-Coluna 'Equipamentos' 'NumeroSerie'         'Texto'
 Add-Coluna 'Equipamentos' 'Local'               'Texto'
@@ -101,14 +101,14 @@ Set-PnPField -List 'Equipamentos' -Identity 'Status' -Values @{ CustomFormatter 
 # ---------------------------------------------------------------- Dados de exemplo (opcional)
 if ($DadosExemplo) {
     $exemplos = @(
-        @{ Title='BAL-01'; Descricao='Balança Prix';       Tipo='Balança';     Local='Laboratório - Bancada 1'; PeriodicidadeMeses=6;  UltimaCalibracao='2026-10-10'; ProximaCalibracao='2027-04-10'; UltimoResultado='Aprovada' },
-        @{ Title='REN-02'; Descricao='Reneira';            Tipo='Reneira';     Local='Laboratório - Peneiras';  PeriodicidadeMeses=6;  UltimaCalibracao='2026-05-05'; ProximaCalibracao='2026-11-05'; UltimoResultado='Aprovada' },
-        @{ Title='BAL-03'; Descricao='Balança analítica';  Tipo='Balança';     Local='Laboratório - Bancada 2'; PeriodicidadeMeses=12; UltimaCalibracao='2025-08-01'; ProximaCalibracao='2026-08-01'; UltimoResultado='Aprovada' },
-        @{ Title='EST-01'; Descricao='Estufa de secagem';  Tipo='Estufa';      Local='Laboratório - Estufas';   PeriodicidadeMeses=12; UltimaCalibracao='2026-06-15'; ProximaCalibracao='2027-06-15'; UltimoResultado='Aprovada' },
-        @{ Title='TER-01'; Descricao='Termômetro digital'; Tipo='Termômetro';  Local='Laboratório - Bancada 1'; PeriodicidadeMeses=6;  UltimaCalibracao='2026-05-20'; ProximaCalibracao='2026-11-20'; UltimoResultado='Aprovada' },
-        @{ Title='BAL-04'; Descricao='Balança de piso';    Tipo='Balança';     Local='Recebimento';             PeriodicidadeMeses=6;  UltimaCalibracao='2026-03-12'; ProximaCalibracao='2026-09-12'; UltimoResultado='Recusada'; MotivoRecusa='Desvio na linearidade' },
-        @{ Title='REN-01'; Descricao='Reneira';            Tipo='Reneira';     Local='Laboratório - Peneiras';  PeriodicidadeMeses=6;  UltimaCalibracao='2026-07-18'; ProximaCalibracao='2027-01-18'; UltimoResultado='Recusada'; MotivoRecusa='Falha mecânica / motor'; ManutencaoSolicitada=$true },
-        @{ Title='BAL-05'; Descricao='Balança Prix';       Tipo='Balança';     Local='Laboratório - Bancada 3'; PeriodicidadeMeses=6;  UltimaCalibracao='2026-08-22'; ProximaCalibracao='2027-02-22'; UltimoResultado='Aprovada' }
+        @{ Title='BAL-01'; Descricao='Balança Prix';       TipoEquipamento='Balança';     Local='Laboratório - Bancada 1'; PeriodicidadeMeses=6;  UltimaCalibracao='2026-10-10'; ProximaCalibracao='2027-04-10'; UltimoResultado='Aprovada' },
+        @{ Title='REN-02'; Descricao='Reneira';            TipoEquipamento='Reneira';     Local='Laboratório - Peneiras';  PeriodicidadeMeses=6;  UltimaCalibracao='2026-05-05'; ProximaCalibracao='2026-11-05'; UltimoResultado='Aprovada' },
+        @{ Title='BAL-03'; Descricao='Balança analítica';  TipoEquipamento='Balança';     Local='Laboratório - Bancada 2'; PeriodicidadeMeses=12; UltimaCalibracao='2025-08-01'; ProximaCalibracao='2026-08-01'; UltimoResultado='Aprovada' },
+        @{ Title='EST-01'; Descricao='Estufa de secagem';  TipoEquipamento='Estufa';      Local='Laboratório - Estufas';   PeriodicidadeMeses=12; UltimaCalibracao='2026-06-15'; ProximaCalibracao='2027-06-15'; UltimoResultado='Aprovada' },
+        @{ Title='TER-01'; Descricao='Termômetro digital'; TipoEquipamento='Termômetro';  Local='Laboratório - Bancada 1'; PeriodicidadeMeses=6;  UltimaCalibracao='2026-05-20'; ProximaCalibracao='2026-11-20'; UltimoResultado='Aprovada' },
+        @{ Title='BAL-04'; Descricao='Balança de piso';    TipoEquipamento='Balança';     Local='Recebimento';             PeriodicidadeMeses=6;  UltimaCalibracao='2026-03-12'; ProximaCalibracao='2026-09-12'; UltimoResultado='Recusada'; MotivoRecusa='Desvio na linearidade' },
+        @{ Title='REN-01'; Descricao='Reneira';            TipoEquipamento='Reneira';     Local='Laboratório - Peneiras';  PeriodicidadeMeses=6;  UltimaCalibracao='2026-07-18'; ProximaCalibracao='2027-01-18'; UltimoResultado='Recusada'; MotivoRecusa='Falha mecânica / motor'; ManutencaoSolicitada=$true },
+        @{ Title='BAL-05'; Descricao='Balança Prix';       TipoEquipamento='Balança';     Local='Laboratório - Bancada 3'; PeriodicidadeMeses=6;  UltimaCalibracao='2026-08-22'; ProximaCalibracao='2027-02-22'; UltimoResultado='Aprovada' }
     )
     foreach ($e in $exemplos) {
         if (-not (Get-PnPListItem -List 'Equipamentos' -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($e.Title)</Value></Eq></Where></Query></View>")) {
