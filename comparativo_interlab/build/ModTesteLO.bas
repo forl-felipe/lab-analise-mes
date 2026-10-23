@@ -219,47 +219,56 @@ Public Sub TesteLO()
     AbrirBatch id
     Ok CStr(V("bNivel")) = "Médio", "nivel reaberto"
 
-    ' --- acompanhamento (batch em processamento): so Germano, blocos nas abas Acomp. Quimico / Fisico
-    Dim rb As Long, rb2 As Long, ubu As Double
+    ' --- acompanhamento (batch em processamento): so Germano; modelo fixo com batch anterior e em processamento
+    Dim rb As Long, rb2 As Long, ubu As Double, kSE As Long
     Nm("bModo").Value = "Acompanhamento (em processamento)"
     LimparBatch
+    GarantirModeloAcomp
+    Ok CStr(shAcomp.Cells(LinhaBlocoN(1), 2).Value) = "Batch" And CStr(shAcomp.Cells(LinhaBlocoN(2), 2).Value) = "Batch", _
+       "modelo com os dois blocos (anterior e em processamento)"
+    Ok IsEmpty(IdBloco(1)) And IsEmpty(IdBloco(2)), "modelo em branco"
     Nm("bId").Value = 295
     Nm("bIniG").Value = DateSerial(2026, 10, 21) + TimeSerial(18, 10, 0)
     Nm("bFimG").Value = DateSerial(2026, 10, 22) + TimeSerial(20, 0, 0)
     Nm("bIniU").Value = DateSerial(2026, 10, 23) + TimeSerial(9, 18, 0)
     Nm("bNivel").Value = "Médio"
     Recalcular
+    ' Ubu de outro batch esquecido na aba Batch nao pode ir para o bloco
+    Desproteger shBatch
+    shBatch.Cells(B_ROW_G0, ColValor(pSi, 1)).Value = 9.99
     gUltimaMsg = ""
     BuscarMES
     Ok InStr(gUltimaMsg, "Acompanhamento do batch 295") > 0, "acompanhamento: busca so Germano (" & gUltimaMsg & ")"
     Ok ENumero(Celula(1, pSi, 0)) And Not ENumero(Celula(1, pSi, 1)), "acompanhamento: Germano sim, Ubu nao"
     rb = LinhaBloco(shAcomp, 295)
-    Ok rb = A_ROW0, "bloco do 295 no topo da aba Acompanhamento (" & rb & ")"
-    Ok CStr(shAcomp.Cells(rb + 14, 2).Value) = PRotulo(PIndice("SE")) & " Germano", "S.E. no mesmo bloco (fisico) (" & _
-       shAcomp.Cells(rb + 14, 2).Value & ")"
-    Ok ENumero(shAcomp.Cells(rb + 14, 3).Value), "S.E. Germano no bloco"
-    Ok CStr(shAcomp.Cells(rb + 4, 2).Value) = PRotulo(pSi) & " Germano", "rotulo SiO2 Germano"
-    Ok CStr(shAcomp.Cells(rb + 5, 2).Value) = PRotulo(pSi) & " Alimentação 04", "rotulo SiO2 Alimentacao 04"
-    Ok ENumero(shAcomp.Cells(rb + 4, 3).Value), "SiO2 Germano no bloco"
+    Ok rb = LinhaBlocoN(2) And IsEmpty(IdBloco(1)), "295 no bloco em processamento; anterior vazio (" & rb & ")"
+    Ok CStr(shAcomp.Cells(rb + 5, 2).Value) = PRotulo(pSi) & " Germano", "rotulo SiO2 Germano"
+    Ok CStr(shAcomp.Cells(rb + 6, 2).Value) = PRotulo(pSi) & " Alimentação 04", "rotulo SiO2 Alimentacao 04"
+    Ok ENumero(shAcomp.Cells(rb + 5, 3).Value), "SiO2 Germano no bloco"
+    Ok Not ENumero(shAcomp.Cells(rb + 6, 3).Value), "Ubu de outro batch (aba Batch) nao entra no bloco"
+    kSE = rb + 5 + 3 * 3 + 1
+    Ok CStr(shAcomp.Cells(kSE, 2).Value) = PRotulo(PIndice("SE")) & " Germano" And ENumero(shAcomp.Cells(kSE, 3).Value), _
+       "S.E. no mesmo bloco (fisico)"
     Ok Abs(CDbl(shAcomp.Cells(rb + 2, 3).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value)) < 0.0001, _
        "inicio aproximado no processo = horario de Ubu"
+    Ok Abs(CDbl(shAcomp.Cells(rb + 3, 3).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TG).Value)) < 0.0001, _
+       "origem em Germano = horario de Germano"
     n = CLng(V("bNHor"))
     Ok CStr(shAcomp.Cells(rb, 3 + n).Value) = "Média", "coluna Media depois dos " & n & " horarios"
     ' Ubu lancado a mao: diferenca e media; refazer a busca nao apaga
     shAcomp.Unprotect
-    shAcomp.Cells(rb + 5, 3).Value = CDbl(shAcomp.Cells(rb + 4, 3).Value) + 0.1
+    shAcomp.Cells(rb + 6, 3).Value = CDbl(shAcomp.Cells(rb + 5, 3).Value) + 0.1
     shAcomp.Calculate
-    Ok Abs(CDbl(shAcomp.Cells(rb + 6, 3).Value) - 0.1) < 0.0001, "diferenca Ubu - Germano"
-    Ok ENumero(shAcomp.Cells(rb + 5, 3 + n).Value), "media de Ubu"
-    ubu = CDbl(shAcomp.Cells(rb + 5, 3).Value)
+    Ok Abs(CDbl(shAcomp.Cells(rb + 7, 3).Value) - 0.1) < 0.0001, "diferenca Ubu - Germano"
+    Ok ENumero(shAcomp.Cells(rb + 6, 3 + n).Value), "media de Ubu"
+    ubu = CDbl(shAcomp.Cells(rb + 6, 3).Value)
     BuscarMES
     rb = LinhaBloco(shAcomp, 295)
-    Ok Abs(CDbl(shAcomp.Cells(rb + 5, 3).Value) - ubu) < 0.0001, "Ubu lancado fica depois de buscar de novo"
-    Ok LinhaBloco(shAcomp, 295) = A_ROW0 And LinhaBloco(shAcomp, 0) = 0, "um bloco so do 295"
+    Ok rb = LinhaBlocoN(2) And Abs(CDbl(shAcomp.Cells(rb + 6, 3).Value) - ubu) < 0.0001, "Ubu lancado fica depois de buscar de novo"
     gUltimaMsg = ""
     SalvarHistorico
     Ok LinhaHistorico(295) = 0 And InStr(gUltimaMsg, "Acompanhamento") > 0, "acompanhamento nao vai para o historico"
-    ' proximo batch: 296 em cima; ultimos batches mostram o 295 (acompanhamento)
+    ' proximo batch: 295 vira anterior (com o Ubu lancado), 296 entra em processamento sem Ubu nenhum
     Nm("bId").Value = 296
     AtualizarUltimos
     Ok CStr(shBatch.Cells(B_ROW_ULT, U_COL_BATCH).Value) = "Batch 295", "ultimo batch = 295 (" & _
@@ -271,8 +280,18 @@ Public Sub TesteLO()
     BuscarMES
     rb = LinhaBloco(shAcomp, 296)
     rb2 = LinhaBloco(shAcomp, 295)
-    Ok rb = A_ROW0 And rb2 > rb, "296 em cima do 295 (" & rb & ", " & rb2 & ")"
-    Ok Abs(CDbl(shAcomp.Cells(rb2 + 5, 3).Value) - ubu) < 0.0001, "Ubu do 295 continua la"
+    Ok rb = LinhaBlocoN(2) And rb2 = LinhaBlocoN(1), "295 anterior em cima, 296 em processamento embaixo (" & rb2 & ", " & rb & ")"
+    Ok Abs(CDbl(shAcomp.Cells(rb2 + 6, 3).Value) - ubu) < 0.0001, "Ubu do 295 vai junto para o bloco anterior"
+    Ok Not ENumero(shAcomp.Cells(rb + 6, 3).Value), "296 sem Ubu (nao repete o do 295)"
+    Ok ENumero(shAcomp.Cells(rb2 + 5, 3).Value) And ENumero(shAcomp.Cells(rb + 5, 3).Value), "Germano nos dois blocos"
+    ' 297: 296 vira anterior e o 295 sai da aba
+    Nm("bId").Value = 297
+    BuscarMES
+    Ok IdBloco(1) = 296 And IdBloco(2) = 297 And LinhaBloco(shAcomp, 295) = 0, "297: anterior 296, 295 sai da aba"
+    ' buscar de novo o anterior so atualiza o bloco dele
+    Nm("bId").Value = 296
+    BuscarMES
+    Ok IdBloco(1) = 296 And IdBloco(2) = 297, "buscar o 296 de novo atualiza so o bloco anterior"
     ' depois, comparativo do 295: chegada e nivel vem do acompanhamento
     Nm("bModo").Value = "Comparativo (batch processado)"
     LimparBatch
@@ -327,4 +346,5 @@ Erro:
 Fim:
     shGraf.Range("BA1").Value = "'" & IIf(mFalhas = 0, "TUDO OK", mFalhas & " FALHA(S)") & "|" & mLog
 End Sub
+
 

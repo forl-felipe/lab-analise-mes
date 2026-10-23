@@ -34,6 +34,7 @@ Public Sub Inicializar()
     shConfig.Visible = XL_VERYHIDDEN
     gAlterado = False
     AtualizarUltimos
+    GarantirModeloAcomp
     AjustarGraficos
     shBatch.Activate
 End Sub

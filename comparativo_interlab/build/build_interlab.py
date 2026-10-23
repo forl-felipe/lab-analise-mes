@@ -1296,7 +1296,7 @@ class Construtor:
         self.botao(ws, 1, 13, 'Copiar acompanhamento', 'CopiarAcompanhamento', 190, 30, 'a', x=0, y=6)
         self.botao(ws, 1, 16, '← Batch', 'IrBatch', 90, 30, 's', x=4, y=6)
         ws.freeze_panes(A_ROW0, 2)
-        ws.write(A_ROW0, 1, 'Nenhum batch em acompanhamento ainda.', self.f(italic=True, font_color=MUTED))
+        # os dois blocos (batch anterior e em processamento) sao desenhados pelo VBA ao abrir o arquivo
         ws.protect('', {'format_columns': True, 'format_rows': True})
         ws = self.ws_reg
         for i, h in enumerate(REG_COLS):

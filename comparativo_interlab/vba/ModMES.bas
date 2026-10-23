@@ -193,6 +193,9 @@ Private Sub BuscarAcompanhamento()
     End If
     Application.StatusBar = False
     If okG Then qG = GravarResultados(0, resG, nG, okG, iniG)
+    ' Ubu do batch em processamento e lancado na aba Acompanhamento: o que estiver na aba Batch e de outro
+    ' batch e nao pode ir para o bloco
+    LimparUbuBatch
     msg = MontarAcompanhamento()
     seg = Int(Timer - t0)
     If seg < 0 Then seg = seg + 86400
@@ -212,6 +215,17 @@ Falha:
     Ampulheta False
     mOcupado = False
     Aviso "Erro no acompanhamento: " & Err.Description, vbExclamation, "MES - acompanhamento"
+End Sub
+
+Private Sub LimparUbuBatch()
+    Dim p As Long
+    ModoCarga True
+    Desproteger shBatch
+    For p = 1 To NP
+        shBatch.Range(shBatch.Cells(B_ROW_G0, ColValor(p, 1)), shBatch.Cells(B_ROW_G0 + NMAX - 1, ColValor(p, 1))).ClearContents
+    Next p
+    Proteger shBatch
+    ModoCarga False
 End Sub
 
 ' ---------------------------------------------------------------- tags (aba Configuracoes)
