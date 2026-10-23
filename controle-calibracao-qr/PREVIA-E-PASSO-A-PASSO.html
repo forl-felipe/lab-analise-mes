@@ -587,7 +587,7 @@ details.faq p { margin: 8px 0 0; }
       ok: 'Você está na página inicial do site novo.' },
     { t: 'Criar a lista "Equipamentos" (a planilha central)', min: 15,
       why: 'Uma lista do SharePoint é como uma planilha do Excel que fica online. Cada linha é um equipamento e cada coluna é uma informação.',
-      do: ['No site, clique em <span class="ui">+ Novo</span> › <span class="ui">Lista</span> › <span class="ui">Lista em branco</span>. Nome: <b>Equipamentos</b> (sem acento). Clique em <span class="ui">Criar</span>.',
+      do: ['No site, clique em <span class="ui">+ Novo</span> › <span class="ui">Lista</span> › <span class="ui">Lista em branco</span>. Nome: <b>Equipamentos</b> (sem acento). Clique em <span class="ui">Criar</span>. Se você criar pelo app <b>Microsoft Lists</b>, em <span class="ui">Salvar em</span> escolha o <b>site do laboratório</b>, nunca <b>Minhas listas</b>: lá a lista fica no seu OneDrive pessoal e não dá para compartilhar com o laboratório.',
            'A lista já vem com a coluna <b>Título</b>. Ela vai guardar a <b>TAG</b> (ex.: BAL-01). <b>Não mude o nome dela.</b>',
            'Para cada linha da tabela abaixo, clique em <span class="ui">+ Adicionar coluna</span>, escolha o tipo, digite o nome <b>exatamente igual</b> e clique em <span class="ui">Salvar</span>.'],
       extra: function () {
@@ -596,7 +596,7 @@ details.faq p { margin: 8px 0 0; }
           ['PeriodicidadeMeses', 'Número', 'Valor padrão: 12'], ['UltimaCalibracao', 'Data e hora', 'Deixe "Incluir hora" desligado'],
           ['ProximaCalibracao', 'Data e hora', 'Deixe "Incluir hora" desligado'], ['UltimoResultado', 'Texto', ''], ['UltimoResponsavel', 'Texto', ''],
           ['MotivoRecusa', 'Várias linhas de texto', ''], ['ManutencaoSolicitada', 'Sim/Não', 'Valor padrão: Não'], ['Status', 'Texto', ''], ['Ativo', 'Sim/Não', 'Valor padrão: Sim']
-        ]) + '<div class="warn"><b>O erro mais comum é o nome da coluna.</b> Escreva sem acento e sem espaço, como na tabela: <span class="kbd">UltimaCalibracao</span>, e não "Última calibração". O app procura exatamente esses nomes.</div>';
+        ]) + '<div class="warn"><b>O erro mais comum é o nome da coluna.</b> Escreva sem acento, sem espaço e com as <b>mesmas maiúsculas</b> da tabela: <span class="kbd">UltimaCalibracao</span>, e não "Última calibração"; <span class="kbd">Tipo</span>, e não "tipo". O app procura exatamente esses nomes. Não adicione nenhum item ainda: os equipamentos entram no passo 4.</div>';
       },
       ok: 'A lista tem as 14 colunas novas, além da coluna Título.' },
     { t: 'Criar as listas "Calibracoes" e "Calibradores"', min: 10,
