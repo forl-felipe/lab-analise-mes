@@ -1,0 +1,801 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}</style></head><body>
+<title>Metrologia Lab v2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Lato:wght@400;700;900&display=swap">
+<style>
+/* Layout: faixa de cabeçalho; celular interativo à esquerda + painel de contexto à direita; abaixo, seções de integração, e-mail e viabilidade em grade */
+:root {
+  --bg: #edf1f5;
+  --surface: #ffffff;
+  --surface-2: #f4f7fa;
+  --fg: #152131;
+  --muted: #576579;
+  --line: #d3dbe5;
+  --ink: #0b2540;
+  --accent: #0e6ba8;
+  --accent-soft: #e1eef8;
+  --code-bg: #f1f4f8;
+  --font-display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  --font-app: "Lato", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d141c; --surface: #151f2a; --surface-2: #1a2633; --fg: #e3e9f0; --muted: #98a6b7; --line: #2a3848;
+    --ink: #0a1f36; --accent: #6db3e8; --accent-soft: #1b3248; --code-bg: #101922; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d141c; --surface: #151f2a; --surface-2: #1a2633; --fg: #e3e9f0; --muted: #98a6b7; --line: #2a3848;
+  --ink: #0a1f36; --accent: #6db3e8; --accent-soft: #1b3248; --code-bg: #101922; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+button { font: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.band { background: var(--ink); color: #fff; }
+.hero { padding-block: 28px 30px; display: grid; gap: 8px; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #9fc0de; font-weight: 600; }
+.hero h1 { font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -.01em; }
+.hero p { margin: 0; color: #c5d6e8; max-width: 74ch; }
+.chips-hero { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.chips-hero span { border: 1px solid rgba(255,255,255,.22); border-radius: 99px; padding: 4px 12px; font-size: 13px; color: #dbe7f3; }
+main.wrap { padding-block: 28px 64px; display: grid; gap: 36px; }
+
+.preview { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 36px; align-items: start; }
+@media (max-width: 880px) { .preview { grid-template-columns: minmax(0, 1fr); justify-items: center; } .side { width: 100%; } }
+.side { display: grid; gap: 16px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 12px; min-width: 0; }
+.panel h2 { font-size: 18px; }
+.panel h3 { font-size: 15.5px; }
+.panel p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13.5px; }
+.seg { justify-self: start; display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--fg); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+select.ctl { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 8px 10px; font: inherit; max-width: 100%; }
+.btn { border: 1px solid var(--ink); background: var(--ink); color: #fff; border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+.nav-screens { display: flex; flex-wrap: wrap; gap: 6px; }
+.nav-screens button { border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); border-radius: 99px; padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.nav-screens button[aria-current="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--fg); }
+.explain ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.pa { border-top: 1px dashed var(--line); padding-top: 10px; font-size: 13.5px; color: var(--muted); }
+.pa b { color: var(--fg); }
+
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 880px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.sec-title { display: grid; gap: 4px; }
+.sec-title h2 { font-size: 24px; }
+.flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center; }
+@media (max-width: 640px) { .flow { grid-template-columns: minmax(0, 1fr); } .flow .arr { transform: rotate(90deg); justify-self: center; } }
+.node { border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 12px; display: grid; gap: 2px; min-width: 0; }
+.node b { font-family: var(--font-display); font-size: 15px; }
+.node span { font-size: 13px; color: var(--muted); }
+.node.hl { border-color: var(--accent); background: var(--accent-soft); }
+.arr { color: var(--muted); font-size: 20px; text-align: center; }
+.opt { display: grid; gap: 4px; border-left: 3px solid var(--line); padding-left: 12px; }
+.opt.rec { border-left-color: var(--accent); }
+.tag-rec { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.tbl table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 520px; }
+.tbl th, .tbl td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { background: var(--surface-2); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.tbl tr:last-child td { border-bottom: 0; }
+ol.q { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+
+/* ---------- E-mail (documento fixo claro, como no Outlook) ---------- */
+.mail { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #ffffff; color: #1d2836; color-scheme: light; font-family: "Segoe UI", var(--font-app); }
+.mail-h { background: #f3f5f8; padding: 10px 14px; font-size: 12.5px; color: #4a5768; display: grid; gap: 2px; border-bottom: 1px solid #dde3ea; }
+.mail-h b { color: #1d2836; }
+.mail-b { padding: 16px; display: grid; gap: 12px; font-size: 13.5px; }
+.mail-top { background: #0b2540; color: #fff; padding: 12px 14px; border-radius: 8px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.mail-top b { font-size: 15px; }
+.mail-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mail-kpis div { border: 1px solid #dde3ea; border-radius: 8px; padding: 8px; text-align: center; }
+.mail-kpis b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.mail table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.mail th { background: #0b2540; color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; }
+.mail td { border-bottom: 1px solid #e3e8ee; padding: 6px 8px; }
+.mail-wrap { overflow-x: auto; }
+.mail .b-red { color: #b42318; font-weight: 700; }
+.mail .b-amb { color: #b54708; font-weight: 700; }
+.mail .cta { justify-self: start; background: #0e6ba8; color: #fff; border-radius: 6px; padding: 8px 14px; font-weight: 600; font-size: 13px; }
+
+/* ---------- Celular (identidade do app: fixa e clara, como no Power Apps) ---------- */
+.phone { width: 368px; max-width: 100%; height: 760px; background: #0a0e13; border-radius: 46px; padding: 12px; box-shadow: 0 28px 56px -26px rgba(8, 28, 52, .6); position: relative; }
+.phone::before { content: ""; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 92px; height: 22px; background: #0a0e13; border-radius: 12px; z-index: 30; }
+.ph { --n: #0b2540; --n2: #12355a; --a: #0e6ba8; --bgp: #f2f5f8; --card: #ffffff; --t: #172334; --m: #5d6b7d; --l: #e1e7ee;
+  --ok: #1e7f4f; --ok-s: #e2f3ea; --bad: #b42318; --bad-s: #fdeceb; --warn: #b54708; --warn-s: #fef0c7; --info: #175cd3; --info-s: #e6efff;
+  width: 100%; height: 100%; border-radius: 35px; overflow: hidden; background: var(--bgp); position: relative; display: flex; flex-direction: column; color: var(--t); font-family: var(--font-app); color-scheme: light; font-size: 13px; line-height: 1.4; }
+.ph-status { height: 40px; flex: none; background: var(--n); color: #fff; font-size: 12px; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 28px 5px; font-weight: 700; }
+.ph-body { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; scrollbar-width: none; }
+.ph-body::-webkit-scrollbar { display: none; }
+.bar { background: var(--n); color: #fff; padding: 6px 14px 14px; display: flex; gap: 10px; align-items: center; position: sticky; top: 0; z-index: 5; }
+.bar .grow { flex: 1; min-width: 0; }
+.bar .t { font-weight: 900; font-size: 16px; letter-spacing: .01em; }
+.bar .s { font-size: 11px; color: #a9c2dc; }
+.logo { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(140deg, #1d77b8, #0e4f86); display: grid; place-items: center; flex: none; }
+.logo svg { width: 20px; height: 20px; }
+.ib { width: 34px; height: 34px; border: 0; border-radius: 9px; background: rgba(255,255,255,.08); color: #fff; cursor: pointer; display: grid; place-items: center; flex: none; }
+.ib:hover { background: rgba(255,255,255,.16); }
+.ib svg { width: 19px; height: 19px; }
+.av { width: 34px; height: 34px; border-radius: 50%; background: #d9e6f2; color: var(--n); font-weight: 900; font-size: 12px; display: grid; place-items: center; flex: none; }
+.pad { padding: 14px 14px 90px; display: grid; gap: 12px; }
+.hello { display: grid; gap: 1px; }
+.hello b { font-size: 18px; font-weight: 900; }
+.hello span { color: var(--m); font-size: 12px; }
+.role { justify-self: start; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; background: var(--info-s); color: var(--info); border-radius: 99px; padding: 3px 9px; margin-top: 4px; }
+.card { background: var(--card); border-radius: 14px; box-shadow: 0 1px 2px rgba(16, 32, 52, .06), 0 2px 8px rgba(16, 32, 52, .05); padding: 14px; display: grid; gap: 10px; }
+.card-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card-h b { font-size: 13.5px; font-weight: 900; }
+.card-h a, .lnk { color: var(--a); font-size: 12px; font-weight: 700; cursor: pointer; background: none; border: 0; padding: 0; }
+.scan-cta { border: 0; border-radius: 16px; background: linear-gradient(135deg, #0e6ba8, #0b2540 85%); color: #fff; padding: 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; text-align: left; box-shadow: 0 8px 18px -10px rgba(11, 37, 64, .8); font-family: var(--font-app); }
+.scan-cta .ic { width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,.14); display: grid; place-items: center; flex: none; }
+.scan-cta .ic svg { width: 28px; height: 28px; }
+.scan-cta b { display: block; font-size: 16px; font-weight: 900; }
+.scan-cta span { font-size: 12px; color: #cfe0f0; }
+.kpi { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+.kpi .big { font-size: 13px; color: var(--m); display: grid; gap: 6px; }
+.kpi .big b { color: var(--t); font-size: 14px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: var(--m); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+.prog { height: 8px; background: var(--l); border-radius: 99px; overflow: hidden; }
+.prog i { display: block; height: 100%; border-radius: 99px; background: var(--a); }
+.act { display: grid; grid-template-columns: 4px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--l); cursor: pointer; background: none; border-left: 0; border-right: 0; border-bottom: 0; width: 100%; text-align: left; font-family: var(--font-app); color: var(--t); }
+.act:first-of-type { border-top: 0; }
+.act .st { align-self: stretch; border-radius: 4px; }
+.act b { display: block; font-size: 13px; font-weight: 900; }
+.act span { font-size: 11.5px; color: var(--m); }
+.chev { color: #9aa7b6; }
+.chev svg { width: 16px; height: 16px; display: block; }
+.pill { font-size: 10px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; padding: 4px 8px; border-radius: 99px; white-space: nowrap; }
+.p-ok { background: var(--ok-s); color: var(--ok); }
+.p-bad { background: var(--bad-s); color: var(--bad); }
+.p-warn { background: var(--warn-s); color: var(--warn); }
+.p-info { background: var(--info-s); color: var(--info); }
+.p-mut { background: #eceff3; color: #556274; }
+.tabbar { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--l); display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px 4px 14px; z-index: 8; }
+.tabbar button { border: 0; background: none; display: grid; justify-items: center; gap: 2px; font-size: 10.5px; font-weight: 700; color: #7b8898; cursor: pointer; font-family: var(--font-app); padding: 4px 0; }
+.tabbar button svg { width: 21px; height: 21px; }
+.tabbar button.on { color: var(--a); }
+.search { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--l); border-radius: 10px; padding: 9px 11px; }
+.search svg { width: 16px; height: 16px; color: #8593a3; flex: none; }
+.search input { border: 0; outline: 0; font: inherit; width: 100%; background: transparent; color: var(--t); }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.chips button { border: 1px solid var(--l); background: #fff; border-radius: 99px; padding: 6px 11px; font-size: 12px; font-weight: 700; color: var(--m); cursor: pointer; white-space: nowrap; font-family: var(--font-app); }
+.chips button.on { background: var(--n); border-color: var(--n); color: #fff; }
+.eqrow { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center; background: #fff; border-radius: 12px; padding: 11px 12px; box-shadow: 0 1px 2px rgba(16, 32, 52, .06); cursor: pointer; border: 0; width: 100%; text-align: left; font-family: var(--font-app); color: var(--t); }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.eqrow b { font-size: 14px; font-weight: 900; }
+.eqrow .d { font-size: 12px; color: var(--m); }
+.eqrow .r { display: grid; justify-items: end; gap: 4px; font-size: 11px; color: var(--m); }
+.verdict { padding: 16px 16px 18px; color: #fff; display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+.verdict.ok { background: linear-gradient(135deg, #1e7f4f, #17663f); }
+.verdict.bad { background: linear-gradient(135deg, #c0291d, #9b1c13); }
+.verdict .vi { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,.18); display: grid; place-items: center; }
+.verdict .vi svg { width: 26px; height: 26px; }
+.verdict b { display: block; font-size: 18px; font-weight: 900; letter-spacing: .03em; }
+.verdict span { font-size: 12px; opacity: .92; }
+.ident { background: #fff; padding: 14px 16px 0; display: grid; gap: 8px; }
+.ident .tg { font-size: 24px; font-weight: 900; color: var(--n); line-height: 1.05; }
+.ident .ds { font-size: 13.5px; color: var(--m); }
+.meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.meta span { font-size: 11px; background: var(--bgp); border-radius: 6px; padding: 3px 8px; color: #445367; font-weight: 700; }
+.tabs-in { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--l); margin-top: 4px; }
+.tabs-in button { border: 0; background: none; padding: 10px 0; font-weight: 900; font-size: 12.5px; color: #7b8898; cursor: pointer; border-bottom: 3px solid transparent; font-family: var(--font-app); }
+.tabs-in button.on { color: var(--n); border-bottom-color: var(--a); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mini { background: #fff; border-radius: 12px; box-shadow: 0 1px 2px rgba(16, 32, 52, .06); padding: 12px; display: grid; gap: 4px; align-content: start; }
+.mini .lb { font-size: 10px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--m); }
+.mini .vl { font-size: 17px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.mini .sb { font-size: 11px; color: var(--m); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 12px; }
+.kv span { color: var(--m); }
+.kv b { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.steps div { display: grid; justify-items: center; gap: 4px; font-size: 9.5px; text-align: center; color: var(--m); font-weight: 700; }
+.steps i { width: 100%; height: 5px; border-radius: 99px; background: var(--l); }
+.steps .done i { background: var(--a); }
+.steps .cur { color: var(--n); }
+.steps .cur i { background: var(--warn); }
+.file { display: flex; gap: 10px; align-items: center; background: var(--bgp); border-radius: 10px; padding: 9px 10px; font-size: 12px; }
+.file .fi { width: 30px; height: 36px; border-radius: 5px; background: #fde7e5; color: var(--bad); font-size: 9px; font-weight: 900; display: grid; place-items: center; flex: none; }
+.file b { display: block; font-size: 12.5px; }
+.tl { display: grid; gap: 0; }
+.tl-i { display: grid; grid-template-columns: 18px 1fr; gap: 10px; padding-bottom: 12px; position: relative; }
+.tl-i::before { content: ""; position: absolute; left: 8px; top: 16px; bottom: 0; width: 2px; background: var(--l); }
+.tl-i:last-child::before { display: none; }
+.tl-i i { width: 18px; height: 18px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--l); margin-top: 1px; }
+.tl-i b { font-size: 12.5px; font-weight: 900; display: block; }
+.tl-i span { font-size: 11.5px; color: var(--m); }
+.actionbar { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--l); padding: 10px 12px 16px; display: flex; gap: 8px; z-index: 8; }
+.b1, .b2 { flex: 1; border-radius: 11px; padding: 12px 8px; font-weight: 900; font-size: 13px; cursor: pointer; font-family: var(--font-app); }
+.b1 { background: var(--n); color: #fff; border: 0; }
+.b1:hover { background: var(--n2); }
+.b2 { background: #fff; color: var(--n); border: 1.5px solid var(--n); }
+.fl { font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--m); margin-bottom: -6px; }
+.in { width: 100%; border: 1px solid #cdd6e1; border-radius: 10px; padding: 10px 11px; font: inherit; font-size: 13.5px; background: #fff; color: var(--t); }
+.in:focus { outline: 2px solid var(--a); outline-offset: 0; border-color: var(--a); }
+.in.big { font-size: 22px; font-weight: 900; text-align: center; font-variant-numeric: tabular-nums; }
+.ref { background: var(--n); color: #fff; border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; }
+.ref span { font-size: 11px; color: #a9c2dc; }
+.ref b { font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.res-box { border-radius: 12px; padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; background: var(--bgp); }
+.res-box .er { font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.res-box span { font-size: 11.5px; color: var(--m); }
+.segp { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.segp button { border-radius: 11px; padding: 11px; font-weight: 900; font-size: 13px; cursor: pointer; font-family: var(--font-app); }
+.s-ap { border: 1.5px solid var(--ok); background: #fff; color: var(--ok); }
+.s-ap.on { background: var(--ok); color: #fff; }
+.s-re { border: 1.5px solid var(--bad); background: #fff; color: var(--bad); }
+.s-re.on { background: var(--bad); color: #fff; }
+.upl { border: 1.5px dashed #b8c4d2; border-radius: 12px; padding: 12px; display: flex; gap: 10px; align-items: center; cursor: pointer; font-size: 12.5px; color: var(--m); background: #fff; }
+.upl svg { width: 22px; height: 22px; color: var(--a); flex: none; }
+.upl b { color: var(--t); }
+.sw { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+.sw input { width: 40px; height: 22px; accent-color: var(--a); }
+.month { font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--m); margin-top: 4px; }
+.days { font-size: 11px; font-weight: 900; text-align: center; border-radius: 10px; padding: 6px 8px; min-width: 52px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.days small { display: block; font-size: 9px; font-weight: 700; }
+.toast { position: absolute; left: 10px; right: 10px; top: 46px; z-index: 40; padding: 11px 14px; font-size: 12.5px; font-weight: 700; color: #fff; border-radius: 12px; box-shadow: 0 10px 24px -10px rgba(0,0,0,.4); transform: translateY(-160%); transition: transform .25s ease; }
+.toast.show { transform: none; }
+.toast.ok { background: #1e7f4f; }
+.toast.err { background: #b42318; }
+.toast.inf { background: #0b2540; }
+.scanov { position: absolute; inset: 0; background: rgba(6, 14, 24, .9); z-index: 35; display: grid; place-items: center; color: #fff; text-align: center; font-size: 13px; }
+.scanov .box { width: 190px; height: 190px; position: relative; margin: 0 auto 16px; }
+.scanov .box i { position: absolute; width: 34px; height: 34px; border: 4px solid #fff; }
+.scanov .box i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 10px 0 0 0; }
+.scanov .box i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 10px 0 0; }
+.scanov .box i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 10px; }
+.scanov .box i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 10px 0; }
+.scanov .box::after { content: ""; position: absolute; left: 10px; right: 10px; height: 2px; background: #4fd18b; top: 10px; box-shadow: 0 0 12px #4fd18b; animation: sl 1.1s ease-in-out infinite alternate; }
+@keyframes sl { to { top: 176px; } }
+@media (prefers-reduced-motion: reduce) { .scanov .box::after { animation: none; top: 50%; } .toast { transition: none; } }
+.pbi { background: #fff; border-radius: 14px; box-shadow: 0 1px 2px rgba(16, 32, 52, .06); overflow: hidden; }
+.pbi-h { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--l); font-size: 12px; font-weight: 900; }
+.pbi-h i { width: 18px; height: 18px; border-radius: 4px; background: linear-gradient(135deg, #f2c811, #e8a400); }
+.pbi-b { padding: 12px; display: grid; gap: 8px; }
+.svgc { width: 100%; height: auto; display: block; }
+.note { font-size: 11px; color: var(--m); text-align: center; }
+</style>
+
+<div class="band">
+  <div class="wrap hero">
+    <span class="eyebrow">Conceito · versão 2 · para validar antes de construir</span>
+    <h1>Metrologia: calibração e aferição em um só app</h1>
+    <p>A nova versão abre num painel, não numa lista. Responde de cara se o equipamento pode ser usado e junta as aferições semanais da sua planilha com as calibrações. Clique à vontade no celular abaixo.</p>
+    <div class="chips-hero"><span>Painel inicial por perfil</span><span>"Posso usar?" em destaque</span><span>Aferição pelo mesmo QR Code</span><span>Gráfico de tendência</span><span>Manutenção com etapas</span><span>E-mail semanal</span></div>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="preview" aria-label="Prévia interativa">
+    <div class="phone">
+      <div class="ph" id="ph">
+        <div class="ph-status"><span id="clock">9:41</span><span>5G ▮▮▮</span></div>
+        <div class="toast" id="toast"></div>
+        <div class="ph-body" id="body"></div>
+        <nav class="tabbar" id="tabbar"></nav>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <h2>Ver como</h2>
+        <div class="seg" role="group" aria-label="Perfil">
+          <button id="r-inst" aria-pressed="true">Instrumentação</button>
+          <button id="r-op" aria-pressed="false">Operador do laboratório</button>
+        </div>
+        <p class="muted small" id="roleTxt"></p>
+      </div>
+      <div class="panel">
+        <h2>Simular a leitura de uma etiqueta</h2>
+        <div class="row">
+          <select class="ctl" id="qrSel" aria-label="Equipamento"></select>
+          <button class="btn" id="qrGo">Ler QR Code</button>
+        </div>
+        <p class="muted small">Na versão 2 o leitor também fica dentro do app (botão "Escanear equipamento"). A câmera do celular continua funcionando.</p>
+      </div>
+      <div class="panel explain">
+        <div class="nav-screens" id="navScreens"></div>
+        <div id="explain"></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:16px">
+    <div class="sec-title">
+      <h2>Ligação com a sua planilha de aferição</h2>
+      <p class="muted">Hoje a planilha de aferição alimenta o Power BI. A proposta é a aferição passar a ser registrada pelo mesmo QR Code e cair numa lista do SharePoint, que o app e o Power BI leem.</p>
+    </div>
+    <div class="panel">
+      <div class="flow">
+        <div class="node"><b>Etiqueta QR</b><span>Operador lê e registra a aferição semanal em 10 segundos</span></div>
+        <div class="arr">→</div>
+        <div class="node hl"><b>Lista "Afericoes"</b><span>SharePoint, mesmo site das outras listas. Substitui a digitação na planilha</span></div>
+        <div class="arr">→</div>
+        <div class="node"><b>App + Power BI</b><span>App mostra no equipamento. Power BI troca a fonte e continua com os mesmos gráficos</span></div>
+      </div>
+      <div class="grid2">
+        <div class="opt rec"><span class="tag-rec">Recomendado</span><b>Migrar a aferição para uma lista do SharePoint</b><span class="muted small">Várias pessoas registram ao mesmo tempo sem travar arquivo, cada aferição tem data, autor e valor, e o app calcula conforme/não conforme na hora. O histórico da planilha é importado uma vez e o Power BI só troca a fonte de dados.</span></div>
+        <div class="opt"><b>Manter a planilha e só ler no app</b><span class="muted small">Funciona se a planilha estiver no SharePoint ou OneDrive, formatada como Tabela. Mais rápido de ligar, mas o arquivo pode travar com duas pessoas gravando, e o operador continua digitando em dois lugares.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div style="display:grid;gap:12px;align-content:start">
+      <div class="sec-title">
+        <h2>E-mail semanal automático</h2>
+        <p class="muted">Toda segunda, às 7h, para quem planeja as calibrações. Curto, com só o que exige ação.</p>
+      </div>
+      <div class="mail" id="mail"></div>
+    </div>
+    <div style="display:grid;gap:12px;align-content:start">
+      <div class="sec-title">
+        <h2>Dá para fazer no Power Apps?</h2>
+        <p class="muted">Sim. Tudo o que aparece no celular usa recursos padrão, e as telas continuam chegando prontas para colar.</p>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>O que você vê</th><th>Como é feito no Power Apps</th></tr></thead>
+        <tbody>
+          <tr><td>Leitor de QR dentro do app</td><td>Controle <b>Leitor de código de barras</b></td></tr>
+          <tr><td>Cartões com cantos e sombra</td><td><b>Contêineres</b> com raio e sombra</td></tr>
+          <tr><td>Anel de conformidade e gráfico de tendência</td><td>Imagem <b>SVG gerada por fórmula</b>, que atualiza com os dados</td></tr>
+          <tr><td>Menu inferior e abas</td><td>Galeria horizontal e variáveis de navegação</td></tr>
+          <tr><td>Anexar certificado</td><td>Controle de <b>Anexos</b> da lista Calibracoes</td></tr>
+          <tr><td>Painel de aferições</td><td>Controle <b>Power BI</b> com o seu relatório atual</td></tr>
+          <tr><td>E-mail semanal e alertas</td><td><b>Power Automate</b> (conectores padrão)</td></tr>
+        </tbody>
+      </table></div>
+      <div class="panel">
+        <h3>O que muda na estrutura</h3>
+        <ul style="margin:0;padding-left:18px;display:grid;gap:4px" class="small">
+          <li>Nova lista <b>Afericoes</b> (equipamento, data, padrão, leitura, erro, resultado, quem fez).</li>
+          <li>Em <b>Equipamentos</b>: tolerância, valor do padrão, unidade e situação da manutenção.</li>
+          <li>Nova lista <b>Operadores</b>, ou um grupo, para quem pode registrar aferição.</li>
+          <li>As listas que você já criou continuam valendo. Nada se perde.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Antes de construir, preciso saber</h2>
+    <ol class="q">
+      <li><b>Como é a planilha de aferição?</b> Um print das colunas resolve. E onde ela fica salva: SharePoint, OneDrive ou no computador?</li>
+      <li><b>Quem faz a aferição semanal:</b> o operador do laboratório ou a instrumentação?</li>
+      <li><b>Cada equipamento já tem tolerância e peso ou padrão definido?</b> Por exemplo: Prix 100 g, ±0,10 g. Com isso o app calcula conforme/não conforme sozinho.</li>
+      <li><b>O que acontece hoje quando uma aferição sai não conforme?</b> Bloqueia o equipamento e avisa a instrumentação, como no conceito, ou é outro procedimento?</li>
+    </ol>
+    <p class="muted small">Os equipamentos, nomes e números da prévia são exemplos. Nada aqui é dado real do laboratório.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  /* ================= utilidades ================= */
+  var HOJE = new Date(); HOJE.setHours(0, 0, 0, 0);
+  var DIA = 864e5;
+  function addD(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+  function addM(d, n) { var r = new Date(d), x = r.getDate(); r.setMonth(r.getMonth() + n); if (r.getDate() !== x) r.setDate(0); return r; }
+  function fmt(d) { return d ? String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear() : '-'; }
+  function fmtc(d) { return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'); }
+  function dias(d) { return Math.round((d - HOJE) / DIA); }
+  function num(v, dec) { return v.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+  function sgn(v, dec) { return (v > 0 ? '+' : v < 0 ? '−' : '±') + num(Math.abs(v), dec); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  var SEG = addD(HOJE, -((HOJE.getDay() + 6) % 7)); // segunda-feira desta semana
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  var I = {
+    qr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><rect x="7.5" y="7.5" width="3.5" height="3.5" rx=".5"/><rect x="13" y="7.5" width="3.5" height="3.5" rx=".5"/><rect x="7.5" y="13" width="3.5" height="3.5" rx=".5"/><path d="M13 13h3.5v3.5"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+    home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+    chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>',
+    ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    no: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 18L18 6"/></svg>',
+    clip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/></svg>',
+    gauge: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4.5 16a8 8 0 1 1 15 0"/><path d="M12 13l4-4"/><circle cx="12" cy="13" r="1.3" fill="#fff"/></svg>',
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>'
+  };
+
+  /* ================= dados de exemplo ================= */
+  // af: [padrão, unidade, tolerância, casas, ref. do padrão, desvio típico, último NC?]
+  function E(tag, desc, tipo, local, serie, per, prox, res, resp, extra) {
+    var o = { tag: tag, desc: desc, tipo: tipo, local: local, serie: serie, per: per, prox: addD(HOJE, prox), res: res, resp: resp, motivo: '', manut: '', cert: '' };
+    o.ult = addM(o.prox, -per);
+    for (var k in (extra || {})) o[k] = extra[k];
+    o.cert = 'CERT-' + o.ult.getFullYear() + '-' + String(100 + tag.charCodeAt(4) * 3).slice(-4) + '.pdf';
+    return o;
+  }
+  var eqs = [
+    E('BAL-01', 'Balança Prix', 'Balança', 'Bancada 1', 'PX-20931', 6, 170, 'Aprovada', 'Felipe Oliveira', { af: [100, 'g', 0.10, 2, 'PP-07', 0.03] }),
+    E('BAL-03', 'Balança analítica', 'Balança', 'Bancada 2', 'D4521', 12, -40, 'Aprovada', 'Ana Souza', { af: [200, 'g', 0.0020, 4, 'PP-02', 0.0006] }),
+    E('BAL-04', 'Balança de piso', 'Balança', 'Recebimento', 'TL-7781', 6, 25, 'Recusada', 'Felipe Oliveira', { motivo: 'Desvio na linearidade', manut: 'Em manutenção', af: [20, 'kg', 0.05, 2, 'PP-20K', 0.02], parada: true }),
+    E('BAL-05', 'Balança Prix', 'Balança', 'Bancada 3', 'PX-20977', 6, 120, 'Aprovada', 'Ana Souza', { af: [100, 'g', 0.10, 2, 'PP-08', 0.03, true] }),
+    E('BAL-06', 'Balança Prix', 'Balança', 'Bancada 4', 'PX-21010', 6, 150, 'Aprovada', 'Felipe Oliveira', { af: [100, 'g', 0.10, 2, 'PP-09', 0.025], pend: true }),
+    E('EST-01', 'Estufa de secagem', 'Estufa', 'Estufas', 'SL-0098', 12, 235, 'Aprovada', 'Felipe Oliveira', { af: [105, '°C', 2.0, 1, 'TP-01', 0.6] }),
+    E('REN-01', 'Reneira', 'Reneira', 'Peneiras', 'BT-332', 6, 88, 'Recusada', 'Ana Souza', { motivo: 'Falha mecânica / motor', manut: 'Concluída' }),
+    E('REN-02', 'Reneira', 'Reneira', 'Peneiras', 'BT-341', 6, 12, 'Aprovada', 'Felipe Oliveira'),
+    E('TER-01', 'Termômetro digital', 'Termômetro', 'Bancada 1', 'IC-5521', 6, 27, 'Aprovada', 'Ana Souza', { af: [25.0, '°C', 0.5, 1, 'TP-03', 0.15], pend: true })
+  ];
+  // série semanal de aferições (12 semanas)
+  eqs.forEach(function (e, idx) {
+    if (!e.af) return;
+    var r = rng(idx * 97 + 13), s = [];
+    var n = e.pend || e.parada ? 11 : 12;
+    for (var i = 0; i < n; i++) {
+      var dt = addD(SEG, -7 * (11 - i) + (i === 11 ? Math.min(1, dias(HOJE) - dias(SEG)) : 1));
+      if (dt > HOJE) dt = new Date(HOJE);
+      var err = (r() * 2 - 1) * e.af[5] * 1.6;
+      if (i === n - 1 && e.af[6]) err = e.af[2] * 1.32;
+      s.push({ data: dt, erro: Math.round(err * Math.pow(10, e.af[3])) / Math.pow(10, e.af[3]), quem: i % 3 ? 'Operador turno A' : 'Operador turno B' });
+    }
+    e.afs = s;
+  });
+  function ultAf(e) { return e.afs && e.afs.length ? e.afs[e.afs.length - 1] : null; }
+  function conf(e, a) { return Math.abs(a.erro) <= e.af[2] + 1e-9; }
+  function feitaSemana(e) { var a = ultAf(e); return !!a && a.data >= SEG; }
+
+  function veredito(e) {
+    var d = dias(e.prox), a = ultAf(e);
+    if (e.manut === 'Em manutenção' || e.manut === 'Aguardando') return { ok: false, t: 'Em manutenção', s: 'Recusada: ' + e.motivo };
+    if (e.manut === 'Concluída') return { ok: false, t: 'Aguardando recalibração', s: 'Manutenção concluída. Recalibrar antes de usar.' };
+    if (e.res === 'Recusada') return { ok: false, t: 'Calibração recusada', s: e.motivo };
+    if (d < 0) return { ok: false, t: 'Calibração vencida', s: 'Venceu há ' + (-d) + ' dias, em ' + fmt(e.prox) };
+    if (e.af && a && !conf(e, a)) return { ok: false, t: 'Aferição não conforme', s: 'Erro de ' + sgn(a.erro, e.af[3]) + ' ' + e.af[1] + ' em ' + fmtc(a.data) + ' (tolerância ±' + num(e.af[2], e.af[3]) + ')' };
+    return { ok: true, t: 'Liberado para uso', s: 'Calibração válida até ' + fmt(e.prox) + (a ? ' · aferição conforme em ' + fmtc(a.data) : ''), vence: d <= 30 ? d : null };
+  }
+
+  /* ================= estado ================= */
+  var st = { role: 'inst', tela: 'home', tab: 'resumo', tag: 'BAL-01', busca: '', filtro: 'Todos', pilha: [] };
+  var body = document.getElementById('body'), bar = document.getElementById('tabbar');
+  var tt;
+  function toast(m, k) { var t = document.getElementById('toast'); t.textContent = m; t.className = 'toast show ' + (k || 'ok'); clearTimeout(tt); tt = setTimeout(function () { t.className = 'toast'; }, 2800); }
+  function eqAtual() { return eqs.find(function (e) { return e.tag === st.tag; }); }
+
+  /* ================= SVGs ================= */
+  function anel(pct) {
+    var r = 32, c = 2 * Math.PI * r, v = c * pct;
+    return '<svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="' + r + '" fill="none" stroke="#e7ecf2" stroke-width="9"/>' +
+      '<circle cx="42" cy="42" r="' + r + '" fill="none" stroke="#1e7f4f" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + v.toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 42 42)"/>' +
+      '<text x="42" y="46" text-anchor="middle" font-family="Lato, sans-serif" font-weight="900" font-size="18" fill="#172334">' + Math.round(pct * 100) + '%</text></svg>';
+  }
+  function grafico(e) {
+    var W = 310, H = 150, L = 46, R = 22, T = 12, B = 24, tol = e.af[2], dec = e.af[3], s = e.afs;
+    var ymax = tol * 1.6, x = function (i) { return L + i * (W - L - R) / 11; }, y = function (v) { return T + (ymax - v) * (H - T - B) / (2 * ymax); };
+    var g = '<svg class="svgc" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Erro das últimas 12 aferições">';
+    g += '<rect x="' + L + '" y="' + y(tol) + '" width="' + (W - L - R) + '" height="' + (y(-tol) - y(tol)) + '" fill="#e2f3ea"/>';
+    [tol, 0, -tol].forEach(function (v) {
+      g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + (v ? '#7cc39d' : '#c9d2dd') + '" stroke-width="1" ' + (v ? 'stroke-dasharray="4 3"' : '') + '/>';
+      g += '<text x="' + (L - 6) + '" y="' + (y(v) + 3.5) + '" text-anchor="end" font-size="9.5" font-family="Lato, sans-serif" fill="#5d6b7d">' + (v ? sgn(v, dec) : '0') + '</text>';
+    });
+    var pts = s.map(function (p, i) { return x(i) + ',' + y(Math.max(-ymax, Math.min(ymax, p.erro))); }).join(' ');
+    g += '<polyline points="' + pts + '" fill="none" stroke="#0e6ba8" stroke-width="2" stroke-linejoin="round"/>';
+    s.forEach(function (p, i) {
+      var nc = !conf(e, p), last = i === s.length - 1;
+      g += '<circle cx="' + x(i) + '" cy="' + y(Math.max(-ymax, Math.min(ymax, p.erro))) + '" r="' + (last ? 4.5 : 3) + '" fill="' + (nc ? '#b42318' : last ? '#0b2540' : '#0e6ba8') + '" stroke="#fff" stroke-width="1.5"/>';
+    });
+    [0, 5, 11].forEach(function (i) { if (s[i]) g += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="9.5" font-family="Lato, sans-serif" fill="#5d6b7d">' + fmtc(s[i].data) + '</text>'; });
+    return g + '</svg>';
+  }
+  function barrasPbi() {
+    var v = [86, 91, 88, 95, 93, 90, 96, 92], W = 300, H = 120, L = 28, B = 20, T = 8, bw = (W - L) / v.length;
+    var g = '<svg class="svgc" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Aferições feitas no prazo por semana">';
+    [80, 90, 100].forEach(function (t) { var yy = T + (100 - t) * (H - T - B) / 20; g += '<line x1="' + L + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '" stroke="#e3e8ee"/><text x="' + (L - 4) + '" y="' + (yy + 3) + '" text-anchor="end" font-size="9" fill="#5d6b7d" font-family="Lato, sans-serif">' + t + '%</text>'; });
+    v.forEach(function (p, i) { var yy = T + (100 - p) * (H - T - B) / 20; g += '<rect x="' + (L + i * bw + 5) + '" y="' + yy + '" width="' + (bw - 10) + '" height="' + (H - B - yy) + '" rx="3" fill="' + (i === v.length - 1 ? '#0b2540' : '#0e6ba8') + '"/><text x="' + (L + i * bw + bw / 2) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="9" fill="#5d6b7d" font-family="Lato, sans-serif">S' + (i + 1) + '</text>'; });
+    return g + '</svg>';
+  }
+
+  /* ================= telas ================= */
+  function topo(t, s, voltar) {
+    return '<div class="bar">' + (voltar ? '<button class="ib" data-a="voltar" aria-label="Voltar">' + I.back + '</button>' : '<div class="logo">' + I.gauge + '</div>') +
+      '<div class="grow"><div class="t">' + t + '</div><div class="s">' + s + '</div></div>' +
+      (voltar ? '' : '<button class="ib" data-a="alertas" aria-label="Alertas">' + I.bell + '</button><div class="av">' + (st.role === 'inst' ? 'FO' : 'OP') + '</div>') + '</div>';
+  }
+  function home() {
+    var tot = eqs.length, lib = eqs.filter(function (e) { return veredito(e).ok; }).length;
+    var comAf = eqs.filter(function (e) { return e.af; }), feitas = comAf.filter(feitaSemana).length;
+    var h = new Date().getHours(), saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+    var nome = st.role === 'inst' ? 'Felipe' : 'equipe do turno A';
+    var html = topo('Metrologia', 'Lab. Controle de Embarque', false) + '<div class="pad">' +
+      '<div class="hello"><b>' + saud + ', ' + nome + '</b><span>' + HOJE.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) + '</span><span class="role">' + (st.role === 'inst' ? 'Instrumentação · calibra e afere' : 'Operador · afere e consulta') + '</span></div>' +
+      '<button class="scan-cta" data-a="scan"><span class="ic">' + I.qr + '</span><span><b>Escanear equipamento</b><span>Aponte para a etiqueta e veja se pode usar</span></span></button>' +
+      '<div class="card"><div class="card-h"><b>Conformidade do laboratório</b><button class="lnk" data-go="lista">Ver todos</button></div>' +
+        '<div class="kpi">' + anel(lib / tot) + '<div class="big"><span><b>' + lib + ' de ' + tot + '</b> equipamentos liberados para uso</span>' +
+        '<div class="legend"><span><i style="background:#1e7f4f"></i>' + lib + ' liberados</span><span><i style="background:#b42318"></i>' + (tot - lib) + ' bloqueados</span></div></div></div></div>' +
+      '<div class="card"><div class="card-h"><b>Aferições desta semana</b><span class="muted" style="font-size:12px">' + feitas + ' de ' + comAf.length + '</span></div>' +
+        '<div class="prog"><i style="width:' + (feitas / comAf.length * 100) + '%"></i></div>' +
+        comAf.filter(function (e) { return !feitaSemana(e) && !e.parada; }).map(function (e) {
+          return '<button class="act" data-open="' + e.tag + '"><i class="st" style="background:#b54708"></i><span><b>' + e.tag + ' · ' + esc(e.desc) + '</b><span>Aferição pendente · ' + esc(e.local) + '</span></span><span class="chev">' + I.chev + '</span></button>';
+        }).join('') + '</div>';
+    var bloq = eqs.filter(function (e) { return !veredito(e).ok; });
+    if (st.role === 'inst') {
+      var acoes = bloq.map(function (e) { return [e, veredito(e).t, '#b42318']; })
+        .concat(eqs.filter(function (e) { var v = veredito(e); return v.ok && v.vence != null; }).map(function (e) { return [e, 'Calibração vence em ' + dias(e.prox) + ' dias', '#b54708']; }));
+      html += '<div class="card"><div class="card-h"><b>Requer sua ação</b><span class="pill p-bad">' + acoes.length + '</span></div>' +
+        acoes.map(function (x) { return '<button class="act" data-open="' + x[0].tag + '"><i class="st" style="background:' + x[2] + '"></i><span><b>' + x[0].tag + ' · ' + esc(x[0].desc) + '</b><span>' + x[1] + '</span></span><span class="chev">' + I.chev + '</span></button>'; }).join('') + '</div>';
+    } else {
+      html += '<div class="card"><div class="card-h"><b>Não utilize estes equipamentos</b><span class="pill p-bad">' + bloq.length + '</span></div>' +
+        bloq.map(function (e) { return '<button class="act" data-open="' + e.tag + '"><i class="st" style="background:#b42318"></i><span><b>' + e.tag + ' · ' + esc(e.desc) + '</b><span>' + veredito(e).t + '</span></span><span class="chev">' + I.chev + '</span></button>'; }).join('') + '</div>';
+    }
+    body.innerHTML = html + '</div>';
+  }
+  function lista() {
+    var F = ['Todos', 'Liberados', 'Bloqueados', 'Vencendo'];
+    body.innerHTML = topo('Equipamentos', eqs.length + ' cadastrados', false) + '<div class="pad">' +
+      '<label class="search">' + I.search + '<input id="busca" placeholder="Buscar TAG, descrição ou local" value="' + esc(st.busca) + '"></label>' +
+      '<div class="chips">' + F.map(function (f) { return '<button data-f="' + f + '" class="' + (st.filtro === f ? 'on' : '') + '">' + f + '</button>'; }).join('') + '</div>' +
+      '<div id="gal" style="display:grid;gap:8px"></div></div>';
+    document.getElementById('busca').addEventListener('input', function (ev) { st.busca = ev.target.value; galeria(); });
+    galeria();
+  }
+  function galeria() {
+    var q = st.busca.trim().toLowerCase();
+    var l = eqs.filter(function (e) {
+      var v = veredito(e);
+      var okF = st.filtro === 'Todos' || (st.filtro === 'Liberados' && v.ok) || (st.filtro === 'Bloqueados' && !v.ok) || (st.filtro === 'Vencendo' && dias(e.prox) <= 30);
+      return okF && (!q || (e.tag + ' ' + e.desc + ' ' + e.local).toLowerCase().indexOf(q) >= 0);
+    });
+    document.getElementById('gal').innerHTML = l.map(function (e) {
+      var v = veredito(e), d = dias(e.prox);
+      return '<button class="eqrow" data-open="' + e.tag + '"><i class="dot" style="background:' + (v.ok ? (v.vence != null ? '#b54708' : '#1e7f4f') : '#b42318') + '"></i>' +
+        '<span><b>' + e.tag + '</b><span class="d" style="display:block">' + esc(e.desc) + ' · ' + esc(e.local) + '</span></span>' +
+        '<span class="r"><span class="pill ' + (v.ok ? 'p-ok' : 'p-bad') + '">' + (v.ok ? 'Liberado' : 'Bloqueado') + '</span><span>' + (d < 0 ? 'Venceu há ' + (-d) + ' d' : 'Calib. em ' + d + ' d') + '</span></span></button>';
+    }).join('') || '<p class="note">Nenhum equipamento encontrado.</p>';
+  }
+  function detalhe() {
+    var e = eqAtual(), v = veredito(e), a = ultAf(e), d = dias(e.prox);
+    var html = topo('Equipamento', 'Leitura do QR Code', true) +
+      '<div class="verdict ' + (v.ok ? 'ok' : 'bad') + '"><span class="vi">' + (v.ok ? I.ok : I.no) + '</span><span><b>' + (v.ok ? 'LIBERADO PARA USO' : 'NÃO UTILIZAR') + '</b><span>' + (v.ok ? esc(v.s) : esc(v.t) + ': ' + esc(v.s)) + '</span></span></div>' +
+      '<div class="ident"><div class="tg">' + e.tag + '</div><div class="ds">' + esc(e.desc) + '</div>' +
+        '<div class="meta"><span>' + esc(e.tipo) + '</span><span>' + esc(e.local) + '</span><span>Série ' + esc(e.serie) + '</span>' + (e.af ? '<span>Padrão ' + e.af[4] + '</span>' : '') + '</div>' +
+        '<div class="tabs-in">' + [['resumo', 'Resumo'], ['afericoes', 'Aferições'], ['historico', 'Histórico']].map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (st.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div></div>' +
+      '<div class="pad" style="padding-bottom:96px">';
+    if (st.tab === 'resumo') {
+      var ciclo = Math.max(0, Math.min(1, (HOJE - e.ult) / (e.prox - e.ult)));
+      html += '<div class="two"><div class="mini"><span class="lb">Calibração</span><span class="vl" style="color:' + (d < 0 ? '#b42318' : d <= 30 ? '#b54708' : '#172334') + '">' + (d < 0 ? 'Vencida' : d + ' dias') + '</span><span class="sb">' + (d < 0 ? 'desde ' : 'até ') + fmt(e.prox) + '</span>' +
+        '<div class="prog" style="margin-top:4px"><i style="width:' + (ciclo * 100) + '%;background:' + (d < 0 ? '#b42318' : d <= 30 ? '#b54708' : '#0e6ba8') + '"></i></div></div>';
+      if (e.af && a) {
+        var c = conf(e, a);
+        html += '<div class="mini"><span class="lb">Última aferição</span><span class="vl" style="color:' + (c ? '#1e7f4f' : '#b42318') + '">' + sgn(a.erro, e.af[3]) + ' ' + e.af[1] + '</span><span class="sb">' + fmtc(a.data) + ' · tol. ±' + num(e.af[2], e.af[3]) + '</span><span class="pill ' + (c ? 'p-ok' : 'p-bad') + '" style="justify-self:start;margin-top:2px">' + (c ? 'Conforme' : 'Não conforme') + '</span></div>';
+      } else html += '<div class="mini"><span class="lb">Aferição</span><span class="vl" style="color:#5d6b7d;font-size:14px">Não se aplica</span><span class="sb">Equipamento sem aferição semanal</span></div>';
+      html += '</div>';
+      if (e.manut) {
+        var et = ['Recusada', 'Em manutenção', 'Concluída', 'Recalibrado'], idx = e.manut === 'Em manutenção' ? 1 : e.manut === 'Concluída' ? 2 : 0;
+        html += '<div class="card"><div class="card-h"><b>Manutenção</b><span class="pill p-warn">' + e.manut + '</span></div>' +
+          '<div class="steps">' + et.map(function (s, i) { return '<div class="' + (i < idx ? 'done' : i === idx ? 'cur' : '') + '"><i></i>' + s + '</div>'; }).join('') + '</div>' +
+          '<div class="kv"><span>Motivo</span><b>' + esc(e.motivo) + '</b><span>Aberta em</span><b>' + fmt(e.ult) + '</b></div>' +
+          (st.role === 'inst' && e.manut === 'Em manutenção' ? '<button class="b2" data-a="manutok" style="flex:none">Marcar manutenção como concluída</button>' : '') + '</div>';
+      }
+      html += '<div class="card"><div class="card-h"><b>Dados da última calibração</b></div><div class="kv">' +
+        '<span>Data</span><b>' + fmt(e.ult) + '</b><span>Resultado</span><b>' + e.res + '</b><span>Responsável</span><b>' + esc(e.resp) + '</b><span>Periodicidade</span><b>' + e.per + ' meses</b></div>' +
+        '<div class="file"><span class="fi">PDF</span><span><b>' + e.cert + '</b><span class="muted">Certificado de calibração</span></span></div></div>';
+    } else if (st.tab === 'afericoes') {
+      if (!e.af) html += '<div class="card"><b>Este equipamento não tem aferição semanal.</b><span class="muted">O controle dele é só pela calibração.</span></div>';
+      else {
+        html += '<div class="card"><div class="card-h"><b>Erro nas últimas 12 semanas</b><span class="muted" style="font-size:11px">' + e.af[1] + '</span></div>' + grafico(e) +
+          '<div class="legend"><span><i style="background:#e2f3ea;border:1px solid #7cc39d"></i>faixa de tolerância ±' + num(e.af[2], e.af[3]) + '</span><span><i style="background:#b42318"></i>não conforme</span></div></div>' +
+          '<div class="card"><div class="card-h"><b>Registros</b><span class="muted" style="font-size:11px">Padrão ' + e.af[4] + ' · ' + num(e.af[0], e.af[3]) + ' ' + e.af[1] + '</span></div>' +
+          e.afs.slice(-5).reverse().map(function (p) {
+            var c = conf(e, p);
+            return '<div class="act" style="cursor:default"><i class="st" style="background:' + (c ? '#1e7f4f' : '#b42318') + '"></i><span><b>' + fmt(p.data) + ' · ' + sgn(p.erro, e.af[3]) + ' ' + e.af[1] + '</b><span>' + esc(p.quem) + '</span></span><span class="pill ' + (c ? 'p-ok' : 'p-bad') + '">' + (c ? 'OK' : 'NC') + '</span></div>';
+          }).join('') + '</div>';
+      }
+    } else {
+      var ev = [{ d: e.ult, t: 'Calibração ' + e.res.toLowerCase(), s: esc(e.resp) + (e.motivo ? ' · ' + esc(e.motivo) : ''), c: e.res === 'Aprovada' ? '#1e7f4f' : '#b42318' }];
+      if (e.manut) ev.unshift({ d: addD(e.ult, 3), t: 'Manutenção · ' + e.manut.toLowerCase(), s: 'Ordem aberta pela instrumentação', c: '#b54708' });
+      ev.push({ d: addM(e.ult, -e.per), t: 'Calibração aprovada', s: 'Ana Souza · certificado anexado', c: '#1e7f4f' });
+      ev.push({ d: addM(e.ult, -2 * e.per), t: 'Calibração aprovada', s: 'Felipe Oliveira', c: '#1e7f4f' });
+      html += '<div class="card"><div class="tl">' + ev.map(function (x) { return '<div class="tl-i"><i style="background:' + x.c + '"></i><span><b>' + x.t + '</b><span>' + fmt(x.d) + ' · ' + x.s + '</span></span></div>'; }).join('') + '</div></div>';
+    }
+    html += '</div><div class="actionbar">' + (e.af ? '<button class="' + (st.role === 'inst' ? 'b2' : 'b1') + '" data-go="afericao">Registrar aferição</button>' : '') +
+      (st.role === 'inst' ? '<button class="b1" data-go="calibracao">Registrar calibração</button>' : '') +
+      (!e.af && st.role !== 'inst' ? '<p class="note" style="margin:0;flex:1;padding:8px">Somente consulta para este equipamento.</p>' : '') + '</div>';
+    body.innerHTML = html;
+  }
+  function afericao() {
+    var e = eqAtual();
+    body.innerHTML = topo('Registrar aferição', e.tag + ' · ' + esc(e.desc), true) +
+      '<form class="pad" id="fAf" novalidate>' +
+      '<div class="ref"><span>Padrão de referência</span><span>Tolerância</span><b>' + e.af[4] + ' · ' + num(e.af[0], e.af[3]) + ' ' + e.af[1] + '</b><b>±' + num(e.af[2], e.af[3]) + ' ' + e.af[1] + '</b></div>' +
+      '<label class="fl" for="leit">Leitura do equipamento (' + e.af[1] + ')</label>' +
+      '<input class="in big" id="leit" inputmode="decimal" placeholder="' + num(e.af[0], e.af[3]) + '" autocomplete="off">' +
+      '<div class="res-box" id="resBox"><span>Erro calculado</span><span></span><span class="er" id="erTxt">—</span><span class="pill p-mut" id="erPill">Aguardando leitura</span></div>' +
+      '<label class="fl" for="obsAf">Observação (opcional)</label><input class="in" id="obsAf" placeholder="Ex.: nivelamento conferido">' +
+      '<p class="note">Data, hora e quem registrou são gravados automaticamente.</p>' +
+      '<button class="b1" type="submit" style="flex:none">Salvar aferição</button></form>';
+    var inp = document.getElementById('leit');
+    function calc() {
+      var v = parseFloat(inp.value.replace(/\./g, '').replace(',', '.'));
+      if (inp.value.indexOf(',') < 0) v = parseFloat(inp.value);
+      var pill = document.getElementById('erPill'), er = document.getElementById('erTxt');
+      if (isNaN(v)) { er.textContent = '—'; pill.className = 'pill p-mut'; pill.textContent = 'Aguardando leitura'; return null; }
+      var err = Math.round((v - e.af[0]) * Math.pow(10, e.af[3])) / Math.pow(10, e.af[3]), c = Math.abs(err) <= e.af[2] + 1e-9;
+      er.textContent = sgn(err, e.af[3]) + ' ' + e.af[1]; er.style.color = c ? '#1e7f4f' : '#b42318';
+      pill.className = 'pill ' + (c ? 'p-ok' : 'p-bad'); pill.textContent = c ? 'Conforme' : 'Não conforme';
+      return err;
+    }
+    inp.addEventListener('input', calc);
+    document.getElementById('fAf').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var err = calc();
+      if (err == null) return toast('Digite a leitura mostrada no equipamento.', 'err');
+      if (feitaSemana(e)) e.afs[e.afs.length - 1] = { data: new Date(HOJE), erro: err, quem: st.role === 'inst' ? 'Felipe Oliveira' : 'Operador turno A' };
+      else { e.afs.push({ data: new Date(HOJE), erro: err, quem: st.role === 'inst' ? 'Felipe Oliveira' : 'Operador turno A' }); if (e.afs.length > 12) e.afs.shift(); }
+      e.pend = false;
+      if (Math.abs(err) <= e.af[2] + 1e-9) toast('Aferição conforme registrada. Equipamento liberado.', 'ok');
+      else toast('Não conforme: equipamento bloqueado e instrumentação avisada por e-mail.', 'err');
+      st.tab = 'resumo'; voltar();
+    });
+  }
+  function calibracao() {
+    var e = eqAtual(), r = '';
+    body.innerHTML = topo('Registrar calibração', e.tag + ' · ' + esc(e.desc), true) +
+      '<form class="pad" id="fCal" novalidate>' +
+      '<div class="two"><div style="display:grid;gap:10px"><label class="fl" for="cData">Data</label><input class="in" type="date" id="cData" value="' + HOJE.toISOString().slice(0, 10) + '"></div>' +
+      '<div style="display:grid;gap:10px"><label class="fl" for="cResp">Responsável</label><input class="in" id="cResp" value="Felipe Oliveira"></div></div>' +
+      '<span class="fl">Resultado</span><div class="segp"><button type="button" class="s-ap" data-r="Aprovada">✔ Aprovada</button><button type="button" class="s-re" data-r="Recusada">✖ Recusada</button></div>' +
+      '<div id="recBox" hidden style="display:grid;gap:10px"><label class="fl" for="cMot">Motivo da recusa</label><select class="in" id="cMot"><option value="">Selecione</option><option>Fora da tolerância</option><option>Desvio na linearidade</option><option>Repetibilidade insatisfatória</option><option>Falha mecânica / motor</option><option>Outro</option></select>' +
+      '<label class="sw">Abrir manutenção agora <input type="checkbox" id="cMan" checked></label></div>' +
+      '<label class="upl" for="cFile">' + I.clip + '<span id="fileTxt"><b>Anexar certificado</b><br>PDF ou foto do relatório</span></label><input type="file" id="cFile" hidden accept=".pdf,image/*">' +
+      '<label class="fl" for="cObs">Observações</label><textarea class="in" id="cObs" rows="2" placeholder="Opcional"></textarea>' +
+      '<div class="kv" style="background:#fff;border-radius:12px;padding:10px 12px"><span>Próxima calibração</span><b id="cProx">' + fmt(addM(HOJE, e.per)) + '</b><span>Periodicidade</span><b>' + e.per + ' meses</b></div>' +
+      '<button class="b1" type="submit" style="flex:none">Salvar calibração</button></form>';
+    document.getElementById('cData').addEventListener('input', function (ev) { if (ev.target.value) document.getElementById('cProx').textContent = fmt(addM(new Date(ev.target.value + 'T00:00:00'), e.per)); });
+    document.getElementById('cFile').addEventListener('change', function (ev) { var f = ev.target.files[0]; if (f) document.getElementById('fileTxt').innerHTML = '<b>' + esc(f.name) + '</b><br>anexado'; });
+    document.getElementById('fCal').addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-r]'); if (!b) return;
+      r = b.dataset.r;
+      document.querySelector('.s-ap').classList.toggle('on', r === 'Aprovada');
+      document.querySelector('.s-re').classList.toggle('on', r === 'Recusada');
+      document.getElementById('recBox').hidden = r !== 'Recusada';
+    });
+    document.getElementById('fCal').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var dv = document.getElementById('cData').value, dt = dv ? new Date(dv + 'T00:00:00') : null;
+      if (!dt || dt > HOJE) return toast('Informe uma data válida (não pode ser futura).', 'err');
+      if (!r) return toast('Escolha o resultado: Aprovada ou Recusada.', 'err');
+      if (r === 'Recusada' && !document.getElementById('cMot').value) return toast('Selecione o motivo da recusa.', 'err');
+      e.ult = dt; e.prox = addM(dt, e.per); e.res = r; e.resp = document.getElementById('cResp').value || 'Felipe Oliveira';
+      if (r === 'Recusada') { e.motivo = document.getElementById('cMot').value; e.manut = document.getElementById('cMan').checked ? 'Em manutenção' : ''; }
+      else { e.motivo = ''; e.manut = ''; }
+      toast(r === 'Aprovada' ? 'Calibração registrada. Próxima em ' + fmt(e.prox) + '.' : 'Recusa registrada. Manutenção avisada por e-mail.', r === 'Aprovada' ? 'ok' : 'err');
+      st.tab = 'resumo'; voltar();
+    });
+  }
+  function agenda() {
+    var l = eqs.slice().sort(function (a, b) { return a.prox - b.prox; }), html = '', mes = '';
+    l.forEach(function (e) {
+      var m = e.prox < HOJE ? 'Vencidas' : MESES[e.prox.getMonth()] + ' ' + e.prox.getFullYear();
+      if (m !== mes) { html += '<div class="month">' + m + '</div>'; mes = m; }
+      var d = dias(e.prox), cls = d < 0 ? 'p-bad' : d <= 30 ? 'p-warn' : 'p-mut';
+      html += '<button class="eqrow" data-open="' + e.tag + '" style="grid-template-columns:auto 1fr auto"><span class="days ' + cls + '">' + (d < 0 ? -d : d) + '<small>' + (d < 0 ? 'dias atrás' : 'dias') + '</small></span>' +
+        '<span><b>' + e.tag + '</b><span class="d" style="display:block">' + esc(e.desc) + ' · ' + fmt(e.prox) + '</span></span><span class="chev">' + I.chev + '</span></button>';
+    });
+    body.innerHTML = topo('Agenda', 'Calibrações por vencimento', false) + '<div class="pad">' +
+      '<div class="card" style="grid-template-columns:1fr auto;align-items:center"><span><b style="font-size:13px">Aferições semanais</b><br><span class="muted" style="font-size:12px">Toda segunda a sexta · ' + eqs.filter(function (e) { return e.af; }).length + ' equipamentos</span></span><span class="pill p-info">Semanal</span></div>' +
+      html + '</div>';
+  }
+  function relatorios() {
+    var tot = eqs.length, lib = eqs.filter(function (e) { return veredito(e).ok; }).length;
+    body.innerHTML = topo('Relatórios', 'Indicadores de metrologia', false) + '<div class="pad">' +
+      '<div class="two"><div class="mini"><span class="lb">Liberados</span><span class="vl">' + Math.round(lib / tot * 100) + '%</span><span class="sb">' + lib + ' de ' + tot + ' equipamentos</span></div>' +
+      '<div class="mini"><span class="lb">Aferição no prazo</span><span class="vl">92%</span><span class="sb">média das 8 semanas</span></div></div>' +
+      '<div class="pbi"><div class="pbi-h"><i></i>Painel de aferições · Power BI</div><div class="pbi-b"><span style="font-size:12px;font-weight:700">Aferições feitas no prazo, por semana</span>' + barrasPbi() +
+      '<button class="b2" data-a="pbi" style="flex:none">Abrir relatório completo</button></div></div>' +
+      '<p class="note">No app real, este quadro é o seu relatório atual do Power BI dentro do Power Apps.</p></div>';
+  }
+
+  /* ================= navegação ================= */
+  var TELAS = { home: home, lista: lista, agenda: agenda, relatorios: relatorios, detalhe: detalhe, afericao: afericao, calibracao: calibracao };
+  var RAIZ = ['home', 'lista', 'agenda', 'relatorios'];
+  function ir(t, empilhar) {
+    if (empilhar !== false && t !== st.tela) st.pilha.push(st.tela);
+    if (RAIZ.indexOf(t) >= 0) st.pilha = [];
+    st.tela = t; TELAS[t](); body.scrollTop = 0;
+    bar.hidden = RAIZ.indexOf(t) < 0;
+    bar.innerHTML = [['home', 'Início', I.home], ['lista', 'Equipamentos', I.list], ['agenda', 'Agenda', I.cal], ['relatorios', 'Relatórios', I.chart]].map(function (b) {
+      return '<button data-go="' + b[0] + '" class="' + (t === b[0] ? 'on' : '') + '">' + b[2] + b[1] + '</button>';
+    }).join('');
+    explicar();
+  }
+  function voltar() { var p = st.pilha.pop() || 'home'; ir(p, false); }
+  document.getElementById('ph').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    if (b.dataset.open) { st.tag = b.dataset.open; st.tab = 'resumo'; ir('detalhe'); }
+    else if (b.dataset.go) ir(b.dataset.go);
+    else if (b.dataset.tab) { st.tab = b.dataset.tab; detalhe(); explicar(); }
+    else if (b.dataset.f) { st.filtro = b.dataset.f; lista(); }
+    else if (b.dataset.a === 'voltar') voltar();
+    else if (b.dataset.a === 'scan') escanear(eqs[Math.floor(Math.random() * eqs.length)].tag);
+    else if (b.dataset.a === 'alertas') toast(eqs.filter(function (e) { return !veredito(e).ok; }).length + ' equipamentos bloqueados · resumo semanal enviado segunda às 7h.', 'inf');
+    else if (b.dataset.a === 'pbi') toast('No app real, abre o seu relatório do Power BI.', 'inf');
+    else if (b.dataset.a === 'manutok') { eqAtual().manut = 'Concluída'; toast('Manutenção concluída. Instrumentação avisada para recalibrar.', 'ok'); detalhe(); }
+  });
+  function escanear(tag) {
+    var ov = document.createElement('div'); ov.className = 'scanov';
+    ov.innerHTML = '<div><div class="box"><i></i><i></i><i></i><i></i></div>Lendo etiqueta ' + tag + '…</div>';
+    document.getElementById('ph').appendChild(ov);
+    setTimeout(function () { ov.remove(); st.tag = tag; st.tab = 'resumo'; st.pilha = []; st.tela = 'home'; ir('detalhe'); }, 1100);
+  }
+
+  /* ================= painel lateral ================= */
+  var EXP = {
+    home: ['Início (painel)', ['Abre num <b>painel</b>, não numa lista: saudação, perfil e um botão grande para escanear.', '<b>Anel de conformidade</b>: quantos equipamentos estão liberados agora.', '<b>Aferições da semana</b>: quanto já foi feito e o que falta, vindo da nova lista de aferições.', 'A instrumentação vê <b>"Requer sua ação"</b>. O operador vê <b>"Não utilize estes equipamentos"</b>.'], 'Contêineres com sombra, anel em SVG gerado por fórmula e leitor de código de barras.'],
+    lista: ['Equipamentos', ['Bolinha de cor e selo <b>Liberado/Bloqueado</b>: a leitura é imediata.', 'Filtros em chips: Todos, Liberados, Bloqueados, Vencendo.', 'Mostra quantos dias faltam para a calibração.'], 'Galeria com filtro, igual à atual, com visual de cartões.'],
+    detalhe: ['Equipamento (o que abre pelo QR Code)', ['Faixa grande no topo responde <b>"Posso usar?"</b>: verde LIBERADO ou vermelho NÃO UTILIZAR, com o motivo.', 'Junta <b>calibração e aferição</b>: uma aferição fora da tolerância também bloqueia.', 'Abas: <b>Resumo</b>, <b>Aferições</b> (gráfico das 12 semanas com a faixa de tolerância) e <b>Histórico</b>.', 'Manutenção com <b>etapas visíveis</b> e certificado anexado.', 'Botões no rodapé conforme o perfil: o operador só afere, a instrumentação afere e calibra.'], 'Gráfico em SVG por fórmula, anexos da lista e botões com visibilidade por perfil.'],
+    afericao: ['Registrar aferição', ['Feita para levar <b>10 segundos</b>: o padrão e a tolerância já aparecem.', 'O operador digita só a leitura. O app <b>calcula o erro</b> e diz Conforme ou Não conforme na hora.', 'Se não conforme, o equipamento é <b>bloqueado</b> e a instrumentação recebe um e-mail.', 'Experimente digitar um valor fora da tolerância.'], 'Grava na lista Afericoes. O Power BI lê a mesma lista.'],
+    calibracao: ['Registrar calibração', ['Mais enxuto: data e responsável lado a lado, resultado em dois botões.', 'Na recusa, <b>abre a manutenção</b> no mesmo passo.', '<b>Anexar certificado</b> (PDF ou foto) direto do celular.', 'Mostra a próxima calibração calculada antes de salvar.'], 'Formulário com controle de Anexos, gravando nas listas que você já criou.'],
+    agenda: ['Agenda', ['Calibrações em ordem de vencimento, agrupadas por mês.', 'Contagem regressiva em dias, com cor por urgência.', 'Serve para planejar o mês da instrumentação.'], 'Galeria agrupada por mês.'],
+    relatorios: ['Relatórios', ['Indicadores principais no topo.', 'O <b>seu Power BI de aferição</b> aparece dentro do app.', 'Um toque abre o relatório completo.'], 'Controle Power BI apontando para o relatório que você já tem.']
+  };
+  function explicar() {
+    var x = EXP[st.tela];
+    document.getElementById('navScreens').innerHTML = [['home', 'Início'], ['lista', 'Equipamentos'], ['detalhe', 'Equipamento'], ['afericao', 'Aferição'], ['calibracao', 'Calibração'], ['agenda', 'Agenda'], ['relatorios', 'Relatórios']].map(function (b) {
+      return '<button data-nav="' + b[0] + '" aria-current="' + (st.tela === b[0]) + '">' + b[1] + '</button>';
+    }).join('');
+    document.getElementById('explain').innerHTML = '<h3>' + x[0] + '</h3><ul>' + x[1].map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul><div class="pa"><b>No Power Apps:</b> ' + x[2] + '</div>';
+  }
+  document.getElementById('navScreens').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-nav]'); if (!b) return;
+    var t = b.dataset.nav;
+    if (t === 'afericao' && !eqAtual().af) st.tag = 'BAL-01';
+    if (t === 'calibracao' && st.role !== 'inst') { setRole('inst'); }
+    if (t === 'afericao' || t === 'calibracao') { st.pilha = ['home', 'detalhe']; st.tela = t; TELAS[t](); bar.hidden = true; body.scrollTop = 0; explicar(); }
+    else ir(t);
+  });
+  var RT = {
+    inst: '<b>Felipe (instrumentação)</b> vê o que precisa de ação, registra aferição e calibração e conclui manutenções.',
+    op: '<b>Operador do laboratório</b> vê o que está bloqueado, registra a aferição semanal e consulta. Não registra calibração.'
+  };
+  function setRole(r) {
+    st.role = r;
+    document.getElementById('r-inst').setAttribute('aria-pressed', String(r === 'inst'));
+    document.getElementById('r-op').setAttribute('aria-pressed', String(r === 'op'));
+    document.getElementById('roleTxt').innerHTML = RT[r];
+    if (st.tela === 'calibracao' && r !== 'inst') { st.tela = 'detalhe'; }
+    TELAS[st.tela](); explicar();
+  }
+  document.getElementById('r-inst').onclick = function () { setRole('inst'); };
+  document.getElementById('r-op').onclick = function () { setRole('op'); };
+  var sel = document.getElementById('qrSel');
+  sel.innerHTML = eqs.map(function (e) { return '<option value="' + e.tag + '">' + e.tag + ' · ' + esc(e.desc) + '</option>'; }).join('');
+  sel.value = 'BAL-05';
+  document.getElementById('qrGo').onclick = function () { escanear(sel.value); };
+
+  /* ================= e-mail ================= */
+  (function () {
+    var bloq = eqs.filter(function (e) { return !veredito(e).ok; });
+    var vence = eqs.filter(function (e) { var d = dias(e.prox); return d >= 0 && d <= 30; });
+    var pend = eqs.filter(function (e) { return e.af && !feitaSemana(e) && !e.parada; });
+    var linhas = bloq.map(function (e) { return '<tr><td><b>' + e.tag + '</b></td><td>' + esc(e.desc) + '</td><td class="b-red">' + veredito(e).t + '</td></tr>'; })
+      .concat(vence.filter(function (e) { return veredito(e).ok; }).map(function (e) { return '<tr><td><b>' + e.tag + '</b></td><td>' + esc(e.desc) + '</td><td class="b-amb">Calibração em ' + dias(e.prox) + ' dias (' + fmtc(e.prox) + ')</td></tr>'; }));
+    document.getElementById('mail').innerHTML =
+      '<div class="mail-h"><span><b>De:</b> Metrologia · Lab. Controle de Embarque</span><span><b>Para:</b> Instrumentação; Coordenação do laboratório</span><span><b>Assunto:</b> Resumo semanal · ' + bloq.length + ' bloqueados · ' + vence.length + ' vencem em 30 dias</span></div>' +
+      '<div class="mail-b"><div class="mail-top"><b>Resumo semanal de metrologia</b><span>' + fmt(SEG) + '</span></div>' +
+      '<div class="mail-kpis"><div><b style="color:#b42318">' + bloq.length + '</b>bloqueados</div><div><b style="color:#b54708">' + vence.length + '</b>vencem em 30 dias</div><div><b style="color:#0e6ba8">' + pend.length + '</b>aferições pendentes</div></div>' +
+      '<div class="mail-wrap"><table><thead><tr><th>TAG</th><th>Equipamento</th><th>Situação</th></tr></thead><tbody>' + linhas.join('') + '</tbody></table></div>' +
+      '<span class="cta">Abrir o app</span><span style="font-size:11.5px;color:#6b7788">Mensagem automática enviada toda segunda às 7h pelo Power Automate.</span></div>';
+  })();
+
+  var d = new Date(); document.getElementById('clock').textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+  setRole('inst'); ir('home');
+})();
+</script>
+</body></html>
