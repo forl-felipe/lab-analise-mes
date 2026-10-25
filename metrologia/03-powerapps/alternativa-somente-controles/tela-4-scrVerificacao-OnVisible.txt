@@ -1,0 +1,31 @@
+=    UpdateContext({locRevisar: false, locSalvando: false});
+    Reset(dtpVeData); Reset(drpVeTurno); Reset(drpVeCausa); Reset(txtVeJust); Reset(txtVeObs);
+    If(CountRows(colEquip) = 0, ClearCollect(
+    colEquip,
+    AddColumns(
+        Filter(Equipamentos, Ativo = true),
+        StatusCalc,
+        If(
+            ControlaCalibracao && UltimoResultado = "Recusada", "Bloqueado · Calibração recusada",
+            ControlaCalibracao && ManutencaoSolicitada, "Bloqueado · Em manutenção",
+            ControlaCalibracao && !IsBlank(ProximaCalibracao) && ProximaCalibracao < Today(), "Bloqueado · Calibração vencida",
+            UltimaAfericaoResultado = "Não conforme" &&
+                !(UltimoResultado = "Aprovada" && !IsBlank(UltimaCalibracao) && UltimaCalibracao >= UltimaAfericao),
+                "Bloqueado · Aferição não conforme",
+            ControlaCalibracao && IsBlank(ProximaCalibracao), "Liberado · Sem data de calibração",
+            ControlaCalibracao && ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days), "Liberado · Calibração vence em breve",
+            "Liberado"
+        )
+    )
+));
+    ClearCollect(
+        colFormVe,
+        AddColumns(
+            Sort(Filter(colPontos, Ensaio = gblEnsaio.Title), Ordem),
+            Vencida,
+            With(
+                {e: LookUp(colEquip, Title = TAG)},
+                !IsBlank(e) && e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today()
+            )
+        )
+    )

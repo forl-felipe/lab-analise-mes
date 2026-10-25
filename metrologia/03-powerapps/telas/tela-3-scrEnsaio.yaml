@@ -1,0 +1,846 @@
+Screens:
+  scrEnsaio:
+    Properties:
+      Fill: =RGBA(242, 245, 248, 1)
+      OnVisible: |-
+        =UpdateContext({locRevisar: false, locSalvando: false});
+        Reset(dtpEnData); Reset(drpEnTurno); Reset(drpEnCausa); Reset(txtEnJust); Reset(txtEnObs);
+        Reset(txtEnEstufa); Reset(txtEnTara); Reset(txtEnPIni); Reset(txtEnPFin);
+        // Recriar a coleção zera os campos digitados da galeria
+        ClearCollect(
+            colForm,
+            AddColumns(
+                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title), Ordem),
+                Nom, LookUp(colLimites, Title = ChaveLimite).Nominal,
+                LI, LookUp(colLimites, Title = ChaveLimite).LimInferior,
+                LS, LookUp(colLimites, Title = ChaveLimite).LimSuperior,
+                Tol, LookUp(colLimites, Title = ChaveLimite).Tolerancia
+            )
+        )
+    Children:
+      - recEnTopo:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(11, 37, 64, 1)
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =112
+      - icoEnVoltar:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.ChevronLeft
+            X: =12
+            Y: =34
+            Width: =48
+            Height: =48
+            Color: =RGBA(255, 255, 255, 1)
+            OnSelect: =Navigate(scrInicio, ScreenTransition.UnCover)
+            PaddingTop: =8
+            PaddingBottom: =8
+            PaddingLeft: =8
+            PaddingRight: =8
+            Tooltip: ="Voltar"
+      - lblEnTitulo:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gblEnsaio.Nome
+            X: =74
+            Y: =26
+            Width: =Parent.Width - 94 - 0
+            Height: =40
+            Size: =19
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(255, 255, 255, 1)
+      - lblEnSubtitulo:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gblEnsaio.Frequencia & " · lançamento"
+            X: =74
+            Y: =64
+            Width: =Parent.Width - 94 - 0
+            Height: =30
+            Size: =12
+            Color: =RGBA(169, 194, 220, 1)
+      - lblEnInstr:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gblEnsaio.Instrucoes
+            X: =20
+            Y: =120
+            Width: =Parent.Width - 40
+            Height: =58
+            Size: =12
+            Color: =RGBA(93, 107, 125, 1)
+            VerticalAlign: =VerticalAlign.Top
+      - lblEnQuem:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gblNome & " · Letra " & gblMinhaLetra & If(gblPerfil <> "Laboratorista", "  (perfil sem permissão de lançar)", "")
+            X: =20
+            Y: =178
+            Width: =Parent.Width - 40
+            Height: =26
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(11, 37, 64, 1)
+      - dtpEnData:
+          Control: Classic/DatePicker@2.6.0
+          Properties:
+            DefaultDate: =gblDataTurnoAtual
+            Format: =DateTimeFormat.ShortDate
+            X: =20
+            Y: =208
+            Width: =(Parent.Width - 50) / 2
+            Height: =50
+            Size: =14
+      - drpEnTurno:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            Items: =["07x19", "19x07"]
+            Default: =gblTurnoAtual
+            X: =30 + (Parent.Width - 50) / 2
+            Y: =208
+            Width: =(Parent.Width - 50) / 2
+            Height: =50
+            Size: =14
+            BorderColor: =RGBA(205, 214, 225, 1)
+      - lblEnEstufaRot:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="ESTUFA 100 °C · UMIDADE (%) OU PESAGENS (g)"
+            X: =20
+            Y: =266
+            Width: =Parent.Width - 40
+            Height: =26
+            Size: =10
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(93, 107, 125, 1)
+            Visible: =gblEnsaio.Title = "UMI"
+      - txtEnEstufa:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Estufa %"
+            X: =20
+            Y: =292
+            Width: =(Parent.Width - 70) / 4
+            Height: =52
+            Size: =15
+            BorderColor: =RGBA(205, 214, 225, 1)
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            Visible: =gblEnsaio.Title = "UMI"
+      - txtEnTara:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Tara"
+            X: =30 + (Parent.Width - 70) / 4
+            Y: =292
+            Width: =(Parent.Width - 70) / 4
+            Height: =52
+            Size: =15
+            BorderColor: =RGBA(205, 214, 225, 1)
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            Visible: =gblEnsaio.Title = "UMI"
+      - txtEnPIni:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="P. inicial"
+            X: =40 + 2 * (Parent.Width - 70) / 4
+            Y: =292
+            Width: =(Parent.Width - 70) / 4
+            Height: =52
+            Size: =15
+            BorderColor: =RGBA(205, 214, 225, 1)
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            Visible: =gblEnsaio.Title = "UMI"
+      - txtEnPFin:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="P. final"
+            X: =50 + 3 * (Parent.Width - 70) / 4
+            Y: =292
+            Width: =(Parent.Width - 70) / 4
+            Height: =52
+            Size: =15
+            BorderColor: =RGBA(205, 214, 225, 1)
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            Visible: =gblEnsaio.Title = "UMI"
+      - lblEnEstufaValor:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With(
+                  {e: Value(txtEnEstufa.Text), t: Value(txtEnTara.Text), pi: Value(txtEnPIni.Text), pf: Value(txtEnPFin.Text)},
+                  With(
+                      {x: If(!IsBlank(e), e, !IsBlank(t) && !IsBlank(pi) && !IsBlank(pf) && pi > t, (pi - pf) / (pi - t) * 100)},
+                      If(IsBlank(x), "", Text(x, "0.##########", "en-US"))
+                  )
+              )
+            X: =0
+            Y: =0
+            Width: =10
+            Height: =10
+            Size: =13
+            Color: =RGBA(23, 35, 52, 1)
+            Visible: =False
+      - lblEnEstufaInfo:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(IsBlank(lblEnEstufaValor.Text), "Informe a estufa ou as três pesagens", "Estufa usada: " & Text(Value(lblEnEstufaValor.Text, "en-US"), "0.00") & " %")
+            X: =20
+            Y: =346
+            Width: =Parent.Width - 40
+            Height: =30
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(11, 37, 64, 1)
+            Visible: =gblEnsaio.Title = "UMI"
+      - galEnPontos:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =colForm
+            X: =20
+            Y: =If(gblEnsaio.Title = "UMI", 384, 268)
+            Width: =Parent.Width - 40
+            Height: =Parent.Height - (If(gblEnsaio.Title = "UMI", 384, 268)) - 112
+            TemplateSize: =176
+            TemplatePadding: =0
+            TemplateFill: =RGBA(0, 0, 0, 0)
+          Children:
+            - recPtCard:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth
+                  Height: =Parent.TemplateHeight - 10
+                  BorderColor: =If(!IsBlank(gblDestacar) && ThisItem.TAG = gblDestacar, RGBA(14, 107, 168, 1), RGBA(225, 231, 238, 1))
+                  BorderThickness: =If(!IsBlank(gblDestacar) && ThisItem.TAG = gblDestacar, 3, 1)
+            - lblPtTitulo:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Switch(
+                        ThisItem.EntradaTxt,
+                        "Massa", "Fração " & ThisItem.Parametro,
+                        "Comparativo", ThisItem.Parametro,
+                        Coalesce(ThisItem.TAG, ThisItem.EquipamentoBD) & If(IsBlank(ThisItem.Secao), "", " · " & ThisItem.Secao)
+                    )
+                  X: =14
+                  Y: =8
+                  Width: =Parent.TemplateWidth - 200
+                  Height: =32
+                  Size: =14
+                  FontWeight: =FontWeight.Bold
+                  Color: =RGBA(11, 37, 64, 1)
+            - lblPtSub:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =If(ThisItem.EntradaTxt in ["Massa", "Comparativo"], ThisItem.EquipamentoBD, ThisItem.Parametro) &
+                    If(ThisItem.EntradaTxt = "Tempo", " · " & ThisItem.Fator & " voltas", "") & " · " &
+                    If(
+                        ThisItem.EntradaTxt = "Massa", ThisItem.RotuloA & " e " & ThisItem.RotuloB,
+                        !IsBlank(ThisItem.LI) || !IsBlank(ThisItem.LS),
+                            "Limites " & Coalesce(Text(ThisItem.LI), "—") & " a " & Coalesce(Text(ThisItem.LS), "—") & " " & ThisItem.Unidade,
+                        !IsBlank(ThisItem.Tol), "Diferença até ± " & Text(ThisItem.Tol) & " " & ThisItem.Unidade,
+                        "Informativo"
+                    )
+                  X: =14
+                  Y: =40
+                  Width: =Parent.TemplateWidth - 28
+                  Height: =30
+                  Size: =11
+                  Color: =RGBA(93, 107, 125, 1)
+            - txtPtA:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  Default: =""
+                  HintText: =Coalesce(ThisItem.RotuloA, "Valor")
+                  X: =14
+                  Y: =76
+                  Width: =If(ThisItem.EntradaTxt in ["Tempo", "Comparativo", "Massa"], (Parent.TemplateWidth - 38) / 2, Parent.TemplateWidth - 28)
+                  Height: =54
+                  Size: =17
+                  BorderColor: =RGBA(205, 214, 225, 1)
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  Format: =TextFormat.Text
+                  Align: =Align.Center
+                  FontWeight: =FontWeight.Bold
+            - txtPtB:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  Default: =""
+                  HintText: =Coalesce(ThisItem.RotuloB, "Valor")
+                  X: =24 + (Parent.TemplateWidth - 38) / 2
+                  Y: =76
+                  Width: =(Parent.TemplateWidth - 38) / 2
+                  Height: =54
+                  Size: =17
+                  BorderColor: =RGBA(205, 214, 225, 1)
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  Align: =Align.Center
+                  FontWeight: =FontWeight.Bold
+                  Visible: =ThisItem.EntradaTxt in ["Tempo", "Comparativo", "Massa"]
+            - lblPtV:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With(
+                        {a: Value(txtPtA.Text), b: Value(txtPtB.Text)},
+                        With(
+                            {
+                                v: Switch(
+                                    ThisItem.EntradaTxt,
+                                    "Tempo", If(Coalesce(a, 0) * 60 + Coalesce(b, 0) > 0 && !IsBlank(ThisItem.Fator), ThisItem.Fator * 60 / (Coalesce(a, 0) * 60 + Coalesce(b, 0))),
+                                    "Massa", Blank(),
+                                    a
+                                )
+                            },
+                            If(IsBlank(v), "", Text(v, "0.##########", "en-US"))
+                        )
+                    )
+                  X: =0
+                  Y: =0
+                  Width: =10
+                  Height: =10
+                  Size: =13
+                  Color: =RGBA(23, 35, 52, 1)
+                  Visible: =False
+            - lblPtRef:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With(
+                        {r: Switch(ThisItem.EntradaTxt, "Comparativo", Value(txtPtB.Text), "ComparativoReferencia", Value(lblEnEstufaValor.Text, "en-US"), ThisItem.Nom)},
+                        If(IsBlank(r), "", Text(r, "0.##########", "en-US"))
+                    )
+                  X: =0
+                  Y: =0
+                  Width: =10
+                  Height: =10
+                  Size: =13
+                  Color: =RGBA(23, 35, 52, 1)
+                  Visible: =False
+            - lblPtRes:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With(
+                        {v: Value(lblPtV.Text, "en-US"), r: Value(lblPtRef.Text, "en-US")},
+                        If(
+                            IsBlank(v), "",
+                            !IsBlank(ThisItem.LI) || !IsBlank(ThisItem.LS),
+                                If((IsBlank(ThisItem.LI) || v >= ThisItem.LI) && (IsBlank(ThisItem.LS) || v <= ThisItem.LS), "Conforme", "Não conforme"),
+                            !IsBlank(ThisItem.Tol),
+                                If(IsBlank(r), "", If(Round(Abs(v - r), 6) <= Round(ThisItem.Tol, 6), "Conforme", "Não conforme")),
+                            "Informativo"
+                        )
+                    )
+                  X: =Parent.TemplateWidth - 186
+                  Y: =10
+                  Width: =172
+                  Height: =30
+                  Size: =10
+                  FontWeight: =FontWeight.Bold
+                  Color: =If(Self.Text = "Conforme", RGBA(30, 127, 79, 1), Self.Text = "Não conforme", RGBA(180, 35, 24, 1), RGBA(85, 98, 116, 1))
+                  Align: =Align.Center
+                  Fill: =If(Self.Text = "Conforme", RGBA(226, 243, 234, 1), Self.Text = "Não conforme", RGBA(253, 236, 235, 1), RGBA(236, 239, 243, 1))
+                  Visible: =!IsBlank(Self.Text)
+            - lblPtCalc:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With(
+                        {v: Value(lblPtV.Text, "en-US"), r: Value(lblPtRef.Text, "en-US")},
+                        If(
+                            IsBlank(v), "",
+                            If(ThisItem.EntradaTxt = "Tempo", "Rotação " & Text(v, "0.00") & " rpm   ", "") &
+                            If(IsBlank(r), "", "Diferença " & Text(v - r, "0.###"))
+                        )
+                    )
+                  X: =14
+                  Y: =134
+                  Width: =Parent.TemplateWidth - 28
+                  Height: =30
+                  Size: =12
+                  FontWeight: =FontWeight.Bold
+                  Color: =RGBA(23, 35, 52, 1)
+      - recEnBarra:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(255, 255, 255, 1)
+            X: =0
+            Y: =Parent.Height - 104
+            Width: =Parent.Width
+            Height: =104
+            BorderColor: =RGBA(225, 231, 238, 1)
+            BorderThickness: =1
+      - lblEnResumo:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =CountRows(Filter(galEnPontos.AllItems, !IsBlank(txtPtA.Text))) & " de " & CountRows(colForm) & " campos preenchidos" & Char(10) &
+              CountRows(Filter(galEnPontos.AllItems, lblPtRes.Text = "Não conforme")) & " não conforme(s) até aqui"
+            X: =20
+            Y: =Parent.Height - 94
+            Width: =Parent.Width - 270
+            Height: =84
+            Size: =12
+            Color: =RGBA(93, 107, 125, 1)
+      - btnEnRevisar:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Revisar e enviar"
+            X: =Parent.Width - 240
+            Y: =Parent.Height - 88
+            Width: =220
+            Height: =70
+            OnSelect: |-
+              =ClearCollect(
+                  colEntradas,
+                  ForAll(
+                      galEnPontos.AllItems,
+                      {
+                          Ordem: Ordem, TAG: TAG, EquipamentoBD: EquipamentoBD, Parametro: Parametro, Unidade: Unidade,
+                          Entrada: EntradaTxt, Tipo: TipoTxt, Fator: Fator, LI: LI, LS: LS, Tol: Tol, Nom: Nom,
+                          A: Value(txtPtA.Text), B: Value(txtPtB.Text),
+                          V: Value(lblPtV.Text, "en-US"), R: Value(lblPtRef.Text, "en-US"), Res: lblPtRes.Text
+                      }
+                  )
+              );
+              ClearCollect(
+                  colResultados,
+                  ForAll(
+                      Filter(colEntradas, Entrada <> "Massa" && !IsBlank(V)),
+                      {
+                          Equipamento: EquipamentoBD, TAG: TAG, Parametro: Parametro, Unidade: Unidade, Tipo: Tipo,
+                          Valor: V, Referencia: R, Diferenca: If(!IsBlank(R), V - R), LI: LI, LS: LS, Tol: Tol,
+                          Resultado: Res, ObsItem: "", ItensNaoOK: ""
+                      }
+                  )
+              );
+              // Granulometria LTF x LCE: indicadores calculados a partir das massas (mesmas fórmulas da planilha)
+              If(
+                  gblEnsaio.Title = "GRA" && Sum(colEntradas, Coalesce(A, 0)) > 0 && Sum(colEntradas, Coalesce(B, 0)) > 0,
+                  With(
+                      {tA: Sum(colEntradas, Coalesce(A, 0)), tB: Sum(colEntradas, Coalesce(B, 0)), r0: First(colEntradas)},
+                      With(
+                          {
+                              pA: AddColumns(colEntradas, P, Coalesce(A, 0) / tA * 100),
+                              pB: AddColumns(colEntradas, P, Coalesce(B, 0) / tB * 100)
+                          },
+                          With(
+                              {
+                                  a63: Sum(Filter(pA, Ordem >= 8), P), b63: Sum(Filter(pB, Ordem >= 8), P),
+                                  a34: Sum(Filter(pA, Ordem = 3 || Ordem = 4), P), b34: Sum(Filter(pB, Ordem = 3 || Ordem = 4), P),
+                                  a5: LookUp(pA, Ordem = 5).P, b5: LookUp(pB, Ordem = 5).P,
+                                  a6: LookUp(pA, Ordem = 6).P, b6: LookUp(pB, Ordem = 6).P,
+                                  aDm: Sum(pA, P * Coalesce(Fator, 0)) / 100, bDm: Sum(pB, P * Coalesce(Fator, 0)) / 100,
+                                  L63: LookUp(colLimites, Title = "G63"), LRG: LookUp(colLimites, Title = "GRG")
+                              },
+                              Collect(
+                                  colResultados,
+                                  {Equipamento: r0.EquipamentoBD, TAG: r0.TAG, Tipo: r0.Tipo, Parametro: "-6,3 mm", Unidade: "%",
+                                    Valor: a63, Referencia: b63, Diferenca: a63 - b63, Tol: L63.Tolerancia,
+                                    Resultado: If(Round(Abs(a63 - b63), 6) <= Round(L63.Tolerancia, 6), "Conforme", "Não conforme"), ObsItem: "", ItensNaoOK: ""},
+                                  {Equipamento: r0.EquipamentoBD, TAG: r0.TAG, Tipo: r0.Tipo, Parametro: "RG (Relação)", Unidade: "-",
+                                    Valor: a34 / a5, Referencia: b34 / b5, Diferenca: a34 / a5 - b34 / b5, Tol: LRG.Tolerancia,
+                                    Resultado: If(Round(Abs(a34 / a5 - b34 / b5), 6) <= Round(LRG.Tolerancia, 6), "Conforme", "Não conforme"), ObsItem: "", ItensNaoOK: ""},
+                                  {Equipamento: r0.EquipamentoBD, TAG: r0.TAG, Tipo: r0.Tipo, Parametro: "-16,0 +12,5 mm", Unidade: "%",
+                                    Valor: a34, Referencia: b34, Diferenca: a34 - b34, Resultado: "Informativo", ObsItem: "", ItensNaoOK: ""},
+                                  {Equipamento: r0.EquipamentoBD, TAG: r0.TAG, Tipo: r0.Tipo, Parametro: "-16,0 +9,0 mm", Unidade: "%",
+                                    Valor: a34 + a5, Referencia: b34 + b5, Diferenca: a34 + a5 - b34 - b5, Resultado: "Informativo", ObsItem: "", ItensNaoOK: ""},
+                                  {Equipamento: r0.EquipamentoBD, TAG: r0.TAG, Tipo: r0.Tipo, Parametro: "-16,0 +8,0 mm", Unidade: "%",
+                                    Valor: a34 + a5 + a6, Referencia: b34 + b5 + b6, Diferenca: a34 + a5 + a6 - b34 - b5 - b6, Resultado: "Informativo", ObsItem: "", ItensNaoOK: ""},
+                                  {Equipamento: r0.EquipamentoBD, TAG: r0.TAG, Tipo: r0.Tipo, Parametro: "Diâmetro médio", Unidade: "mm",
+                                    Valor: aDm, Referencia: bDm, Diferenca: aDm - bDm, Resultado: "Informativo", ObsItem: "", ItensNaoOK: ""}
+                              )
+                          )
+                      )
+                  )
+              );
+              // Tamboramento 5 kg x 15 kg: percentuais pelas massas de ensaio da lista Configuracoes
+              If(
+                  gblEnsaio.Title = "T515",
+                  With(
+                      {
+                          mA: Value(LookUp(colConfig, Title = "T515MassaLTF").Valor), mB: Value(LookUp(colConfig, Title = "T515MassaLCE").Valor),
+                          r1: LookUp(colEntradas, Ordem = 1), r2: LookUp(colEntradas, Ordem = 2), L: LookUp(colLimites, Title = "T515")
+                      },
+                      If(
+                          !IsBlank(r1.A) && !IsBlank(r1.B),
+                          With(
+                              {a63: r1.A / (mA / 100), b63: r1.B / (mB / 100)},
+                              Collect(
+                                  colResultados,
+                                  {Equipamento: r1.EquipamentoBD, TAG: r1.TAG, Tipo: r1.Tipo, Parametro: "+6,3 mm", Unidade: "%",
+                                    Valor: a63, Referencia: b63, Diferenca: a63 - b63, Tol: L.Tolerancia,
+                                    Resultado: If(Round(Abs(a63 - b63), 6) <= Round(L.Tolerancia, 6), "Conforme", "Não conforme"), ObsItem: "", ItensNaoOK: ""}
+                              );
+                              If(
+                                  !IsBlank(r2.A) && !IsBlank(r2.B),
+                                  With(
+                                      {a05: 100 - (a63 + r2.A / (mA / 100)), b05: 100 - (b63 + r2.B / (mB / 100))},
+                                      Collect(
+                                          colResultados,
+                                          {Equipamento: r1.EquipamentoBD, TAG: r1.TAG, Tipo: r1.Tipo, Parametro: "-0,5 mm", Unidade: "%",
+                                            Valor: a05, Referencia: b05, Diferenca: a05 - b05, Resultado: "Informativo", ObsItem: "", ItensNaoOK: ""}
+                                      )
+                                  )
+                              )
+                          )
+                      )
+                  )
+              );
+              Set(gblNC, CountRows(Filter(colResultados, Resultado = "Não conforme")));
+              If(
+                  CountRows(colResultados) = 0,
+                  Notify("Preencha pelo menos um resultado antes de enviar.", NotificationType.Error),
+                  gblEnsaio.Title = "UMI" && IsBlank(lblEnEstufaValor.Text),
+                  Notify("Informe a umidade da estufa (ou as três pesagens).", NotificationType.Error),
+                  UpdateContext({locRevisar: true})
+              )
+            Fill: =RGBA(11, 37, 64, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Size: =15
+            FontWeight: =FontWeight.Bold
+            HoverFill: =RGBA(11, 37, 64, 1)
+            PressedFill: =RGBA(11, 37, 64, 1)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            PressedColor: =RGBA(255, 255, 255, 1)
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            DisplayMode: =If(gblPerfil = "Laboratorista", DisplayMode.Edit, DisplayMode.Disabled)
+      - recEnRevFundo:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(6, 14, 24, 0.62)
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Visible: =locRevisar
+      - recEnRevCartao:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(255, 255, 255, 1)
+            X: =20
+            Y: =170
+            Width: =Parent.Width - 40
+            Height: =760
+            Visible: =locRevisar
+      - lblEnRevTitulo:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Revisar e enviar"
+            X: =44
+            Y: =190
+            Width: =Parent.Width - 88
+            Height: =40
+            Size: =19
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(11, 37, 64, 1)
+            Visible: =locRevisar
+      - lblEnRevResumo:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =gblEnsaio.Nome & Char(10) &
+              Text(dtpEnData.SelectedDate, "dd/mm/yyyy") & " · turno " & drpEnTurno.Selected.Value &
+              If(dtpEnData.SelectedDate = gblDataTurnoAtual && drpEnTurno.Selected.Value = gblTurnoAtual, "", "  (fora do turno)") & Char(10) &
+              CountRows(colResultados) & " resultados · " &
+              CountRows(Filter(colResultados, Resultado = "Conforme")) & " conformes · " &
+              gblNC & " não conformes · " &
+              CountRows(Filter(colResultados, Resultado = "Informativo")) & " informativos"
+            X: =44
+            Y: =232
+            Width: =Parent.Width - 88
+            Height: =96
+            Size: =13
+            Color: =RGBA(23, 35, 52, 1)
+            VerticalAlign: =VerticalAlign.Top
+            Visible: =locRevisar
+      - lblEnRevNC:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="Não conformes: " & Concat(Filter(colResultados, Resultado = "Não conforme"), Coalesce(TAG, Equipamento) & " (" & Parametro & ")", ", ")
+            X: =44
+            Y: =332
+            Width: =Parent.Width - 88
+            Height: =84
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(180, 35, 24, 1)
+            Fill: =RGBA(253, 236, 235, 1)
+            PaddingLeft: =12
+            PaddingRight: =12
+            VerticalAlign: =VerticalAlign.Top
+            Visible: =locRevisar && gblNC > 0
+      - lblEnRevCausaRot:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="CAUSA PROVÁVEL *"
+            X: =44
+            Y: =424
+            Width: =Parent.Width - 88
+            Height: =26
+            Size: =10
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(93, 107, 125, 1)
+            Visible: =locRevisar && gblNC > 0
+      - drpEnCausa:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            Items: =["Amostra fora do padrão", "Equipamento sujo ou mal posicionado", "Variação de temperatura ou umidade", "Padrão ou referência com problema", "Suspeita de descalibração", "Falha do equipamento", "Outro"]
+            Default: =""
+            X: =44
+            Y: =450
+            Width: =Parent.Width - 88
+            Height: =50
+            Size: =14
+            BorderColor: =RGBA(205, 214, 225, 1)
+            Visible: =locRevisar && gblNC > 0
+            AllowEmptySelection: =True
+      - lblEnRevJustRot:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="O QUE FOI VERIFICADO *"
+            X: =44
+            Y: =508
+            Width: =Parent.Width - 88
+            Height: =26
+            Size: =10
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(93, 107, 125, 1)
+            Visible: =locRevisar && gblNC > 0
+      - txtEnJust:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: |-
+              ="Ex.: repeti o ensaio, conferi o padrão e avisei o supervisor"
+            X: =44
+            Y: =534
+            Width: =Parent.Width - 88
+            Height: =110
+            Size: =13
+            BorderColor: =RGBA(205, 214, 225, 1)
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            Mode: =TextMode.MultiLine
+            Visible: =locRevisar && gblNC > 0
+      - lblEnRevObsRot:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="OBSERVAÇÃO (OPCIONAL)"
+            X: =44
+            Y: =652
+            Width: =Parent.Width - 88
+            Height: =26
+            Size: =10
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(93, 107, 125, 1)
+            Visible: =locRevisar
+      - txtEnObs:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Opcional"
+            X: =44
+            Y: =678
+            Width: =Parent.Width - 88
+            Height: =54
+            Size: =13
+            BorderColor: =RGBA(205, 214, 225, 1)
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            Visible: =locRevisar
+      - btnEnRevVoltar:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Voltar e corrigir"
+            X: =44
+            Y: =840
+            Width: =(Parent.Width - 100) / 2
+            Height: =66
+            OnSelect: |-
+              =UpdateContext({locRevisar: false})
+            Fill: =RGBA(255, 255, 255, 1)
+            Color: =RGBA(11, 37, 64, 1)
+            Size: =15
+            FontWeight: =FontWeight.Bold
+            HoverFill: =RGBA(255, 255, 255, 1)
+            PressedFill: =RGBA(255, 255, 255, 1)
+            HoverColor: =RGBA(11, 37, 64, 1)
+            PressedColor: =RGBA(11, 37, 64, 1)
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            BorderColor: =RGBA(11, 37, 64, 1)
+            BorderThickness: =2
+            Visible: =locRevisar
+      - btnEnRevEnviar:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(locSalvando, "Enviando...", "Confirmar envio")
+            X: =56 + (Parent.Width - 100) / 2
+            Y: =840
+            Width: =(Parent.Width - 100) / 2
+            Height: =66
+            OnSelect: |-
+              =If(
+                  gblNC > 0 && IsBlank(drpEnCausa.Selected.Value),
+                      Notify("Selecione a causa provável da não conformidade.", NotificationType.Error),
+                  gblNC > 0 && Len(Trim(txtEnJust.Text)) < 10,
+                      Notify("Descreva o que foi verificado (mínimo de 10 caracteres).", NotificationType.Error),
+                  IsBlank(dtpEnData.SelectedDate) || dtpEnData.SelectedDate > Today(),
+                      Notify("A data do ensaio não pode ser futura.", NotificationType.Error),
+
+                  UpdateContext({locSalvando: true});
+                  Set(gblLote, "LCP-" & Text(Now(), "yymmdd-hhmmss") & "-" & gblIniciais);
+                  With(
+                      {
+                          wData: dtpEnData.SelectedDate,
+                          wTurno: drpEnTurno.Selected.Value,
+                          wFora: If(
+                              dtpEnData.SelectedDate = gblDataTurnoAtual && drpEnTurno.Selected.Value = gblTurnoAtual,
+                              "Não",
+                              "Sim"
+                          ),
+                          wCausa: If(gblNC > 0, drpEnCausa.Selected.Value, ""),
+                          wJust: If(gblNC > 0, drpEnCausa.Selected.Value & ": " & Trim(txtEnJust.Text), ""),
+                          wObs: Trim(txtEnObs.Text)
+                      },
+                      IfError(
+                          Collect(
+                              Afericoes,
+                              ForAll(
+                                  colResultados As r,
+                                  {
+                                      Title: gblLote,
+                                      Ensaio: gblEnsaio.NomeBD,
+                                      TipoRegistro: r.Tipo,
+                                      DataEnsaio: wData,
+                                      Equipamento: r.Equipamento,
+                                      TAG: r.TAG,
+                                      Parametro: r.Parametro,
+                                      Unidade: r.Unidade,
+                                      Valor: r.Valor,
+                                      Referencia: r.Referencia,
+                                      Diferenca: r.Diferenca,
+                                      LimInferior: r.LI,
+                                      LimSuperior: r.LS,
+                                      Tolerancia: r.Tol,
+                                      Resultado: r.Resultado,
+                                      Responsavel: gblNome,
+                                      ResponsavelEmail: Lower(User().Email),
+                                      Letra: gblMinhaLetra,
+                                      Turno: wTurno,
+                                      Observacao: Concat(
+                                          Filter(
+                                              Table({t: r.ObsItem}, {t: If(r.Resultado = "Não conforme", wJust, "")}, {t: wObs}),
+                                              !IsBlank(t)
+                                          ),
+                                          t,
+                                          "; "
+                                      ),
+                                      Causa: If(r.Resultado = "Não conforme", wCausa, ""),
+                                      ItensNaoOK: r.ItensNaoOK,
+                                      RegistradoEm: Now(),
+                                      TurnoRegistro: gblTurnoAtual,
+                                      ForaDoTurno: wFora,
+                                      Origem: "App"
+                                  }
+                              )
+                          ),
+                          Notify("Não foi possível gravar os resultados: " & FirstError.Message, NotificationType.Error),
+
+                          Patch(
+                              Lancamentos,
+                              Defaults(Lancamentos),
+                              {
+                                  Title: gblLote,
+                                  Ensaio: gblEnsaio.NomeBD,
+                                  DataEnsaio: wData,
+                                  Turno: wTurno,
+                                  Letra: gblMinhaLetra,
+                                  Responsavel: gblNome,
+                                  ResponsavelEmail: Lower(User().Email),
+                                  QtdResultados: CountRows(colResultados),
+                                  QtdNaoConformes: gblNC,
+                                  TAGsNaoConformes: Concat(
+                                      Filter(colResultados, Resultado = "Não conforme"),
+                                      Coalesce(TAG, Equipamento) & " (" & Parametro & ")",
+                                      ", "
+                                  ),
+                                  Causa: wCausa,
+                                  Observacao: Concat(Filter(Table({t: wJust}, {t: wObs}), !IsBlank(t)), t, "; "),
+                                  RegistradoEm: Now(),
+                                  ForaDoTurno: wFora,
+                                  Situacao: "Ativo",
+                                  Origem: "App"
+                              }
+                          ),
+                          Notify("Resultados gravados, mas o resumo do lançamento falhou: " & FirstError.Message, NotificationType.Warning),
+
+                          Set(gblUltimoLote, gblLote);
+                          Set(gblUltimoLoteTexto, gblEnsaio.Nome & " · " & CountRows(colResultados) & " resultados");
+                          Notify(
+                              CountRows(colResultados) & " resultados enviados" &
+                              If(gblNC > 0, " · " & gblNC & " não conforme(s): a instrumentação será avisada", ""),
+                              If(gblNC > 0, NotificationType.Warning, NotificationType.Success)
+                          );
+                          UpdateContext({locRevisar: false});
+                          Navigate(scrInicio, ScreenTransition.UnCover)
+                      )
+                  );
+                  UpdateContext({locSalvando: false})
+              )
+            Fill: =RGBA(11, 37, 64, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Size: =15
+            FontWeight: =FontWeight.Bold
+            HoverFill: =RGBA(11, 37, 64, 1)
+            PressedFill: =RGBA(11, 37, 64, 1)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            PressedColor: =RGBA(255, 255, 255, 1)
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            Visible: =locRevisar
+            DisplayMode: =If(locSalvando, DisplayMode.Disabled, DisplayMode.Edit)

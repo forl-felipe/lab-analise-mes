@@ -1,0 +1,63 @@
+=        If(
+    !gblIniciado,
+    Concurrent(
+        ClearCollect(colConfig, Configuracoes),
+        ClearCollect(colAcessos, Filter(Acessos, Ativo = true)),
+        ClearCollect(colEnsaios, Sort(Filter(Ensaios, Ativo = true), Ordem)),
+        ClearCollect(
+            colPontos,
+            AddColumns(Filter(PontosAfericao, Ativo = true), EntradaTxt, Entrada.Value, TipoTxt, TipoRegistro.Value)
+        ),
+        ClearCollect(colLimites, Limites)
+    );
+    // Perfil: quem não está na lista Acessos (ou está inativo) é Colaborador
+    Set(gblEu, LookUp(colAcessos, Lower(Pessoa.Email) = Lower(User().Email)));
+    Set(gblPerfil, If(IsBlank(gblEu), "Colaborador", gblEu.Perfil.Value));
+    Set(gblNome, User().FullName);
+    Set(
+        gblIniciais,
+        Upper(Left(First(Split(User().FullName, " ")).Value, 1) & Left(Last(Split(User().FullName, " ")).Value, 1))
+    );
+    // Turno e letra da escala (lista Configuracoes)
+    Set(gblHoraIni, Coalesce(Value(LookUp(colConfig, Title = "TurnoDiaInicio").Valor), 7));
+    Set(gblHoraFim, Coalesce(Value(LookUp(colConfig, Title = "TurnoDiaFim").Valor), 19));
+    Set(gblDiasAviso, Coalesce(Value(LookUp(colConfig, Title = "DiasAvisoCalibracao").Valor), 30));
+    Set(gblAgora, Now());
+    Set(gblTurnoAtual, If(Hour(gblAgora) >= gblHoraIni && Hour(gblAgora) < gblHoraFim, "07x19", "19x07"));
+    Set(gblDataTurnoAtual, If(Hour(gblAgora) < gblHoraIni, DateAdd(Today(), -1, TimeUnit.Days), Today()));
+    Set(
+        gblLetraTurno,
+        With(
+            {
+                wRef: DateValue(LookUp(colConfig, Title = "EscalaDataReferencia").Valor),
+                w07: Split(LookUp(colConfig, Title = "EscalaLetras07x19").Valor, ","),
+                w19: Split(LookUp(colConfig, Title = "EscalaLetras19x07").Valor, ",")
+            },
+            Index(
+                If(gblTurnoAtual = "07x19", w07, w19),
+                Mod(DateDiff(wRef, gblDataTurnoAtual, TimeUnit.Days), CountRows(w07)) + 1
+            ).Value
+        )
+    );
+    Set(gblMinhaLetra, Coalesce(gblEu.Letra.Value, gblLetraTurno));
+    Set(gblIniciado, true)
+);
+        If(IsBlank(gblTag), Set(gblTag, Param("equip")));
+        Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
+        ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
+        Set(gblUltAfData, First(colHist).DataEnsaio);
+        Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
+        Set(gblStatus, With(
+            {e: gblEquip},
+            If(
+                IsBlank(e), "",
+                e.ControlaCalibracao && e.UltimoResultado = "Recusada", "Bloqueado · Calibração recusada",
+                e.ControlaCalibracao && e.ManutencaoSolicitada, "Bloqueado · Em manutenção",
+                e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today(), "Bloqueado · Calibração vencida",
+                gblUltAfNC && !(e.UltimoResultado = "Aprovada" && !IsBlank(e.UltimaCalibracao) && e.UltimaCalibracao >= gblUltAfData),
+                    "Bloqueado · Aferição não conforme",
+                e.ControlaCalibracao && IsBlank(e.ProximaCalibracao), "Liberado · Sem data de calibração",
+                e.ControlaCalibracao && e.ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days), "Liberado · Calibração vence em breve",
+                "Liberado"
+            )
+        ))

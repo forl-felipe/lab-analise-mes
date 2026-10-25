@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json",
+  "elmType": "div",
+  "txtContent": "@currentField",
+  "style": {
+    "display": "inline-block",
+    "padding": "2px 12px",
+    "border-radius": "12px",
+    "font-weight": "600",
+    "font-size": "12px",
+    "background-color": "=if(@currentField == 'Conforme', '#e2f3ea', if(@currentField == 'Não conforme', '#fdeceb', '#eceff3'))",
+    "color": "=if(@currentField == 'Conforme', '#1e7f4f', if(@currentField == 'Não conforme', '#b42318', '#556274'))"
+  }
+}

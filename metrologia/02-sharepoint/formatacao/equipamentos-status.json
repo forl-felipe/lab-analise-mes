@@ -1,0 +1,15 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json",
+  "elmType": "div",
+  "txtContent": "=if(@currentField == '', 'Aguardando rotina diária', @currentField)",
+  "style": {
+    "display": "inline-block",
+    "padding": "2px 12px",
+    "border-radius": "12px",
+    "font-weight": "600",
+    "font-size": "12px",
+    "white-space": "nowrap",
+    "background-color": "=if(startsWith(@currentField, 'Bloqueado'), '#fdeceb', if(indexOf(@currentField, 'vence') >= 0, '#fef0c7', if(indexOf(@currentField, 'Sem data') >= 0, '#eceff3', if(@currentField == '', '#eceff3', '#e2f3ea'))))",
+    "color": "=if(startsWith(@currentField, 'Bloqueado'), '#b42318', if(indexOf(@currentField, 'vence') >= 0, '#b54708', if(indexOf(@currentField, 'Sem data') >= 0, '#556274', if(@currentField == '', '#556274', '#1e7f4f'))))"
+  }
+}

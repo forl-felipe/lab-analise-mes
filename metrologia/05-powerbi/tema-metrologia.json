@@ -1,0 +1,29 @@
+{
+  "name": "Metrologia",
+  "dataColors": ["#0B2540", "#0E6BA8", "#1E7F4F", "#B54708", "#B42318", "#6B2FBF", "#556274", "#7CC39D"],
+  "good": "#1E7F4F",
+  "neutral": "#B54708",
+  "bad": "#B42318",
+  "maximum": "#0E6BA8",
+  "center": "#E1EEF8",
+  "minimum": "#FFFFFF",
+  "background": "#FFFFFF",
+  "foreground": "#172334",
+  "tableAccent": "#0B2540",
+  "textClasses": {
+    "title": { "fontFace": "Segoe UI Semibold", "fontSize": 14, "color": "#0B2540" },
+    "header": { "fontFace": "Segoe UI Semibold", "fontSize": 12, "color": "#0B2540" },
+    "label": { "fontFace": "Segoe UI", "fontSize": 10, "color": "#5D6B7D" },
+    "callout": { "fontFace": "Segoe UI Semibold", "fontSize": 28, "color": "#0B2540" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 }],
+        "border": [{ "show": true, "color": { "solid": { "color": "#E1E7EE" } }, "radius": 8 }],
+        "title": [{ "fontColor": { "solid": { "color": "#0B2540" } }, "fontSize": 12 }]
+      }
+    },
+    "page": { "*": { "background": [{ "color": { "solid": { "color": "#F2F5F8" } }, "transparency": 0 }] } }
+  }
+}

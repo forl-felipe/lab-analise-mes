@@ -1,0 +1,3 @@
+=UpdateContext({locResultado: "", locSalvando: false});
+Reset(dtpCaData); Reset(txtCaResp); Reset(txtCaLocal); Reset(drpCaMotivo); Reset(txtCaMotivoOutro);
+Reset(chkCaManut); Reset(txtCaCert); Reset(txtCaObs)
