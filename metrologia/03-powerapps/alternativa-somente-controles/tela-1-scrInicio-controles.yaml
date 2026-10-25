@@ -213,6 +213,7 @@
       OnSelect: |-
         =Set(gblEnsaio, LookUp(colEnsaios, Title = ThisItem.Title));
         Set(gblDestacar, "");
+        Set(gblConjuntoFiltro, "");
         Navigate(If(ThisItem.Formulario.Value = "Checklist", scrVerificacao, scrEnsaio), ScreenTransition.Cover)
       Visible: =locAba = "agenda"
     Children:

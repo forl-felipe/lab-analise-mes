@@ -34,6 +34,7 @@ Cadastro único de equipamentos: calibração (instrumentação) e situação da
 | `NumeroSerie` | Linha única de texto |  |  |
 | `Local` | Linha única de texto |  | Área ou bancada |
 | `Grupo` | Linha única de texto |  | Agrupador. Para peneiras: o peneirador (Circulares, Peneirador 05...) |
+| `Conjunto` | Linha única de texto | **Indexar** | Peneiras: TAG do peneirador onde a peneira está instalada agora (vazio = fora de uso / em estoque) |
 | `EnsaioAfericao` | Linha única de texto |  | Código do ensaio de aferição deste equipamento (ex.: TAM). Vazio = não é aferido. Mais de um: separar com ponto e vírgula. |
 | `ControlaCalibracao` | Sim/Não | Padrão: Sim | Sim = tem calibração periódica controlada |
 | `PeriodicidadeMeses` | Número | Padrão: `12` | Intervalo entre calibrações |
@@ -84,9 +85,9 @@ Catálogo dos ensaios e agenda semanal (mesma grade da aba Config da planilha).
 
 ## PontosAfericao
 
-Cada linha é um campo do formulário de um ensaio: qual equipamento, qual parâmetro, que tipo de entrada e qual critério usar. É o equivalente às linhas da aba Lançamento.
+Cada linha é um campo do formulário de um ensaio: qual equipamento, qual parâmetro, que tipo de entrada e qual critério usar. É o equivalente às linhas da aba Lançamento. Nos peneiradores, cada linha é uma POSIÇÃO (peneirador + malha) e a coluna TAG diz qual peneira está nela.
 
-**Quem edita:** Gestor do sistema
+**Quem edita:** Gestor do sistema. Instrumentação troca a peneira de uma posição pelo app
 
 **Título (Title):** Código do ponto (ex.: TAM-01) · **Impor valores exclusivos: Sim** (e indexar)
 
@@ -95,6 +96,7 @@ Cada linha é um campo do formulário de um ensaio: qual equipamento, qual parâ
 | `Ensaio` | Linha única de texto | Obrigatória · **Indexar** | Código do ensaio (lista Ensaios) |
 | `Ordem` | Número |  | Ordem no formulário |
 | `Secao` | Linha única de texto |  | Subtítulo dentro do formulário (ex.: FX -16,0 +12,5 mm, Peneirador 05) |
+| `Conjunto` | Linha única de texto |  | Peneiradores: TAG do peneirador desta posição. O QR Code do peneirador abre só as posições dele |
 | `TAG` | Linha única de texto |  | TAG do equipamento (lista Equipamentos). Vazio quando não há equipamento cadastrado |
 | `EquipamentoBD` | Linha única de texto |  | Texto gravado na coluna Equipamento das aferições (igual à planilha) |
 | `Parametro` | Linha única de texto | Obrigatória |  |

@@ -62,6 +62,7 @@ Garantir-Coluna 'Equipamentos' 'FabricanteModelo' '<Field Type=''Text'' Name=''F
 Garantir-Coluna 'Equipamentos' 'NumeroSerie' '<Field Type=''Text'' Name=''NumeroSerie'' StaticName=''NumeroSerie'' DisplayName=''NumeroSerie'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Equipamentos' 'Local' '<Field Type=''Text'' Name=''Local'' StaticName=''Local'' DisplayName=''Local'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Equipamentos' 'Grupo' '<Field Type=''Text'' Name=''Grupo'' StaticName=''Grupo'' DisplayName=''Grupo'' MaxLength=''255''></Field>'
+Garantir-Coluna 'Equipamentos' 'Conjunto' '<Field Type=''Text'' Name=''Conjunto'' StaticName=''Conjunto'' DisplayName=''Conjunto'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Equipamentos' 'EnsaioAfericao' '<Field Type=''Text'' Name=''EnsaioAfericao'' StaticName=''EnsaioAfericao'' DisplayName=''EnsaioAfericao'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Equipamentos' 'ControlaCalibracao' '<Field Type=''Boolean'' Name=''ControlaCalibracao'' StaticName=''ControlaCalibracao'' DisplayName=''ControlaCalibracao''><Default>1</Default></Field>'
 Garantir-Coluna 'Equipamentos' 'PeriodicidadeMeses' '<Field Type=''Number'' Name=''PeriodicidadeMeses'' StaticName=''PeriodicidadeMeses'' DisplayName=''PeriodicidadeMeses''><Default>12</Default></Field>'
@@ -78,8 +79,9 @@ Garantir-Coluna 'Equipamentos' 'Status' '<Field Type=''Text'' Name=''Status'' St
 Garantir-Coluna 'Equipamentos' 'ObservacaoCadastro' '<Field Type=''Note'' Name=''ObservacaoCadastro'' StaticName=''ObservacaoCadastro'' DisplayName=''ObservacaoCadastro'' NumLines=''6'' RichText=''FALSE'' />'
 Garantir-Coluna 'Equipamentos' 'Ativo' '<Field Type=''Boolean'' Name=''Ativo'' StaticName=''Ativo'' DisplayName=''Ativo''><Default>1</Default></Field>'
 Set-PnPField -List 'Equipamentos' -Identity 'Title' -Values @{ Indexed = $true; EnforceUniqueValues = $true } | Out-Null
+Indexar 'Equipamentos' 'Conjunto'
 $v = Get-PnPView -List 'Equipamentos' | Where-Object { $_.DefaultView }
-Set-PnPView -List 'Equipamentos' -Identity $v.Id -Fields @('LinkTitle', 'Descricao', 'TipoEquipamento', 'FabricanteModelo', 'NumeroSerie', 'Local', 'Grupo', 'EnsaioAfericao', 'ControlaCalibracao', 'PeriodicidadeMeses', 'UltimaCalibracao', 'ProximaCalibracao', 'UltimoResultado') | Out-Null
+Set-PnPView -List 'Equipamentos' -Identity $v.Id -Fields @('LinkTitle', 'Descricao', 'TipoEquipamento', 'FabricanteModelo', 'NumeroSerie', 'Local', 'Grupo', 'Conjunto', 'EnsaioAfericao', 'ControlaCalibracao', 'PeriodicidadeMeses', 'UltimaCalibracao', 'ProximaCalibracao') | Out-Null
 
 # ---------------------------------------------------------------- Ensaios
 Garantir-Lista 'Ensaios' 'Catálogo dos ensaios e agenda semanal (mesma grade da aba Config da planilha).'
@@ -109,10 +111,11 @@ $v = Get-PnPView -List 'Ensaios' | Where-Object { $_.DefaultView }
 Set-PnPView -List 'Ensaios' -Identity $v.Id -Fields @('LinkTitle', 'Nome', 'NomeBD', 'Formulario', 'Frequencia', 'Ordem', 'Instrucoes', 'Ativo', 'SegD', 'SegN', 'TerD', 'TerN', 'QuaD') | Out-Null
 
 # ---------------------------------------------------------------- PontosAfericao
-Garantir-Lista 'PontosAfericao' 'Cada linha é um campo do formulário de um ensaio: qual equipamento, qual parâmetro, que tipo de entrada e qual critério usar. É o equivalente às linhas da aba Lançamento.'
+Garantir-Lista 'PontosAfericao' 'Cada linha é um campo do formulário de um ensaio: qual equipamento, qual parâmetro, que tipo de entrada e qual critério usar. É o equivalente às linhas da aba Lançamento. Nos peneiradores, cada linha é uma POSIÇÃO (peneirador + malha) e a coluna TAG diz qual peneira está nela.'
 Garantir-Coluna 'PontosAfericao' 'Ensaio' '<Field Type=''Text'' Name=''Ensaio'' StaticName=''Ensaio'' DisplayName=''Ensaio'' MaxLength=''255'' Required=''TRUE''></Field>'
 Garantir-Coluna 'PontosAfericao' 'Ordem' '<Field Type=''Number'' Name=''Ordem'' StaticName=''Ordem'' DisplayName=''Ordem''></Field>'
 Garantir-Coluna 'PontosAfericao' 'Secao' '<Field Type=''Text'' Name=''Secao'' StaticName=''Secao'' DisplayName=''Secao'' MaxLength=''255''></Field>'
+Garantir-Coluna 'PontosAfericao' 'Conjunto' '<Field Type=''Text'' Name=''Conjunto'' StaticName=''Conjunto'' DisplayName=''Conjunto'' MaxLength=''255''></Field>'
 Garantir-Coluna 'PontosAfericao' 'TAG' '<Field Type=''Text'' Name=''TAG'' StaticName=''TAG'' DisplayName=''TAG'' MaxLength=''255''></Field>'
 Garantir-Coluna 'PontosAfericao' 'EquipamentoBD' '<Field Type=''Text'' Name=''EquipamentoBD'' StaticName=''EquipamentoBD'' DisplayName=''EquipamentoBD'' MaxLength=''255''></Field>'
 Garantir-Coluna 'PontosAfericao' 'Parametro' '<Field Type=''Text'' Name=''Parametro'' StaticName=''Parametro'' DisplayName=''Parametro'' MaxLength=''255'' Required=''TRUE''></Field>'
@@ -127,7 +130,7 @@ Garantir-Coluna 'PontosAfericao' 'Ativo' '<Field Type=''Boolean'' Name=''Ativo''
 Set-PnPField -List 'PontosAfericao' -Identity 'Title' -Values @{ Indexed = $true; EnforceUniqueValues = $true } | Out-Null
 Indexar 'PontosAfericao' 'Ensaio'
 $v = Get-PnPView -List 'PontosAfericao' | Where-Object { $_.DefaultView }
-Set-PnPView -List 'PontosAfericao' -Identity $v.Id -Fields @('LinkTitle', 'Ensaio', 'Ordem', 'Secao', 'TAG', 'EquipamentoBD', 'Parametro', 'Unidade', 'Entrada', 'ChaveLimite', 'Fator', 'RotuloA', 'RotuloB') | Out-Null
+Set-PnPView -List 'PontosAfericao' -Identity $v.Id -Fields @('LinkTitle', 'Ensaio', 'Ordem', 'Secao', 'Conjunto', 'TAG', 'EquipamentoBD', 'Parametro', 'Unidade', 'Entrada', 'ChaveLimite', 'Fator', 'RotuloA') | Out-Null
 
 # ---------------------------------------------------------------- Limites
 Garantir-Lista 'Limites' 'Critérios de aceitação. É AQUI que se define nominal, limites e tolerância de cada ensaio. O app usa o valor novo imediatamente.'
@@ -241,10 +244,12 @@ Set-PnPList -Identity 'Afericoes' -BreakRoleInheritance -CopyRoleAssignments | O
 Set-PnPList -Identity 'Calibracoes' -BreakRoleInheritance -CopyRoleAssignments | Out-Null
 Set-PnPList -Identity 'Equipamentos' -BreakRoleInheritance -CopyRoleAssignments | Out-Null
 Set-PnPList -Identity 'Lancamentos' -BreakRoleInheritance -CopyRoleAssignments | Out-Null
+Set-PnPList -Identity 'PontosAfericao' -BreakRoleInheritance -CopyRoleAssignments | Out-Null
 Set-PnPListPermission -Identity 'Afericoes' -Group 'Metrologia - Laboratoristas' -AddRole $colaborar | Out-Null
 Set-PnPListPermission -Identity 'Lancamentos' -Group 'Metrologia - Laboratoristas' -AddRole $colaborar | Out-Null
 Set-PnPListPermission -Identity 'Calibracoes' -Group 'Metrologia - Instrumentação' -AddRole $colaborar | Out-Null
 Set-PnPListPermission -Identity 'Equipamentos' -Group 'Metrologia - Instrumentação' -AddRole $colaborar | Out-Null
+Set-PnPListPermission -Identity 'PontosAfericao' -Group 'Metrologia - Instrumentação' -AddRole $colaborar | Out-Null
 Write-Host 'Permissões aplicadas. Confira se o grupo de Visitantes do site contém "Todos, exceto usuários externos".' -ForegroundColor Cyan
 
 # ---------------------------------------------------------------- Importação da carga inicial (opcional)

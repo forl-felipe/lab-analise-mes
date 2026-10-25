@@ -43,10 +43,39 @@
     Set(gblIniciado, true)
 );
         If(IsBlank(gblTag), Set(gblTag, Param("equip")));
+        If(CountRows(colEquip) = 0, ClearCollect(
+        colEquip,
+        AddColumns(
+            Filter(Equipamentos, Ativo = true),
+            StatusCalc,
+            If(
+                ControlaCalibracao && UltimoResultado = "Recusada", "Bloqueado · Calibração recusada",
+                ControlaCalibracao && ManutencaoSolicitada, "Bloqueado · Em manutenção",
+                ControlaCalibracao && !IsBlank(ProximaCalibracao) && ProximaCalibracao < Today(), "Bloqueado · Calibração vencida",
+                UltimaAfericaoResultado = "Não conforme" &&
+                    !(UltimoResultado = "Aprovada" && !IsBlank(UltimaCalibracao) && UltimaCalibracao >= UltimaAfericao),
+                    "Bloqueado · Aferição não conforme",
+                ControlaCalibracao && IsBlank(ProximaCalibracao), "Liberado · Sem data de calibração",
+                ControlaCalibracao && ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days), "Liberado · Calibração vence em breve",
+                "Liberado"
+            )
+        )
+    ));
         Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
         ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
         Set(gblUltAfData, First(colHist).DataEnsaio);
         Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
+        // Peneirador = conjunto com etiqueta própria; Peneira = item calibrado pela instrumentação
+        Set(gblEhPeneirador, gblEquip.TipoEquipamento = "Peneirador" && !IsBlank(LookUp(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title)));
+        Set(gblEhPeneira, gblEquip.TipoEquipamento = "Peneira");
+        Set(gblConjuntoRef, If(gblEhPeneirador, gblEquip.Title, gblEhPeneira, gblEquip.Conjunto, ""));
+        ClearCollect(
+            colPeneirasConj,
+            AddColumns(
+                Sort(Filter(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title), Ordem),
+                StatusPen, Coalesce(LookUp(colEquip, Title = TAG).StatusCalc, "Posição vazia")
+            )
+        );
         Set(gblStatus, With(
             {e: gblEquip},
             If(
@@ -60,4 +89,5 @@
                 e.ControlaCalibracao && e.ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days), "Liberado · Calibração vence em breve",
                 "Liberado"
             )
-        ))
+        ));
+        UpdateContext({locInstalar: false})

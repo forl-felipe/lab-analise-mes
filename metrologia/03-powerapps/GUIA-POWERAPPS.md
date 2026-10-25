@@ -9,9 +9,9 @@ Um app **novo**, chamado **Metrologia**, com 5 telas. O app da versão 1 continu
 | Tela | Arquivo | Quem usa | O que faz |
 |---|---|---|---|
 | `scrInicio` | `tela-1-scrInicio.yaml` | Todos | Início. Laboratorista: **Agenda do turno**. Instrumentação: **Aguardando você**. Todos: lista de equipamentos com situação |
-| `scrEquipamento` | `tela-2-scrEquipamento.yaml` | Todos | Abre pelo **QR Code**: LIBERADO / NÃO UTILIZAR, calibração, última aferição, justificativa e histórico |
+| `scrEquipamento` | `tela-2-scrEquipamento.yaml` | Todos | Abre pelo **QR Code**: LIBERADO / NÃO UTILIZAR, calibração, última aferição, justificativa e histórico. **Peneirador:** lista as posições e as peneiras. **Peneira:** mostra onde está instalada; instrumentação pode trocá-la de posição |
 | `scrEnsaio` | `tela-3-scrEnsaio.yaml` | Laboratorista | Formulário de **medição** (Blaine, tambor, Alpine, umidade, compressão, granulometria, tamboramento, Fisher). Calcula na hora |
-| `scrVerificacao` | `tela-4-scrVerificacao.yaml` | Laboratorista | **Checklist dos peneiradores** (5 itens por peneira) |
+| `scrVerificacao` | `tela-4-scrVerificacao.yaml` | Laboratorista | **Checklist dos peneiradores**: tudo começa OK, botão **Marcar todos OK**, toque no item para corrigir, filtro por peneirador |
 | `scrCalibrar` | `tela-5-scrCalibrar.yaml` | Instrumentação | Registro de **calibração** |
 
 Os formulários **não são fixos**: são montados a partir das listas **PontosAfericao** (campos) e **Limites** (critérios). Para incluir uma peneira nova, basta acrescentar uma linha na PontosAfericao. Não precisa mexer no app.
@@ -114,6 +114,13 @@ Ensaio **Previsto** = coluna do dia e turno marcada na lista **Ensaios** (SegD, 
 
 **Conforme:** com limites, LimInferior ≤ valor ≤ LimSuperior. Com tolerância, |valor − referência| ≤ Tolerância. Sem critério, Informativo.
 Essas regras foram conferidas contra **todos os 400 registros de outubro** (`relatorio-validacao.md`).
+
+### Peneiradores e peneiras
+
+- **QR do peneirador** → ficha com as posições e a situação de cada peneira → **Verificar as peneiras deste peneirador** abre o checklist só com aquele conjunto.
+- **QR da peneira** → ficha da peneira (calibração, onde está, verificações). Laboratorista: **Verificar o peneirador** dela. Instrumentação: **Registrar calibração** e **Instalar em posição**.
+- **Checklist**: os itens ficam numa coleção (`colFormVe`, colunas I1 a I5). Cada toque troca o valor; **Marcar todos OK** usa `UpdateIf`. Só as peneiras do filtro escolhido são enviadas.
+- Posições vazias (sem peneira) não aparecem no checklist.
 
 ### Envio
 

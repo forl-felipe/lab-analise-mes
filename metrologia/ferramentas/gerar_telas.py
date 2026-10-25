@@ -136,8 +136,8 @@ def icon(nome, ic, x, y, w, h, onselect=None, color=WHITE, **kw):
                PaddingTop=8, PaddingBottom=8, PaddingLeft=8, PaddingRight=8, **kw)
 
 
-def gallery(nome, items, x, y, w, h, template, children, **kw):
-    return ctl(nome, "Gallery@2.15.0", variant="Vertical", children=children, Items=items, X=x, Y=y, Width=w, Height=h,
+def gallery(nome, items, x, y, w, h, template, children, variant_override=None, **kw):
+    return ctl(nome, "Gallery@2.15.0", variant=variant_override or "Vertical", children=children, Items=items, X=x, Y=y, Width=w, Height=h,
                TemplateSize=template, TemplatePadding=0, TemplateFill="RGBA(0, 0, 0, 0)", **kw)
 
 
@@ -499,6 +499,7 @@ def tela_inicio():
         ], OnSelect=F('''
             Set(gblEnsaio, LookUp(colEnsaios, Title = ThisItem.Title));
             Set(gblDestacar, "");
+            Set(gblConjuntoFiltro, "");
             Navigate(If(ThisItem.Formulario.Value = "Checklist", scrVerificacao, scrEnsaio), ScreenTransition.Cover)'''),
            Visible='locAba = "agenda"'),
         # ----- aba pendências (instrumentação)
@@ -543,33 +544,87 @@ def tela_inicio():
 
 
 # ------------------------------------------------------------------ TELA 2 · Equipamento
+STATUS_EQ = '''
+    With(
+        {e: gblEquip},
+        If(
+            IsBlank(e), "",
+            e.ControlaCalibracao && e.UltimoResultado = "Recusada", "Bloqueado · Calibração recusada",
+            e.ControlaCalibracao && e.ManutencaoSolicitada, "Bloqueado · Em manutenção",
+            e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today(), "Bloqueado · Calibração vencida",
+            gblUltAfNC && !(e.UltimoResultado = "Aprovada" && !IsBlank(e.UltimaCalibracao) && e.UltimaCalibracao >= gblUltAfData),
+                "Bloqueado · Aferição não conforme",
+            e.ControlaCalibracao && IsBlank(e.ProximaCalibracao), "Liberado · Sem data de calibração",
+            e.ControlaCalibracao && e.ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days), "Liberado · Calibração vence em breve",
+            "Liberado"
+        )
+    )'''
+
+CARREGAR_FICHA = f'''
+Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
+ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
+Set(gblUltAfData, First(colHist).DataEnsaio);
+Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
+// Peneirador = conjunto com etiqueta própria; Peneira = item calibrado pela instrumentação
+Set(gblEhPeneirador, gblEquip.TipoEquipamento = "Peneirador" && !IsBlank(LookUp(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title)));
+Set(gblEhPeneira, gblEquip.TipoEquipamento = "Peneira");
+Set(gblConjuntoRef, If(gblEhPeneirador, gblEquip.Title, gblEhPeneira, gblEquip.Conjunto, ""));
+ClearCollect(
+    colPeneirasConj,
+    AddColumns(
+        Sort(Filter(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title), Ordem),
+        StatusPen, Coalesce(LookUp(colEquip, Title = TAG).StatusCalc, "Posição vazia")
+    )
+);
+Set(gblStatus, {textwrap.indent(textwrap.dedent(STATUS_EQ).strip(), "")})'''
+
+
 def tela_equipamento():
-    status = '''
-        With(
-            {e: gblEquip},
-            If(
-                IsBlank(e), "",
-                e.ControlaCalibracao && e.UltimoResultado = "Recusada", "Bloqueado · Calibração recusada",
-                e.ControlaCalibracao && e.ManutencaoSolicitada, "Bloqueado · Em manutenção",
-                e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today(), "Bloqueado · Calibração vencida",
-                gblUltAfNC && !(e.UltimoResultado = "Aprovada" && !IsBlank(e.UltimaCalibracao) && e.UltimaCalibracao >= gblUltAfData),
-                    "Bloqueado · Aferição não conforme",
-                e.ControlaCalibracao && IsBlank(e.ProximaCalibracao), "Liberado · Sem data de calibração",
-                e.ControlaCalibracao && e.ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days), "Liberado · Calibração vence em breve",
-                "Liberado"
-            )
-        )'''
     onvisible = F(f'''
         {textwrap.dedent(INIT).strip()};
         If(IsBlank(gblTag), Set(gblTag, Param("equip")));
-        Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
-        ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
-        Set(gblUltAfData, First(colHist).DataEnsaio);
-        Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
-        Set(gblStatus, {textwrap.indent(textwrap.dedent(status).strip(), "        ").strip()})''')
+        If(CountRows(colEquip) = 0, {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "    ").strip()});
+        {textwrap.indent(textwrap.dedent(CARREGAR_FICHA).strip(), "        ").strip()};
+        UpdateContext({{locInstalar: false}})''')
     vivo = "!IsBlank(gblEquip)"
     bloq = 'StartsWith(gblStatus, "Bloqueado")'
     dias = "DateDiff(Today(), gblEquip.ProximaCalibracao, TimeUnit.Days)"
+    pen = "(gblEhPeneirador || gblEhPeneira)"
+    nome_conj = 'Coalesce(LookUp(colEquip, Title = gblConjuntoRef).Descricao, "peneirador")'
+    lancar_visivel = f'{vivo} && gblPerfil = "Laboratorista" && (gblEhPeneirador || (gblEhPeneira && !IsBlank(gblConjuntoRef)) || (!gblEhPeneira && !IsBlank(gblEquip.EnsaioAfericao)))'
+    pos_item = 'Parametro & "  ·  atual: " & Coalesce(TAG, "vazia")'
+    instalar = F(f'''
+        With(
+            {{pos: LookUp(colPontos, Ensaio = "PEN" && {pos_item} = drpEqPosicao.Selected.Value)}},
+            If(
+                IsBlank(pos), Notify("Escolha a posição.", NotificationType.Error),
+                pos.TAG = gblEquip.Title, Notify("Esta peneira já está nessa posição.", NotificationType.Information),
+                IfError(
+                    // 1) a posição passa a ter esta peneira
+                    Patch(PontosAfericao, LookUp(PontosAfericao, Title = pos.Title), {{TAG: gblEquip.Title, EquipamentoBD: gblEquip.Title}}),
+                    Notify("Não foi possível alterar a posição: " & FirstError.Message, NotificationType.Error),
+                    // 2) a peneira que estava lá fica fora de uso
+                    If(
+                        !IsBlank(pos.TAG) && !IsBlank(LookUp(Equipamentos, Title = pos.TAG)),
+                        Patch(Equipamentos, LookUp(Equipamentos, Title = pos.TAG), {{Conjunto: "", Grupo: ""}})
+                    ),
+                    Notify("Posição alterada, mas a peneira anterior não foi atualizada: " & FirstError.Message, NotificationType.Warning),
+                    // 3) se esta peneira estava em outra posição, aquela posição fica vazia
+                    ForAll(
+                        Filter(colPontos, Ensaio = "PEN" && TAG = gblEquip.Title && Title <> pos.Title) As velho,
+                        Patch(PontosAfericao, LookUp(PontosAfericao, Title = velho.Title), {{TAG: "", EquipamentoBD: ""}})
+                    );
+                    Patch(Equipamentos, gblEquip, {{Conjunto: pos.Conjunto, Grupo: pos.Secao}}),
+                    Notify("Erro ao atualizar a peneira: " & FirstError.Message, NotificationType.Error),
+
+                    ClearCollect(colPontos, AddColumns(Filter(PontosAfericao, Ativo = true), EntradaTxt, Entrada.Value, TipoTxt, TipoRegistro.Value));
+                    {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "                    ").strip()};
+                    {textwrap.indent(textwrap.dedent(CARREGAR_FICHA).strip(), "                    ").strip()};
+                    UpdateContext({{locInstalar: false}});
+                    Notify(gblEquip.Title & " instalada em " & pos.Secao & ".", NotificationType.Success)
+                )
+            )
+        )''')
     filhos = cabecalho("Eq", F('Coalesce(gblEquip.Title, gblTag)'), F('Coalesce(gblEquip.Descricao, "Equipamento")'),
                        voltar="Navigate(scrInicio, ScreenTransition.UnCover)") + [
         label("lblEqNaoEncontrado", F('"Equipamento não encontrado: " & Coalesce(gblTag, "(sem TAG)") & Char(10) & Char(10) & "Confira se a TAG está cadastrada na lista Equipamentos e marcada como Ativo."'),
@@ -592,9 +647,21 @@ def tela_equipamento():
         label("lblEqTag", "gblEquip.Title", 20, 238, "Parent.Width - 40", 44, size=24, bold=True, color=NAVY, Visible=vivo),
         label("lblEqInfo", F('''
             gblEquip.Descricao &
-            If(IsBlank(gblEquip.Grupo), "", "  ·  " & gblEquip.Grupo) &
-            If(IsBlank(gblEquip.Local), "", "  ·  " & gblEquip.Local) &
-            If(IsBlank(gblEquip.EnsaioAfericao), "  ·  sem aferição semanal", "")'''),
+            If(
+                gblEhPeneira,
+                "  ·  " & If(
+                    IsBlank(gblEquip.Conjunto), "fora de uso (sem posição)",
+                    "instalada no " & Coalesce(LookUp(colEquip, Title = gblEquip.Conjunto).Descricao, gblEquip.Conjunto)
+                ),
+                ""
+            ) &
+            If(
+                gblEhPeneirador,
+                "  ·  " & CountRows(colPeneirasConj) & " posições  ·  " &
+                CountIf(colPeneirasConj, StartsWith(StatusPen, "Bloqueado")) & " peneira(s) bloqueada(s)",
+                ""
+            ) &
+            If(!gblEhPeneira && !gblEhPeneirador && IsBlank(gblEquip.EnsaioAfericao), "  ·  sem aferição semanal", "")'''),
               20, 282, "Parent.Width - 40", 44, size=12, color=SUB, Visible=vivo),
         # cartões
         rect("recEqCal", 20, 348, "(Parent.Width - 52) / 2", 132, fill=WHITE, Visible=vivo),
@@ -616,18 +683,21 @@ def tela_equipamento():
             If(IsBlank(gblEquip.UltimaCalibracao), "", Char(10) & "Última: " & Text(gblEquip.UltimaCalibracao, "dd/mm/yyyy"))'''),
               34, 424, "(Parent.Width - 52) / 2 - 28", 50, size=11, color=SUB, VerticalAlign="VerticalAlign.Top", Visible=vivo),
         rect("recEqAf", "32 + (Parent.Width - 52) / 2", 348, "(Parent.Width - 52) / 2", 132, fill=WHITE, Visible=vivo),
-        label("lblEqAfRot", F('"ÚLTIMA AFERIÇÃO" & If(IsBlank(gblUltAfData), "", " · " & Text(gblUltAfData, "dd/mm"))'),
+        label("lblEqAfRot", F('If(gblEhPeneirador, "PENEIRAS INSTALADAS", "ÚLTIMA AFERIÇÃO" & If(IsBlank(gblUltAfData), "", " · " & Text(gblUltAfData, "dd/mm")))'),
               "46 + (Parent.Width - 52) / 2", 356, "(Parent.Width - 52) / 2 - 28", 26, size=10, bold=True, color=SUB, Visible=vivo),
         label("lblEqAfVal", F('''
             If(
+                gblEhPeneirador, CountIf(colPeneirasConj, StartsWith(StatusPen, "Liberado")) & " de " & CountRows(colPeneirasConj) & " liberadas",
                 IsBlank(First(colHist)), "Sem registro",
                 First(colHist).Unidade = "itens OK", First(colHist).Valor & " de " & First(colHist).Referencia & " itens OK",
                 Text(First(colHist).Valor, "#,##0.###") & " " & First(colHist).Unidade
             )'''), "46 + (Parent.Width - 52) / 2", 382, "(Parent.Width - 52) / 2 - 28", 40, size=17, bold=True,
-              color=F(f'If(gblUltAfNC, {BAD}, IsBlank(First(colHist)), {MUT}, {OK})'), Visible=vivo),
+              color=F(f'If(gblEhPeneirador, If(CountIf(colPeneirasConj, StartsWith(StatusPen, "Bloqueado")) > 0, {BAD}, {OK}), gblUltAfNC, {BAD}, IsBlank(First(colHist)), {MUT}, {OK})'), Visible=vivo),
         label("lblEqAfSub", F('''
             If(
-                IsBlank(First(colHist)), If(IsBlank(gblEquip.EnsaioAfericao), "Equipamento sem aferição", "Nenhum lançamento ainda"),
+                gblEhPeneirador, "A verificação é registrada em cada peneira",
+                IsBlank(First(colHist)),
+                    If(gblEhPeneira, "Nenhuma verificação ainda", IsBlank(gblEquip.EnsaioAfericao), "Equipamento sem aferição", "Nenhum lançamento ainda"),
                 If(gblUltAfNC, "Não conforme", "Conforme") & " · " & First(colHist).Parametro
             )'''), "46 + (Parent.Width - 52) / 2", 424, "(Parent.Width - 52) / 2 - 28", 50, size=11, color=SUB,
               VerticalAlign="VerticalAlign.Top", Visible=vivo),
@@ -638,8 +708,9 @@ def tela_equipamento():
                 "Justificativa registrada: " & Coalesce(nc.Observacao, "(sem observação)") & Char(10) &
                 nc.Responsavel & " · Letra " & nc.Letra & " · " & Text(nc.DataEnsaio, "dd/mm/yyyy")
             )'''), 20, 492, "Parent.Width - 40", 96, size=12, color=BAD, Fill=BAD_S, PaddingLeft=14, PaddingRight=14,
-              VerticalAlign="VerticalAlign.Top", BorderColor=BAD, BorderThickness=1, Visible=f"{vivo} && gblUltAfNC"),
-        label("lblEqHistRot", '"HISTÓRICO DE AFERIÇÕES"', 20, F('If(gblUltAfNC, 600, 494)'), "Parent.Width - 40", 30, size=11, bold=True, color=SUB, Visible=vivo),
+              VerticalAlign="VerticalAlign.Top", BorderColor=BAD, BorderThickness=1, Visible=f"{vivo} && gblUltAfNC && !gblEhPeneirador"),
+        label("lblEqHistRot", F('If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR · toque para abrir a peneira", "HISTÓRICO DE AFERIÇÕES")'),
+              20, F('If(gblUltAfNC && !gblEhPeneirador, 600, 494)'), "Parent.Width - 40", 30, size=11, bold=True, color=SUB, Visible=vivo),
         gallery("galEqHist", "colHist", 20, F('If(gblUltAfNC, 632, 526)'), "Parent.Width - 40",
                 F('Parent.Height - If(gblUltAfNC, 632, 526) - 112'), 80, [
             rect("recHiCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 6", fill=WHITE),
@@ -650,24 +721,77 @@ def tela_equipamento():
                   Color=res_color("ThisItem.Resultado")),
             label("lblHiRes", F('Upper(ThisItem.Resultado)'), "Parent.TemplateWidth - 186", 40, 172, 26, size=9, bold=True,
                   Align="Align.Center", Fill=res_fill("ThisItem.Resultado"), Color=res_color("ThisItem.Resultado")),
-        ], Visible=vivo),
+        ], Visible=f"{vivo} && !gblEhPeneirador"),
+        gallery("galEqPeneiras", "colPeneirasConj", 20, 526, "Parent.Width - 40", "Parent.Height - 526 - 112", 76, [
+            rect("recPcCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 6", fill=WHITE, OnSelect="Select(Parent)"),
+            rect("recPcFaixa", 0, 0, 6, "Parent.TemplateHeight - 6", fill=status_color("ThisItem.StatusPen"), OnSelect="Select(Parent)"),
+            label("lblPcTag", "ThisItem.TAG", 20, 6, "Parent.TemplateWidth - 230", 32, size=14, bold=True, color=NAVY, OnSelect="Select(Parent)"),
+            label("lblPcMalha", F('Trim(First(Split(ThisItem.Parametro, "(")).Value)'), 20, 36, "Parent.TemplateWidth - 230", 28, size=11, color=SUB, OnSelect="Select(Parent)"),
+            label("lblPcStat", F('Upper(If(StartsWith(ThisItem.StatusPen, "Bloqueado"), "Bloqueada", ThisItem.StatusPen = "Posição vazia", "Vazia", "Liberada"))'),
+                  "Parent.TemplateWidth - 196", 8, 180, 30, size=10, bold=True, Align="Align.Center",
+                  Fill=status_fill("ThisItem.StatusPen"), Color=status_color("ThisItem.StatusPen"), OnSelect="Select(Parent)"),
+            label("lblPcMot", F('Trim(Last(Split(ThisItem.StatusPen, "·")).Value)'), "Parent.TemplateWidth - 236", 40, 220, 26,
+                  size=10, color=SUB, Align="Align.Right", OnSelect="Select(Parent)"),
+        ], OnSelect=F(f'''
+            If(
+                !IsBlank(ThisItem.TAG),
+                Set(gblTag, ThisItem.TAG);
+                {textwrap.indent(textwrap.dedent(CARREGAR_FICHA).strip(), "                ").strip()}
+            )'''), Visible=f"{vivo} && gblEhPeneirador"),
         label("lblEqHistVazio", '"Nenhuma aferição registrada para este equipamento."', 20, 540, "Parent.Width - 40", 60, size=12, color=SUB,
-              Align="Align.Center", Visible=f"{vivo} && CountRows(colHist) = 0"),
+              Align="Align.Center", Visible=f"{vivo} && CountRows(colHist) = 0 && !gblEhPeneirador"),
         # rodapé por perfil
         rect("recEqRodape", 0, "Parent.Height - 104", "Parent.Width", 104, fill=WHITE, BorderColor=LINE, BorderThickness=1, Visible=vivo),
-        button("btnEqLancar", F('"Lançar " & LookUp(colEnsaios, Title = First(Split(gblEquip.EnsaioAfericao, ";")).Value).Nome'),
-               20, "Parent.Height - 88", "Parent.Width - 40", 70, F('''
-            Set(gblEnsaio, LookUp(colEnsaios, Title = First(Split(gblEquip.EnsaioAfericao, ";")).Value));
-            Set(gblDestacar, gblEquip.Title);
+        button("btnEqLancar", F(f'''
+            If(
+                {pen}, "Verificar as peneiras do " & {nome_conj},
+                "Lançar " & LookUp(colEnsaios, Title = First(Split(gblEquip.EnsaioAfericao, ";")).Value).Nome
+            )'''), 20, "Parent.Height - 88", "Parent.Width - 40", 70, F(f'''
+            If(
+                {pen},
+                Set(gblEnsaio, LookUp(colEnsaios, Title = "PEN"));
+                Set(gblConjuntoFiltro, gblConjuntoRef);
+                Set(gblDestacar, If(gblEhPeneira, gblEquip.Title, "")),
+                Set(gblEnsaio, LookUp(colEnsaios, Title = First(Split(gblEquip.EnsaioAfericao, ";")).Value));
+                Set(gblConjuntoFiltro, "");
+                Set(gblDestacar, gblEquip.Title)
+            );
             Navigate(If(gblEnsaio.Formulario.Value = "Checklist", scrVerificacao, scrEnsaio), ScreenTransition.Cover)'''),
-               Visible=f'{vivo} && gblPerfil = "Laboratorista" && !IsBlank(gblEquip.EnsaioAfericao)'),
-        button("btnEqCalibrar", '"Registrar calibração"', 20, "Parent.Height - 88", "Parent.Width - 40", 70,
+               Visible=lancar_visivel),
+        button("btnEqCalibrar", '"Registrar calibração"', 20, "Parent.Height - 88", F('If(gblEhPeneira, (Parent.Width - 50) / 2, Parent.Width - 40)'), 70,
                "Navigate(scrCalibrar, ScreenTransition.Cover)", Visible=f'{vivo} && gblPerfil = "Instrumentação"'),
+        button("btnEqInstalar", '"Instalar em posição"', "30 + (Parent.Width - 50) / 2", "Parent.Height - 88", "(Parent.Width - 50) / 2", 70,
+               "UpdateContext({locInstalar: true}); Reset(drpEqPosicao)", fill=WHITE, color=NAVY, BorderColor=NAVY, BorderThickness=2,
+               Visible=f'{vivo} && gblPerfil = "Instrumentação" && gblEhPeneira'),
         label("lblEqConsulta", F('If(gblPerfil = "Laboratorista", "Este equipamento não tem aferição semanal.", "Modo consulta: só a equipe autorizada registra.")'),
               20, "Parent.Height - 88", "Parent.Width - 40", 70, size=12, color=SUB, Align="Align.Center",
-              Visible=f'{vivo} && (gblPerfil = "Colaborador" || (gblPerfil = "Laboratorista" && IsBlank(gblEquip.EnsaioAfericao)))'),
+              Visible=f'{vivo} && (gblPerfil = "Colaborador" || (gblPerfil = "Laboratorista" && !({lancar_visivel})))'),
+        # painel: instalar peneira em uma posição (instrumentação)
+        rect("recEqInsFundo", 0, 0, "Parent.Width", "Parent.Height", fill=OVERLAY, Visible="locInstalar"),
+        rect("recEqInsCartao", 20, 300, "Parent.Width - 40", 470, fill=WHITE, Visible="locInstalar"),
+        label("lblEqInsTitulo", F('"Instalar " & gblEquip.Title & " (" & gblEquip.Descricao & ")"'), 44, 320, "Parent.Width - 88", 40, size=17, bold=True, color=NAVY, Visible="locInstalar"),
+        label("lblEqInsTexto", F('''
+            "Escolha a posição onde a peneira foi colocada. A peneira que estava nessa posição fica como fora de uso." &
+            If(IsBlank(gblEquip.Conjunto), "", Char(10) & "Hoje ela está no " & Coalesce(LookUp(colEquip, Title = gblEquip.Conjunto).Descricao, gblEquip.Conjunto) & ".")'''),
+              44, 364, "Parent.Width - 88", 96, size=12, color=SUB, VerticalAlign="VerticalAlign.Top", Visible="locInstalar"),
+        label("lblEqInsRot", '"POSIÇÃO (PENEIRADOR · MALHA)"', 44, 468, "Parent.Width - 88", 26, size=10, bold=True, color=SUB, Visible="locInstalar"),
+        dropdown("drpEqPosicao", F(f'''
+            With(
+                {{wMalha: Substitute(gblEquip.Descricao, "Peneira ", "Malha ")}},
+                With(
+                    {{wMesma: Filter(colPontos, Ensaio = "PEN" && wMalha in Parametro)}},
+                    ForAll(If(CountRows(wMesma) > 0, wMesma, Filter(colPontos, Ensaio = "PEN")), {pos_item})
+                )
+            )'''), 44, 494, "Parent.Width - 88", 54, Visible="locInstalar"),
+        label("lblEqInsNota", '"Mostrando as posições da mesma malha. O histórico de verificações continua ligado a cada peneira."',
+              44, 556, "Parent.Width - 88", 60, size=11, color=SUB, Visible="locInstalar"),
+        button("btnEqInsCancelar", '"Cancelar"', 44, 680, "(Parent.Width - 100) / 2", 66, "UpdateContext({locInstalar: false})",
+               fill=WHITE, color=NAVY, BorderColor=NAVY, BorderThickness=2, Visible="locInstalar"),
+        button("btnEqInsConfirmar", '"Confirmar"', "56 + (Parent.Width - 100) / 2", 680, "(Parent.Width - 100) / 2", 66, instalar,
+               Visible="locInstalar"),
     ]
     return {"scrEquipamento": {"Properties": {"Fill": f"={BG}", "OnVisible": onvisible}, "Children": filhos}}
+
 
 
 # ------------------------------------------------------------------ TELA 3 · Lançamento por medição
@@ -898,75 +1022,77 @@ def umi_check(p):
             Notify("Informe a umidade da estufa (ou as três pesagens).", NotificationType.Error),'''
 
 
-# ------------------------------------------------------------------ TELA 4 · Verificação (checklist)
+# ------------------------------------------------------------------ TELA 4 · Verificação dos peneiradores (checklist)
+ITENS_PEN = [("I1", "Telas", "Condições das telas"), ("I2", "Inclinação", "Inclinação das telas"),
+             ("I3", "Vibração", "Vibração do peneirador"), ("I4", "Travamento", "Travamento das peneiras"),
+             ("I5", "Calibração", "Calibração")]
+NC_PEN = '(I1 = "NÃO OK" || I2 = "NÃO OK" || I3 = "NÃO OK" || I4 = "NÃO OK" || I5 = "NÃO OK")'
+
+
 def tela_verificacao():
     p = "Ve"
-    itens = [("drpVeI1", "Telas", "Condições das telas"), ("drpVeI2", "Inclinação", "Inclinação das telas"),
-             ("drpVeI3", "Vibração", "Vibração do peneirador"), ("drpVeI4", "Travamento", "Travamento das peneiras"),
-             ("drpVeI5", "Calibração", "Calibração")]
     onvisible = F(f'''
-        UpdateContext({{locRevisar: false, locSalvando: false}});
+        UpdateContext({{
+            locRevisar: false, locSalvando: false, locSoNC: false,
+            locGrupo: If(
+                IsBlank(gblConjuntoFiltro), "Todos",
+                Coalesce(LookUp(colPontos, Ensaio = gblEnsaio.Title && Conjunto = gblConjuntoFiltro).Secao, "Todos")
+            )
+        }});
         Reset(dtp{p}Data); Reset(drp{p}Turno); Reset(drp{p}Causa); Reset(txt{p}Just); Reset(txt{p}Obs);
         If(CountRows(colEquip) = 0, {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "    ").strip()});
+        // Todas as peneiras começam OK; a calibração já vem NÃO OK quando a peneira está vencida no cadastro
         ClearCollect(
             colFormVe,
             AddColumns(
-                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title), Ordem),
+                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && !IsBlank(TAG)), Ordem),
                 Vencida,
                 With(
                     {{e: LookUp(colEquip, Title = TAG)}},
                     !IsBlank(e) && e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today()
-                )
+                ),
+                I1, "OK", I2, "OK", I3, "OK", I4, "OK", I5, "OK"
             )
-        )''')
-    opcoes = '["OK", "NÃO OK", "SEM TAG", "N/A"]'
+        );
+        UpdateIf(colFormVe, Vencida, {{I5: "NÃO OK"}});
+        Set(gblConjuntoFiltro, "")''')
+    grupo_filtro = '(locGrupo = "Todos" || Secao = locGrupo)'
+    chips = []
+    larg = "(Parent.TemplateWidth - 28 - 4 * 8) / 5"
+    for i, (campo, rot, _) in enumerate(ITENS_PEN):
+        ciclo = ('"OK", "NÃO OK", "NÃO OK", "SEM TAG", "SEM TAG", "N/A", "OK"' if campo == "I5"
+                 else '"OK", "NÃO OK", "NÃO OK", "N/A", "OK"')
+        chips.append(button(f"btnVg{campo}", F(f'"{rot.upper()}" & Char(10) & ThisItem.{campo}'),
+                            f"14 + {i} * ({larg} + 8)", 72, larg, 56,
+                            F(f'Patch(colFormVe, ThisItem, {{{campo}: Switch(ThisItem.{campo}, {ciclo})}})'),
+                            fill=F(f'Switch(ThisItem.{campo}, "OK", {OK_S}, "NÃO OK", {BAD}, {MUT_S})'),
+                            color=F(f'Switch(ThisItem.{campo}, "OK", {OK}, "NÃO OK", {WHITE}, {MUT})'),
+                            size=9, **radius(8)))
     filhos_galeria = [
-        rect("recVgCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 10", fill=WHITE,
+        rect("recVgCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 8", fill=WHITE,
              BorderColor=F(f'If(!IsBlank(gblDestacar) && ThisItem.TAG = gblDestacar, {ACCENT}, {LINE})'),
              BorderThickness=F('If(!IsBlank(gblDestacar) && ThisItem.TAG = gblDestacar, 3, 1)')),
-        label("lblVgTag", "ThisItem.TAG", 14, 8, "Parent.TemplateWidth - 220", 32, size=15, bold=True, color=NAVY),
-        label("lblVgSub", F('ThisItem.Parametro & If(ThisItem.Vencida, "  ·  calibração vencida no cadastro", "")'), 14, 40,
-              "Parent.TemplateWidth - 28", 28, size=11, color=F(f'If(ThisItem.Vencida, {BAD}, {SUB})'), FontWeight="FontWeight.Semibold"),
-    ]
-    larg = "(Parent.TemplateWidth - 48) / 3"
-    pos = [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1)]
-    for (nome, rot, _), (cx, cy) in zip(itens, pos):
-        x = f"14 + {cx} * ({larg} + 10)"
-        y = 74 + cy * 82
-        filhos_galeria.append(label(f"lbl{nome[3:]}", f'"{rot.upper()}"', x, y, larg, 22, size=9, bold=True, color=SUB))
-        filhos_galeria.append(dropdown(nome, opcoes, x, y + 22, larg, 48,
-                                       default=F('If(ThisItem.Vencida, "NÃO OK", "OK")') if nome == "drpVeI5" else '"OK"', size=12,
-                                       Fill=F(f'Switch(Self.Selected.Value, "NÃO OK", {BAD_S}, "SEM TAG", {MUT_S}, "N/A", {MUT_S}, {WHITE})')))
-    filhos_galeria.append(label("lblVgRes", F('''
-        If(
-            "NÃO OK" in [drpVeI1.Selected.Value, drpVeI2.Selected.Value, drpVeI3.Selected.Value, drpVeI4.Selected.Value, drpVeI5.Selected.Value],
-            "Não conforme",
-            "Conforme"
-        )'''), "14 + 2 * ((Parent.TemplateWidth - 48) / 3 + 10)", 178, larg, 48, size=11, bold=True, Align="Align.Center",
-        Fill=res_fill("Self.Text"), Color=res_color("Self.Text")))
-    filhos_galeria.append(label("lblVgOk", F('''
-        CountRows(Filter(
-            Table({v: drpVeI1.Selected.Value}, {v: drpVeI2.Selected.Value}, {v: drpVeI3.Selected.Value}, {v: drpVeI4.Selected.Value}, {v: drpVeI5.Selected.Value}),
-            v = "OK"
-        )) & " de 5 OK"'''), "Parent.TemplateWidth - 206", 8, 192, 32, size=12, bold=True, Align="Align.Right", color=SUB))
+        label("lblVgTag", "ThisItem.TAG", 14, 6, "Parent.TemplateWidth - 210", 32, size=15, bold=True, color=NAVY),
+        label("lblVgSub", F('Trim(First(Split(ThisItem.Parametro, "(")).Value) & " · " & ThisItem.Secao & If(ThisItem.Vencida, "  ·  calibração vencida", "")'),
+              14, 36, "Parent.TemplateWidth - 28", 28, size=11, color=F(f'If(ThisItem.Vencida, {BAD}, {SUB})')),
+        label("lblVgRes", F(f'If({NC_PEN.replace("I", "ThisItem.I")}, "Não conforme", "Conforme")'),
+              "Parent.TemplateWidth - 186", 8, 172, 28, size=10, bold=True, Align="Align.Center",
+              Fill=res_fill("Self.Text"), Color=res_color("Self.Text")),
+    ] + chips
 
     revisar = F(f'''
         ClearCollect(
             colResultados,
             ForAll(
-                gal{p}Peneiras.AllItems,
+                Filter(colFormVe, {grupo_filtro}) As pe,
                 With(
                     {{
                         itens: Table(
-                            {{n: "{itens[0][2]}", v: drpVeI1.Selected.Value}},
-                            {{n: "{itens[1][2]}", v: drpVeI2.Selected.Value}},
-                            {{n: "{itens[2][2]}", v: drpVeI3.Selected.Value}},
-                            {{n: "{itens[3][2]}", v: drpVeI4.Selected.Value}},
-                            {{n: "{itens[4][2]}", v: drpVeI5.Selected.Value}}
+                            {', '.join(f'{{n: "{nome}", v: pe.{campo}}}' for campo, _, nome in ITENS_PEN)}
                         )
                     }},
                     {{
-                        Equipamento: EquipamentoBD, TAG: TAG, Parametro: Parametro, Unidade: "itens OK", Tipo: TipoTxt,
+                        Equipamento: pe.EquipamentoBD, TAG: pe.TAG, Parametro: pe.Parametro, Unidade: "itens OK", Tipo: pe.TipoTxt,
                         Valor: CountRows(Filter(itens, v = "OK")), Referencia: CountRows(itens),
                         Diferenca: If(false, 0), LI: If(false, 0), LS: If(false, 0), Tol: If(false, 0),
                         Resultado: If(CountRows(Filter(itens, v = "NÃO OK")) > 0, "Não conforme", "Conforme"),
@@ -988,12 +1114,38 @@ def tela_verificacao():
         );
         Set(gblNC, CountRows(Filter(colResultados, Resultado = "Não conforme")));
         UpdateContext({{locRevisar: true}})''')
+
     filhos = cabecalho(p, "gblEnsaio.Nome", F('gblEnsaio.Frequencia & " · " & CountRows(colFormVe) & " peneiras"'),
                        voltar="Navigate(scrInicio, ScreenTransition.UnCover)") + topo_lancamento(p) + [
-        gallery(f"gal{p}Peneiras", "colFormVe", 20, 268, "Parent.Width - 40", "Parent.Height - 268 - 112", 244, filhos_galeria),
+        # filtro por peneirador
+        gallery(f"gal{p}Grupos", F('Ungroup(Table({Itens: Table({Value: "Todos"})}, {Itens: Distinct(colFormVe, Secao)}), Itens)'),
+                20, 266, "Parent.Width - 40", 58, 172, [
+            button("btnVeGrupo", F(f'''
+                ThisItem.Value &
+                With(
+                    {{n: CountRows(Filter(colFormVe, (ThisItem.Value = "Todos" || Secao = ThisItem.Value) && {NC_PEN}))}},
+                    If(n > 0, " · " & n & " NC", "")
+                )'''), 0, 0, 164, 50, "UpdateContext({locGrupo: ThisItem.Value})",
+                   fill=F(f'If(locGrupo = ThisItem.Value, {NAVY}, {WHITE})'), color=F(f'If(locGrupo = ThisItem.Value, {WHITE}, {NAVY})'),
+                   size=11, BorderColor=NAVY, BorderThickness=1, **radius(25)),
+        ], variant_override="Horizontal"),
+        button(f"btn{p}TodosOK", F('"✔  Marcar todos OK" & If(locGrupo = "Todos", "", " (" & locGrupo & ")")'), 20, 332,
+               "(Parent.Width - 50) * 0.62", 54, F(f'''
+            UpdateIf(colFormVe, {grupo_filtro}, {{I1: "OK", I2: "OK", I3: "OK", I4: "OK", I5: If(Vencida, "NÃO OK", "OK")}});
+            Notify("Itens marcados como OK. Peneiras com calibração vencida continuam com Calibração = NÃO OK.", NotificationType.Information)'''),
+               fill=OK, color=WHITE, size=13),
+        button(f"btn{p}SoNC", F('If(locSoNC, "Mostrar todas", "Só não conformes")'), "30 + (Parent.Width - 50) * 0.62", 332,
+               "(Parent.Width - 50) * 0.38", 54, "UpdateContext({locSoNC: !locSoNC})",
+               fill=WHITE, color=NAVY, size=12, BorderColor=NAVY, BorderThickness=1),
+        label(f"lbl{p}Legenda", '"Toque no item para alternar: OK → NÃO OK → N/A.  Calibração: OK → NÃO OK → SEM TAG → N/A."',
+              20, 390, "Parent.Width - 40", 40, size=10, color=SUB),
+        gallery(f"gal{p}Peneiras", F(f'Filter(colFormVe, {grupo_filtro} && (!locSoNC || {NC_PEN}))'),
+                20, 432, "Parent.Width - 40", "Parent.Height - 432 - 112", 138, filhos_galeria),
+        label(f"lbl{p}Vazio", F('If(locSoNC, "Nenhuma peneira não conforme neste filtro.", "Nenhuma peneira cadastrada para este ensaio.")'),
+              20, 460, "Parent.Width - 40", 60, size=12, color=SUB, Align="Align.Center", Visible=F(f'CountRows(gal{p}Peneiras.AllItems) = 0')),
     ] + barra_e_revisao(p, revisar, F(f'''
-        CountRows(colFormVe) & " peneiras · todas começam como OK" & Char(10) &
-        CountRows(Filter(gal{p}Peneiras.AllItems, lblVgRes.Text = "Não conforme")) & " não conforme(s)"'''))
+        CountRows(Filter(colFormVe, {grupo_filtro})) & " peneiras neste envio" & If(locGrupo = "Todos", "", " (" & locGrupo & ")") & Char(10) &
+        CountRows(Filter(colFormVe, {grupo_filtro} && {NC_PEN})) & " não conforme(s)"'''))
     return {"scrVerificacao": {"Properties": {"Fill": f"={BG}", "OnVisible": onvisible}, "Children": filhos}}
 
 

@@ -1,4 +1,10 @@
-=    UpdateContext({locRevisar: false, locSalvando: false});
+=    UpdateContext({
+        locRevisar: false, locSalvando: false, locSoNC: false,
+        locGrupo: If(
+            IsBlank(gblConjuntoFiltro), "Todos",
+            Coalesce(LookUp(colPontos, Ensaio = gblEnsaio.Title && Conjunto = gblConjuntoFiltro).Secao, "Todos")
+        )
+    });
     Reset(dtpVeData); Reset(drpVeTurno); Reset(drpVeCausa); Reset(txtVeJust); Reset(txtVeObs);
     If(CountRows(colEquip) = 0, ClearCollect(
     colEquip,
@@ -18,14 +24,18 @@
         )
     )
 ));
+    // Todas as peneiras começam OK; a calibração já vem NÃO OK quando a peneira está vencida no cadastro
     ClearCollect(
         colFormVe,
         AddColumns(
-            Sort(Filter(colPontos, Ensaio = gblEnsaio.Title), Ordem),
+            Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && !IsBlank(TAG)), Ordem),
             Vencida,
             With(
                 {e: LookUp(colEquip, Title = TAG)},
                 !IsBlank(e) && e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today()
-            )
+            ),
+            I1, "OK", I2, "OK", I3, "OK", I4, "OK", I5, "OK"
         )
-    )
+    );
+    UpdateIf(colFormVe, Vencida, {I5: "NÃO OK"});
+    Set(gblConjuntoFiltro, "")

@@ -3,7 +3,13 @@ Screens:
     Properties:
       Fill: =RGBA(242, 245, 248, 1)
       OnVisible: |-
-        =    UpdateContext({locRevisar: false, locSalvando: false});
+        =    UpdateContext({
+                locRevisar: false, locSalvando: false, locSoNC: false,
+                locGrupo: If(
+                    IsBlank(gblConjuntoFiltro), "Todos",
+                    Coalesce(LookUp(colPontos, Ensaio = gblEnsaio.Title && Conjunto = gblConjuntoFiltro).Secao, "Todos")
+                )
+            });
             Reset(dtpVeData); Reset(drpVeTurno); Reset(drpVeCausa); Reset(txtVeJust); Reset(txtVeObs);
             If(CountRows(colEquip) = 0, ClearCollect(
             colEquip,
@@ -23,17 +29,21 @@ Screens:
                 )
             )
         ));
+            // Todas as peneiras começam OK; a calibração já vem NÃO OK quando a peneira está vencida no cadastro
             ClearCollect(
                 colFormVe,
                 AddColumns(
-                    Sort(Filter(colPontos, Ensaio = gblEnsaio.Title), Ordem),
+                    Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && !IsBlank(TAG)), Ordem),
                     Vencida,
                     With(
                         {e: LookUp(colEquip, Title = TAG)},
                         !IsBlank(e) && e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today()
-                    )
+                    ),
+                    I1, "OK", I2, "OK", I3, "OK", I4, "OK", I5, "OK"
                 )
-            )
+            );
+            UpdateIf(colFormVe, Vencida, {I5: "NÃO OK"});
+            Set(gblConjuntoFiltro, "")
     Children:
       - recVeTopo:
           Control: Rectangle@2.3.0
@@ -122,16 +132,117 @@ Screens:
             Height: =50
             Size: =14
             BorderColor: =RGBA(205, 214, 225, 1)
+      - galVeGrupos:
+          Control: Gallery@2.15.0
+          Variant: Horizontal
+          Properties:
+            Items: |-
+              =Ungroup(Table({Itens: Table({Value: "Todos"})}, {Itens: Distinct(colFormVe, Secao)}), Itens)
+            X: =20
+            Y: =266
+            Width: =Parent.Width - 40
+            Height: =58
+            TemplateSize: =172
+            TemplatePadding: =0
+            TemplateFill: =RGBA(0, 0, 0, 0)
+          Children:
+            - btnVeGrupo:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Value &
+                    With(
+                        {n: CountRows(Filter(colFormVe, (ThisItem.Value = "Todos" || Secao = ThisItem.Value) && (I1 = "NÃO OK" || I2 = "NÃO OK" || I3 = "NÃO OK" || I4 = "NÃO OK" || I5 = "NÃO OK")))},
+                        If(n > 0, " · " & n & " NC", "")
+                    )
+                  X: =0
+                  Y: =0
+                  Width: =164
+                  Height: =50
+                  OnSelect: |-
+                    =UpdateContext({locGrupo: ThisItem.Value})
+                  Fill: =If(locGrupo = ThisItem.Value, RGBA(11, 37, 64, 1), RGBA(255, 255, 255, 1))
+                  Color: =If(locGrupo = ThisItem.Value, RGBA(255, 255, 255, 1), RGBA(11, 37, 64, 1))
+                  Size: =11
+                  FontWeight: =FontWeight.Bold
+                  HoverFill: =If(locGrupo = ThisItem.Value, RGBA(11, 37, 64, 1), RGBA(255, 255, 255, 1))
+                  PressedFill: =If(locGrupo = ThisItem.Value, RGBA(11, 37, 64, 1), RGBA(255, 255, 255, 1))
+                  HoverColor: =If(locGrupo = ThisItem.Value, RGBA(255, 255, 255, 1), RGBA(11, 37, 64, 1))
+                  PressedColor: =If(locGrupo = ThisItem.Value, RGBA(255, 255, 255, 1), RGBA(11, 37, 64, 1))
+                  RadiusTopLeft: =25
+                  RadiusTopRight: =25
+                  RadiusBottomLeft: =25
+                  RadiusBottomRight: =25
+                  BorderColor: =RGBA(11, 37, 64, 1)
+                  BorderThickness: =1
+      - btnVeTodosOK:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="✔  Marcar todos OK" & If(locGrupo = "Todos", "", " (" & locGrupo & ")")
+            X: =20
+            Y: =332
+            Width: =(Parent.Width - 50) * 0.62
+            Height: =54
+            OnSelect: |-
+              =UpdateIf(colFormVe, (locGrupo = "Todos" || Secao = locGrupo), {I1: "OK", I2: "OK", I3: "OK", I4: "OK", I5: If(Vencida, "NÃO OK", "OK")});
+              Notify("Itens marcados como OK. Peneiras com calibração vencida continuam com Calibração = NÃO OK.", NotificationType.Information)
+            Fill: =RGBA(30, 127, 79, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            Size: =13
+            FontWeight: =FontWeight.Bold
+            HoverFill: =RGBA(30, 127, 79, 1)
+            PressedFill: =RGBA(30, 127, 79, 1)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            PressedColor: =RGBA(255, 255, 255, 1)
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+      - btnVeSoNC:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(locSoNC, "Mostrar todas", "Só não conformes")
+            X: =30 + (Parent.Width - 50) * 0.62
+            Y: =332
+            Width: =(Parent.Width - 50) * 0.38
+            Height: =54
+            OnSelect: |-
+              =UpdateContext({locSoNC: !locSoNC})
+            Fill: =RGBA(255, 255, 255, 1)
+            Color: =RGBA(11, 37, 64, 1)
+            Size: =12
+            FontWeight: =FontWeight.Bold
+            HoverFill: =RGBA(255, 255, 255, 1)
+            PressedFill: =RGBA(255, 255, 255, 1)
+            HoverColor: =RGBA(11, 37, 64, 1)
+            PressedColor: =RGBA(11, 37, 64, 1)
+            RadiusTopLeft: =12
+            RadiusTopRight: =12
+            RadiusBottomLeft: =12
+            RadiusBottomRight: =12
+            BorderColor: =RGBA(11, 37, 64, 1)
+            BorderThickness: =1
+      - lblVeLegenda:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="Toque no item para alternar: OK → NÃO OK → N/A.  Calibração: OK → NÃO OK → SEM TAG → N/A."
+            X: =20
+            Y: =390
+            Width: =Parent.Width - 40
+            Height: =40
+            Size: =10
+            Color: =RGBA(93, 107, 125, 1)
       - galVePeneiras:
           Control: Gallery@2.15.0
           Variant: Vertical
           Properties:
-            Items: =colFormVe
+            Items: =Filter(colFormVe, (locGrupo = "Todos" || Secao = locGrupo) && (!locSoNC || (I1 = "NÃO OK" || I2 = "NÃO OK" || I3 = "NÃO OK" || I4 = "NÃO OK" || I5 = "NÃO OK")))
             X: =20
-            Y: =268
+            Y: =432
             Width: =Parent.Width - 40
-            Height: =Parent.Height - 268 - 112
-            TemplateSize: =244
+            Height: =Parent.Height - 432 - 112
+            TemplateSize: =138
             TemplatePadding: =0
             TemplateFill: =RGBA(0, 0, 0, 0)
           Children:
@@ -142,7 +253,7 @@ Screens:
                   X: =0
                   Y: =0
                   Width: =Parent.TemplateWidth
-                  Height: =Parent.TemplateHeight - 10
+                  Height: =Parent.TemplateHeight - 8
                   BorderColor: =If(!IsBlank(gblDestacar) && ThisItem.TAG = gblDestacar, RGBA(14, 107, 168, 1), RGBA(225, 231, 238, 1))
                   BorderThickness: =If(!IsBlank(gblDestacar) && ThisItem.TAG = gblDestacar, 3, 1)
             - lblVgTag:
@@ -150,8 +261,8 @@ Screens:
                 Properties:
                   Text: =ThisItem.TAG
                   X: =14
-                  Y: =8
-                  Width: =Parent.TemplateWidth - 220
+                  Y: =6
+                  Width: =Parent.TemplateWidth - 210
                   Height: =32
                   Size: =15
                   FontWeight: =FontWeight.Bold
@@ -159,163 +270,148 @@ Screens:
             - lblVgSub:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =ThisItem.Parametro & If(ThisItem.Vencida, "  ·  calibração vencida no cadastro", "")
+                  Text: =Trim(First(Split(ThisItem.Parametro, "(")).Value) & " · " & ThisItem.Secao & If(ThisItem.Vencida, "  ·  calibração vencida", "")
                   X: =14
-                  Y: =40
+                  Y: =36
                   Width: =Parent.TemplateWidth - 28
                   Height: =28
                   Size: =11
-                  FontWeight: =FontWeight.Semibold
                   Color: =If(ThisItem.Vencida, RGBA(180, 35, 24, 1), RGBA(93, 107, 125, 1))
-            - lblVeI1:
-                Control: Label@2.5.1
-                Properties:
-                  Text: ="TELAS"
-                  X: =14 + 0 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =74
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =22
-                  Size: =9
-                  FontWeight: =FontWeight.Bold
-                  Color: =RGBA(93, 107, 125, 1)
-            - drpVeI1:
-                Control: Classic/DropDown@2.3.1
-                Properties:
-                  Items: =["OK", "NÃO OK", "SEM TAG", "N/A"]
-                  Default: ="OK"
-                  X: =14 + 0 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =96
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =48
-                  Size: =12
-                  BorderColor: =RGBA(205, 214, 225, 1)
-                  Fill: =Switch(Self.Selected.Value, "NÃO OK", RGBA(253, 236, 235, 1), "SEM TAG", RGBA(236, 239, 243, 1), "N/A", RGBA(236, 239, 243, 1), RGBA(255, 255, 255, 1))
-            - lblVeI2:
-                Control: Label@2.5.1
-                Properties:
-                  Text: ="INCLINAÇÃO"
-                  X: =14 + 1 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =74
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =22
-                  Size: =9
-                  FontWeight: =FontWeight.Bold
-                  Color: =RGBA(93, 107, 125, 1)
-            - drpVeI2:
-                Control: Classic/DropDown@2.3.1
-                Properties:
-                  Items: =["OK", "NÃO OK", "SEM TAG", "N/A"]
-                  Default: ="OK"
-                  X: =14 + 1 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =96
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =48
-                  Size: =12
-                  BorderColor: =RGBA(205, 214, 225, 1)
-                  Fill: =Switch(Self.Selected.Value, "NÃO OK", RGBA(253, 236, 235, 1), "SEM TAG", RGBA(236, 239, 243, 1), "N/A", RGBA(236, 239, 243, 1), RGBA(255, 255, 255, 1))
-            - lblVeI3:
-                Control: Label@2.5.1
-                Properties:
-                  Text: ="VIBRAÇÃO"
-                  X: =14 + 2 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =74
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =22
-                  Size: =9
-                  FontWeight: =FontWeight.Bold
-                  Color: =RGBA(93, 107, 125, 1)
-            - drpVeI3:
-                Control: Classic/DropDown@2.3.1
-                Properties:
-                  Items: =["OK", "NÃO OK", "SEM TAG", "N/A"]
-                  Default: ="OK"
-                  X: =14 + 2 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =96
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =48
-                  Size: =12
-                  BorderColor: =RGBA(205, 214, 225, 1)
-                  Fill: =Switch(Self.Selected.Value, "NÃO OK", RGBA(253, 236, 235, 1), "SEM TAG", RGBA(236, 239, 243, 1), "N/A", RGBA(236, 239, 243, 1), RGBA(255, 255, 255, 1))
-            - lblVeI4:
-                Control: Label@2.5.1
-                Properties:
-                  Text: ="TRAVAMENTO"
-                  X: =14 + 0 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =156
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =22
-                  Size: =9
-                  FontWeight: =FontWeight.Bold
-                  Color: =RGBA(93, 107, 125, 1)
-            - drpVeI4:
-                Control: Classic/DropDown@2.3.1
-                Properties:
-                  Items: =["OK", "NÃO OK", "SEM TAG", "N/A"]
-                  Default: ="OK"
-                  X: =14 + 0 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =178
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =48
-                  Size: =12
-                  BorderColor: =RGBA(205, 214, 225, 1)
-                  Fill: =Switch(Self.Selected.Value, "NÃO OK", RGBA(253, 236, 235, 1), "SEM TAG", RGBA(236, 239, 243, 1), "N/A", RGBA(236, 239, 243, 1), RGBA(255, 255, 255, 1))
-            - lblVeI5:
-                Control: Label@2.5.1
-                Properties:
-                  Text: ="CALIBRAÇÃO"
-                  X: =14 + 1 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =156
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =22
-                  Size: =9
-                  FontWeight: =FontWeight.Bold
-                  Color: =RGBA(93, 107, 125, 1)
-            - drpVeI5:
-                Control: Classic/DropDown@2.3.1
-                Properties:
-                  Items: =["OK", "NÃO OK", "SEM TAG", "N/A"]
-                  Default: =If(ThisItem.Vencida, "NÃO OK", "OK")
-                  X: =14 + 1 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =178
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =48
-                  Size: =12
-                  BorderColor: =RGBA(205, 214, 225, 1)
-                  Fill: =Switch(Self.Selected.Value, "NÃO OK", RGBA(253, 236, 235, 1), "SEM TAG", RGBA(236, 239, 243, 1), "N/A", RGBA(236, 239, 243, 1), RGBA(255, 255, 255, 1))
             - lblVgRes:
                 Control: Label@2.5.1
                 Properties:
-                  Text: |-
-                    =If(
-                        "NÃO OK" in [drpVeI1.Selected.Value, drpVeI2.Selected.Value, drpVeI3.Selected.Value, drpVeI4.Selected.Value, drpVeI5.Selected.Value],
-                        "Não conforme",
-                        "Conforme"
-                    )
-                  X: =14 + 2 * ((Parent.TemplateWidth - 48) / 3 + 10)
-                  Y: =178
-                  Width: =(Parent.TemplateWidth - 48) / 3
-                  Height: =48
-                  Size: =11
+                  Text: =If((ThisItem.I1 = "NÃO OK" || ThisItem.I2 = "NÃO OK" || ThisItem.I3 = "NÃO OK" || ThisItem.I4 = "NÃO OK" || ThisItem.I5 = "NÃO OK"), "Não conforme", "Conforme")
+                  X: =Parent.TemplateWidth - 186
+                  Y: =8
+                  Width: =172
+                  Height: =28
+                  Size: =10
                   FontWeight: =FontWeight.Bold
                   Color: =If(Self.Text = "Conforme", RGBA(30, 127, 79, 1), Self.Text = "Não conforme", RGBA(180, 35, 24, 1), RGBA(85, 98, 116, 1))
                   Align: =Align.Center
                   Fill: =If(Self.Text = "Conforme", RGBA(226, 243, 234, 1), Self.Text = "Não conforme", RGBA(253, 236, 235, 1), RGBA(236, 239, 243, 1))
-            - lblVgOk:
-                Control: Label@2.5.1
+            - btnVgI1:
+                Control: Classic/Button@2.2.0
                 Properties:
-                  Text: |-
-                    =CountRows(Filter(
-                        Table({v: drpVeI1.Selected.Value}, {v: drpVeI2.Selected.Value}, {v: drpVeI3.Selected.Value}, {v: drpVeI4.Selected.Value}, {v: drpVeI5.Selected.Value}),
-                        v = "OK"
-                    )) & " de 5 OK"
-                  X: =Parent.TemplateWidth - 206
-                  Y: =8
-                  Width: =192
-                  Height: =32
-                  Size: =12
+                  Text: ="TELAS" & Char(10) & ThisItem.I1
+                  X: =14 + 0 * ((Parent.TemplateWidth - 28 - 4 * 8) / 5 + 8)
+                  Y: =72
+                  Width: =(Parent.TemplateWidth - 28 - 4 * 8) / 5
+                  Height: =56
+                  OnSelect: |-
+                    =Patch(colFormVe, ThisItem, {I1: Switch(ThisItem.I1, "OK", "NÃO OK", "NÃO OK", "N/A", "OK")})
+                  Fill: =Switch(ThisItem.I1, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  Color: =Switch(ThisItem.I1, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  Size: =9
                   FontWeight: =FontWeight.Bold
-                  Color: =RGBA(93, 107, 125, 1)
-                  Align: =Align.Right
+                  HoverFill: =Switch(ThisItem.I1, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  PressedFill: =Switch(ThisItem.I1, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  HoverColor: =Switch(ThisItem.I1, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  PressedColor: =Switch(ThisItem.I1, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+            - btnVgI2:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="INCLINAÇÃO" & Char(10) & ThisItem.I2
+                  X: =14 + 1 * ((Parent.TemplateWidth - 28 - 4 * 8) / 5 + 8)
+                  Y: =72
+                  Width: =(Parent.TemplateWidth - 28 - 4 * 8) / 5
+                  Height: =56
+                  OnSelect: |-
+                    =Patch(colFormVe, ThisItem, {I2: Switch(ThisItem.I2, "OK", "NÃO OK", "NÃO OK", "N/A", "OK")})
+                  Fill: =Switch(ThisItem.I2, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  Color: =Switch(ThisItem.I2, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  Size: =9
+                  FontWeight: =FontWeight.Bold
+                  HoverFill: =Switch(ThisItem.I2, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  PressedFill: =Switch(ThisItem.I2, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  HoverColor: =Switch(ThisItem.I2, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  PressedColor: =Switch(ThisItem.I2, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+            - btnVgI3:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="VIBRAÇÃO" & Char(10) & ThisItem.I3
+                  X: =14 + 2 * ((Parent.TemplateWidth - 28 - 4 * 8) / 5 + 8)
+                  Y: =72
+                  Width: =(Parent.TemplateWidth - 28 - 4 * 8) / 5
+                  Height: =56
+                  OnSelect: |-
+                    =Patch(colFormVe, ThisItem, {I3: Switch(ThisItem.I3, "OK", "NÃO OK", "NÃO OK", "N/A", "OK")})
+                  Fill: =Switch(ThisItem.I3, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  Color: =Switch(ThisItem.I3, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  Size: =9
+                  FontWeight: =FontWeight.Bold
+                  HoverFill: =Switch(ThisItem.I3, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  PressedFill: =Switch(ThisItem.I3, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  HoverColor: =Switch(ThisItem.I3, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  PressedColor: =Switch(ThisItem.I3, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+            - btnVgI4:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="TRAVAMENTO" & Char(10) & ThisItem.I4
+                  X: =14 + 3 * ((Parent.TemplateWidth - 28 - 4 * 8) / 5 + 8)
+                  Y: =72
+                  Width: =(Parent.TemplateWidth - 28 - 4 * 8) / 5
+                  Height: =56
+                  OnSelect: |-
+                    =Patch(colFormVe, ThisItem, {I4: Switch(ThisItem.I4, "OK", "NÃO OK", "NÃO OK", "N/A", "OK")})
+                  Fill: =Switch(ThisItem.I4, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  Color: =Switch(ThisItem.I4, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  Size: =9
+                  FontWeight: =FontWeight.Bold
+                  HoverFill: =Switch(ThisItem.I4, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  PressedFill: =Switch(ThisItem.I4, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  HoverColor: =Switch(ThisItem.I4, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  PressedColor: =Switch(ThisItem.I4, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+            - btnVgI5:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="CALIBRAÇÃO" & Char(10) & ThisItem.I5
+                  X: =14 + 4 * ((Parent.TemplateWidth - 28 - 4 * 8) / 5 + 8)
+                  Y: =72
+                  Width: =(Parent.TemplateWidth - 28 - 4 * 8) / 5
+                  Height: =56
+                  OnSelect: |-
+                    =Patch(colFormVe, ThisItem, {I5: Switch(ThisItem.I5, "OK", "NÃO OK", "NÃO OK", "SEM TAG", "SEM TAG", "N/A", "OK")})
+                  Fill: =Switch(ThisItem.I5, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  Color: =Switch(ThisItem.I5, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  Size: =9
+                  FontWeight: =FontWeight.Bold
+                  HoverFill: =Switch(ThisItem.I5, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  PressedFill: =Switch(ThisItem.I5, "OK", RGBA(226, 243, 234, 1), "NÃO OK", RGBA(180, 35, 24, 1), RGBA(236, 239, 243, 1))
+                  HoverColor: =Switch(ThisItem.I5, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  PressedColor: =Switch(ThisItem.I5, "OK", RGBA(30, 127, 79, 1), "NÃO OK", RGBA(255, 255, 255, 1), RGBA(85, 98, 116, 1))
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+      - lblVeVazio:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(locSoNC, "Nenhuma peneira não conforme neste filtro.", "Nenhuma peneira cadastrada para este ensaio.")
+            X: =20
+            Y: =460
+            Width: =Parent.Width - 40
+            Height: =60
+            Size: =12
+            Color: =RGBA(93, 107, 125, 1)
+            Align: =Align.Center
+            Visible: =CountRows(galVePeneiras.AllItems) = 0
       - recVeBarra:
           Control: Rectangle@2.3.0
           Properties:
@@ -330,8 +426,8 @@ Screens:
           Control: Label@2.5.1
           Properties:
             Text: |-
-              =CountRows(colFormVe) & " peneiras · todas começam como OK" & Char(10) &
-              CountRows(Filter(galVePeneiras.AllItems, lblVgRes.Text = "Não conforme")) & " não conforme(s)"
+              =CountRows(Filter(colFormVe, (locGrupo = "Todos" || Secao = locGrupo))) & " peneiras neste envio" & If(locGrupo = "Todos", "", " (" & locGrupo & ")") & Char(10) &
+              CountRows(Filter(colFormVe, (locGrupo = "Todos" || Secao = locGrupo) && (I1 = "NÃO OK" || I2 = "NÃO OK" || I3 = "NÃO OK" || I4 = "NÃO OK" || I5 = "NÃO OK"))) & " não conforme(s)"
             X: =20
             Y: =Parent.Height - 94
             Width: =Parent.Width - 270
@@ -350,19 +446,15 @@ Screens:
               =ClearCollect(
                   colResultados,
                   ForAll(
-                      galVePeneiras.AllItems,
+                      Filter(colFormVe, (locGrupo = "Todos" || Secao = locGrupo)) As pe,
                       With(
                           {
                               itens: Table(
-                                  {n: "Condições das telas", v: drpVeI1.Selected.Value},
-                                  {n: "Inclinação das telas", v: drpVeI2.Selected.Value},
-                                  {n: "Vibração do peneirador", v: drpVeI3.Selected.Value},
-                                  {n: "Travamento das peneiras", v: drpVeI4.Selected.Value},
-                                  {n: "Calibração", v: drpVeI5.Selected.Value}
+                                  {n: "Condições das telas", v: pe.I1}, {n: "Inclinação das telas", v: pe.I2}, {n: "Vibração do peneirador", v: pe.I3}, {n: "Travamento das peneiras", v: pe.I4}, {n: "Calibração", v: pe.I5}
                               )
                           },
                           {
-                              Equipamento: EquipamentoBD, TAG: TAG, Parametro: Parametro, Unidade: "itens OK", Tipo: TipoTxt,
+                              Equipamento: pe.EquipamentoBD, TAG: pe.TAG, Parametro: pe.Parametro, Unidade: "itens OK", Tipo: pe.TipoTxt,
                               Valor: CountRows(Filter(itens, v = "OK")), Referencia: CountRows(itens),
                               Diferenca: If(false, 0), LI: If(false, 0), LS: If(false, 0), Tol: If(false, 0),
                               Resultado: If(CountRows(Filter(itens, v = "NÃO OK")) > 0, "Não conforme", "Conforme"),

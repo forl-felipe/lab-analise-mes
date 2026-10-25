@@ -66,6 +66,12 @@ DESCRICAO_PREFIXO = [
 SEM_TAG = "P06-10MM"  # peneira de 10 mm do Peneirador 06 sem TAG na planilha (N/CONT)
 
 
+def tag_peneirador(grupo: str) -> str:
+    """'Peneirador NN' -> '<prefixo>PNNN' (padrão das observações da planilha); 'Circulares' -> PN-CIRCULARES (a definir)."""
+    m = re.search(r"(\d+)", grupo or "")
+    return f"66PN{int(m.group(1)):02d}" if m else "PN-" + re.sub(r"\W+", "", (grupo or "CONJUNTO").upper())
+
+
 def norm_tag(texto: str) -> str:
     """'PN 614' -> 'PN614'; '66AN11 x Estufa' -> '66AN11'; 'N/CONT' -> P06-10MM."""
     t = (texto or "").strip()
@@ -150,12 +156,12 @@ def main(planilha: Path, saida: Path):
     # ---------------- Pontos de aferição (linhas da aba Lançamento) ----------------
     pontos = []
 
-    def ponto(ens, secao, tag, eqbd, par, un, entrada, chave, fator=None, ra="", rb="", tipo="", ativo=True):
+    def ponto(ens, secao, tag, eqbd, par, un, entrada, chave, fator=None, ra="", rb="", tipo="", ativo=True, conjunto=""):
         if chave and chave not in chaves:
             avisos.append(f"Ponto {ens}/{tag}/{par}: chave de limite {chave} não existe na BD_Limites")
         ordem = sum(1 for p in pontos if p["Ensaio"] == ens) + 1
         codigo = f"{ens}-{ordem:02d}"
-        pontos.append(OrderedDict(Title=codigo, Ensaio=ens, Ordem=ordem, Secao=secao, TAG=tag, EquipamentoBD=eqbd,
+        pontos.append(OrderedDict(Title=codigo, Ensaio=ens, Ordem=ordem, Secao=secao, Conjunto=conjunto, TAG=tag, EquipamentoBD=eqbd,
                                   Parametro=par, Unidade=un, Entrada=entrada, ChaveLimite=chave or "", Fator=fator,
                                   RotuloA=ra, RotuloB=rb, TipoRegistro=tipo, Ativo=ativo))
 
@@ -200,7 +206,8 @@ def main(planilha: Path, saida: Path):
             continue
         tag = norm_tag(str(tag_txt))
         pen_locais[tag].append(grupo)
-        ponto("PEN", grupo, tag, tag if tag != SEM_TAG else str(tag_txt), f"Malha {malha} mm ({grupo})", "itens OK", "Checklist", "", tipo="Verificação")
+        ponto("PEN", grupo, tag, tag if tag != SEM_TAG else str(tag_txt), f"Malha {malha} mm ({grupo})", "itens OK", "Checklist", "",
+              tipo="Verificação", conjunto=tag_peneirador(grupo))
     a, b = cel(lan, "F144") or "66PB01", cel(lan, "H144") or "66PB09"
     a, b = str(a).split(" ")[0], str(b).split(" ")[0]
     ponto("FIS", "", a, f"{a} x {b}", "Superfície específica", "cm²/g", "Comparativo", "FIS", ra=f"{a} (cm²/g)", rb=f"{b} (cm²/g)", tipo="Comparativo")
@@ -223,7 +230,7 @@ def main(planilha: Path, saida: Path):
                         d, t = dd, tt
                         break
             equip[tag] = OrderedDict(Title=tag, Descricao=d or tag, TipoEquipamento=t or "", Local="Laboratório físico",
-                                     Grupo=grupo, EnsaioAfericao=ens, ControlaCalibracao=True, PeriodicidadeMeses=12,
+                                     Grupo=grupo, Conjunto="", EnsaioAfericao=ens, ControlaCalibracao=True, PeriodicidadeMeses=12,
                                      UltimaCalibracao=None, ProximaCalibracao=None, ObservacaoCadastro=obs, Ativo=ativo)
         else:
             e = equip[tag]
@@ -240,9 +247,22 @@ def main(planilha: Path, saida: Path):
         if p["Ensaio"] == "PEN":
             malha = re.search(r"Malha ([\d,]+) mm", p["Parametro"]).group(1)
             obs = "Sem TAG na planilha (N/CONT): definir TAG e etiquetar" if p["TAG"] == SEM_TAG else ""
-            add_eq(p["TAG"], f"Peneira {malha} mm", "Peneira", p["Secao"], "PEN", obs)
+            add_eq(p["TAG"], f"Peneira {malha} mm", "Peneira", p["Secao"], "", obs)
+            if not equip[p["TAG"]]["Conjunto"]:
+                equip[p["TAG"]]["Conjunto"] = p["Conjunto"]
         else:
             add_eq(p["TAG"], ens=p["Ensaio"])
+    # Peneiradores: um cadastro por conjunto, com etiqueta própria (o laboratorista verifica pelo QR dele)
+    for grupo in dict.fromkeys(p["Secao"] for p in pontos if p["Ensaio"] == "PEN"):
+        tp = tag_peneirador(grupo)
+        nome = grupo if grupo.lower().startswith("peneirador") else f"Peneiras {grupo.lower()}"
+        obs = "" if re.search(r"\d", grupo) else "TAG provisória: definir a TAG oficial deste conjunto"
+        if tp in equip:
+            equip[tp]["Descricao"] = f"{nome} ({equip[tp]['Descricao']})"
+            equip[tp]["TipoEquipamento"] = "Peneirador"
+            add_eq(tp, ens="PEN", obs=obs)
+        else:
+            add_eq(tp, nome, "Peneirador", ens="PEN", obs=obs)
     add_eq("66PN08", ens="")
     add_eq("T03", ens="")
     for p in pontos:

@@ -83,6 +83,7 @@ LISTAS: list[Lista] = [
             Col("NumeroSerie", "Text"),
             Col("Local", "Text", "Área ou bancada"),
             Col("Grupo", "Text", "Agrupador. Para peneiras: o peneirador (Circulares, Peneirador 05...)"),
+            Col("Conjunto", "Text", "Peneiras: TAG do peneirador onde a peneira está instalada agora (vazio = fora de uso / em estoque)", indexada=True),
             Col("EnsaioAfericao", "Text", "Código do ensaio de aferição deste equipamento (ex.: TAM). Vazio = não é aferido. Mais de um: separar com ponto e vírgula."),
             Col("ControlaCalibracao", "Boolean", "Sim = tem calibração periódica controlada", padrao="1"),
             Col("PeriodicidadeMeses", "Number", "Intervalo entre calibrações", padrao="12"),
@@ -119,13 +120,14 @@ LISTAS: list[Lista] = [
     Lista(
         nome="PontosAfericao",
         titulo_significa="Código do ponto (ex.: TAM-01)",
-        descricao="Cada linha é um campo do formulário de um ensaio: qual equipamento, qual parâmetro, que tipo de entrada e qual critério usar. É o equivalente às linhas da aba Lançamento.",
-        quem_edita="Gestor do sistema",
+        descricao="Cada linha é um campo do formulário de um ensaio: qual equipamento, qual parâmetro, que tipo de entrada e qual critério usar. É o equivalente às linhas da aba Lançamento. Nos peneiradores, cada linha é uma POSIÇÃO (peneirador + malha) e a coluna TAG diz qual peneira está nela.",
+        quem_edita="Gestor do sistema. Instrumentação troca a peneira de uma posição pelo app",
         titulo_unico=True,
         colunas=[
             Col("Ensaio", "Text", "Código do ensaio (lista Ensaios)", obrigatoria=True, indexada=True),
             Col("Ordem", "Number", "Ordem no formulário"),
             Col("Secao", "Text", "Subtítulo dentro do formulário (ex.: FX -16,0 +12,5 mm, Peneirador 05)"),
+            Col("Conjunto", "Text", "Peneiradores: TAG do peneirador desta posição. O QR Code do peneirador abre só as posições dele"),
             Col("TAG", "Text", "TAG do equipamento (lista Equipamentos). Vazio quando não há equipamento cadastrado"),
             Col("EquipamentoBD", "Text", "Texto gravado na coluna Equipamento das aferições (igual à planilha)"),
             Col("Parametro", "Text", obrigatoria=True),
@@ -255,5 +257,6 @@ def lista(nome: str) -> Lista:
 # da lista Acessos; os grupos garantem que ninguém grave fora do app.
 GRUPOS = {
     "Metrologia - Laboratoristas": {"Afericoes": "Contribute", "Lancamentos": "Contribute"},
-    "Metrologia - Instrumentação": {"Calibracoes": "Contribute", "Equipamentos": "Contribute"},
+    # Instrumentação também edita PontosAfericao: é ela quem troca a peneira instalada em cada posição
+    "Metrologia - Instrumentação": {"Calibracoes": "Contribute", "Equipamentos": "Contribute", "PontosAfericao": "Contribute"},
 }

@@ -41,6 +41,7 @@
   .etiqueta .desc, .etiqueta .local { color: #333; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .etiqueta .rodape { color: #555; font-style: italic; }
 
+  .PP { width: 50mm; height: 25mm; padding: 1.5mm; gap: 2mm; } .PP .qr { width: 21mm; height: 21mm; } .PP .cab { font-size: 4.5pt; padding: 0.4mm 1mm; } .PP .tag { font-size: 10pt; } .PP .desc { font-size: 6pt; } .PP .local, .PP .rodape { display: none; }
   .P { width: 60mm; height: 30mm; } .P .qr { width: 25mm; height: 25mm; } .P .cab { font-size: 5.5pt; } .P .tag { font-size: 12pt; } .P .desc, .P .local { font-size: 6.5pt; } .P .rodape { font-size: 5pt; }
   .M { width: 80mm; height: 40mm; } .M .qr { width: 34mm; height: 34mm; } .M .cab { font-size: 6.5pt; } .M .tag { font-size: 16pt; } .M .desc, .M .local { font-size: 8pt; } .M .rodape { font-size: 6pt; }
   .G { width: 100mm; height: 50mm; } .G .qr { width: 44mm; height: 44mm; } .G .cab { font-size: 8pt; } .G .tag { font-size: 20pt; } .G .desc, .G .local { font-size: 10pt; } .G .rodape { font-size: 7pt; }
@@ -80,8 +81,17 @@
 
     <div class="linha">
       <div>
+        <label for="modelo">Modelo de etiqueta</label>
+        <select id="modelo">
+          <option value="equip">Equipamento (todos os perfis)</option>
+          <option value="peneirador">Peneirador (laboratorista verifica as peneiras)</option>
+          <option value="peneira">Peneira (instrumentação · calibração)</option>
+        </select>
+      </div>
+      <div>
         <label for="tamanho">Tamanho da etiqueta</label>
         <select id="tamanho">
+          <option value="PP">Mini para peneira (50 × 25 mm)</option>
           <option value="P">Pequena (60 × 30 mm)</option>
           <option value="M" selected>Média (80 × 40 mm)</option>
           <option value="G">Grande (100 × 50 mm)</option>
@@ -2412,7 +2422,12 @@ var qrcode = function() {
 (function () {
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   var $ = function (id) { return document.getElementById(id); };
-  var campos = ['url', 'lista', 'tamanho', 'cabecalho', 'rodape'];
+  var campos = ['url', 'lista', 'modelo', 'tamanho', 'cabecalho', 'rodape'];
+  var MODELOS = {
+    equip: { tamanho: 'M', cab: 'CONTROLE METROLÓGICO', rod: 'Escaneie para ver se pode usar' },
+    peneirador: { tamanho: 'G', cab: 'PENEIRADOR · VERIFICAÇÃO', rod: 'Laboratorista: escaneie para verificar as peneiras' },
+    peneira: { tamanho: 'PP', cab: 'PENEIRA · CALIBRAÇÃO', rod: 'Instrumentação' }
+  };
   var CHAVE = 'gerador-etiquetas-calibracao';
 
   try {
@@ -2475,6 +2490,11 @@ var qrcode = function() {
     mensagem(html.length + ' etiqueta(s) gerada(s).' + (duplicadas.length ? ' TAGs repetidas ignoradas: ' + duplicadas.join(', ') : ''), duplicadas.length ? 'erro' : 'ok');
   }
 
+  $('modelo').addEventListener('change', function () {
+    var m = MODELOS[$('modelo').value];
+    $('tamanho').value = m.tamanho; $('cabecalho').value = m.cab; $('rodape').value = m.rod;
+    if ($('folha').children.length) gerar(); else salvar();
+  });
   $('gerar').addEventListener('click', gerar);
   $('imprimir').addEventListener('click', function () { if (!$('folha').children.length) gerar(); window.print(); });
   if ($('url').value.trim()) gerar();

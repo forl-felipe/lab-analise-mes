@@ -43,7 +43,7 @@ Sistema de **calibração e aferição** do laboratório físico. Substitui a pl
 |---|---|---|---|---|
 | **Colaborador** | Qualquer pessoa da empresa | Automático: não está na lista Acessos, ou está com Ativo = Não | Consulta situação, validade e histórico | Leitura em tudo |
 | **Laboratorista** | Quem executa os ensaios | Lista **Acessos** · Perfil = Laboratorista | Agenda do turno, lançamento de aferições, justificativa, desfazer | Leitura + **Colaborar** em Afericoes e Lancamentos |
-| **Instrumentação** | Técnicos de calibração | Lista **Acessos** · Perfil = Instrumentação | Pendências, registro de calibração | Leitura + **Colaborar** em Calibracoes e Equipamentos |
+| **Instrumentação** | Técnicos de calibração | Lista **Acessos** · Perfil = Instrumentação | Pendências, registro de calibração, troca de peneira de posição | Leitura + **Colaborar** em Calibracoes, Equipamentos e PontosAfericao |
 
 **Um lugar só:** a lista **Acessos**. O fluxo **F0** sincroniza a lista com os grupos do SharePoint. O app lê a lista para mostrar os botões; o grupo garante que a gravação só acontece para quem pode.
 
@@ -123,6 +123,49 @@ Detalhe de todas as colunas: [DICIONARIO-DE-DADOS.md](DICIONARIO-DE-DADOS.md).
 
 Mesma regra da macro da planilha: **No turno**, **No dia** (outro turno fora da rotina), **Com atraso** (antes da próxima data da rotina), **Não feito**. Turno em andamento e futuro não contam. Conferido contra o painel de outubro: 91 previstos, 83 realizados.
 
+## 5A. Peneiradores e peneiras
+
+São dezenas de peneiras distribuídas em alguns conjuntos (peneiradores), verificadas várias vezes por semana. O desenho separa **posição** de **peneira**:
+
+```
+ Peneirador A (PEN-A)     ← etiqueta de PENEIRADOR (laboratorista)
+   ├─ posição 19 mm   ──►  PN-0001  ← etiqueta de PENEIRA (instrumentação)
+   ├─ posição 16 mm   ──►  PN-0002
+   └─ ...
+```
+
+| Conceito | Onde fica | O que significa |
+|---|---|---|
+| **Peneirador** (conjunto) | Lista **Equipamentos**, `TipoEquipamento = Peneirador` | A máquina ou o conjunto de peneiras circulares. Tem etiqueta própria |
+| **Posição** | Lista **PontosAfericao**, ensaio PEN: uma linha por peneirador + malha | Lugar fixo no peneirador. `Conjunto` = TAG do peneirador; `TAG` = peneira que está nela agora |
+| **Peneira** | Lista **Equipamentos**, `TipoEquipamento = Peneira` | Item calibrado pela instrumentação. `Conjunto` = peneirador onde está instalada (vazio = fora de uso) |
+
+### Duas etiquetas, dois públicos
+
+| Etiqueta | Onde cola | Quem usa | O que abre |
+|---|---|---|---|
+| **Peneirador** (100 × 50 mm) | Na máquina ou no suporte das peneiras circulares | Laboratorista (e qualquer um para consulta) | Situação de todas as peneiras daquele conjunto e o botão **Verificar as peneiras deste peneirador**, que abre o checklist já filtrado |
+| **Peneira** (mini 50 × 25 mm) | No aro de cada peneira | Instrumentação (e qualquer um para consulta) | Calibração da peneira, onde está instalada e o histórico de verificações. Botões **Registrar calibração** e **Instalar em posição** |
+
+As duas etiquetas usam o mesmo link do app. O app decide o que mostrar pelo tipo do equipamento.
+
+### Verificação rápida (checklist)
+
+1. Todas as peneiras **começam com os 5 itens em OK**. Se a calibração está vencida no cadastro, o item Calibração já vem **NÃO OK**.
+2. Botão **✔ Marcar todos OK** (no peneirador escolhido ou em todos), igual ao botão da planilha.
+3. Para corrigir, **toque no item**: OK → NÃO OK → N/A. No item Calibração: OK → NÃO OK → SEM TAG → N/A.
+4. Filtro por peneirador no topo, com a contagem de não conformes de cada um. Botão **Só não conformes** para revisar antes de enviar.
+5. Envia só as peneiras do filtro escolhido (ou todas). A regra continua a da planilha: qualquer NÃO OK reprova; SEM TAG e N/A não reprovam.
+
+### Troca de peneira
+
+Quando uma peneira sai e outra entra no lugar, a **instrumentação** lê a etiqueta da peneira nova > **Instalar em posição** > escolhe a posição (o app sugere as posições da mesma malha). O app:
+- coloca a peneira nova na posição (PontosAfericao);
+- marca a peneira antiga como fora de uso (Conjunto vazio);
+- esvazia a posição antiga da peneira nova, se ela vinha de outro lugar.
+
+O histórico não se perde: cada verificação fica gravada com a TAG da peneira que estava na posição naquele dia. As alterações em PontosAfericao ficam no histórico de versões do SharePoint.
+
 ## 6. Fluxos principais
 
 **Lançamento de aferição**
@@ -180,6 +223,7 @@ Recalcula o Status de todos os equipamentos ─► agenda de ontem (feito x pend
 |---|---|---|
 | TAG correta das peneiras que aparecem em dois peneiradores (lista no resumo da carga) | Etiquetas e histórico | Laboratório |
 | TAG da peneira sem identificação na planilha | Etiqueta | Laboratório |
+| TAG oficial do conjunto de peneiras circulares (provisória: PN-CIRCULARES) | Etiqueta do peneirador | Laboratório |
 | Datas de calibração de todos os equipamentos | Situação Liberado/Bloqueado | Instrumentação |
 | Perfil das pessoas com letra ADM | Lista Acessos | Gestor |
 | Ambiente do app (produção) | Publicação | TI |
