@@ -66,11 +66,12 @@ SENHA_CFG = 'Samarco@Lab'
 #   chave, rotulo, tag, mapa, janela, agregacao, faixa valida, decimais, de onde vem no MES
 #   janela E = espessador D-1 23:00 a D 21:00 · D = dia 00:00 a 23:59
 #   mapas: os que o MES aceitou na 1a busca real (26/10/2026): tags HH/DVR = IP_AnalogMap, batch = IP_MESVALOR
+#   tags e horarios conferidos pelo laboratorio no MES (relatorio_alessandra.xlsx, 26/10/2026)
 # ----------------------------------------------------------------------------
 ITENS = [
-    ('prodC3', 'Produção C3 (t)', 'M4239010000-1445-DDDVRCC', 'IP_AnalogMap', 'D', 'Último', 0, 200000, 0,
-     'DVR - Concen C3 transf Mineroduto 3'),
-    ('prodC2', 'Produção C2 (t)', 'M0239010000-0596-HHCC', 'IP_AnalogMap', 'E', 'Soma', 0, 200000, 0,
+    ('prodC3', 'Produção C3 (t)', 'M4239010000-596-HHCC', 'IP_AnalogMap', 'E', 'Média', 0, 200000, 0,
+     '15-G2-HH INDICES PRODUCAO - Ritmo Produção Concentrador III (conferência 26/10)'),
+    ('prodC2', 'Produção C2 (t)', 'M0239010000-0596-HHCC', 'IP_AnalogMap', 'E', 'Média', 0, 200000, 0,
      '15-G2-HH INDICES PRODUCAO - Ritmo Produção Concentrador II'),
     ('espC3', 'S.E. alimentação espessador C3', 'M4238010000-2888-HHLQ', 'IP_AnalogMap', 'E', 'Média', 300, 8000,
      0, '40-G3-HH ALIMENTACAO ESPESSADO - SE'),
@@ -86,8 +87,8 @@ ITENS = [
      'BOLETIM DVR - Lama incorporada no concentrado'),
     ('lamaC2', 'Lama incorporada C2 (tms)', 'M0239000000-0781-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 20000, 0,
      '00-G2-DD BALANCO DVR - Lama incorporada (soma com a do C3)'),
-    ('concC3', 'Concentrado C3 (tms)', 'M4224010000-0317-DDDVRCC', 'IP_AnalogMap', 'D', 'Último', 0, 200000, 0,
-     'BOLETIM DVR - Beneficiamento - Concentrado C3 (no MES: Benef ROM Aliment C3)'),
+    ('concC3', 'Concentrado C3 (tms)', 'M4238010000-1445-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 200000, 0,
+     'BOLETIM DVR - Beneficiamento - Concentrado C3 (tms) (conferência 26/10)'),
     ('concC2', 'Concentrado C2 (tms)', 'M0238010000-1445-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 200000, 0,
      'BOLETIM DVR - Esp. Conc DVR (tms)'),
 ]
@@ -491,7 +492,7 @@ class Construtor:
         # (1) data do report + botoes
         self.secao(ws, 3, 1, 2, '①  DATA DO REPORT')
         ws.set_row(D_ROW_DATA, 30)
-        ws.write(D_ROW_DATA, D_COL['ITEM'], 'Dia (00:00 a 23:59) ▸', self.f(bold=True, font_color=AZUL_TIT,
+        ws.write(D_ROW_DATA, D_COL['ITEM'], 'Dia dos dados ▸', self.f(bold=True, font_color=AZUL_TIT,
                                                                            align='right'))
         ent = self.fi(bold=True, font_size=13, align='center', num_format='dd/mm/yyyy', border=2,
                       border_color=AMARELO)
@@ -501,8 +502,9 @@ class Construtor:
         self.botao(ws, 3, D_COL['TAG'], 'Salvar no histórico', 'SalvarDia', largura=190, altura=34, estilo='g',
                    x=20, y=6)
         ws.write_formula(D_ROW_DATA + 1, D_COL['ITEM'],
-                         '="Espessador e produção C2: "&%s&" 23:00 a "&%s&" 21:00   ·   Batch, tanques e DVR: "&%s&'
-                         '" 00:00 a 23:59"' % (dm('(dData-1)'), dm('dData'), dm('dData')),
+                         '="Report de "&%s&"  ·  produção e espessadores: "&%s&" 23:00 a "&%s&" 21:00  ·  batch, '
+                         'tanques e DVR: "&%s&" 00:00 a 23:59"' % (dm('(dData+1)'), dm('(dData-1)'), dm('dData'),
+                                                                   dm('dData')),
                          self.f(font_color=MUTED, italic=True, font_size=9), '')
         ws.write(D_ROW_DATA + 2, D_COL['ITEM'], 'O DVR (produção C3, lama e concentrados) só entra no MES no fechamento '
                                                  'do dia: busque o dia anterior. Ao trocar a data, o dia já salvo é aberto.',

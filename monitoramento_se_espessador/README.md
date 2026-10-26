@@ -51,17 +51,19 @@ horário e o valor que a janela do item daria.
 
 ## Tags (aba Configurações)
 
-Mapas = os que o MES aceitou na 1ª busca real (26/10/2026).
+Conferidas pelo laboratório no MES em 26/10/2026 (exceto a S.E. do espessador C3). Exemplo de horários: o report de
+26/10 usa os dados de 25/10 — produção e espessadores de 24/10 23:00 a 25/10 21:00; batch e DVR de 25/10 00:00 a 23:59.
 
 | Item | Tag | Mapa | Janela · agregação |
 |---|---|---|---|
-| Produção C3 | `M4239010000-1445-DDDVRCC` (Concen C3 transf Mineroduto 3) | IP_AnalogMap | D · Último |
-| Produção C2 | `M0239010000-0596-HHCC` (Ritmo Produção Concentrador II) | IP_AnalogMap | E · Soma |
-| S.E. espessador C3 / C2 | `M4238010000-2888-HHLQ` / `M0238010000-0017-HHLQ` | IP_AnalogMap | E · Média |
+| Produção C3 | `M4239010000-596-HHCC` (Ritmo Produção Concentrador III) | IP_AnalogMap | E · Média |
+| Produção C2 | `M0239010000-0596-HHCC` (Ritmo Produção Concentrador II) | IP_AnalogMap | E · Média |
+| S.E. espessador C2 | `M0238010000-0017-HHLQ` | IP_AnalogMap | E · Média |
+| S.E. espessador C3 | `M4238010000-2888-HHLQ` (**não está na conferência — confirmar**) | IP_AnalogMap | E · Média |
 | S.E. batch EB4 / EB6 | `M250010000-17-ABLQ` / `M4250010000-17-ABLQ` | IP_MESVALOR | D · Média |
 | TK 01 / TK 02 - EB6 | sem tag (lançar à mão) | — | — |
 | Lama incorporada C3 / C2 | `M4239000000-0781-DDDVR` / `M0239000000-0781-DDDVR` | IP_AnalogMap | D · Último |
-| Concentrado C3 | `M4224010000-0317-DDDVRCC` (no MES: Benef ROM Aliment C3) | IP_AnalogMap | D · Último |
+| Concentrado C3 | `M4238010000-1445-DDDVR` (Beneficiamento - Concentrado C3) | IP_AnalogMap | D · Último |
 | Concentrado C2 | `M0238010000-1445-DDDVR` (Esp. Conc DVR (tms)) | IP_AnalogMap | D · Último |
 
 Levantamento completo (planilha antiga × caderno × Word × lista de tags): [`dicionario_campos.csv`](dicionario_campos.csv).
@@ -75,6 +77,9 @@ Levantamento completo (planilha antiga × caderno × Word × lista de tags): [`d
 - **A conferir com um dia fechado** (aba Diagnóstico): DVR (produção C3, lama, concentrados) com valor às 23:59;
   EB6 com 13 resultados no dia; produção C3 parecida com o histórico (18/08: 26 983 t); concentrado C2 = Boletim DVR
   (19 601 t em 18/08).
+- **26/10/2026 (conferência manual das tags)**: produção C3 passou para o ritmo do Concentrador III
+  (`M4239010000-596-HHCC`, janela do espessador) e concentrado C3 para `M4238010000-1445-DDDVR`; produção C2 e C3 pela
+  **média** (a planilha antiga usa a média: 18/08 = 26 983 / 18 006 t).
 - **Fator**: só é guardado (não entra em nenhuma conta nem gráfico). Confirmar o que representa.
 
 ## Gerar de novo

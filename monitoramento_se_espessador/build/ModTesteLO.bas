@@ -81,7 +81,7 @@ Public Sub TesteLO()
     Ok Perto(Nm("gUlt_lama").Value, 335, 0.001), "caixa Produção e DVR: lama 335 em 15/10"
 
     ' --- leitura da saida do MES (janela E) e tags
-    Ok TesteLeitura() = "23000|23|2011|12", "leitura da janela E: soma 23000 (23 h), média 2011 (12 resultados): " & TesteLeitura()
+    Ok TesteLeitura() = "1000|23|2011|12", "leitura da janela E: produção média 1000 (23 h), S.E. média 2011 (12 resultados): " & TesteLeitura()
     Ok VarianteTag("M0239010000-0596-HHCC") = "M0239010000-596-HHCC", "variante de tag -0596- -> -596-"
     s = TesteTagsInvalidas("Erro: Tag Name M0239010000-0596-HHCC is invalid")
     Ok s = "|M0239010000-596-HHCC", "tag recusada: a consulta passa a usar a variante (" & s & ")"
