@@ -15,7 +15,7 @@
       Width: =48
       Height: =48
       Color: =RGBA(255, 255, 255, 1)
-      OnSelect: =Navigate(scrInicio, ScreenTransition.UnCover)
+      OnSelect: =Navigate(scrEquipamento, ScreenTransition.UnCover)
       PaddingTop: =8
       PaddingBottom: =8
       PaddingLeft: =8
@@ -85,49 +85,22 @@
       Height: =50
       Size: =14
       BorderColor: =RGBA(205, 214, 225, 1)
-- galVeGrupos:
-    Control: Gallery@2.15.0
-    Variant: Horizontal
+- lblVeConjunto:
+    Control: Label@2.5.1
     Properties:
-      Items: |-
-        =Ungroup(Table({Itens: Table({Value: "Todos"})}, {Itens: Distinct(colFormVe, Secao)}), Itens)
+      Text: |-
+        ="PENEIRADOR  ·  " & Upper(Coalesce(LookUp(colEquip, Title = locConjunto).Descricao, First(colFormVe).Secao, locConjunto)) &
+        "  ·  " & CountRows(colFormVe) & " peneiras" &
+        With({n: CountRows(Filter(colFormVe, (I1 = "NÃO OK" || I2 = "NÃO OK" || I3 = "NÃO OK" || I4 = "NÃO OK" || I5 = "NÃO OK")))}, If(n > 0, "  ·  " & n & " NC", ""))
       X: =20
       Y: =266
       Width: =Parent.Width - 40
-      Height: =58
-      TemplateSize: =172
-      TemplatePadding: =0
-      TemplateFill: =RGBA(0, 0, 0, 0)
-    Children:
-      - btnVeGrupo:
-          Control: Classic/Button@2.2.0
-          Properties:
-            Text: |-
-              =ThisItem.Value &
-              With(
-                  {n: CountRows(Filter(colFormVe, (ThisItem.Value = "Todos" || Secao = ThisItem.Value) && (I1 = "NÃO OK" || I2 = "NÃO OK" || I3 = "NÃO OK" || I4 = "NÃO OK" || I5 = "NÃO OK")))},
-                  If(n > 0, " · " & n & " NC", "")
-              )
-            X: =0
-            Y: =0
-            Width: =164
-            Height: =50
-            OnSelect: |-
-              =UpdateContext({locGrupo: ThisItem.Value})
-            Fill: =If(locGrupo = ThisItem.Value, RGBA(11, 37, 64, 1), RGBA(255, 255, 255, 1))
-            Color: =If(locGrupo = ThisItem.Value, RGBA(255, 255, 255, 1), RGBA(11, 37, 64, 1))
-            Size: =11
-            FontWeight: =FontWeight.Bold
-            HoverFill: =If(locGrupo = ThisItem.Value, RGBA(11, 37, 64, 1), RGBA(255, 255, 255, 1))
-            PressedFill: =If(locGrupo = ThisItem.Value, RGBA(11, 37, 64, 1), RGBA(255, 255, 255, 1))
-            HoverColor: =If(locGrupo = ThisItem.Value, RGBA(255, 255, 255, 1), RGBA(11, 37, 64, 1))
-            PressedColor: =If(locGrupo = ThisItem.Value, RGBA(255, 255, 255, 1), RGBA(11, 37, 64, 1))
-            RadiusTopLeft: =25
-            RadiusTopRight: =25
-            RadiusBottomLeft: =25
-            RadiusBottomRight: =25
-            BorderColor: =RGBA(11, 37, 64, 1)
-            BorderThickness: =1
+      Height: =54
+      Size: =12
+      FontWeight: =FontWeight.Bold
+      Color: =RGBA(11, 37, 64, 1)
+      Fill: =RGBA(230, 239, 255, 1)
+      PaddingLeft: =14
 - btnVeTodosOK:
     Control: Classic/Button@2.2.0
     Properties:

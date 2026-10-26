@@ -127,12 +127,26 @@
       Text: =gblEquip.Title
       X: =20
       Y: =238
-      Width: =Parent.Width - 40
+      Width: =Parent.Width - 250
       Height: =44
       Size: =24
       FontWeight: =FontWeight.Bold
       Color: =RGBA(11, 37, 64, 1)
       Visible: =!IsBlank(gblEquip)
+- lblEqAgenda:
+    Control: Label@2.5.1
+    Properties:
+      Text: =If(CountIf(Filter(colAgendaUn, Un = If(Ensaio = "PEN", gblConjuntoRef, gblEquip.Title)), !Feito) = 0, "FEITO NESTE TURNO ✓", "PREVISTO · FALTA")
+      X: =Parent.Width - 230
+      Y: =244
+      Width: =210
+      Height: =34
+      Size: =10
+      FontWeight: =FontWeight.Bold
+      Color: =If(CountIf(Filter(colAgendaUn, Un = If(Ensaio = "PEN", gblConjuntoRef, gblEquip.Title)), !Feito) = 0, RGBA(30, 127, 79, 1), RGBA(181, 71, 8, 1))
+      Align: =Align.Center
+      Fill: =If(CountIf(Filter(colAgendaUn, Un = If(Ensaio = "PEN", gblConjuntoRef, gblEquip.Title)), !Feito) = 0, RGBA(226, 243, 234, 1), RGBA(254, 240, 199, 1))
+      Visible: =!IsBlank(gblEquip) && gblPerfil = "Laboratorista" && CountRows(Filter(colAgendaUn, Un = If(Ensaio = "PEN", gblConjuntoRef, gblEquip.Title))) > 0
 - lblEqInfo:
     Control: Label@2.5.1
     Properties:
@@ -298,7 +312,7 @@
 - lblEqHistRot:
     Control: Label@2.5.1
     Properties:
-      Text: =If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR · toque para abrir a peneira", "HISTÓRICO DE AFERIÇÕES")
+      Text: =If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR", "HISTÓRICO DE AFERIÇÕES")
       X: =20
       Y: =If(gblUltAfNC && !gblEhPeneirador, 600, 494)
       Width: =Parent.Width - 40
@@ -387,40 +401,6 @@
       TemplateSize: =76
       TemplatePadding: =0
       TemplateFill: =RGBA(0, 0, 0, 0)
-      OnSelect: |-
-        =If(
-            !IsBlank(ThisItem.TAG),
-            Set(gblTag, ThisItem.TAG);
-            Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
-            ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
-            Set(gblUltAfData, First(colHist).DataEnsaio);
-            Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
-            // Peneirador = conjunto com etiqueta própria; Peneira = item calibrado pela instrumentação
-            Set(gblEhPeneirador, gblEquip.TipoEquipamento = "Peneirador" && !IsBlank(LookUp(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title)));
-            Set(gblEhPeneira, gblEquip.TipoEquipamento = "Peneira");
-            Set(gblConjuntoRef, If(gblEhPeneirador, gblEquip.Title, gblEhPeneira, gblEquip.Conjunto, ""));
-            ClearCollect(
-                colPeneirasConj,
-                AddColumns(
-                    Sort(Filter(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title), Ordem),
-                    StatusPen, Coalesce(LookUp(colEquip, Title = TAG).StatusCalc, "Posição vazia")
-                )
-            );
-            Set(gblStatus, With(
-                {e: gblEquip},
-                If(
-                    IsBlank(e), "",
-                    e.ControlaCalibracao && e.UltimoResultado = "Recusada", "Bloqueado · Calibração recusada",
-                    e.ControlaCalibracao && e.ManutencaoSolicitada, "Bloqueado · Em manutenção",
-                    e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today(), "Bloqueado · Calibração vencida",
-                    gblUltAfNC && !(e.UltimoResultado = "Aprovada" && !IsBlank(e.UltimaCalibracao) && e.UltimaCalibracao >= gblUltAfData),
-                        "Bloqueado · Aferição não conforme",
-                    e.ControlaCalibracao && IsBlank(e.ProximaCalibracao), "Liberado · Sem data de calibração",
-                    e.ControlaCalibracao && e.ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days), "Liberado · Calibração vence em breve",
-                    "Liberado"
-                )
-            ))
-        )
       Visible: =!IsBlank(gblEquip) && gblEhPeneirador
     Children:
       - recPcCard:
@@ -431,7 +411,6 @@
             Y: =0
             Width: =Parent.TemplateWidth
             Height: =Parent.TemplateHeight - 6
-            OnSelect: =Select(Parent)
       - recPcFaixa:
           Control: Rectangle@2.3.0
           Properties:
@@ -446,7 +425,6 @@
             Y: =0
             Width: =6
             Height: =Parent.TemplateHeight - 6
-            OnSelect: =Select(Parent)
       - lblPcTag:
           Control: Label@2.5.1
           Properties:
@@ -458,7 +436,6 @@
             Size: =14
             FontWeight: =FontWeight.Bold
             Color: =RGBA(11, 37, 64, 1)
-            OnSelect: =Select(Parent)
       - lblPcMalha:
           Control: Label@2.5.1
           Properties:
@@ -469,7 +446,6 @@
             Height: =28
             Size: =11
             Color: =RGBA(93, 107, 125, 1)
-            OnSelect: =Select(Parent)
       - lblPcStat:
           Control: Label@2.5.1
           Properties:
@@ -495,7 +471,6 @@
                   ThisItem.StatusPen = "Liberado · Sem data de calibração", RGBA(236, 239, 243, 1),
                   RGBA(226, 243, 234, 1)
               )
-            OnSelect: =Select(Parent)
       - lblPcMot:
           Control: Label@2.5.1
           Properties:
@@ -507,7 +482,6 @@
             Size: =10
             Color: =RGBA(93, 107, 125, 1)
             Align: =Align.Right
-            OnSelect: =Select(Parent)
 - lblEqHistVazio:
     Control: Label@2.5.1
     Properties:
@@ -534,29 +508,22 @@
 - btnEqLancar:
     Control: Classic/Button@2.2.0
     Properties:
-      Text: |-
-        =If(
-            (gblEhPeneirador || gblEhPeneira), "Verificar as peneiras do " & Coalesce(LookUp(colEquip, Title = gblConjuntoRef).Descricao, "peneirador"),
-            "Lançar " & LookUp(colEnsaios, Title = First(Split(gblEquip.EnsaioAfericao, ";")).Value).Nome
-        )
+      Text: =If(CountRows(gblCodigos) >= 2, If(First(gblCodigos).Value = "PEN", "Verificar peneiras", "Lançar " & LookUp(colEnsaios, Title = First(gblCodigos).Value).Nome), If(First(gblCodigos).Value = "PEN", "Verificar as peneiras do " & Coalesce(LookUp(colEquip, Title = gblConjuntoRef).Descricao, "peneirador"), "Lançar " & LookUp(colEnsaios, Title = First(gblCodigos).Value).Nome))
       X: =20
       Y: =Parent.Height - 88
-      Width: =Parent.Width - 40
+      Width: =If(CountRows(gblCodigos) >= 2, (Parent.Width - 50) / 2, Parent.Width - 40)
       Height: =70
       OnSelect: |-
-        =If(
-            (gblEhPeneirador || gblEhPeneira),
-            Set(gblEnsaio, LookUp(colEnsaios, Title = "PEN"));
-            Set(gblConjuntoFiltro, gblConjuntoRef);
-            Set(gblDestacar, If(gblEhPeneira, gblEquip.Title, "")),
-            Set(gblEnsaio, LookUp(colEnsaios, Title = First(Split(gblEquip.EnsaioAfericao, ";")).Value));
-            Set(gblConjuntoFiltro, "");
-            Set(gblDestacar, gblEquip.Title)
+        =With(
+            {wCod: First(gblCodigos).Value},
+            Set(gblEnsaio, LookUp(colEnsaios, Title = wCod));
+            Set(gblConjuntoFiltro, If(wCod = "PEN", gblConjuntoRef, ""));
+            Set(gblDestacar, If(wCod = "PEN", If(gblEhPeneira, gblEquip.Title, ""), gblEquip.Title))
         );
         Navigate(If(gblEnsaio.Formulario.Value = "Checklist", scrVerificacao, scrEnsaio), ScreenTransition.Cover)
       Fill: =RGBA(11, 37, 64, 1)
       Color: =RGBA(255, 255, 255, 1)
-      Size: =15
+      Size: =If(CountRows(gblCodigos) >= 2, 13, 15)
       FontWeight: =FontWeight.Bold
       HoverFill: =RGBA(11, 37, 64, 1)
       PressedFill: =RGBA(11, 37, 64, 1)
@@ -566,7 +533,36 @@
       RadiusTopRight: =12
       RadiusBottomLeft: =12
       RadiusBottomRight: =12
-      Visible: =!IsBlank(gblEquip) && gblPerfil = "Laboratorista" && (gblEhPeneirador || (gblEhPeneira && !IsBlank(gblConjuntoRef)) || (!gblEhPeneira && !IsBlank(gblEquip.EnsaioAfericao)))
+      Visible: =!IsBlank(gblEquip) && gblPerfil = "Laboratorista" && CountRows(gblCodigos) >= 1
+- btnEqLancar2:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Text: =If(Last(gblCodigos).Value = "PEN", "Verificar peneiras", "Lançar " & LookUp(colEnsaios, Title = Last(gblCodigos).Value).Nome)
+      X: =30 + (Parent.Width - 50) / 2
+      Y: =Parent.Height - 88
+      Width: =(Parent.Width - 50) / 2
+      Height: =70
+      OnSelect: |-
+        =With(
+            {wCod: Last(gblCodigos).Value},
+            Set(gblEnsaio, LookUp(colEnsaios, Title = wCod));
+            Set(gblConjuntoFiltro, If(wCod = "PEN", gblConjuntoRef, ""));
+            Set(gblDestacar, If(wCod = "PEN", If(gblEhPeneira, gblEquip.Title, ""), gblEquip.Title))
+        );
+        Navigate(If(gblEnsaio.Formulario.Value = "Checklist", scrVerificacao, scrEnsaio), ScreenTransition.Cover)
+      Fill: =RGBA(11, 37, 64, 1)
+      Color: =RGBA(255, 255, 255, 1)
+      Size: =13
+      FontWeight: =FontWeight.Bold
+      HoverFill: =RGBA(11, 37, 64, 1)
+      PressedFill: =RGBA(11, 37, 64, 1)
+      HoverColor: =RGBA(255, 255, 255, 1)
+      PressedColor: =RGBA(255, 255, 255, 1)
+      RadiusTopLeft: =12
+      RadiusTopRight: =12
+      RadiusBottomLeft: =12
+      RadiusBottomRight: =12
+      Visible: =!IsBlank(gblEquip) && gblPerfil = "Laboratorista" && CountRows(gblCodigos) >= 2
 - btnEqCalibrar:
     Control: Classic/Button@2.2.0
     Properties:
@@ -626,7 +622,7 @@
       Size: =12
       Color: =RGBA(93, 107, 125, 1)
       Align: =Align.Center
-      Visible: =!IsBlank(gblEquip) && (gblPerfil = "Colaborador" || (gblPerfil = "Laboratorista" && !(!IsBlank(gblEquip) && gblPerfil = "Laboratorista" && (gblEhPeneirador || (gblEhPeneira && !IsBlank(gblConjuntoRef)) || (!gblEhPeneira && !IsBlank(gblEquip.EnsaioAfericao))))))
+      Visible: =!IsBlank(gblEquip) && (gblPerfil = "Colaborador" || (gblPerfil = "Laboratorista" && !(!IsBlank(gblEquip) && gblPerfil = "Laboratorista" && CountRows(gblCodigos) >= 1)))
 - recEqInsFundo:
     Control: Rectangle@2.3.0
     Properties:
@@ -796,6 +792,14 @@
                     Set(gblEhPeneirador, gblEquip.TipoEquipamento = "Peneirador" && !IsBlank(LookUp(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title)));
                     Set(gblEhPeneira, gblEquip.TipoEquipamento = "Peneira");
                     Set(gblConjuntoRef, If(gblEhPeneirador, gblEquip.Title, gblEhPeneira, gblEquip.Conjunto, ""));
+                    // Ensaios lançados a partir deste QR: os da coluna EnsaioAfericao; peneira instalada = verificação do peneirador dela
+                    Set(
+                        gblCodigos,
+                        Filter(
+                            Split(If(gblEhPeneira, If(IsBlank(gblEquip.Conjunto), "", "PEN"), Coalesce(gblEquip.EnsaioAfericao, "")), ";"),
+                            !IsBlank(Trim(Value))
+                        )
+                    );
                     ClearCollect(
                         colPeneirasConj,
                         AddColumns(

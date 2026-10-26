@@ -15,7 +15,7 @@
       Width: =48
       Height: =48
       Color: =RGBA(255, 255, 255, 1)
-      OnSelect: =Navigate(scrInicio, ScreenTransition.UnCover)
+      OnSelect: =Navigate(scrEquipamento, ScreenTransition.UnCover)
       PaddingTop: =8
       PaddingBottom: =8
       PaddingLeft: =8

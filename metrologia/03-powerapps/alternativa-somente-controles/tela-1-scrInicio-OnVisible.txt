@@ -42,27 +42,66 @@
     Set(gblMinhaLetra, Coalesce(gblEu.Letra.Value, gblLetraTurno));
     Set(gblIniciado, true)
 );
-        If(IsBlank(locAba), UpdateContext({locAba: Switch(gblPerfil, "Laboratorista", "agenda", "Instrumentação", "pendencias", "equip"), locFiltro: ""}));
-        If(gblPerfil = "Colaborador", UpdateContext({locAba: "equip"}));
-        Concurrent(
+        If(
+            gblPerfil = "Laboratorista",
+            ClearCollect(colLancTurno, Filter(Lancamentos, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual && Situacao = "Ativo"));
+            ClearCollect(colAfTurno, Filter(Afericoes, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual));
+            Clear(colAgendaUn);
+            ForAll(
+                Filter(colEnsaios As en, With(
+                    {wd: Weekday(gblDataTurnoAtual, StartOfWeek.Monday), wDia: gblTurnoAtual = "07x19"},
+                    Switch(
+                        wd,
+                        1, If(wDia, en.SegD, en.SegN), 2, If(wDia, en.TerD, en.TerN), 3, If(wDia, en.QuaD, en.QuaN),
+                        4, If(wDia, en.QuiD, en.QuiN), 5, If(wDia, en.SexD, en.SexN), 6, If(wDia, en.SabD, en.SabN),
+                        If(wDia, en.DomD, en.DomN)
+                    )
+                )) As en,
+                Collect(
+                    colAgendaUn,
+                    If(
+                        en.Title = "PEN",
+                        ForAll(
+                            Distinct(Filter(colPontos, Ensaio = "PEN" && !IsBlank(Conjunto) && !IsBlank(TAG)), Conjunto) As u,
+                            {
+                                Ensaio: en.Title,
+                                Un: u.Value,
+                                Feito: CountRows(
+                                    Filter(colPontos, Ensaio = "PEN" && Conjunto = u.Value && TAG in Filter(colAfTurno, Ensaio = en.NomeBD).TAG)
+                                ) > 0
+                            }
+                        ),
+                        ForAll(
+                            Distinct(Filter(colPontos, Ensaio = en.Title && !IsBlank(TAG)), TAG) As u,
+                            {Ensaio: en.Title, Un: u.Value, Feito: !IsBlank(LookUp(colAfTurno, Ensaio = en.NomeBD && TAG = u.Value))}
+                        )
+                    )
+                )
+            );
             ClearCollect(
-        colEquip,
-        AddColumns(
-            Filter(Equipamentos, Ativo = true),
-            StatusCalc,
-            If(
-                ControlaCalibracao && UltimoResultado = "Recusada", "Bloqueado · Calibração recusada",
-                ControlaCalibracao && ManutencaoSolicitada, "Bloqueado · Em manutenção",
-                ControlaCalibracao && !IsBlank(ProximaCalibracao) && ProximaCalibracao < Today(), "Bloqueado · Calibração vencida",
-                UltimaAfericaoResultado = "Não conforme" &&
-                    !(UltimoResultado = "Aprovada" && !IsBlank(UltimaCalibracao) && UltimaCalibracao >= UltimaAfericao),
-                    "Bloqueado · Aferição não conforme",
-                ControlaCalibracao && IsBlank(ProximaCalibracao), "Liberado · Sem data de calibração",
-                ControlaCalibracao && ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days), "Liberado · Calibração vence em breve",
-                "Liberado"
+                colAgenda,
+                ForAll(
+                    Filter(colEnsaios As en, With(
+                    {wd: Weekday(gblDataTurnoAtual, StartOfWeek.Monday), wDia: gblTurnoAtual = "07x19"},
+                    Switch(
+                        wd,
+                        1, If(wDia, en.SegD, en.SegN), 2, If(wDia, en.TerD, en.TerN), 3, If(wDia, en.QuaD, en.QuaN),
+                        4, If(wDia, en.QuiD, en.QuiN), 5, If(wDia, en.SexD, en.SexN), 6, If(wDia, en.SabD, en.SabN),
+                        If(wDia, en.DomD, en.DomN)
+                    )
+                )) As en,
+                    With(
+                        {w: Filter(colAgendaUn, Ensaio = en.Title), wEnv: !IsBlank(LookUp(colLancTurno, Ensaio = en.NomeBD))},
+                        {
+                            Title: en.Title,
+                            Nome: en.Nome,
+                            Ordem: en.Ordem,
+                            Total: CountRows(w),
+                            Feitos: CountIf(w, Feito),
+                            Lista: Concat(w, Un & If(Feito, " ✓", ""), "   ·   "),
+                            Completo: If(CountRows(w) = 0, wEnv, CountIf(w, Feito) = CountRows(w))
+                        }
+                    )
+                )
             )
-        )
-    ),
-            ClearCollect(colLancTurno, Filter(Lancamentos, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual && Situacao = "Ativo")),
-            ClearCollect(colLancRecentes, Filter(Lancamentos, DataEnsaio >= DateAdd(Today(), -30, TimeUnit.Days) && Situacao = "Ativo"))
         )

@@ -394,151 +394,142 @@ def barra_e_revisao(prefixo, revisar_formula, resumo_formula):
 
 
 # ------------------------------------------------------------------ TELA 1 · Início
+def previsto(r=""):
+    """Ensaio previsto no turno atual (grade SegD … DomN da lista Ensaios). r = prefixo do registro ('en.')."""
+    return f'''
+        With(
+            {{wd: Weekday(gblDataTurnoAtual, StartOfWeek.Monday), wDia: gblTurnoAtual = "07x19"}},
+            Switch(
+                wd,
+                1, If(wDia, {r}SegD, {r}SegN), 2, If(wDia, {r}TerD, {r}TerN), 3, If(wDia, {r}QuaD, {r}QuaN),
+                4, If(wDia, {r}QuiD, {r}QuiN), 5, If(wDia, {r}SexD, {r}SexN), 6, If(wDia, {r}SabD, {r}SabN),
+                If(wDia, {r}DomD, {r}DomN)
+            )
+        )'''
+
+
+# Agenda do turno: uma linha por equipamento previsto (peneiradores: uma por conjunto).
+# Feito = existe aferição daquele equipamento no turno atual. Só leitura: para lançar, lê-se o QR do equipamento.
+AGENDA = f'''
+ClearCollect(colLancTurno, Filter(Lancamentos, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual && Situacao = "Ativo"));
+ClearCollect(colAfTurno, Filter(Afericoes, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual));
+Clear(colAgendaUn);
+ForAll(
+    Filter(colEnsaios As en, {textwrap.indent(textwrap.dedent(previsto("en.")).strip(), "    ").strip()}) As en,
+    Collect(
+        colAgendaUn,
+        If(
+            en.Title = "PEN",
+            ForAll(
+                Distinct(Filter(colPontos, Ensaio = "PEN" && !IsBlank(Conjunto) && !IsBlank(TAG)), Conjunto) As u,
+                {{
+                    Ensaio: en.Title,
+                    Un: u.Value,
+                    Feito: CountRows(
+                        Filter(colPontos, Ensaio = "PEN" && Conjunto = u.Value && TAG in Filter(colAfTurno, Ensaio = en.NomeBD).TAG)
+                    ) > 0
+                }}
+            ),
+            ForAll(
+                Distinct(Filter(colPontos, Ensaio = en.Title && !IsBlank(TAG)), TAG) As u,
+                {{Ensaio: en.Title, Un: u.Value, Feito: !IsBlank(LookUp(colAfTurno, Ensaio = en.NomeBD && TAG = u.Value))}}
+            )
+        )
+    )
+);
+ClearCollect(
+    colAgenda,
+    ForAll(
+        Filter(colEnsaios As en, {textwrap.indent(textwrap.dedent(previsto("en.")).strip(), "    ").strip()}) As en,
+        With(
+            {{w: Filter(colAgendaUn, Ensaio = en.Title), wEnv: !IsBlank(LookUp(colLancTurno, Ensaio = en.NomeBD))}},
+            {{
+                Title: en.Title,
+                Nome: en.Nome,
+                Ordem: en.Ordem,
+                Total: CountRows(w),
+                Feitos: CountIf(w, Feito),
+                Lista: Concat(w, Un & If(Feito, " ✓", ""), "   ·   "),
+                Completo: If(CountRows(w) = 0, wEnv, CountIf(w, Feito) = CountRows(w))
+            }}
+        )
+    )
+)'''
+
+
 def tela_inicio():
     pill_perfil = label("lblIniPerfil", "Upper(gblPerfil)", "Parent.Width - 200", 128, 180, 34, size=10, bold=True,
                         Align="Align.Center",
                         Fill=F(f'Switch(gblPerfil, "Laboratorista", {LAB_S}, "Instrumentação", {INS_S}, {MUT_S})'),
                         Color=F(f'Switch(gblPerfil, "Laboratorista", {LAB}, "Instrumentação", {INS}, {MUT})'))
-    abas_vis = 'gblPerfil <> "Colaborador"'
-    aba1_txt = F('If(gblPerfil = "Laboratorista", "Agenda do turno", "Aguardando você")')
-    aba1_val = F('If(gblPerfil = "Laboratorista", "agenda", "pendencias")')
-    y_conteudo = F('If(gblPerfil = "Colaborador", 176, If(gblPerfil = "Laboratorista", 272, 236))')
-
-    previsto = '''
-        With(
-            {wd: Weekday(gblDataTurnoAtual, StartOfWeek.Monday), wDia: gblTurnoAtual = "07x19"},
-            Switch(
-                wd,
-                1, If(wDia, SegD, SegN), 2, If(wDia, TerD, TerN), 3, If(wDia, QuaD, QuaN),
-                4, If(wDia, QuiD, QuiN), 5, If(wDia, SexD, SexN), 6, If(wDia, SabD, SabN),
-                If(wDia, DomD, DomN)
-            )
-        )'''
-    agenda_items = F(f'''
-        Sort(
-            AddColumns(
-                colEnsaios,
-                Previsto, {textwrap.indent(textwrap.dedent(previsto).strip(), " " * 16).strip()},
-                Enviado, !IsBlank(LookUp(colLancTurno, Ensaio = NomeBD)),
-                Ultimo, Max(Filter(colLancRecentes, Ensaio = NomeBD), DataEnsaio)
-            ),
-            If(Previsto, 0, 1) * 100 + Ordem
-        )''')
-    equip_items = F('''
-        Sort(
-            Filter(
-                colEquip,
-                (locFiltro = "" ||
-                    (locFiltro = "bloq" && StartsWith(StatusCalc, "Bloqueado")) ||
-                    (locFiltro = "lib" && StartsWith(StatusCalc, "Liberado")) ||
-                    (locFiltro = "vence" && StatusCalc = "Liberado · Calibração vence em breve")) &&
-                (IsBlank(txtIniBusca.Text) || txtIniBusca.Text in Title || txtIniBusca.Text in Descricao || txtIniBusca.Text in Grupo)
-            ),
-            If(StartsWith(StatusCalc, "Bloqueado"), "0", "1") & Title
-        )''')
-    pend_items = F('''
-        Sort(
-            Filter(colEquip, StartsWith(StatusCalc, "Bloqueado") || StatusCalc = "Liberado · Calibração vence em breve"),
-            If(StartsWith(StatusCalc, "Bloqueado"), "0", "1") & Title
-        )''')
-
-    def linha_equip(prefixo):
-        return [
-            rect(f"rec{prefixo}Card", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 10", fill=WHITE, OnSelect="Select(Parent)"),
-            rect(f"rec{prefixo}Faixa", 0, 0, 6, "Parent.TemplateHeight - 10", fill=status_color("ThisItem.StatusCalc"), OnSelect="Select(Parent)"),
-            label(f"lbl{prefixo}Tag", "ThisItem.Title", 22, 8, "Parent.TemplateWidth - 230", 34, size=16, bold=True, color=NAVY, OnSelect="Select(Parent)"),
-            label(f"lbl{prefixo}Desc", F('ThisItem.Descricao & If(IsBlank(ThisItem.Grupo), "", " · " & ThisItem.Grupo)'), 22, 42,
-                  "Parent.TemplateWidth - 230", 28, size=12, color=SUB, OnSelect="Select(Parent)"),
-            label(f"lbl{prefixo}Stat", F('Upper(If(StartsWith(ThisItem.StatusCalc, "Bloqueado"), "Bloqueado", "Liberado"))'),
-                  "Parent.TemplateWidth - 196", 12, 180, 32, size=10, bold=True, Align="Align.Center",
-                  Fill=status_fill("ThisItem.StatusCalc"), Color=status_color("ThisItem.StatusCalc"), OnSelect="Select(Parent)"),
-            label(f"lbl{prefixo}Mot", F('Trim(Last(Split(ThisItem.StatusCalc, "·")).Value)'), "Parent.TemplateWidth - 236", 48, 220, 26,
-                  size=10, color=SUB, Align="Align.Right", OnSelect="Select(Parent)"),
-        ]
+    lab = 'gblPerfil = "Laboratorista"'
+    y_ag = F('If(IsBlank(gblUltimoLote), 300, 360)')
+    completos = 'CountIf(colAgenda, Completo)'
 
     filhos = cabecalho("Ini", '"Metrologia"', '"Laboratório físico · calibração e aferição"') + [
         label("lblIniOla", F('"Olá, " & First(Split(gblNome, " ")).Value'), 20, 124, "Parent.Width - 240", 42, size=18, bold=True),
         pill_perfil,
+        # ----- laboratorista: agenda do turno (só leitura)
         label("lblIniTurno", F('Text(gblDataTurnoAtual, "dd/mm/yyyy") & "   ·   Turno " & gblTurnoAtual & "   ·   Letra " & gblMinhaLetra'),
-              20, 168, "Parent.Width - 40", 30, size=12, bold=True, color=NAVY, Visible='gblPerfil = "Laboratorista"'),
-        # abas
-        button("btnIniAba1", aba1_txt, 20, F('If(gblPerfil = "Laboratorista", 206, 172)'), "(Parent.Width - 50) / 2", 52,
-               F(f"UpdateContext({{locAba: {aba1_val[1:]}}})"),
-               fill=F(f'If(locAba = "equip", {WHITE}, {NAVY})'), color=F(f'If(locAba = "equip", {NAVY}, {WHITE})'),
-               size=13, BorderColor=NAVY, BorderThickness=1, Visible=abas_vis),
-        button("btnIniAba2", '"Equipamentos"', "30 + (Parent.Width - 50) / 2", F('If(gblPerfil = "Laboratorista", 206, 172)'),
-               "(Parent.Width - 50) / 2", 52, 'UpdateContext({locAba: "equip"})',
-               fill=F(f'If(locAba = "equip", {NAVY}, {WHITE})'), color=F(f'If(locAba = "equip", {WHITE}, {NAVY})'),
-               size=13, BorderColor=NAVY, BorderThickness=1, Visible=abas_vis),
-        # ----- aba agenda (laboratorista)
-        label("lblIniDesfazer", F('"Último envio: " & gblUltimoLoteTexto'), 20, y_conteudo, "Parent.Width - 200", 50, size=12, color=NAVY,
-              Fill=LAB_S, PaddingLeft=12, Visible='locAba = "agenda" && !IsBlank(gblUltimoLote)'),
-        button("btnIniDesfazer", '"Desfazer"', "Parent.Width - 172", y_conteudo, 152, 50, F('''
+              20, 168, "Parent.Width - 40", 30, size=12, bold=True, color=NAVY, Visible=lab),
+        rect("recIniProg", 20, 206, "Parent.Width - 40", 84, fill=WHITE, Visible=lab),
+        label("lblIniProgRot", '"AGENDA DO TURNO"', 36, 212, "Parent.Width - 72", 26, size=10, bold=True, color=SUB, Visible=lab),
+        label("lblIniProg", F(f'{completos} & " de " & CountRows(colAgenda) & " ensaios completos"'), 36, 236, "Parent.Width - 72", 30,
+              size=16, bold=True, color=F(f'If({completos} = CountRows(colAgenda), {OK}, {NAVY})'), Visible=lab),
+        label("lblIniDica", '"Para lançar, vá até o equipamento e leia o QR Code dele."', 36, 262, "Parent.Width - 72", 24,
+              size=11, color=SUB, Visible=lab),
+        label("lblIniDesfazer", F('"Último envio: " & gblUltimoLoteTexto'), 20, 300, "Parent.Width - 200", 50, size=12, color=NAVY,
+              Fill=LAB_S, PaddingLeft=12, Visible=f'{lab} && !IsBlank(gblUltimoLote)'),
+        button("btnIniDesfazer", '"Desfazer"', "Parent.Width - 172", 300, 152, 50, F(f'''
             IfError(
                 Remove(Afericoes, Filter(Afericoes, Title = gblUltimoLote)),
                 Notify("Não foi possível desfazer: " & FirstError.Message, NotificationType.Error),
-                Patch(Lancamentos, LookUp(Lancamentos, Title = gblUltimoLote), {Situacao: "Desfeito"}),
+                Patch(Lancamentos, LookUp(Lancamentos, Title = gblUltimoLote), {{Situacao: "Desfeito"}}),
                 Notify("Resultados removidos, mas o resumo não foi atualizado.", NotificationType.Warning),
                 Set(gblUltimoLote, Blank());
-                ClearCollect(colLancTurno, Filter(Lancamentos, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual && Situacao = "Ativo"));
+                {textwrap.indent(textwrap.dedent(AGENDA).strip(), "                ").strip()};
                 Notify("Envio desfeito.", NotificationType.Success)
             )'''), fill=WHITE, color=BAD, size=13, BorderColor=BAD, BorderThickness=1,
-               Visible='locAba = "agenda" && !IsBlank(gblUltimoLote)'),
-        gallery("galIniAgenda", agenda_items, 20, F(f'{y_conteudo[1:]} + If(IsBlank(gblUltimoLote), 0, 60)'), "Parent.Width - 40",
-                F(f'Parent.Height - ({y_conteudo[1:]}) - If(IsBlank(gblUltimoLote), 0, 60) - 10'), 92, [
-            rect("recAgCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 10", fill=WHITE, OnSelect="Select(Parent)"),
-            label("lblAgSigla", "ThisItem.Title", 14, 18, 54, 46, size=11, bold=True, Align="Align.Center",
-                  Fill=F(f'If(ThisItem.Previsto, {LAB_S}, {MUT_S})'), Color=F(f'If(ThisItem.Previsto, {LAB}, {MUT})'), OnSelect="Select(Parent)"),
-            label("lblAgNome", "ThisItem.Nome", 82, 10, "Parent.TemplateWidth - 270", 34, size=14, bold=True, OnSelect="Select(Parent)"),
-            label("lblAgFreq", F('ThisItem.Frequencia & If(IsBlank(ThisItem.Ultimo), "", " · último " & Text(ThisItem.Ultimo, "dd/mm"))'),
-                  82, 44, "Parent.TemplateWidth - 270", 30, size=11, color=SUB, OnSelect="Select(Parent)"),
-            label("lblAgSit", F('If(ThisItem.Enviado, "ENVIADO", ThisItem.Previsto, "PENDENTE", "FORA DA AGENDA")'),
-                  "Parent.TemplateWidth - 178", 26, 164, 32, size=10, bold=True, Align="Align.Center",
-                  Fill=F(f'If(ThisItem.Enviado, {OK_S}, ThisItem.Previsto, {WARN_S}, {MUT_S})'),
-                  Color=F(f'If(ThisItem.Enviado, {OK}, ThisItem.Previsto, {WARN}, {MUT})'), OnSelect="Select(Parent)"),
-        ], OnSelect=F('''
-            Set(gblEnsaio, LookUp(colEnsaios, Title = ThisItem.Title));
-            Set(gblDestacar, "");
-            Set(gblConjuntoFiltro, "");
-            Navigate(If(ThisItem.Formulario.Value = "Checklist", scrVerificacao, scrEnsaio), ScreenTransition.Cover)'''),
-           Visible='locAba = "agenda"'),
-        # ----- aba pendências (instrumentação)
-        gallery("galIniPend", pend_items, 20, y_conteudo, "Parent.Width - 40", F(f"Parent.Height - ({y_conteudo[1:]}) - 10"), 92,
-                linha_equip("IniPd"), OnSelect='Set(gblTag, ThisItem.Title); Navigate(scrEquipamento, ScreenTransition.Cover)',
-                Visible='locAba = "pendencias"'),
-        label("lblIniPendVazio", '"Nada aguardando você. Nenhum equipamento bloqueado ou vencendo."', 20, F(f'{y_conteudo[1:]} + 20'),
-              "Parent.Width - 40", 80, size=13, color=SUB, Align="Align.Center", Visible='locAba = "pendencias" && CountRows(galIniPend.AllItems) = 0'),
-        # ----- aba equipamentos (todos)
-        button("btnIniFLib", F('CountIf(colEquip, StartsWith(StatusCalc, "Liberado")) & Char(10) & "Liberados"'), 20, y_conteudo,
-               "(Parent.Width - 60) / 3", 76, 'UpdateContext({locFiltro: If(locFiltro = "lib", "", "lib")})', fill=OK_S, color=OK, size=12,
-               BorderColor=NAVY, BorderThickness=F('If(locFiltro = "lib", 3, 0)'), Visible='locAba = "equip"'),
-        button("btnIniFBloq", F('CountIf(colEquip, StartsWith(StatusCalc, "Bloqueado")) & Char(10) & "Bloqueados"'),
-               "30 + (Parent.Width - 60) / 3", y_conteudo, "(Parent.Width - 60) / 3", 76,
-               'UpdateContext({locFiltro: If(locFiltro = "bloq", "", "bloq")})', fill=BAD_S, color=BAD, size=12,
-               BorderColor=NAVY, BorderThickness=F('If(locFiltro = "bloq", 3, 0)'), Visible='locAba = "equip"'),
-        button("btnIniFVence", F('CountIf(colEquip, StatusCalc = "Liberado · Calibração vence em breve") & Char(10) & "Vencem em breve"'),
-               "40 + 2 * (Parent.Width - 60) / 3", y_conteudo, "(Parent.Width - 60) / 3", 76,
-               'UpdateContext({locFiltro: If(locFiltro = "vence", "", "vence")})', fill=WARN_S, color=WARN, size=12,
-               BorderColor=NAVY, BorderThickness=F('If(locFiltro = "vence", 3, 0)'), Visible='locAba = "equip"'),
-        textinput("txtIniBusca", 20, F(f'{y_conteudo[1:]} + 88'), "Parent.Width - 40", 52, '"Buscar TAG, equipamento ou peneirador"',
-                  Visible='locAba = "equip"'),
-        gallery("galIniEquip", equip_items, 20, F(f'{y_conteudo[1:]} + 150'), "Parent.Width - 40",
-                F(f"Parent.Height - ({y_conteudo[1:]}) - 160"), 92, linha_equip("IniEq"),
-                OnSelect='Set(gblTag, ThisItem.Title); Navigate(scrEquipamento, ScreenTransition.Cover)', Visible='locAba = "equip"'),
+               Visible=f'{lab} && !IsBlank(gblUltimoLote)'),
+        gallery("galIniAgenda", F('Sort(colAgenda, Ordem)'), 20, y_ag, "Parent.Width - 40", F(f'Parent.Height - ({y_ag[1:]}) - 10'), 112, [
+            rect("recAgCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 10", fill=WHITE),
+            rect("recAgFaixa", 0, 0, 6, "Parent.TemplateHeight - 10", fill=F(f'If(ThisItem.Completo, {OK}, {WARN})')),
+            label("lblAgSigla", "ThisItem.Title", 18, 14, 58, 40, size=11, bold=True, Align="Align.Center",
+                  Fill=LAB_S, Color=LAB),
+            label("lblAgNome", "ThisItem.Nome", 88, 10, "Parent.TemplateWidth - 270", 40, size=14, bold=True),
+            label("lblAgSit", F('If(ThisItem.Completo, "FEITO", ThisItem.Feitos > 0, ThisItem.Feitos & " DE " & ThisItem.Total, "FALTA")'),
+                  "Parent.TemplateWidth - 150", 16, 136, 32, size=10, bold=True, Align="Align.Center",
+                  Fill=F(f'If(ThisItem.Completo, {OK_S}, {WARN_S})'), Color=F(f'If(ThisItem.Completo, {OK}, {WARN})')),
+            label("lblAgEquip", "ThisItem.Lista", 18, 56, "Parent.TemplateWidth - 32", 44, size=11, color=SUB,
+                  VerticalAlign="VerticalAlign.Top"),
+        ], Visible=lab),
+        label("lblIniAgVazia", '"Nenhum ensaio previsto para este turno."', 20, F(f'{y_ag[1:]} + 20'), "Parent.Width - 40", 60,
+              size=13, color=SUB, Align="Align.Center", Visible=f'{lab} && CountRows(colAgenda) = 0'),
+        # ----- colaborador e instrumentação: leia o QR
+        rect("recIniQR", 20, 186, "Parent.Width - 40", 380, fill=WHITE, Visible=f'!({lab})'),
+        rect("recIniQRIco", "(Parent.Width - 120) / 2", 220, 120, 120, fill=NAVY, Visible=f'!({lab})', **radius(24)),
+        icon("icoIniQR", "Icon.Camera", "(Parent.Width - 72) / 2", 244, 72, 72, Visible=f'!({lab})'),
+        label("lblIniQRTit", '"Leia o QR Code do equipamento"', 40, 362, "Parent.Width - 80", 44, size=18, bold=True, color=NAVY,
+              Align="Align.Center", Visible=f'!({lab})'),
+        label("lblIniQRTxt", F('''
+            "Aponte a câmera do celular para a etiqueta. O app abre direto na ficha daquele equipamento." &
+            If(gblPerfil = "Instrumentação", Char(10) & Char(10) & "As calibrações pendentes chegam no e-mail diário das 7h.", "")'''),
+              48, 410, "Parent.Width - 96", 140, size=13, color=SUB, Align="Align.Center", VerticalAlign="VerticalAlign.Top",
+              Visible=f'!({lab})'),
         icon("icoIniAtualizar", "Icon.Reset", "Parent.Width - 64", 38, 46, 46, onselect=F(f'''
             Set(gblIniciado, false);
             {textwrap.indent(textwrap.dedent(INIT).strip(), "            ").strip()};
-            {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "            ").strip()};
+            If(
+                gblPerfil = "Laboratorista",
+                {textwrap.indent(textwrap.dedent(AGENDA).strip(), "                ").strip()}
+            );
             Notify("Dados atualizados.", NotificationType.Success)'''), Tooltip='"Atualizar"'),
     ]
     onvisible = F(f'''
         {textwrap.dedent(INIT).strip()};
-        If(IsBlank(locAba), UpdateContext({{locAba: Switch(gblPerfil, "Laboratorista", "agenda", "Instrumentação", "pendencias", "equip"), locFiltro: ""}}));
-        If(gblPerfil = "Colaborador", UpdateContext({{locAba: "equip"}}));
-        Concurrent(
-            {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "    ").strip()},
-            ClearCollect(colLancTurno, Filter(Lancamentos, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual && Situacao = "Ativo")),
-            ClearCollect(colLancRecentes, Filter(Lancamentos, DataEnsaio >= DateAdd(Today(), -30, TimeUnit.Days) && Situacao = "Ativo"))
+        If(
+            gblPerfil = "Laboratorista",
+            {textwrap.indent(textwrap.dedent(AGENDA).strip(), "            ").strip()}
         )''')
     return {"scrInicio": {"Properties": {"Fill": f"={BG}", "OnVisible": onvisible}, "Children": filhos}}
 
@@ -569,6 +560,14 @@ Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado
 Set(gblEhPeneirador, gblEquip.TipoEquipamento = "Peneirador" && !IsBlank(LookUp(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title)));
 Set(gblEhPeneira, gblEquip.TipoEquipamento = "Peneira");
 Set(gblConjuntoRef, If(gblEhPeneirador, gblEquip.Title, gblEhPeneira, gblEquip.Conjunto, ""));
+// Ensaios lançados a partir deste QR: os da coluna EnsaioAfericao; peneira instalada = verificação do peneirador dela
+Set(
+    gblCodigos,
+    Filter(
+        Split(If(gblEhPeneira, If(IsBlank(gblEquip.Conjunto), "", "PEN"), Coalesce(gblEquip.EnsaioAfericao, "")), ";"),
+        !IsBlank(Trim(Value))
+    )
+);
 ClearCollect(
     colPeneirasConj,
     AddColumns(
@@ -579,19 +578,41 @@ ClearCollect(
 Set(gblStatus, {textwrap.indent(textwrap.dedent(STATUS_EQ).strip(), "")})'''
 
 
+def texto_lancar(cod, curto):
+    """Texto do botão de lançamento para o ensaio de código `cod`."""
+    pen = '"Verificar peneiras"' if curto else '"Verificar as peneiras do " & Coalesce(LookUp(colEquip, Title = gblConjuntoRef).Descricao, "peneirador")'
+    return f'If({cod} = "PEN", {pen}, "Lançar " & LookUp(colEnsaios, Title = {cod}).Nome)'
+
+
+def acao_lancar(cod):
+    """Abre o formulário do ensaio `cod` só com os pontos deste equipamento (peneiras: só o peneirador dele)."""
+    return F(f'''
+        With(
+            {{wCod: {cod}}},
+            Set(gblEnsaio, LookUp(colEnsaios, Title = wCod));
+            Set(gblConjuntoFiltro, If(wCod = "PEN", gblConjuntoRef, ""));
+            Set(gblDestacar, If(wCod = "PEN", If(gblEhPeneira, gblEquip.Title, ""), gblEquip.Title))
+        );
+        Navigate(If(gblEnsaio.Formulario.Value = "Checklist", scrVerificacao, scrEnsaio), ScreenTransition.Cover)''')
+
+
 def tela_equipamento():
     onvisible = F(f'''
         {textwrap.dedent(INIT).strip()};
         If(IsBlank(gblTag), Set(gblTag, Param("equip")));
         If(CountRows(colEquip) = 0, {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "    ").strip()});
         {textwrap.indent(textwrap.dedent(CARREGAR_FICHA).strip(), "        ").strip()};
+        If(
+            gblPerfil = "Laboratorista",
+            {textwrap.indent(textwrap.dedent(AGENDA).strip(), "            ").strip()}
+        );
         UpdateContext({{locInstalar: false}})''')
     vivo = "!IsBlank(gblEquip)"
     bloq = 'StartsWith(gblStatus, "Bloqueado")'
     dias = "DateDiff(Today(), gblEquip.ProximaCalibracao, TimeUnit.Days)"
-    pen = "(gblEhPeneirador || gblEhPeneira)"
-    nome_conj = 'Coalesce(LookUp(colEquip, Title = gblConjuntoRef).Descricao, "peneirador")'
-    lancar_visivel = f'{vivo} && gblPerfil = "Laboratorista" && (gblEhPeneirador || (gblEhPeneira && !IsBlank(gblConjuntoRef)) || (!gblEhPeneira && !IsBlank(gblEquip.EnsaioAfericao)))'
+    lancar_visivel = f'{vivo} && gblPerfil = "Laboratorista" && CountRows(gblCodigos) >= 1'
+    lancar2_visivel = f'{vivo} && gblPerfil = "Laboratorista" && CountRows(gblCodigos) >= 2'
+    agenda_eq = 'Filter(colAgendaUn, Un = If(Ensaio = "PEN", gblConjuntoRef, gblEquip.Title))'
     pos_item = 'Parametro & "  ·  atual: " & Coalesce(TAG, "vazia")'
     instalar = F(f'''
         With(
@@ -644,7 +665,12 @@ def tela_equipamento():
             )'''), 100, 168, "Parent.Width - 120", 54, size=12, color=WHITE, VerticalAlign="VerticalAlign.Top", Visible=vivo),
         # identificação
         rect("recEqId", 0, 230, "Parent.Width", 104, fill=WHITE, Visible=vivo),
-        label("lblEqTag", "gblEquip.Title", 20, 238, "Parent.Width - 40", 44, size=24, bold=True, color=NAVY, Visible=vivo),
+        label("lblEqTag", "gblEquip.Title", 20, 238, "Parent.Width - 250", 44, size=24, bold=True, color=NAVY, Visible=vivo),
+        label("lblEqAgenda", F(f'If(CountIf({agenda_eq}, !Feito) = 0, "FEITO NESTE TURNO ✓", "PREVISTO · FALTA")'),
+              "Parent.Width - 230", 244, 210, 34, size=10, bold=True, Align="Align.Center",
+              Fill=F(f'If(CountIf({agenda_eq}, !Feito) = 0, {OK_S}, {WARN_S})'),
+              Color=F(f'If(CountIf({agenda_eq}, !Feito) = 0, {OK}, {WARN})'),
+              Visible=f'{vivo} && gblPerfil = "Laboratorista" && CountRows({agenda_eq}) > 0'),
         label("lblEqInfo", F('''
             gblEquip.Descricao &
             If(
@@ -709,7 +735,7 @@ def tela_equipamento():
                 nc.Responsavel & " · Letra " & nc.Letra & " · " & Text(nc.DataEnsaio, "dd/mm/yyyy")
             )'''), 20, 492, "Parent.Width - 40", 96, size=12, color=BAD, Fill=BAD_S, PaddingLeft=14, PaddingRight=14,
               VerticalAlign="VerticalAlign.Top", BorderColor=BAD, BorderThickness=1, Visible=f"{vivo} && gblUltAfNC && !gblEhPeneirador"),
-        label("lblEqHistRot", F('If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR · toque para abrir a peneira", "HISTÓRICO DE AFERIÇÕES")'),
+        label("lblEqHistRot", F('If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR", "HISTÓRICO DE AFERIÇÕES")'),
               20, F('If(gblUltAfNC && !gblEhPeneirador, 600, 494)'), "Parent.Width - 40", 30, size=11, bold=True, color=SUB, Visible=vivo),
         gallery("galEqHist", "colHist", 20, F('If(gblUltAfNC, 632, 526)'), "Parent.Width - 40",
                 F('Parent.Height - If(gblUltAfNC, 632, 526) - 112'), 80, [
@@ -723,41 +749,26 @@ def tela_equipamento():
                   Align="Align.Center", Fill=res_fill("ThisItem.Resultado"), Color=res_color("ThisItem.Resultado")),
         ], Visible=f"{vivo} && !gblEhPeneirador"),
         gallery("galEqPeneiras", "colPeneirasConj", 20, 526, "Parent.Width - 40", "Parent.Height - 526 - 112", 76, [
-            rect("recPcCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 6", fill=WHITE, OnSelect="Select(Parent)"),
-            rect("recPcFaixa", 0, 0, 6, "Parent.TemplateHeight - 6", fill=status_color("ThisItem.StatusPen"), OnSelect="Select(Parent)"),
-            label("lblPcTag", "ThisItem.TAG", 20, 6, "Parent.TemplateWidth - 230", 32, size=14, bold=True, color=NAVY, OnSelect="Select(Parent)"),
-            label("lblPcMalha", F('Trim(First(Split(ThisItem.Parametro, "(")).Value)'), 20, 36, "Parent.TemplateWidth - 230", 28, size=11, color=SUB, OnSelect="Select(Parent)"),
+            rect("recPcCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 6", fill=WHITE),
+            rect("recPcFaixa", 0, 0, 6, "Parent.TemplateHeight - 6", fill=status_color("ThisItem.StatusPen")),
+            label("lblPcTag", "ThisItem.TAG", 20, 6, "Parent.TemplateWidth - 230", 32, size=14, bold=True, color=NAVY),
+            label("lblPcMalha", F('Trim(First(Split(ThisItem.Parametro, "(")).Value)'), 20, 36, "Parent.TemplateWidth - 230", 28, size=11, color=SUB),
             label("lblPcStat", F('Upper(If(StartsWith(ThisItem.StatusPen, "Bloqueado"), "Bloqueada", ThisItem.StatusPen = "Posição vazia", "Vazia", "Liberada"))'),
                   "Parent.TemplateWidth - 196", 8, 180, 30, size=10, bold=True, Align="Align.Center",
-                  Fill=status_fill("ThisItem.StatusPen"), Color=status_color("ThisItem.StatusPen"), OnSelect="Select(Parent)"),
+                  Fill=status_fill("ThisItem.StatusPen"), Color=status_color("ThisItem.StatusPen")),
             label("lblPcMot", F('Trim(Last(Split(ThisItem.StatusPen, "·")).Value)'), "Parent.TemplateWidth - 236", 40, 220, 26,
-                  size=10, color=SUB, Align="Align.Right", OnSelect="Select(Parent)"),
-        ], OnSelect=F(f'''
-            If(
-                !IsBlank(ThisItem.TAG),
-                Set(gblTag, ThisItem.TAG);
-                {textwrap.indent(textwrap.dedent(CARREGAR_FICHA).strip(), "                ").strip()}
-            )'''), Visible=f"{vivo} && gblEhPeneirador"),
+                  size=10, color=SUB, Align="Align.Right"),
+        ], Visible=f"{vivo} && gblEhPeneirador"),
         label("lblEqHistVazio", '"Nenhuma aferição registrada para este equipamento."', 20, 540, "Parent.Width - 40", 60, size=12, color=SUB,
               Align="Align.Center", Visible=f"{vivo} && CountRows(colHist) = 0 && !gblEhPeneirador"),
         # rodapé por perfil
         rect("recEqRodape", 0, "Parent.Height - 104", "Parent.Width", 104, fill=WHITE, BorderColor=LINE, BorderThickness=1, Visible=vivo),
-        button("btnEqLancar", F(f'''
-            If(
-                {pen}, "Verificar as peneiras do " & {nome_conj},
-                "Lançar " & LookUp(colEnsaios, Title = First(Split(gblEquip.EnsaioAfericao, ";")).Value).Nome
-            )'''), 20, "Parent.Height - 88", "Parent.Width - 40", 70, F(f'''
-            If(
-                {pen},
-                Set(gblEnsaio, LookUp(colEnsaios, Title = "PEN"));
-                Set(gblConjuntoFiltro, gblConjuntoRef);
-                Set(gblDestacar, If(gblEhPeneira, gblEquip.Title, "")),
-                Set(gblEnsaio, LookUp(colEnsaios, Title = First(Split(gblEquip.EnsaioAfericao, ";")).Value));
-                Set(gblConjuntoFiltro, "");
-                Set(gblDestacar, gblEquip.Title)
-            );
-            Navigate(If(gblEnsaio.Formulario.Value = "Checklist", scrVerificacao, scrEnsaio), ScreenTransition.Cover)'''),
-               Visible=lancar_visivel),
+        button("btnEqLancar", F(f'If(CountRows(gblCodigos) >= 2, {texto_lancar("First(gblCodigos).Value", True)}, {texto_lancar("First(gblCodigos).Value", False)})'),
+               20, "Parent.Height - 88", F('If(CountRows(gblCodigos) >= 2, (Parent.Width - 50) / 2, Parent.Width - 40)'), 70,
+               acao_lancar("First(gblCodigos).Value"), size=F('If(CountRows(gblCodigos) >= 2, 13, 15)'), Visible=lancar_visivel),
+        button("btnEqLancar2", F(texto_lancar("Last(gblCodigos).Value", True)),
+               "30 + (Parent.Width - 50) / 2", "Parent.Height - 88", "(Parent.Width - 50) / 2", 70,
+               acao_lancar("Last(gblCodigos).Value"), size=13, Visible=lancar2_visivel),
         button("btnEqCalibrar", '"Registrar calibração"', 20, "Parent.Height - 88", F('If(gblEhPeneira, (Parent.Width - 50) / 2, Parent.Width - 40)'), 70,
                "Navigate(scrCalibrar, ScreenTransition.Cover)", Visible=f'{vivo} && gblPerfil = "Instrumentação"'),
         button("btnEqInstalar", '"Instalar em posição"', "30 + (Parent.Width - 50) / 2", "Parent.Height - 88", "(Parent.Width - 50) / 2", 70,
@@ -805,7 +816,7 @@ def tela_ensaio():
         ClearCollect(
             colForm,
             AddColumns(
-                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title), Ordem),
+                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && (IsBlank(gblDestacar) || IsBlank(TAG) || TAG = gblDestacar)), Ordem),
                 Nom, LookUp(colLimites, Title = ChaveLimite).Nominal,
                 LI, LookUp(colLimites, Title = ChaveLimite).LimInferior,
                 LS, LookUp(colLimites, Title = ChaveLimite).LimSuperior,
@@ -823,7 +834,7 @@ def tela_ensaio():
             "Informativo"
         )'''
     filhos = cabecalho(p, "gblEnsaio.Nome", F('gblEnsaio.Frequencia & " · lançamento"'),
-                       voltar="Navigate(scrInicio, ScreenTransition.UnCover)") + topo_lancamento(p) + [
+                       voltar="Navigate(scrEquipamento, ScreenTransition.UnCover)") + topo_lancamento(p) + [
         # bloco da estufa (umidade)
         label(f"lbl{p}EstufaRot", '"ESTUFA 100 °C · UMIDADE (%) OU PESAGENS (g)"', 20, 266, "Parent.Width - 40", 26, size=10, bold=True, color=SUB, Visible=umi),
         textinput(f"txt{p}Estufa", 20, 292, "(Parent.Width - 70) / 4", 52, '"Estufa %"', Visible=umi),
@@ -1034,10 +1045,8 @@ def tela_verificacao():
     onvisible = F(f'''
         UpdateContext({{
             locRevisar: false, locSalvando: false, locSoNC: false,
-            locGrupo: If(
-                IsBlank(gblConjuntoFiltro), "Todos",
-                Coalesce(LookUp(colPontos, Ensaio = gblEnsaio.Title && Conjunto = gblConjuntoFiltro).Secao, "Todos")
-            )
+            locGrupo: "Todos",
+            locConjunto: gblConjuntoFiltro
         }});
         Reset(dtp{p}Data); Reset(drp{p}Turno); Reset(drp{p}Causa); Reset(txt{p}Just); Reset(txt{p}Obs);
         If(CountRows(colEquip) = 0, {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "    ").strip()});
@@ -1045,7 +1054,7 @@ def tela_verificacao():
         ClearCollect(
             colFormVe,
             AddColumns(
-                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && !IsBlank(TAG)), Ordem),
+                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && !IsBlank(TAG) && (IsBlank(gblConjuntoFiltro) || Conjunto = gblConjuntoFiltro)), Ordem),
                 Vencida,
                 With(
                     {{e: LookUp(colEquip, Title = TAG)}},
@@ -1116,19 +1125,13 @@ def tela_verificacao():
         UpdateContext({{locRevisar: true}})''')
 
     filhos = cabecalho(p, "gblEnsaio.Nome", F('gblEnsaio.Frequencia & " · " & CountRows(colFormVe) & " peneiras"'),
-                       voltar="Navigate(scrInicio, ScreenTransition.UnCover)") + topo_lancamento(p) + [
-        # filtro por peneirador
-        gallery(f"gal{p}Grupos", F('Ungroup(Table({Itens: Table({Value: "Todos"})}, {Itens: Distinct(colFormVe, Secao)}), Itens)'),
-                20, 266, "Parent.Width - 40", 58, 172, [
-            button("btnVeGrupo", F(f'''
-                ThisItem.Value &
-                With(
-                    {{n: CountRows(Filter(colFormVe, (ThisItem.Value = "Todos" || Secao = ThisItem.Value) && {NC_PEN}))}},
-                    If(n > 0, " · " & n & " NC", "")
-                )'''), 0, 0, 164, 50, "UpdateContext({locGrupo: ThisItem.Value})",
-                   fill=F(f'If(locGrupo = ThisItem.Value, {NAVY}, {WHITE})'), color=F(f'If(locGrupo = ThisItem.Value, {WHITE}, {NAVY})'),
-                   size=11, BorderColor=NAVY, BorderThickness=1, **radius(25)),
-        ], variant_override="Horizontal"),
+                       voltar="Navigate(scrEquipamento, ScreenTransition.UnCover)") + topo_lancamento(p) + [
+        # peneirador lido no QR
+        label(f"lbl{p}Conjunto", F(f'''
+            "PENEIRADOR  ·  " & Upper(Coalesce(LookUp(colEquip, Title = locConjunto).Descricao, First(colFormVe).Secao, locConjunto)) &
+            "  ·  " & CountRows(colFormVe) & " peneiras" &
+            With({{n: CountRows(Filter(colFormVe, {NC_PEN}))}}, If(n > 0, "  ·  " & n & " NC", ""))'''),
+              20, 266, "Parent.Width - 40", 54, size=12, bold=True, color=NAVY, Fill=LAB_S, PaddingLeft=14),
         button(f"btn{p}TodosOK", F('"✔  Marcar todos OK" & If(locGrupo = "Todos", "", " (" & locGrupo & ")")'), 20, 332,
                "(Parent.Width - 50) * 0.62", 54, F(f'''
             UpdateIf(colFormVe, {grupo_filtro}, {{I1: "OK", I2: "OK", I3: "OK", I4: "OK", I5: If(Vencida, "NÃO OK", "OK")}});

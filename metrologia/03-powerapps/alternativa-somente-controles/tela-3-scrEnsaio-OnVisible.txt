@@ -5,7 +5,7 @@ Reset(txtEnEstufa); Reset(txtEnTara); Reset(txtEnPIni); Reset(txtEnPFin);
 ClearCollect(
     colForm,
     AddColumns(
-        Sort(Filter(colPontos, Ensaio = gblEnsaio.Title), Ordem),
+        Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && (IsBlank(gblDestacar) || IsBlank(TAG) || TAG = gblDestacar)), Ordem),
         Nom, LookUp(colLimites, Title = ChaveLimite).Nominal,
         LI, LookUp(colLimites, Title = ChaveLimite).LimInferior,
         LS, LookUp(colLimites, Title = ChaveLimite).LimSuperior,

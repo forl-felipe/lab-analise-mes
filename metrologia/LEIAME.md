@@ -1,13 +1,14 @@
 # Sistema Metrologia · calibração e aferição do laboratório físico
 
 Um QR Code em cada equipamento, um app com **três acessos** e um painel de gestão no Power BI.
+**Um QR, um equipamento:** o app não tem lista de equipamentos. Cada QR abre só aquele equipamento, com os botões do perfil de quem leu.
 Substitui a planilha de aferição e integra o controle de calibração da versão 1.
 
 | Perfil | Quem | Faz |
 |---|---|---|
 | **Colaborador** | Qualquer pessoa da empresa | Lê o QR Code e vê se o equipamento pode ser usado, a validade e o histórico |
-| **Laboratorista** | Cadastrado na lista Acessos | Lança as aferições do turno (agenda, cálculo automático, justificativa de não conformidade) |
-| **Instrumentação** | Cadastrado na lista Acessos | Registra calibrações e acompanha os equipamentos bloqueados ou vencendo |
+| **Laboratorista** | Cadastrado na lista Acessos | Vê a agenda do turno (lembrete) e lê o QR do equipamento para lançar a aferição dele (cálculo automático, justificativa de não conformidade) |
+| **Instrumentação** | Cadastrado na lista Acessos | Lê o QR e registra a calibração do equipamento; recebe os bloqueados ou vencendo no e-mail diário |
 
 **Quem tem qual acesso:** lista **Acessos** do SharePoint (seção 1.4 do guia do SharePoint).
 **Onde ficam as tolerâncias:** lista **Limites** (seção 1.5 do guia do SharePoint).
@@ -25,7 +26,7 @@ Substitui a planilha de aferição e integra o controle de calibração da vers�
 | [`07-testes`](07-testes/LEIAME.md) | Validação automática das regras contra a planilha |
 | [`ferramentas`](ferramentas/) | Scripts que geram a carga inicial, o script PnP, a documentação e as telas |
 
-**Pacote de dados (fora do GitHub):** a carga inicial (`carga-inicial.xlsx`, CSVs), o roteiro de testes com valores esperados, o relatório de validação e a lista para as etiquetas são gerados a partir da planilha do laboratório e entregues à parte. Eles **não** ficam neste repositório, que é público.
+**Pacote de dados (fora do GitHub):** a carga inicial (`carga-inicial.xlsx`, CSVs), o roteiro de testes com valores esperados, o relatório de validação e as listas para as etiquetas são gerados a partir da planilha do laboratório e entregues à parte. Eles **não** ficam neste repositório, que é público.
 
 ## Ordem de implantação
 

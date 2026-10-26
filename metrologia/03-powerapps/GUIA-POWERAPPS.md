@@ -8,11 +8,13 @@ Um app **novo**, chamado **Metrologia**, com 5 telas. O app da versão 1 continu
 
 | Tela | Arquivo | Quem usa | O que faz |
 |---|---|---|---|
-| `scrInicio` | `tela-1-scrInicio.yaml` | Todos | Início. Laboratorista: **Agenda do turno**. Instrumentação: **Aguardando você**. Todos: lista de equipamentos com situação |
+| `scrInicio` | `tela-1-scrInicio.yaml` | Todos | Abre pelo ícone do app. Laboratorista: **Agenda do turno** (só leitura) e Desfazer. Demais: "Leia o QR Code do equipamento" |
 | `scrEquipamento` | `tela-2-scrEquipamento.yaml` | Todos | Abre pelo **QR Code**: LIBERADO / NÃO UTILIZAR, calibração, última aferição, justificativa e histórico. **Peneirador:** lista as posições e as peneiras. **Peneira:** mostra onde está instalada; instrumentação pode trocá-la de posição |
 | `scrEnsaio` | `tela-3-scrEnsaio.yaml` | Laboratorista | Formulário de **medição** (Blaine, tambor, Alpine, umidade, compressão, granulometria, tamboramento, Fisher). Calcula na hora |
-| `scrVerificacao` | `tela-4-scrVerificacao.yaml` | Laboratorista | **Checklist dos peneiradores**: tudo começa OK, botão **Marcar todos OK**, toque no item para corrigir, filtro por peneirador |
+| `scrVerificacao` | `tela-4-scrVerificacao.yaml` | Laboratorista | **Checklist dos peneiradores**: tudo começa OK, botão **Marcar todos OK**, toque no item para corrigir. Só as peneiras do peneirador lido no QR |
 | `scrCalibrar` | `tela-5-scrCalibrar.yaml` | Instrumentação | Registro de **calibração** |
+
+**Regra do app: um QR Code, um equipamento.** Não existe lista nem busca de equipamentos. Cada QR abre só aquele equipamento, com os botões do perfil de quem leu. Os formulários de lançamento abrem só com os campos do equipamento lido.
 
 Os formulários **não são fixos**: são montados a partir das listas **PontosAfericao** (campos) e **Limites** (critérios). Para incluir uma peneira nova, basta acrescentar uma linha na PontosAfericao. Não precisa mexer no app.
 
@@ -63,10 +65,11 @@ If(IsBlank(Param("equip")), scrInicio, scrEquipamento)
 ## 2.6 Testar no Studio
 
 1. Cadastre-se na lista **Acessos** como **Laboratorista**.
-2. Selecione **scrInicio** e aperte **F5**. A agenda do turno deve aparecer.
-3. Siga o **roteiro de testes** (`roteiro-de-testes.md`, no pacote de dados): 26 casos com o valor esperado de cada cálculo.
-4. Troque seu perfil para **Instrumentação** na lista Acessos, feche o app e abra de novo: aparece **Aguardando você** e o botão **Registrar calibração**.
-5. Desmarque **Ativo**: você vira **Colaborador**, só consulta.
+2. Selecione **scrInicio** e aperte **F5**. A agenda do turno deve aparecer, sem itens clicáveis.
+3. Para simular a leitura de um QR no Studio: em **App > OnStart** cole temporariamente `Set(gblTag, "TAG-DE-TESTE")`, rode o OnStart (… > Executar OnStart) e abra **scrEquipamento**. Apague a linha depois. No celular, teste com a etiqueta impressa ou com o link `...&equip=TAG`.
+4. Siga o **roteiro de testes** (`roteiro-de-testes.md`, no pacote de dados): 26 casos com o valor esperado de cada cálculo.
+5. Troque seu perfil para **Instrumentação** na lista Acessos, feche o app e abra de novo: o Início mostra "Leia o QR Code do equipamento" e a ficha do equipamento mostra **Registrar calibração**.
+6. Desmarque **Ativo**: você vira **Colaborador**. A ficha do equipamento aparece sem nenhum botão.
 
 > O perfil é lido quando o app abre. Depois de mudar a lista Acessos, feche e abra o app (ou use o botão **Atualizar** ↻ no topo do Início).
 
@@ -98,8 +101,14 @@ O app mostra ou esconde os botões pelo `gblPerfil`. A **segurança real** é a 
 
 ### Agenda do turno
 
-Ensaio **Previsto** = coluna do dia e turno marcada na lista **Ensaios** (SegD, SegN … DomN).
-**Enviado** = existe um registro em **Lancamentos** com aquele ensaio, na data e turno atuais, com Situacao = Ativo.
+A agenda é **só um lembrete**: os itens não abrem nada. Para lançar, o laboratorista vai até o equipamento e lê o QR dele.
+
+- Ensaio **previsto** = coluna do dia e turno marcada na lista **Ensaios** (SegD, SegN … DomN). Só os previstos aparecem.
+- Cada ensaio lista seus equipamentos (TAGs da PontosAfericao; nos peneiradores, um item por peneirador). **✓** = já existe aferição daquele equipamento no turno atual.
+- Situação do ensaio: **FEITO** (todos os equipamentos lançados), **2 DE 5** (parcial) ou **FALTA**.
+- Na ficha do equipamento, o laboratorista vê o aviso **PREVISTO · FALTA** ou **FEITO NESTE TURNO ✓**.
+- Coleções: `colAfTurno` (aferições do turno), `colAgendaUn` (um item por equipamento previsto) e `colAgenda` (um item por ensaio).
+- A aderência oficial (Power BI) continua a regra da planilha, por ensaio.
 
 ### Cálculo e critério (igual à planilha)
 
@@ -115,11 +124,21 @@ Ensaio **Previsto** = coluna do dia e turno marcada na lista **Ensaios** (SegD, 
 **Conforme:** com limites, LimInferior ≤ valor ≤ LimSuperior. Com tolerância, |valor − referência| ≤ Tolerância. Sem critério, Informativo.
 Essas regras foram conferidas contra **todos os 400 registros de outubro** (`relatorio-validacao.md`).
 
+### Ficha do equipamento (o que cada perfil vê)
+
+| Perfil | Botões no rodapé |
+|---|---|
+| Colaborador | nenhum ("Modo consulta") |
+| Laboratorista | um botão por ensaio da coluna `EnsaioAfericao` (ex.: `TAM;T515` = dois botões). Peneira instalada: **Verificar as peneiras do <peneirador>** |
+| Instrumentação | **Registrar calibração**. Peneira: também **Instalar em posição** |
+
+O botão voltar da ficha leva ao Início (agenda ou "Leia o QR"). Nas telas de lançamento, voltar leva de volta à ficha do equipamento.
+
 ### Peneiradores e peneiras
 
-- **QR do peneirador** → ficha com as posições e a situação de cada peneira → **Verificar as peneiras deste peneirador** abre o checklist só com aquele conjunto.
+- **QR do peneirador** → ficha com as posições e a situação de cada peneira (só leitura: tocar não abre outra ficha) → **Verificar peneiras** abre o checklist só com aquele conjunto.
 - **QR da peneira** → ficha da peneira (calibração, onde está, verificações). Laboratorista: **Verificar o peneirador** dela. Instrumentação: **Registrar calibração** e **Instalar em posição**.
-- **Checklist**: os itens ficam numa coleção (`colFormVe`, colunas I1 a I5). Cada toque troca o valor; **Marcar todos OK** usa `UpdateIf`. Só as peneiras do filtro escolhido são enviadas.
+- **Checklist**: os itens ficam numa coleção (`colFormVe`, colunas I1 a I5). Cada toque troca o valor; **Marcar todos OK** usa `UpdateIf`. O checklist mostra e envia só as peneiras do peneirador lido.
 - Posições vazias (sem peneira) não aparecem no checklist.
 
 ### Envio
@@ -152,6 +171,7 @@ Essas regras foram conferidas contra **todos os 400 registros de outubro** (`rel
 | X vermelho em `Pessoa.Email` | A coluna Pessoa de Acessos não é do tipo **Pessoa ou Grupo** | Recrie a coluna com o tipo certo |
 | X vermelho em `.Value` (Perfil, Letra, Formulario, Entrada, TipoRegistro) | Coluna criada como texto, não como **Escolha** | Recrie como Escolha com as opções do guia |
 | A agenda aparece vazia | Lista Ensaios sem as colunas do dia marcadas, ou Ativo = Não | Confira a grade SegD … DomN |
+| Laboratorista não vê o botão Lançar | Coluna `EnsaioAfericao` do equipamento vazia | Preencha com o código do ensaio (ex.: `TAM`) |
 | Todo mundo aparece como Colaborador | E-mail da pessoa diferente do login | Escolha a pessoa pelo seletor (não digite) |
 | "Não foi possível gravar os resultados" | Pessoa sem permissão na lista Afericoes | Fluxo F0 ou grupo **Metrologia - Laboratoristas** |
 | Equipamento continua bloqueado depois do lançamento | O fluxo F1 ainda não rodou | Aguarde 1 a 2 minutos e use ↻ Atualizar |

@@ -10,7 +10,7 @@ Screens:
         ClearCollect(
             colForm,
             AddColumns(
-                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title), Ordem),
+                Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && (IsBlank(gblDestacar) || IsBlank(TAG) || TAG = gblDestacar)), Ordem),
                 Nom, LookUp(colLimites, Title = ChaveLimite).Nominal,
                 LI, LookUp(colLimites, Title = ChaveLimite).LimInferior,
                 LS, LookUp(colLimites, Title = ChaveLimite).LimSuperior,
@@ -35,7 +35,7 @@ Screens:
             Width: =48
             Height: =48
             Color: =RGBA(255, 255, 255, 1)
-            OnSelect: =Navigate(scrInicio, ScreenTransition.UnCover)
+            OnSelect: =Navigate(scrEquipamento, ScreenTransition.UnCover)
             PaddingTop: =8
             PaddingBottom: =8
             PaddingLeft: =8

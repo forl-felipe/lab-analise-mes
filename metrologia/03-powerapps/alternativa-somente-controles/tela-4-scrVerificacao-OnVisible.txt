@@ -1,9 +1,7 @@
 =    UpdateContext({
         locRevisar: false, locSalvando: false, locSoNC: false,
-        locGrupo: If(
-            IsBlank(gblConjuntoFiltro), "Todos",
-            Coalesce(LookUp(colPontos, Ensaio = gblEnsaio.Title && Conjunto = gblConjuntoFiltro).Secao, "Todos")
-        )
+        locGrupo: "Todos",
+        locConjunto: gblConjuntoFiltro
     });
     Reset(dtpVeData); Reset(drpVeTurno); Reset(drpVeCausa); Reset(txtVeJust); Reset(txtVeObs);
     If(CountRows(colEquip) = 0, ClearCollect(
@@ -28,7 +26,7 @@
     ClearCollect(
         colFormVe,
         AddColumns(
-            Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && !IsBlank(TAG)), Ordem),
+            Sort(Filter(colPontos, Ensaio = gblEnsaio.Title && !IsBlank(TAG) && (IsBlank(gblConjuntoFiltro) || Conjunto = gblConjuntoFiltro)), Ordem),
             Vencida,
             With(
                 {e: LookUp(colEquip, Title = TAG)},

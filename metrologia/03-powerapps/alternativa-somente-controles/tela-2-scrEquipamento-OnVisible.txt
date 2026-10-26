@@ -69,6 +69,14 @@
         Set(gblEhPeneirador, gblEquip.TipoEquipamento = "Peneirador" && !IsBlank(LookUp(colPontos, Ensaio = "PEN" && Conjunto = gblEquip.Title)));
         Set(gblEhPeneira, gblEquip.TipoEquipamento = "Peneira");
         Set(gblConjuntoRef, If(gblEhPeneirador, gblEquip.Title, gblEhPeneira, gblEquip.Conjunto, ""));
+        // Ensaios lançados a partir deste QR: os da coluna EnsaioAfericao; peneira instalada = verificação do peneirador dela
+        Set(
+            gblCodigos,
+            Filter(
+                Split(If(gblEhPeneira, If(IsBlank(gblEquip.Conjunto), "", "PEN"), Coalesce(gblEquip.EnsaioAfericao, "")), ";"),
+                !IsBlank(Trim(Value))
+            )
+        );
         ClearCollect(
             colPeneirasConj,
             AddColumns(
@@ -90,4 +98,67 @@
                 "Liberado"
             )
         ));
+        If(
+            gblPerfil = "Laboratorista",
+            ClearCollect(colLancTurno, Filter(Lancamentos, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual && Situacao = "Ativo"));
+            ClearCollect(colAfTurno, Filter(Afericoes, DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual));
+            Clear(colAgendaUn);
+            ForAll(
+                Filter(colEnsaios As en, With(
+                    {wd: Weekday(gblDataTurnoAtual, StartOfWeek.Monday), wDia: gblTurnoAtual = "07x19"},
+                    Switch(
+                        wd,
+                        1, If(wDia, en.SegD, en.SegN), 2, If(wDia, en.TerD, en.TerN), 3, If(wDia, en.QuaD, en.QuaN),
+                        4, If(wDia, en.QuiD, en.QuiN), 5, If(wDia, en.SexD, en.SexN), 6, If(wDia, en.SabD, en.SabN),
+                        If(wDia, en.DomD, en.DomN)
+                    )
+                )) As en,
+                Collect(
+                    colAgendaUn,
+                    If(
+                        en.Title = "PEN",
+                        ForAll(
+                            Distinct(Filter(colPontos, Ensaio = "PEN" && !IsBlank(Conjunto) && !IsBlank(TAG)), Conjunto) As u,
+                            {
+                                Ensaio: en.Title,
+                                Un: u.Value,
+                                Feito: CountRows(
+                                    Filter(colPontos, Ensaio = "PEN" && Conjunto = u.Value && TAG in Filter(colAfTurno, Ensaio = en.NomeBD).TAG)
+                                ) > 0
+                            }
+                        ),
+                        ForAll(
+                            Distinct(Filter(colPontos, Ensaio = en.Title && !IsBlank(TAG)), TAG) As u,
+                            {Ensaio: en.Title, Un: u.Value, Feito: !IsBlank(LookUp(colAfTurno, Ensaio = en.NomeBD && TAG = u.Value))}
+                        )
+                    )
+                )
+            );
+            ClearCollect(
+                colAgenda,
+                ForAll(
+                    Filter(colEnsaios As en, With(
+                    {wd: Weekday(gblDataTurnoAtual, StartOfWeek.Monday), wDia: gblTurnoAtual = "07x19"},
+                    Switch(
+                        wd,
+                        1, If(wDia, en.SegD, en.SegN), 2, If(wDia, en.TerD, en.TerN), 3, If(wDia, en.QuaD, en.QuaN),
+                        4, If(wDia, en.QuiD, en.QuiN), 5, If(wDia, en.SexD, en.SexN), 6, If(wDia, en.SabD, en.SabN),
+                        If(wDia, en.DomD, en.DomN)
+                    )
+                )) As en,
+                    With(
+                        {w: Filter(colAgendaUn, Ensaio = en.Title), wEnv: !IsBlank(LookUp(colLancTurno, Ensaio = en.NomeBD))},
+                        {
+                            Title: en.Title,
+                            Nome: en.Nome,
+                            Ordem: en.Ordem,
+                            Total: CountRows(w),
+                            Feitos: CountIf(w, Feito),
+                            Lista: Concat(w, Un & If(Feito, " ✓", ""), "   ·   "),
+                            Completo: If(CountRows(w) = 0, wEnv, CountIf(w, Feito) = CountRows(w))
+                        }
+                    )
+                )
+            )
+        );
         UpdateContext({locInstalar: false})

@@ -35,15 +35,16 @@ Sistema de **calibração e aferição** do laboratório físico. Substitui a pl
 3. **Uma regra, quatro lugares, um teste.** A regra de aceitação e a de situação do equipamento estão no app (Power Fx), no fluxo diário, no Power BI e em `ferramentas/regras.py`. O script Python é conferido contra os dados reais da planilha.
 4. **Mesmas colunas da planilha.** A lista Afericoes tem o conteúdo da aba BD_Afericoes, e o Power BI recebe as mesmas colunas (`tbl_Afericoes`, `tbl_Limites`). O painel atual é aproveitado.
 5. **Histórico imutável.** Cada aferição grava o critério que valia no momento (limites e tolerância). Mudar um limite depois não altera resultados antigos.
-6. **Só ferramentas já licenciadas.** SharePoint, Power Apps e Power Automate com conectores padrão. Power BI Pro para compartilhar o painel.
+6. **Um QR Code, um equipamento.** O app não tem lista nem busca de equipamentos. Cada QR abre só a ficha daquele equipamento, e o perfil de quem leu decide os botões. Para ver outro equipamento, lê-se o QR dele.
+7. **Só ferramentas já licenciadas.** SharePoint, Power Apps e Power Automate com conectores padrão. Power BI Pro para compartilhar o painel.
 
 ## 3. Perfis e acessos
 
 | Perfil | Quem | Como entra | No app | Permissão no SharePoint |
 |---|---|---|---|---|
-| **Colaborador** | Qualquer pessoa da empresa | Automático: não está na lista Acessos, ou está com Ativo = Não | Consulta situação, validade e histórico | Leitura em tudo |
-| **Laboratorista** | Quem executa os ensaios | Lista **Acessos** · Perfil = Laboratorista | Agenda do turno, lançamento de aferições, justificativa, desfazer | Leitura + **Colaborar** em Afericoes e Lancamentos |
-| **Instrumentação** | Técnicos de calibração | Lista **Acessos** · Perfil = Instrumentação | Pendências, registro de calibração, troca de peneira de posição | Leitura + **Colaborar** em Calibracoes, Equipamentos e PontosAfericao |
+| **Colaborador** | Qualquer pessoa da empresa | Automático: não está na lista Acessos, ou está com Ativo = Não | Lê o QR e vê a situação, a validade e o histórico daquele equipamento, sem botões | Leitura em tudo |
+| **Laboratorista** | Quem executa os ensaios | Lista **Acessos** · Perfil = Laboratorista | Agenda do turno só de leitura; lê o QR do equipamento para lançar a aferição dele; justificativa; desfazer | Leitura + **Colaborar** em Afericoes e Lancamentos |
+| **Instrumentação** | Técnicos de calibração | Lista **Acessos** · Perfil = Instrumentação | Lê o QR e registra a calibração daquele equipamento; troca de peneira de posição. Pendências no e-mail diário | Leitura + **Colaborar** em Calibracoes, Equipamentos e PontosAfericao |
 
 **Um lugar só:** a lista **Acessos**. O fluxo **F0** sincroniza a lista com os grupos do SharePoint. O app lê a lista para mostrar os botões; o grupo garante que a gravação só acontece para quem pode.
 
@@ -152,10 +153,10 @@ As duas etiquetas usam o mesmo link do app. O app decide o que mostrar pelo tipo
 ### Verificação rápida (checklist)
 
 1. Todas as peneiras **começam com os 5 itens em OK**. Se a calibração está vencida no cadastro, o item Calibração já vem **NÃO OK**.
-2. Botão **✔ Marcar todos OK** (no peneirador escolhido ou em todos), igual ao botão da planilha.
+2. Botão **✔ Marcar todos OK**, igual ao botão da planilha.
 3. Para corrigir, **toque no item**: OK → NÃO OK → N/A. No item Calibração: OK → NÃO OK → SEM TAG → N/A.
-4. Filtro por peneirador no topo, com a contagem de não conformes de cada um. Botão **Só não conformes** para revisar antes de enviar.
-5. Envia só as peneiras do filtro escolhido (ou todas). A regra continua a da planilha: qualquer NÃO OK reprova; SEM TAG e N/A não reprovam.
+4. O topo mostra o peneirador lido no QR e quantas peneiras estão não conformes. Botão **Só não conformes** para revisar antes de enviar.
+5. Mostra e envia só as peneiras do peneirador lido no QR. Para verificar outro peneirador, lê-se o QR dele. A regra continua a da planilha: qualquer NÃO OK reprova; SEM TAG e N/A não reprovam.
 
 ### Troca de peneira
 
@@ -170,19 +171,23 @@ O histórico não se perde: cada verificação fica gravada com a TAG da peneira
 
 **Lançamento de aferição**
 ```
-Laboratorista abre a Agenda do turno ─► escolhe o ensaio ─► digita os valores (app calcula)
+Laboratorista vê na Agenda do turno o que falta ─► vai até o equipamento e lê o QR
+  ─► Lançar (formulário só com os campos daquele equipamento) ─► digita os valores (app calcula)
   ─► Revisar e enviar (justificativa se NC) ─► Afericoes (n linhas) + Lancamentos (1 linha)
   ─► F1: atualiza Equipamentos.UltimaAfericao* e Status ─► e-mail à instrumentação se houver NC
 ```
 
 **Leitura do QR Code**
 ```
-Câmera do celular ─► link do app com ?equip=TAG ─► scrEquipamento ─► LIBERADO / NÃO UTILIZAR
+Câmera do celular ─► link do app com ?equip=TAG ─► scrEquipamento (só aquele equipamento)
+  ─► LIBERADO / NÃO UTILIZAR + botões do perfil:
+       Colaborador: nenhum · Laboratorista: Lançar · Instrumentação: Registrar calibração
+App aberto pelo ícone ─► Laboratorista: agenda do turno (só leitura) · demais: "Leia o QR Code do equipamento"
 ```
 
 **Calibração**
 ```
-Instrumentação ─► equipamento ─► Registrar calibração ─► Calibracoes + Equipamentos (datas, resultado, status)
+Instrumentação ─► lê o QR do equipamento ─► Registrar calibração ─► Calibracoes + Equipamentos (datas, resultado, status)
 ```
 
 **Rotina diária 07:00 (F2)**
