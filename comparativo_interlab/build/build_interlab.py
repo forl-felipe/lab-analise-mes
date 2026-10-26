@@ -583,14 +583,18 @@ class Construtor:
         fcalc_h = self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, num_format='0.0" h"',
                          font_color=INK2, font_size=9.5)
         fl = self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom')
-        # legenda dos campos (para saber exatamente onde preencher)
-        ws.set_row(2, 20)
-        ws.write(2, 1, 'Campos:', self.f(bold=True, font_size=8, font_color=MUTED, align='right'))
-        ws.write(2, 2, '✎ preencher', self.fi(font_size=8, bold=True, align='center', locked=True))
-        ws.merge_range(2, 3, 2, 4, 'automático (dá para corrigir)', self.f(font_size=8, align='center', bg_color=AUTO,
-                                                                       border=1, border_color=AUTO_BORDA))
-        ws.merge_range(2, 5, 2, 6, 'calculado', self.f(font_size=8, align='center', bg_color=SEC, border=1,
-                                                       border_color=LINE2, font_color=INK2))
+        # legenda dos campos (para saber exatamente onde preencher); a planilha de acompanhamento fica sem ela
+        if VARIANTE == 'ACOMP':
+            ws.set_row(2, 6)
+        else:
+            ws.set_row(2, 20)
+            ws.write(2, 1, 'Campos:', self.f(bold=True, font_size=8, font_color=MUTED, align='right'))
+            ws.write(2, 2, '✎ preencher', self.fi(font_size=8, bold=True, align='center', locked=True))
+            ws.merge_range(2, 3, 2, 4, 'automático (dá para corrigir)', self.f(font_size=8, align='center',
+                                                                           bg_color=AUTO, border=1,
+                                                                           border_color=AUTO_BORDA))
+            ws.merge_range(2, 5, 2, 6, 'calculado', self.f(font_size=8, align='center', bg_color=SEC, border=1,
+                                                           border_color=LINE2, font_color=INK2))
         ws.set_row(3, 8)
         # ---- 1 · identificacao (esquerda) e ACOES (direita)
         self.secao(ws, 4, 1, 8, '1 · IDENTIFICAÇÃO DO BATCH')
@@ -1405,7 +1409,7 @@ class Construtor:
             self.botao(ws, 1, 9, 'Trazer do online', 'TrazerDoOnline', 120, 30, 's', x=156, y=6)
         ws.freeze_panes(A_ROW0, 0)
         # colunas depois do bloco mais largo ocultas (o VBA reajusta: ModAcomp.AtualizarTitulos)
-        ws.set_column(c_fim + 2, 16383, None, None, {'hidden': True})
+        ws.set_column(c_fim + 4, 16383, None, None, {'hidden': True})   # c_fim+1..+3: botao Copiar batch
         # linhas sem uso ocultas: lugar livre = so a faixa; o VBA mostra as linhas do bloco ao desenhar o batch
         ws.set_default_row(None, True)
         for r in range(A_ROW0 + 1):
@@ -1423,7 +1427,7 @@ class Construtor:
             ws.merge_range(r, 1, r, c_fim, 'LIVRE   ·   o próximo batch buscado na aba %s entra aqui'
                            % self.ws_bat.name, flivre)
             # copiar o batch (imagem do bloco para o e-mail): aparece quando o bloco tem batch
-            self.botao(ws, r, 7, 'Copiar batch', 'CopiarBatch%d' % (i + 1), 104, 22, 'a', x=10, y=4, pos=2)
+            self.botao(ws, r, c_fim + 1, 'Copiar batch', 'CopiarBatch%d' % (i + 1), 104, 22, 'a', x=12, y=4, pos=2)
         ws.protect('', {'format_columns': True, 'format_rows': True})
         ws = self.ws_reg
         for i, h in enumerate(REG_COLS):

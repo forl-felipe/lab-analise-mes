@@ -18,8 +18,7 @@ não usa ficam muito ocultas, sem ser apagadas, para o código compilar igual na
 
 ### Aba Preenchimento
 
-Só o necessário, em etapas (✎ amarelo com borda dourada = preencher; azul-claro = automático, dá para corrigir;
-cinza = calculado):
+Só o necessário, em etapas:
 
 1. **Identificação do batch**: batch Nº; **nível dos tanques** (lista Alto / Médio / Baixo — define o atraso entre a
    chegada em Ubu e o início no processo); **início no processo (manual)** — quando preenchido, vale ele e não a
@@ -49,14 +48,15 @@ fica como *EM PROCESSAMENTO*).
 Com os 5 blocos ocupados a busca de um 6º batch não muda nada e avisa: comece uma cópia nova da planilha padrão
 limpa.
 
-Cada bloco: faixa do batch (com "✔ todas dentro da tolerância" ou quantas análises fora); **Resumo do batch**
+Cada bloco: faixa do batch; **Resumo do batch**
 (média de Germano e de Alimentação 04, diferença, tolerância, status OK/NOK e leituras G/U); **Observações** — um
 campo só, que já vem escrito com chegada em Ubu, nível dos tanques, início no processo, Germano (EB06) e nº de
 bi-horários (atualiza sozinho enquanto ninguém edita; o que for escrito à mão fica); e **Leituras por bi-horário**
 com os horários de Ubu nas colunas e, para cada análise (SiO₂, P, PPC, S.E., <325#), as linhas Germano /
 ✎ Alimentação 04 / Diferença. Ubu vem do MES nos bi-horários já iniciados; onde o MES não tiver resultado, os
-técnicos lançam à mão nas células amarelas (só elas são digitáveis); diferença fora da tolerância em vermelho.
-Cada bloco tem o seu botão **Copiar batch** na faixa (imagem do bloco para o e-mail). Colunas à direita do bloco
+técnicos lançam à mão nas células amarelas (só elas são digitáveis). Fora da tolerância só aparece no resumo
+(pela média: diferença em vermelho e status NOK); a grade fica sem marcação. Cada bloco tem o seu botão **Copiar
+batch** à direita da faixa, fora do bloco (imagem do bloco para o e-mail; não sai num print do bloco). Colunas à direita do bloco
 mais largo e linhas abaixo do último bloco ficam ocultas.
 
 Regras do Germano no acompanhamento:

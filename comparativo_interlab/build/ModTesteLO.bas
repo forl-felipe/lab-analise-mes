@@ -335,7 +335,7 @@ Public Sub TesteLO()
     Next i
     shAcomp.Calculate
     Ok CStr(shAcomp.Cells(rRes, 11).Value) = "NOK", "status da SiO2: NOK com diferenca 0,5"
-    Ok InStr(CStr(shAcomp.Cells(rb, 13).Value), "1 análise fora") = 1, "faixa: 1 analise fora (" & shAcomp.Cells(rb, 13).Value & ")"
+    Ok Vazio(shAcomp.Cells(rb, 13).Value), "faixa so com o batch (sem contagem de analises fora)"
     shAcomp.Range(shAcomp.Cells(lSi + 1, ColHora(1)), shAcomp.Cells(lSi + 1, ColHora(n))).ClearContents
     shAcomp.Cells(lSi + 1, ColHora(sM)).Value = CDbl(shAcomp.Cells(lSi, ColHora(sM)).Value) + 0.1
     CelObs(shAcomp, rb).Value = "SiO2 acima na 1a leitura"

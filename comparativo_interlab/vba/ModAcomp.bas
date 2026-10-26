@@ -37,7 +37,7 @@ Private Const COR_FUNDO As Long = 16250355        ' #F3F5F7
 Private Const COR_ENTRADA As Long = 14809343      ' #FFF8E1 (celulas para lancar)
 Private Const COR_BRANCO As Long = 16777215
 Private Const COR_DIGITAR As Long = 13431551       ' #FFF2CC amarelo claro: celulas para lancar
-Private Const COR_DOURADO As Long = 37055          ' #BF9000 borda das celulas para lancar
+Private Const COR_DOURADO As Long = 12115946       ' #EADFB8 borda (suave) das celulas para lancar
 Private Const COR_OK As Long = 5274634             ' #0A7C50
 Private Const COR_OK_BG As Long = 15529187         ' #E3F4EC
 Private Const COR_NOK As Long = 2631878            ' #C62828
@@ -238,19 +238,22 @@ Private Sub AtualizarTitulos(ByVal ws As Worksheet)
     Next i
     If ws.Parent Is ThisWorkbook Then
         On Error Resume Next
-        ws.Range(ws.Columns(1), ws.Columns(cMax + 1)).Hidden = False
-        ws.Range(ws.Columns(cMax + 2), ws.Columns(ws.Columns.Count)).Hidden = True
+        ' cMax+1 a cMax+3: espaco do botao Copiar batch
+        ws.Range(ws.Columns(1), ws.Columns(cMax + 3)).Hidden = False
+        ws.Range(ws.Columns(cMax + 4), ws.Columns(ws.Columns.Count)).Hidden = True
         On Error GoTo 0
     End If
     Proteger ws
 End Sub
 
-' Botao "Copiar batch" da faixa do bloco i (macro CopiarBatch<i>): so aparece com batch no bloco, na faixa dele
-' (logo depois do titulo)
+' Botao "Copiar batch" do bloco i (macro CopiarBatch<i>): so aparece com batch no bloco, na altura da faixa e
+' fora do bloco (a direita), para nao sair num print do bloco
 Private Sub BotaoCopiar(ByVal ws As Worksheet, ByVal i As Long, ByVal visivel As Boolean)
-    Dim shp As Object, acao As String, c As Range
+    Dim shp As Object, acao As String, c As Range, v As Variant, n As Long
     On Error Resume Next
-    Set c = ws.Cells(LinhaBlocoN(i), A_COL_G1 + 4)
+    v = ws.Cells(LinhaBlocoN(i), A_COL_AUX + 1).Value
+    If ENumero(v) Then n = CLng(v)
+    Set c = ws.Cells(LinhaBlocoN(i), ColFim(n) + 1)
     For Each shp In ws.Shapes
         acao = ""
         acao = shp.OnAction
@@ -258,7 +261,7 @@ Private Sub BotaoCopiar(ByVal ws As Worksheet, ByVal i As Long, ByVal visivel As
             shp.Visible = visivel
             If visivel Then
                 shp.Top = c.Top + (c.Height - shp.Height) / 2
-                shp.Left = c.Left + 8
+                shp.Left = c.Left + 12
             End If
         End If
     Next shp
@@ -479,7 +482,7 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     Cabec ws.Range(ws.Cells(r + 3, A_COL_G1 + 4), ws.Cells(r + 3, A_COL_G1 + 5)), "DIFERENÇA" & vbLf & "(UBU " & ChrW(8722) & " GERMANO)"
     Cabec ws.Cells(r + 3, A_COL_G1 + 6), "TOLER." & vbLf & "(±)"
     Cabec ws.Cells(r + 3, A_COL_G1 + 7), "STATUS"
-    Cabec ws.Cells(r + 3, A_COL_G1 + 8), "LEITURAS" & vbLf & "G / U"
+    Cabec ws.Cells(r + 3, A_COL_G1 + 8), "QTD." & vbLf & "G / U"
     For k = 1 To na
         chave = CStr(ps(k - 1))
         p = PIndice(chave)
@@ -539,11 +542,6 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     ws.Rows(rr).RowHeight = 15
     Legenda ws.Range(ws.Cells(rr, A_COL_N), ws.Cells(rr, A_COL_G1 + 3)), "OK " & ChrW(8212) & " DENTRO DA TOLERÂNCIA", -4131
     Legenda ws.Range(ws.Cells(rr, A_COL_G1 + 4), ws.Cells(rr, A_COL_G1 + 8)), "NOK " & ChrW(8212) & " FORA DA TOLERÂNCIA", -4152
-    ' quantas analises fora (no canto da faixa)
-    Set st = ws.Range(ws.Cells(LinhaResumo(r, 1), A_COL_G1 + 7), ws.Cells(LinhaResumo(r, na), A_COL_G1 + 7))
-    ws.Cells(r, A_COL_G1 + 9).Formula = "=IF(COUNTIF(" & st.Address(False, False) & ",""NOK"")>0,COUNTIF(" & _
-        st.Address(False, False) & ",""NOK"")&IF(COUNTIF(" & st.Address(False, False) & ",""NOK"")=1,"" análise fora"","" análises fora"")&"" da tolerância"",IF(COUNTIF(" & _
-        st.Address(False, False) & ",""OK"")>0,""" & ChrW(10004) & " Todas dentro da tolerância"",""""))"
     ' observacoes: um campo so (ja vem com chegada em Ubu, nivel, inicio no processo, Germano)
     Set rg = ws.Range(ws.Cells(r + 3, A_COL_G1 + 10), ws.Cells(rr, cF))
     CelulaDigitar rg
@@ -559,8 +557,7 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
 
     ' ---- LEITURAS POR BI-HORARIO: horarios nas colunas; por analise Germano / Alimentacao 04 / Diferenca
     rh = LinhaHora(r)
-    TituloQuadro ws.Range(ws.Cells(rh - 2, A_COL_N), ws.Cells(rh - 2, cF)), "LEITURAS POR BI-HORÁRIO   " & ChrW(8212) & _
-        "   " & ChrW(9998) & " " & nomeUbu & " vem do MES; onde não vier, lançar nas células amarelas"
+    TituloQuadro ws.Range(ws.Cells(rh - 2, A_COL_N), ws.Cells(rh - 2, cF)), "LEITURAS POR BI-HORÁRIO"
     Cabec ws.Range(ws.Cells(rh - 1, A_COL_N), ws.Cells(rh - 1, A_COL_SUB)), "DATA"
     Cabec ws.Range(ws.Cells(rh, A_COL_N), ws.Cells(rh, A_COL_SUB)), "HORÁRIO (UBU)"
     For s = 1 To nVis
@@ -611,14 +608,12 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
             dif.Formula = "=IF(AND(ISNUMBER(" & ws.Cells(rr + 1, c).Address(False, False) & "),ISNUMBER(" & _
                 ws.Cells(rr, c).Address(False, False) & "))," & ws.Cells(rr + 1, c).Address(False, False) & "-" & _
                 ws.Cells(rr, c).Address(False, False) & ","""")"
-            Set aux = ws.Cells(rr + 2, A_COL_AUX + s)
-            aux.Formula = ForaTol(dif, dec, ws.Cells(LinhaResumo(r, k), A_COL_G1 + 6))
-            MarcarForaTol dif, aux
         Next s
+        ' separacao entre analises: linha fina (fora da tolerancia so no resumo, pela media)
         With ws.Range(ws.Cells(rr + 2, A_COL_N), ws.Cells(rr + 2, cL)).Borders(9)
             .LineStyle = 1
-            .Weight = -4138
-            .Color = COR_AZUL
+            .Weight = 2
+            .Color = COR_LINHA
         End With
     Next k
     ws.Range(ws.Columns(A_COL_AUX), ws.Columns(A_COL_AUX + NMAX + 2)).Hidden = True
@@ -699,7 +694,7 @@ Private Sub Rotulo(ByVal c As Range, ByVal texto As String, ByVal fundo As Long,
     Celulas c, fundo, cor, negrito
 End Sub
 
-' Celula para lancar: amarela, borda dourada, desbloqueada
+' Celula para lancar: amarela, borda dourada suave, desbloqueada
 Private Sub CelulaDigitar(ByVal rg As Range)
     Celulas rg, COR_DIGITAR, COR_AZUL_PROF, True
     On Error Resume Next
