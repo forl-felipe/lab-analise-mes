@@ -29,12 +29,20 @@ Public Sub Inicializar()
     shGraf.Visible = XL_HIDDEN
     shConfig.Visible = XL_VERYHIDDEN
     If Not ENumero(Nm("rDias").Value) Then
-        Desproteger shReport
+        Desproteger shPainel
         Nm("rDias").Value = CfgNum("cfgDiasPadrao", 15)
-        Proteger shReport
+        Proteger shPainel
+    End If
+    ' o report do dia e o de ontem: a aba Dia abre em ontem (se estiver num dia mais antigo)
+    If DiaDe(Nm("dData").Value) < Int(CDbl(Now)) - 1 Then
+        ModoCarga True
+        Desproteger shDia
+        Nm("dData").Value = CDate(Int(CDbl(Now)) - 1)
+        Proteger shDia
+        ModoCarga False
     End If
     CarregarDia
-    AjustarGraficos
+    AjustarGraficos True
     shDia.Activate
 End Sub
 
@@ -236,11 +244,14 @@ Public Sub Recalcular()
 End Sub
 
 ' ---------------------------------------------------------------- navegacao
-Public Sub IrReport()
+Public Sub IrDiagnostico()
     On Error Resume Next
-    AtualizarReport
-    shReport.Activate
-    shReport.Range("A1").Select
+    If Not EData(Nm("xData").Value) Or DiaDe(Nm("xData").Value) >= Int(CDbl(Now)) Then
+        Desproteger shDiag
+        Nm("xData").Value = CDate(Int(CDbl(Now)) - 1)
+        Proteger shDiag
+    End If
+    shDiag.Activate
 End Sub
 
 Public Sub IrDia()

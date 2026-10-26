@@ -21,6 +21,14 @@ Private Function Perto(ByVal v As Variant, ByVal alvo As Double, ByVal tol As Do
     If ENumero(v) Then Perto = (Abs(CDbl(v) - alvo) <= tol)
 End Function
 
+Private Function GColT(ByVal chave As String) As Long
+    Dim l As Variant, i As Long
+    l = Split(G_CHAVES, "|")
+    For i = LBound(l) To UBound(l)
+        If CStr(l(i)) = chave Then GColT = i + 1
+    Next i
+End Function
+
 Private Sub Data(ByVal d As Date)
     Desproteger shDia
     Nm("dData").Value = d
@@ -51,22 +59,34 @@ Public Sub TesteLO()
     Ok Perto(H(r, H_COL_PCTLAMA), 462 / (16694 + 21216), 0.0000001), "14/10: % lama " & H(r, H_COL_PCTLAMA)
     Ok UltimoDiaHist() = CLng(DateSerial(2026, 10, 15)), "último dia do histórico 15/10/2026"
 
-    ' --- Report: 15 dias até 15/10
-    Ok DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 15)) And DiasReport() = 15, "Report abre em 15/10, 15 dias"
+    ' --- Painel: 15 dias até 15/10 + coluna Média
+    Ok DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 15)) And DiasPainel() = 15, "Painel abre em 15/10, 15 dias"
     Ok DiaDe(shGraf.Cells(2, 1).Value) = CLng(DateSerial(2026, 10, 1)), "1º dia dos gráficos 01/10"
     Ok CStr(shGraf.Cells(2, 2).Value) = "01/10", "rótulo 01/10 (" & shGraf.Cells(2, 2).Value & ")"
     Ok Nm("gUlt_eb6").Value = 2210 And Nm("gN_eb6").Value = 15, "último EB6 2210 e 15 dias com valor"
+    Ok CStr(shGraf.Cells(17, 2).Value) = "Média", "16ª coluna dos gráficos = Média"
+    Ok Perto(shGraf.Cells(17, 4).Value, Application.WorksheetFunction.Average(shGraf.Range("D2:D16")), 0.001), _
+       "barra Média do EB6 = média do período (" & shGraf.Cells(17, 4).Value & ")"
+    Ok InStr(shGraf.Cells(17, 5).Text, "#N") = 1 And Perto(shGraf.Cells(17, 6).Value, Nm("gMed_difK").Value, 0.001), _
+       "na Média: linha da diferença vazia e losango = diferença média"
+    Ok InStr(shGraf.Cells(18, 4).Text, "#N") = 1, "depois da Média = #N/D (" & shGraf.Cells(18, 4).Text & ")"
     Ok Perto(Nm("gMed_difK").Value, Application.WorksheetFunction.Average(shGraf.Range("E2:E16")), 0.001), _
        "média do período da diferença (" & Nm("gMed_difK").Value & ")"
-    Ok InStr(shGraf.Cells(17, 4).Text, "#N") = 1, "16º dia fora do período = #N/D (" & shGraf.Cells(17, 4).Text & ")"
+    Ok shGraf.Cells(2, GColT("tolP")).Value = 150 And shGraf.Cells(17, GColT("tolN")).Value = -150, "tolerância ±150"
+    Ok CStr(Nm("pSt_difK").Value) = "OK" And CStr(Nm("pSt_difJ").Value) = "OK", "15/10: +114 e +127 dentro da tolerância"
+    s = CStr(Nm("gComentarios").Value)
+    Ok InStr(s, "Período de 15 dias") > 0 And InStr(s, "15/10") > 0 And InStr(s, "máxima") > 0, "comentários automáticos: " & Left$(s, 90)
+    Ok InStr(CStr(Nm("gResumo").Value), "Batch EB6") > 0, "resumo para o e-mail"
+    Ok DiaDe(Nm("gPctMaxDia").Value) = CLng(DateSerial(2026, 10, 14)), "% lama máxima em 14/10"
+    Ok Perto(Nm("gUlt_lama").Value, 335, 0.001), "caixa Produção e DVR: lama 335 em 15/10"
 
     ' --- leitura da saida do MES (janela E) e tags
     Ok TesteLeitura() = "23000|23|2011|12", "leitura da janela E: soma 23000 (23 h), média 2011 (12 resultados): " & TesteLeitura()
     Ok VarianteTag("M0239010000-0596-HHCC") = "M0239010000-596-HHCC", "variante de tag -0596- -> -596-"
     s = TesteTagsInvalidas("Erro: Tag Name M0239010000-0596-HHCC is invalid")
     Ok s = "|M0239010000-596-HHCC", "tag recusada: a consulta passa a usar a variante (" & s & ")"
-    Ok TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_MESVALOR is invalid") = "1|IP_AnalogMap|IP_MESVALOR", _
-       "mapa recusado: troca só a tag recusada"
+    Ok TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_AnalogMap is invalid") = "1|IP_MESVALOR|IP_AnalogMap", _
+       "mapa recusado: troca só a tag recusada (" & TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_AnalogMap is invalid") & ")"
     Ok ComoData("12/10/2026 15:00:00", tj) And Abs(CDbl(tj) - CDbl(DateSerial(2026, 10, 12) + TimeSerial(15, 0, 0))) < 0.0001, _
        "data do Aspen em texto"
     Ok ComoNumero("2052.0", xx) And Abs(xx - 2052) < 0.0001, "número em texto 2052.0"
@@ -98,8 +118,8 @@ Public Sub TesteLO()
        "16/10: TK 01, origem, observação e fator gravados"
     Ok Perto(H(r, H_COL_ESPP), (H(r, H_COL_ESPC3) * H(r, H_COL_PRODC3) + H(r, H_COL_ESPC2) * H(r, H_COL_PRODC2)) / _
        (H(r, H_COL_PRODC3) + H(r, H_COL_PRODC2)), 0.001), "16/10: ponderada calculada na linha nova"
-    Ok DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 16)), "Report avança para 16/10"
-    Ok Nm("gUlt_eb6").Value = H(r, H_COL_EB6), "último dia do Report = 16/10"
+    Ok DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 16)), "Painel avança para 16/10"
+    Ok Nm("gUlt_eb6").Value = H(r, H_COL_EB6), "último dia do Painel = 16/10"
 
     ' --- fora de ordem: 20/10 antes de 18/10
     Data DateSerial(2026, 10, 20)
@@ -134,6 +154,34 @@ Public Sub TesteLO()
     Ok Nm("d_tk01").Value = 2222 And shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_SIT).Value = "do histórico", _
        "trocar a data abre o dia do histórico"
     Ok Perto(Nm("_difK").Value, Nm("d_eb6").Value - Nm("_espP").Value, 0.001), "resultado do dia na aba Dia"
+
+    ' --- dia em andamento (hoje): aviso e pergunta antes de salvar
+    Data CDate(Int(CDbl(Now)))
+    gUltimaMsg = ""
+    BuscarMES
+    Ok InStr(gUltimaMsg, "ainda não terminou") > 0, "buscar hoje avisa que o dia não terminou"
+    ' periodo nao passa de ontem
+    Desproteger shDia
+    Nm("dDe").Value = CDate(Int(CDbl(Now)))
+    Nm("dAte").Value = CDate(Int(CDbl(Now)))
+    Proteger shDia
+    gUltimaMsg = ""
+    BuscarPeriodo
+    Ok InStr(gUltimaMsg, "até ontem") > 0 And LinhaHist(CDate(Int(CDbl(Now)))) = 0, "período não inclui hoje"
+
+    ' --- diagnostico sem o Aspen (LibreOffice): avisa e nao trava
+    Desproteger shConfig
+    Nm("cfgFonte").Value = "MES"
+    Proteger shConfig
+    Desproteger shDiag
+    Nm("xData").Value = DateSerial(2026, 10, 15)
+    Proteger shDiag
+    gUltimaMsg = ""
+    DiagnosticoMES
+    Ok InStr(CStr(shDiag.Cells(X_ROW0, 6).Value), "suplemento") > 0 And InStr(gUltimaMsg, "#NOME?") > 0, _
+       "diagnóstico sem o Aspen: avisa o suplemento (" & shDiag.Cells(X_ROW0, 6).Value & ")"
+    Ok InStr(CStr(shDiag.Cells(X_ROW0 + IIndice("tk01") - 1, 6).Value), "sem tag") > 0 Or _
+       InStr(CStr(Nm("xStatus").Value), "15/10/2026") > 0, "diagnóstico grava a última execução"
 
     GoTo Fim
 Erro:

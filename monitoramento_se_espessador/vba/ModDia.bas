@@ -8,7 +8,7 @@ Option Explicit
 
 ' ---------------------------------------------------------------- botoes da aba Dia
 Public Sub BuscarMES()
-    Dim d As Date, vals As Variant, nres As Variant, sit As Variant, ok As Boolean, msg As String
+    Dim d As Date, vals As Variant, nres As Variant, sit As Variant, ok As Boolean, msg As String, notas As String
     If Not EData(Nm("dData").Value) Then
         Aviso "Informe a data do report (célula amarela).", vbExclamation, "Buscar no MES"
         Exit Sub
@@ -22,17 +22,22 @@ Public Sub BuscarMES()
     Nm("dOrigem").Value = "'MES"
     If Not ENumero(Nm("d_fator").Value) Then Nm("d_fator").Value = FatorPadrao(d)
     msg = ResumoBusca(d, vals, sit)
-    If gNotasMES <> "" Then msg = msg & vbCrLf & vbCrLf & gNotasMES
-    Nm("dStatus").Value = "'" & Format$(Now, "dd\/mm hh:mm") & "  " & Replace(msg, vbCrLf, "  ")
+    notas = gNotasMES
+    Nm("dStatus").Value = "'" & Format$(Now, "dd\/mm hh:mm") & "  " & Replace(msg & IIf(notas <> "", vbCrLf & notas, ""), _
+                          vbCrLf, "  ·  ")
     Proteger shDia
     ModoCarga False
     Ampulheta False
     Recalcular
-    If ok Then
+    ' a caixa de mensagem do Excel corta textos longos: o detalhe completo fica em "Última busca"
+    If Len(notas) > 520 Then notas = Left$(notas, 500) & "... (detalhes em Última busca, no fim da aba Dia)"
+    If notas <> "" Then msg = msg & vbCrLf & vbCrLf & notas
+    If ok And InStr(msg, "Sem resultado") = 0 Then
         Aviso msg & vbCrLf & vbCrLf & "Confira os valores e clique em Salvar no histórico.", vbInformation, _
               "Buscar no MES"
     Else
-        Aviso msg, vbExclamation, "Buscar no MES"
+        Aviso msg & vbCrLf & vbCrLf & "Itens sem resultado: veja a coluna Situação e, se precisar, a aba " & _
+              "Diagnóstico (consulta cada tag e mostra os horários com valor).", vbExclamation, "Buscar no MES"
     End If
 End Sub
 
@@ -47,12 +52,17 @@ Public Sub SalvarDia()
         Aviso "Nenhum valor na aba Dia. Busque no MES ou lance os valores antes de salvar.", vbExclamation, "Salvar"
         Exit Sub
     End If
+    If CDbl(d) >= Int(CDbl(Now)) Then
+        If Aviso(TxtDia(d) & " ainda não terminou: o DVR e o fechamento do batch ainda não estão no MES." & vbCrLf & _
+                 vbCrLf & "Salvar assim mesmo? (dá para buscar e salvar de novo amanhã)", vbQuestion + vbYesNo, _
+                 "Salvar") <> vbYes Then Exit Sub
+    End If
     r = GravarHist(d, ValoresDia(), Nm("d_fator").Value, Nm("d_obs").Value, OrigemDia(), False)
     If r = 0 Then Exit Sub
     OrdenarHist
-    AvancarReport d
-    AtualizarReport
-    Aviso "Dia " & TxtDia(d) & " salvo no histórico.", vbInformation, "Salvar"
+    AvancarPainel d
+    AtualizarPainel
+    Aviso "Dia " & TxtDia(d) & " salvo no histórico. O painel já mostra este dia.", vbInformation, "Salvar"
 End Sub
 
 ' Busca e salva cada dia de dDe a dAte
@@ -73,7 +83,13 @@ Public Sub BuscarPeriodo()
         Aviso "Período de no máximo 93 dias por vez.", vbExclamation, "Buscar período"
         Exit Sub
     End If
-    If d1 > Int(CDbl(Now)) Then d1 = Int(CDbl(Now))
+    ' dia de hoje fica de fora: o DVR e o fechamento do batch so entram no MES depois das 23:59
+    If d1 > Int(CDbl(Now)) - 1 Then d1 = Int(CDbl(Now)) - 1
+    If d1 < d0 Then
+        Aviso "O período só pode ir até ontem (o dia de hoje ainda não fechou no MES).", vbExclamation, _
+              "Buscar período"
+        Exit Sub
+    End If
     Ampulheta True
     For d = d0 To d1
         nDias = nDias + 1
@@ -88,10 +104,10 @@ Public Sub BuscarPeriodo()
         If Not ok And nV = 0 Then Exit For        ' MES sem resposta: nao insiste nos outros dias
     Next d
     OrdenarHist
-    If nOk > 0 Then AvancarReport CDate(d1)
+    If nOk > 0 Then AvancarPainel CDate(d1)
     ModoCarga False
     CarregarDia
-    AtualizarReport
+    AtualizarPainel
     Ampulheta False
     Nm("dStatus").Value = "'" & Format$(Now, "dd\/mm hh:mm") & "  Período " & TxtDia(CDate(d0)) & " a " & _
                           TxtDia(CDate(d1)) & ": " & nOk & " dia(s) salvos.  " & Replace(res, vbCrLf, "  ")
@@ -336,13 +352,13 @@ Public Sub OrdenarHist()
     ModoCarga False
 End Sub
 
-' Report passa a terminar no dia salvo, se ele for mais novo
-Private Sub AvancarReport(ByVal d As Date)
+' Painel passa a terminar no dia salvo, se ele for mais novo
+Private Sub AvancarPainel(ByVal d As Date)
     If Not EData(Nm("rFim").Value) Or CDbl(d) > CDbl(DiaDe(Nm("rFim").Value)) Then
         ModoCarga True
-        Desproteger shReport
+        Desproteger shPainel
         Nm("rFim").Value = d
-        Proteger shReport
+        Proteger shPainel
         ModoCarga False
     End If
 End Sub

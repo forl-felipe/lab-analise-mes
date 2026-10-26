@@ -9,7 +9,8 @@ Option Explicit
 '  fechamento do batch (23:59) em 23:30-00:30, cada um na sua linha.
 '  Tags, servidores e mapas vao em texto literal (mesmo formato dos relatorios do laboratorio).
 '  Tag recusada pelo MES ("Tag Name ... is invalid") sai da consulta, que e refeita com as demais;
-'  antes, o mesmo codigo e tentado no outro formato (-0596- <-> -596-).
+'  antes, o mesmo codigo e tentado no outro formato (-0596- <-> -596-). Mapa recusado: tenta os outros.
+'  Diagnostico do MES: cada tag sozinha, de D-1 12:00 a D+1 12:00, para ver onde ha valor.
 ' ============================================================================
 
 ' Segundos sem mudanca nos resultados para considerar a consulta concluida
@@ -25,6 +26,8 @@ Private Const OUT_D As String = "A77"
 ' Linhas lidas da saida de uma consulta (ate 48 janelas de 1 h)
 Private Const LIN_SAIDA As Long = 50
 Private Const MAPAS_ALT As String = "IP_AnalogMap|IP_MESVALOR|IP_DiscreteMap"
+' Diagnostico: janelas de 1 h de D-1 12:00 a D+1 12:00
+Private Const DIAG_JANELAS As Long = 48
 
 ' Funcao do Aspen nao reconhecida (#NOME?): nao repete a consulta nem o aviso
 Private mSemAspen As Boolean
@@ -34,7 +37,12 @@ Private mInvalidas As String
 Private mMapasRuins As String
 ' Contador da consulta na barra de status: o que esta sendo consultado
 Private mEtapa As String
-' Avisos da ultima busca (tags corrigidas, tags invalidas, MES sem resposta) - o chamador mostra
+' Ajustes gravados em Configuracoes nesta busca (mapas e tags que o MES aceitou), para a mensagem
+Private mAjMapas As String
+Private mAjTags As String
+' Horario (centro da janela de 1 h) do ultimo valor achado de cada item na ultima busca
+Private mHora(1 To 40) As Double
+' Avisos da ultima busca (ajustes, tags invalidas, MES sem resposta) - o chamador mostra
 Public gNotasMES As String
 
 ' ---------------------------------------------------------------- busca de um dia
@@ -42,29 +50,50 @@ Public gNotasMES As String
 ' Devolve False se o MES nao respondeu (ou sem suplemento).
 Public Function BuscarDiaMES(ByVal d As Date, ByRef vals As Variant, ByRef nres As Variant, _
                              ByRef sit As Variant) As Boolean
-    Dim v() As Variant, n() As Variant, s() As Variant, k As Long, ok As Boolean
+    Dim v() As Variant, n() As Variant, s() As Variant, k As Long, ok As Boolean, andamento As Boolean
     ReDim v(1 To NI)
     ReDim n(1 To NI)
     ReDim s(1 To NI)
     For k = 1 To NI
         n(k) = 0
+        mHora(k) = 0
         If ICfg(k, C_COL_TAG) = "" Then s(k) = "sem tag: lançar à mão" Else s(k) = ""
     Next k
     gNotasMES = ""
+    mAjMapas = ""
+    mAjTags = ""
     d = DateSerial(Year(d), Month(d), Day(d))
+    andamento = (CDbl(d) >= Int(CDbl(Now)))
     If UCase$(Left$(CfgTxt("cfgFonte"), 3)) = "SIM" Then
         Simular d, v, n, s
         ok = True
     Else
+        mSemAspen = False
         ok = ConsultarJanela("E", d, v, n, s)
         If Not mSemAspen Then ok = ConsultarJanela("D", d, v, n, s) And ok
         Nm("mesUltima").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & "  dia " & TxtDia(d)
     End If
     For k = 1 To NI
         If s(k) = "" Then
-            If IsEmpty(v(k)) Then s(k) = "sem resultado no MES" Else s(k) = "MES"
+            If Not IsEmpty(v(k)) Then
+                s(k) = "MES · " & n(k) & IIf(n(k) = 1, " valor", " valores")
+                If mHora(k) > 0 Then s(k) = s(k) & " · último " & Format$(CDate(mHora(k)), "dd\/mm hh:mm")
+            ElseIf andamento And UCase$(ICfg(k, C_COL_JAN)) = "D" Then
+                s(k) = "sem resultado: dia ainda em andamento"
+            Else
+                s(k) = "sem resultado no MES (ver Diagnóstico)"
+            End If
         End If
     Next k
+    If andamento Then
+        gNotasMES = "Atenção: " & TxtDia(d) & " ainda não terminou. O DVR (produção C3, lama e concentrados) e o " & _
+                    "fechamento do batch só entram no MES depois das 23:59 - para o report, busque o dia anterior." & _
+                    vbCrLf & gNotasMES
+    End If
+    If mAjMapas <> "" Then gNotasMES = gNotasMES & "Mapa trocado em Configurações (o MES recusou o anterior): " & _
+                                       Mid$(mAjMapas, 3) & "." & vbCrLf
+    If mAjTags <> "" Then gNotasMES = gNotasMES & "Tag ajustada em Configurações (o MES aceitou em outro formato): " & _
+                                      Mid$(mAjTags, 3) & "." & vbCrLf
     vals = v
     nres = n
     sit = s
@@ -95,20 +124,25 @@ Private Function ItensJanela(ByVal j As String) As String
     ItensJanela = r
 End Function
 
+' So os itens de ps que continuam com tag valida (depois de uma tag recusada)
+Private Function FiltrarValidos(ByVal ps As String) As String
+    Dim lst As Variant, i As Long, k As Long, r As String
+    If ps = "" Then Exit Function
+    lst = Split(ps, ",")
+    For i = LBound(lst) To UBound(lst)
+        k = CLng(lst(i))
+        If TagAtual(k) <> "" And Not TagInvalida(TagAtual(k)) And MapaAtual(k) <> "" Then
+            If r <> "" Then r = r & ","
+            r = r & k
+        End If
+    Next i
+    FiltrarValidos = r
+End Function
+
 Private Function ConsultarJanela(ByVal j As String, ByVal d As Date, v() As Variant, n() As Variant, _
                                  s() As Variant) As Boolean
-    Dim anc As Range, sai As Range, ps As String, rodada As Long, limite As Double, nJan As Long, nTot As Long
-    Dim qIni As Date, fim As Date, estado As Long, e2 As Long, restaurado As Boolean, resp As String
-    Dim invalidas As String, corrigidas As String
-
-    If mSemAspen Then Exit Function
-    If j = "E" Then
-        Set anc = shDadosMES.Range(ANC_E)
-        Set sai = shDadosMES.Range(OUT_E)
-    Else
-        Set anc = shDadosMES.Range(ANC_D)
-        Set sai = shDadosMES.Range(OUT_D)
-    End If
+    Dim ps As String, nJan As Long, nTot As Long, qIni As Date, estado As Long, resp As String, bruto As Variant
+    Dim i As Long
     ps = ItensJanela(j)
     If ps = "" Then
         ConsultarJanela = True           ' nada a consultar nesta janela
@@ -123,14 +157,52 @@ Private Function ConsultarJanela(ByVal j As String, ByVal d As Date, v() As Vari
         ConsultarJanela = True           ' dia ainda nao comecou
         Exit Function
     End If
+    mEtapa = IIf(j = "E", "espessador/produção", "batch e DVR") & " " & TxtDia(d)
+    estado = Consultar(ps, qIni, nJan, j, bruto, resp)
+    If estado = 1 Then
+        LerSaida bruto, qIni, nJan, ps, v, n
+    ElseIf estado = 0 Or estado = 4 Or estado = 5 Then
+        gNotasMES = gNotasMES & IIf(estado = 0, "O MES não respondeu", "O MES devolveu erro") & " (" & mEtapa & _
+                    "): " & Left$(resp, 160) & vbCrLf
+    End If
+    ' itens que ficaram de fora por tag recusada
+    For i = 1 To NI
+        If UCase$(ICfg(i, C_COL_JAN)) = j And ICfg(i, C_COL_TAG) <> "" Then
+            If TagInvalida(TagAtual(i)) Then s(i) = "tag recusada pelo MES (ver Diagnóstico)"
+        End If
+    Next i
+    ConsultarJanela = (estado = 1 Or estado = 2 Or estado = 9)
+End Function
+
+' Uma consulta GetCalculationValues (itens de ps, janelas de 1 h a partir de qIni) com as tentativas de tag e de
+' mapa. ps volta so com os itens consultados (na ordem das colunas de bruto). bruto = matriz de saida lida.
+' Devolve 1 = resultados; 2 = "Sucesso" sem linhas; 0 = sem resposta; 4 = mapa recusado; 5 = erro do Aspen;
+' 3 = todas as tags recusadas; 9 = nada a consultar; -1 = sem o suplemento do Aspen.
+Private Function Consultar(ByRef ps As String, ByVal qIni As Date, ByVal nJan As Long, ByVal j As String, _
+                           ByRef bruto As Variant, ByRef resp As String) As Long
+    Dim anc As Range, sai As Range, rodada As Long, limite As Double, fim As Date, estado As Long, e2 As Long
+    Dim restaurado As Boolean, invalidas As String
+    If mSemAspen Then
+        Consultar = -1
+        Exit Function
+    End If
+    If j = "E" Then
+        Set anc = shDadosMES.Range(ANC_E)
+        Set sai = shDadosMES.Range(OUT_E)
+    Else
+        Set anc = shDadosMES.Range(ANC_D)
+        Set sai = shDadosMES.Range(OUT_D)
+    End If
     fim = CDate(CDbl(qIni) + nJan / 24)
     limite = CfgNum("cfgTimeout", 120)
-    mEtapa = IIf(j = "E", "espessador/produção", "batch e DVR") & " " & TxtDia(d)
     GravarPeriodo j, qIni, fim
-
+    estado = 9
     For rodada = 0 To MAX_RODADAS
-        ps = ItensJanela(j)
-        If ps = "" Then Exit For
+        ps = FiltrarValidos(ps)
+        If ps = "" Then
+            If estado <> 3 Then estado = 9
+            Exit For
+        End If
         LimparSaida sai
         If Not EscreverConsulta(anc, ArgumentosJanela(j, ps, anc, sai)) Then
             Nm("mesResp" & j).Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  #NOME? (suplemento Aspen)"
@@ -141,6 +213,7 @@ Private Function ConsultarJanela(ByVal j As String, ByVal d As Date, v() As Vari
                   vbCrLf & "Verificar se o suplemento Aspen Process Data está ativo neste Excel: Arquivo > " & _
                   "Opções > Suplementos > Gerenciar: Suplementos COM > Ir... (o mesmo usado nos relatórios do " & _
                   "laboratório). Depois feche e abra a planilha.", vbExclamation, "MES"
+            Consultar = -1
             Exit Function
         End If
         estado = Esperar(anc, sai, qIni, limite, NumCols(ps))
@@ -164,50 +237,49 @@ Private Function ConsultarJanela(ByVal j As String, ByVal d As Date, v() As Vari
             Exit For
         End If
     Next rodada
-    If estado = 1 Then corrigidas = CorrigirTags() & CorrigirMapas()
-    If corrigidas <> "" Then gNotasMES = gNotasMES & "Tags/mapas corrigidos em Configurações (o MES aceitou " & _
-                                         "em outro formato):" & vbCrLf & corrigidas
+    If estado = 1 Then
+        CorrigirTags
+        CorrigirMapas
+    End If
     invalidas = ListaInvalidas()
     If invalidas <> "" Then Nm("mesInvalidas").Value = "'" & Replace(invalidas, vbCrLf, " ")
-    resp = Left$(Trim$(anc.Text) & "  |  1a célula: " & Trim$(sai.Cells(1, 1).Text) & "  " & _
-                 Trim$(sai.Cells(1, 2).Text), 250)
-    Nm("mesResp" & j).Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & resp
-    If estado = 0 Or estado = 4 Or estado = 5 Then
-        DesligarConsulta anc, sai
-        gNotasMES = gNotasMES & IIf(estado = 0, "O MES não respondeu", "O MES devolveu erro") & " (" & mEtapa & _
-                    "). Resposta do Aspen: " & resp & vbCrLf
-        Exit Function
-    End If
-    If estado = 1 Then LerSaida sai, qIni, nJan, ps, v, n
+    resp = Trim$(anc.Text)
+    If resp = "" Or Left$(resp, 1) = "=" Then resp = "(sem texto)"
+    Nm("mesResp" & j).Value = "'" & Format$(Now, "dd\/mm hh:mm:ss") & "  " & Left$(resp & "  |  1a célula: " & _
+                              Trim$(sai.Cells(1, 1).Text) & "  " & Trim$(sai.Cells(1, 2).Text), 250)
+    If estado = 1 And ps <> "" Then bruto = sai.Resize(LIN_SAIDA, NumCols(ps)).Value
     DesligarConsulta anc, sai
-    ConsultarJanela = True
+    Consultar = estado
 End Function
 
-' Le a matriz de saida: 1a coluna = inicio da janela de 1 h; demais = itens na ordem de ps.
+' Le a matriz de saida (bruto): 1a coluna = inicio da janela de 1 h; demais = itens na ordem de ps.
 ' Agrega por item (Soma / Media / Ultimo) os valores validos das janelas 1..nJan.
-Public Sub LerSaida(ByVal sai As Range, ByVal qIni As Date, ByVal nJan As Long, ByVal ps As String, _
+Public Sub LerSaida(ByVal bruto As Variant, ByVal qIni As Date, ByVal nJan As Long, ByVal ps As String, _
                     v() As Variant, n() As Variant)
     Dim lst As Variant, i As Long, k As Long, r As Long, sj As Long, tj As Date, x As Double, cel As Variant
     Dim soma() As Double, cont() As Long, ult() As Double, sUlt() As Long, agr As String
+    If ps = "" Then Exit Sub
     lst = Split(ps, ",")
     ReDim soma(LBound(lst) To UBound(lst))
     ReDim cont(LBound(lst) To UBound(lst))
     ReDim ult(LBound(lst) To UBound(lst))
     ReDim sUlt(LBound(lst) To UBound(lst))
-    For r = 1 To LIN_SAIDA
-        If Not ComoData(sai.Cells(r, 1).Value, tj, qIni) Then Exit For
+    For r = 1 To UBound(bruto, 1)
+        If Not ComoData(bruto(r, 1), tj, qIni) Then Exit For
         sj = CLng((CDbl(tj) - CDbl(qIni)) * 24) + 1
         If sj >= 1 And sj <= nJan Then
             For i = LBound(lst) To UBound(lst)
-                k = CLng(lst(i))
-                cel = sai.Cells(r, 2 + i - LBound(lst)).Value
-                If ComoNumero(cel, x) Then
-                    If ValorValido(k, x) Then
-                        soma(i) = soma(i) + x
-                        cont(i) = cont(i) + 1
-                        If sj >= sUlt(i) Then
-                            sUlt(i) = sj
-                            ult(i) = x
+                If 2 + i - LBound(lst) <= UBound(bruto, 2) Then
+                    k = CLng(lst(i))
+                    cel = bruto(r, 2 + i - LBound(lst))
+                    If ComoNumero(cel, x) Then
+                        If ValorValido(k, x) Then
+                            soma(i) = soma(i) + x
+                            cont(i) = cont(i) + 1
+                            If sj >= sUlt(i) Then
+                                sUlt(i) = sj
+                                ult(i) = x
+                            End If
                         End If
                     End If
                 End If
@@ -218,6 +290,7 @@ Public Sub LerSaida(ByVal sai As Range, ByVal qIni As Date, ByVal nJan As Long, 
         k = CLng(lst(i))
         n(k) = cont(i)
         If cont(i) > 0 Then
+            mHora(k) = CDbl(qIni) + (sUlt(i) - 0.5) / 24
             agr = LCase$(Left$(ICfg(k, C_COL_AGR), 1))
             If agr = "s" Then
                 v(k) = soma(i)
@@ -235,6 +308,108 @@ End Sub
 Private Function NumCols(ByVal ps As String) As Long
     NumCols = UBound(Split(ps, ",")) + 2
 End Function
+
+' ---------------------------------------------------------------- diagnostico do MES
+' Cada item com tag numa consulta so dele, de D-1 12:00 a D+1 12:00: tag/mapa aceitos, horarios com valor,
+' valor que a janela normal do item daria. Resultado na aba Diagnostico.
+Public Sub DiagnosticoMES()
+    Dim d As Date, k As Long, r As Long, ps As String, qIni As Date, nJan As Long, estado As Long, resp As String
+    Dim bruto As Variant, i As Long, tj As Date, x As Double, nV As Long, t1 As Double, t2 As Double, lista As String
+    Dim v() As Variant, n() As Variant, qN As Date, nN As Long, res As String, nOk As Long, nTag As Long, t0 As Single
+    If Not EData(Nm("xData").Value) Then
+        Aviso "Informe o dia do teste (célula amarela).", vbExclamation, "Diagnóstico do MES"
+        Exit Sub
+    End If
+    d = CDate(DiaDe(Nm("xData").Value))
+    If UCase$(Left$(CfgTxt("cfgFonte"), 3)) = "SIM" Then
+        Aviso "Fonte = SIMULAÇÃO em Configurações: o diagnóstico precisa do MES.", vbExclamation, "Diagnóstico do MES"
+        Exit Sub
+    End If
+    t0 = Timer
+    mSemAspen = False
+    mAjMapas = ""
+    mAjTags = ""
+    Ampulheta True
+    Desproteger shDiag
+    shDiag.Range(shDiag.Cells(X_ROW0, 3), shDiag.Cells(X_ROW0 + NI - 1, 12)).ClearContents
+    qIni = CDate(CDbl(d) - 0.5 - 0.5 / 24)
+    nJan = DIAG_JANELAS
+    If CDbl(qIni) + nJan / 24 > CDbl(Now) Then nJan = Int((CDbl(Now) - CDbl(qIni)) * 24) + 1
+    For k = 1 To NI
+        r = X_ROW0 + k - 1
+        If ICfg(k, C_COL_TAG) = "" Then
+            shDiag.Cells(r, 6).Value = "sem tag (lançamento à mão)"
+        Else
+            nTag = nTag + 1
+            ps = CStr(k)
+            mEtapa = "diagnóstico " & IRotulo(k)
+            estado = Consultar(ps, qIni, nJan, "D", bruto, resp)
+            shDiag.Cells(r, 3).Value = "'" & TagAtual(k)
+            shDiag.Cells(r, 4).Value = MapaAtual(k)
+            shDiag.Cells(r, 5).Value = IIf(UCase$(ICfg(k, C_COL_JAN)) = "E", "E: D-1 23:00 a D 21:00", _
+                                           "D: D 00:00 a 23:59") & " · " & ICfg(k, C_COL_AGR)
+            shDiag.Cells(r, 12).Value = "'" & Left$(resp, 250)
+            nV = 0
+            lista = ""
+            t1 = 0
+            t2 = 0
+            If estado = 1 Then
+                For i = 1 To UBound(bruto, 1)
+                    If Not ComoData(bruto(i, 1), tj, qIni) Then Exit For
+                    If ComoNumero(bruto(i, 2), x) Then
+                        nV = nV + 1
+                        If t1 = 0 Then t1 = CDbl(tj) + 0.5 / 24
+                        t2 = CDbl(tj) + 0.5 / 24
+                        If nV <= 14 Then lista = lista & IIf(lista = "", "", "  ·  ") & _
+                            Format$(CDate(CDbl(tj) + 0.5 / 24), "dd\/mm hh:mm") & " = " & Format$(x, "0.###")
+                    End If
+                Next i
+                If nV > 14 Then lista = lista & "  ·  ... (" & nV & " no total)"
+                ' o que a janela normal do item daria (mesma agregacao da busca)
+                ReDim v(1 To NI)
+                ReDim n(1 To NI)
+                PeriodoJanela UCase$(ICfg(k, C_COL_JAN)), d, qN, nN
+                LerSaida bruto, qN, nN, CStr(k), v, n
+                If nV > 0 Then
+                    res = "OK · " & nV & " valor(es)"
+                    nOk = nOk + 1
+                Else
+                    res = "sem valor no período"
+                End If
+                If nV > 0 And IsEmpty(v(k)) Then res = res & " · nenhum na janela do item"
+                shDiag.Cells(r, 6).Value = res
+                shDiag.Cells(r, 7).Value = nV
+                If t1 > 0 Then shDiag.Cells(r, 8).Value = "'" & Format$(CDate(t1), "dd\/mm hh:mm")
+                If t2 > 0 Then shDiag.Cells(r, 9).Value = "'" & Format$(CDate(t2), "dd\/mm hh:mm")
+                If Not IsEmpty(v(k)) Then shDiag.Cells(r, 10).Value = Round(CDbl(v(k)), 3)
+                shDiag.Cells(r, 11).Value = "'" & lista
+            ElseIf estado = 2 Then
+                shDiag.Cells(r, 6).Value = "sem valor no período (MES respondeu sem linhas)"
+                shDiag.Cells(r, 7).Value = 0
+            ElseIf estado = 9 And MapaAtual(k) = "" Then
+                shDiag.Cells(r, 6).Value = "mapa recusado (IP_AnalogMap, IP_MESVALOR e IP_DiscreteMap)"
+            ElseIf estado = 3 Or estado = 9 Then
+                shDiag.Cells(r, 6).Value = "tag recusada pelo MES (" & ICfg(k, C_COL_TAG) & " e variante)"
+            ElseIf estado = -1 Then
+                shDiag.Cells(r, 6).Value = "sem o suplemento do Aspen (#NOME?)"
+                Exit For
+            Else
+                shDiag.Cells(r, 6).Value = IIf(estado = 0, "MES não respondeu", "erro do Aspen")
+            End If
+        End If
+    Next k
+    Nm("xStatus").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm") & "  dia " & TxtDia(d) & ": " & nOk & " de " & _
+                          nTag & " tags com valor  (" & Format$(Timer - t0, "0") & " s)"
+    Proteger shDiag
+    Application.StatusBar = False
+    Ampulheta False
+    shDiag.Activate
+    Aviso "Diagnóstico de " & TxtDia(d) & ": " & nOk & " de " & nTag & " tags com valor no MES." & vbCrLf & vbCrLf & _
+          "Veja na aba Diagnóstico os horários em que cada tag tem valor." & _
+          IIf(mAjMapas <> "", vbCrLf & vbCrLf & "Mapa trocado em Configurações: " & Mid$(mAjMapas, 3) & ".", "") & _
+          IIf(mAjTags <> "", vbCrLf & "Tag ajustada em Configurações: " & Mid$(mAjTags, 3) & ".", ""), _
+          IIf(nOk = nTag, vbInformation, vbExclamation), "Diagnóstico do MES"
+End Sub
 
 ' ---------------------------------------------------------------- tags
 Private Function TagInvalida(ByVal t As String) As Boolean
@@ -309,6 +484,7 @@ Private Function CorrigirTags() As String
         t = TagAtual(k)
         If t <> "" And t <> ICfg(k, C_COL_TAG) And Not TagInvalida(t) Then
             r = r & "  - " & IRotulo(k) & ": " & ICfg(k, C_COL_TAG) & "  ->  " & t & vbCrLf
+            mAjTags = mAjTags & "; " & IRotulo(k) & " -> " & t
             On Error Resume Next
             Desproteger shConfig
             shConfig.Cells(C_ROW_IT0 + k - 1, C_COL_TAG).Value = t
@@ -369,6 +545,7 @@ Private Function CorrigirMapas() As String
             m = MapaAtual(k)
             If m <> "" And UCase$(m) <> UCase$(ICfg(k, C_COL_MAPA)) And ICfg(k, C_COL_MAPA) <> "" Then
                 r = r & "  - " & IRotulo(k) & ": mapa " & ICfg(k, C_COL_MAPA) & "  ->  " & m & vbCrLf
+                mAjMapas = mAjMapas & "; " & IRotulo(k) & " -> " & m
                 On Error Resume Next
                 Desproteger shConfig
                 shConfig.Cells(C_ROW_IT0 + k - 1, C_COL_MAPA).Value = m
@@ -750,7 +927,7 @@ Public Function TesteLeitura() As String
     Next k
     ReDim v(1 To NI)
     ReDim n(1 To NI)
-    LerSaida sai, q, 23, ps, v, n
+    LerSaida sai.Resize(LIN_SAIDA, 3).Value, q, 23, ps, v, n
     TesteLeitura = v(kP) & "|" & n(kP) & "|" & Round(v(kE), 2) & "|" & n(kE)
     LimparSaida sai
 End Function
