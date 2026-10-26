@@ -27,7 +27,7 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
     Inicializar
     Desproteger shConfig
     Nm("cfgFonte").Value = "SIMULAÇÃO"
-    Ok shConfig.Visible = XL_VERYHIDDEN, "Configurações muito oculta"
+    Ok shConfig.Visible = VisConfig(), "Configurações oculta (" & shConfig.Visible & ")"
     Ok LinhaHistorico(284) = 0 And IsEmpty(IdBloco(1)), "planilha padrao limpa (sem historico e sem batches)"
     LimparBatch
     Nm("bId").Value = 301
@@ -43,10 +43,11 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
            "so Preenchimento e Batch visiveis"
         Ok ModoAcomp(), "sempre acompanhamento"
         BuscarMES
-        Ok InStr(gUltimaMsg, "Acompanhamento do batch 301") > 0, "busca so Germano: " & gUltimaMsg
+        Ok InStr(gUltimaMsg, "Acompanhamento do batch 301") > 0, "busca Germano e Ubu: " & gUltimaMsg
         rb = LinhaBloco(shAcomp, 301)
         Ok rb = LinhaBlocoN(1) And ENumero(shAcomp.Cells(LinhaAnalise(rb, 1), ColHora(1)).Value), "301 no 1o lugar da aba Batch"
-        Ok Not ENumero(Celula(1, pSi, 1)), "sem Ubu na busca"
+        Ok ENumero(shAcomp.Cells(LinhaAnalise(rb, 4) + 1, ColHora(1)).Value), "Ubu do MES no bloco"
+        Ok shConfig.Visible = XL_HIDDEN And shDadosMES.Visible = XL_VERYHIDDEN, "so Configuracoes em Reexibir"
         ProximoBatchAcomp
         Ok Vazio(V("bId")) And IdBloco(1) = 301, "proximo batch limpa o preenchimento e o bloco fica"
     Else
@@ -266,6 +267,7 @@ Public Sub TesteLO()
 
     ' --- acompanhamento (batch em processamento): so Germano; 5 lugares fixos, preenchidos em ordem
     Dim rb As Long, rb2 As Long, ubu As Double, lSi As Long, rRes As Long, ultimo As Long, med As Double, k As Long
+    Dim sM As Long
     Nm("bModo").Value = "Acompanhamento (em processamento)"
     LimparBatch
     Ok IsEmpty(IdBloco(1)) And IsEmpty(IdBloco(N_BLOCOS)), "5 lugares livres"
@@ -277,28 +279,45 @@ Public Sub TesteLO()
     Recalcular
     ' Ubu de outro batch esquecido na aba Batch nao pode ir para o bloco
     Desproteger shBatch
-    shBatch.Cells(B_ROW_G0, ColValor(pSi, 1)).Value = 9.99
+    For i = 1 To NMAX
+        shBatch.Cells(B_ROW_G0 + i - 1, ColValor(pSi, 1)).Value = 9.99
+    Next i
     gUltimaMsg = ""
     BuscarMES
-    Ok InStr(gUltimaMsg, "Acompanhamento do batch 295") > 0, "acompanhamento: busca so Germano (" & gUltimaMsg & ")"
-    Ok ENumero(Celula(1, pSi, 0)) And Not ENumero(Celula(1, pSi, 1)), "acompanhamento: Germano sim, Ubu nao"
+    Ok InStr(gUltimaMsg, "Acompanhamento do batch 295") > 0, "acompanhamento: busca Germano e Ubu (" & gUltimaMsg & ")"
+    Ok ENumero(Celula(1, pSi, 0)) And ENumero(Celula(1, pSE, 1)), "acompanhamento: Germano e Ubu do MES"
     rb = LinhaBloco(shAcomp, 295)
     Ok rb = LinhaBlocoN(1) And IsEmpty(IdBloco(2)), "295 no 1o lugar (" & rb & ")"
     lSi = LinhaAnalise(rb, 1)
-    Ok InStr(CStr(shAcomp.Cells(rb, 2).Value), "BATCH 295") = 1 And InStr(CStr(shAcomp.Cells(rb, 2).Value), "1 DE 5") > 0 And _
+    n = CLng(V("bNHor"))
+    ' Ubu no bloco = o do MES (o 9,99 esquecido sai); sM = 1o horario sem SiO2 de Ubu no MES (escala de 4 h)
+    k = 0
+    sM = 0
+    For i = 1 To n
+        If ENumero(Celula(i, pSi, 1)) Then
+            If Abs(CDbl(shAcomp.Cells(lSi + 1, ColHora(i)).Value) - CDbl(Celula(i, pSi, 1))) < 0.000001 And _
+               CDbl(Celula(i, pSi, 1)) <> 9.99 Then k = k + 1
+        ElseIf Not ENumero(shAcomp.Cells(lSi + 1, ColHora(i)).Value) Then
+            k = k + 1
+            If sM = 0 Then sM = i
+        End If
+    Next i
+    Ok k = n And sM > 0, "Ubu do MES no bloco, sem o 9,99 de outro batch (" & k & " de " & n & ", sem MES no " & sM & ")"
+    Ok InStr(CStr(shAcomp.Cells(rb, 2).Value), "BATCH 295") = 1 And InStr(CStr(shAcomp.Cells(rb, 2).Value), "DE 5") = 0 And _
        InStr(CStr(shAcomp.Cells(rb, 2).Value), "EM PROCESSAMENTO") > 0, "faixa do batch (" & shAcomp.Cells(rb, 2).Value & ")"
+    Ok shAcomp.Columns(30).Hidden And Not shAcomp.Columns(21).Hidden, "colunas depois do bloco ocultas"
+    Ok shAcomp.Rows(LinhaBlocoN(2) + 3).Hidden And Not shAcomp.Rows(LinhaBlocoN(2)).Hidden And _
+       Not shAcomp.Rows(rb + 3).Hidden, "lugar livre: so a faixa aparece"
     Ok InStr(CStr(CelObs(shAcomp, rb).Value), "Nível dos tanques: Médio") > 0 And _
        InStr(CStr(CelObs(shAcomp, rb).Value), "Chegada em Ubu (UBU3): 23/10 09:18") > 0, _
        "observacoes ja vem com chegada e nivel: " & CelObs(shAcomp, rb).Value
     Ok CStr(shAcomp.Cells(lSi, 2).Value) = PRotulo(pSi) And CStr(shAcomp.Cells(lSi, 3).Value) = "Germano" And _
        CStr(shAcomp.Cells(lSi + 1, 3).Value) = ChrW(9998) & " Alimentação 04", "linhas SiO2: Germano / Alimentacao 04"
-    Ok ENumero(shAcomp.Cells(lSi, ColHora(1)).Value) And Not ENumero(shAcomp.Cells(lSi + 1, ColHora(1)).Value), _
-       "SiO2 Germano no bloco; Ubu de outro batch nao entra"
+    Ok ENumero(shAcomp.Cells(lSi, ColHora(1)).Value), "SiO2 Germano no bloco"
     Ok CStr(shAcomp.Cells(LinhaAnalise(rb, 4), 2).Value) = PRotulo(pSE) And ENumero(shAcomp.Cells(LinhaAnalise(rb, 4), ColHora(1)).Value), _
        "S.E. no mesmo bloco"
     Ok Abs(CDbl(shAcomp.Cells(LinhaHora(rb), ColHora(1)).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value)) < 0.0001, _
        "horario da coluna = horario de Ubu"
-    n = CLng(V("bNHor"))
     ' Ubu lancado a mao: diferenca, media e status no resumo; refazer a busca nao apaga
     rRes = LinhaResumo(rb, 1)
     shAcomp.Unprotect
@@ -317,15 +336,23 @@ Public Sub TesteLO()
     shAcomp.Calculate
     Ok CStr(shAcomp.Cells(rRes, 11).Value) = "NOK", "status da SiO2: NOK com diferenca 0,5"
     Ok InStr(CStr(shAcomp.Cells(rb, 13).Value), "1 análise fora") = 1, "faixa: 1 analise fora (" & shAcomp.Cells(rb, 13).Value & ")"
-    shAcomp.Range(shAcomp.Cells(lSi + 1, ColHora(2)), shAcomp.Cells(lSi + 1, ColHora(n))).ClearContents
-    shAcomp.Cells(lSi + 1, ColHora(1)).Value = CDbl(shAcomp.Cells(lSi, ColHora(1)).Value) + 0.1
+    shAcomp.Range(shAcomp.Cells(lSi + 1, ColHora(1)), shAcomp.Cells(lSi + 1, ColHora(n))).ClearContents
+    shAcomp.Cells(lSi + 1, ColHora(sM)).Value = CDbl(shAcomp.Cells(lSi, ColHora(sM)).Value) + 0.1
     CelObs(shAcomp, rb).Value = "SiO2 acima na 1a leitura"
     shAcomp.Calculate
-    ubu = CDbl(shAcomp.Cells(lSi + 1, ColHora(1)).Value)
+    ubu = CDbl(shAcomp.Cells(lSi + 1, ColHora(sM)).Value)
     BuscarMES
     rb = LinhaBloco(shAcomp, 295)
     lSi = LinhaAnalise(rb, 1)
-    Ok rb = LinhaBlocoN(1) And Abs(CDbl(shAcomp.Cells(lSi + 1, ColHora(1)).Value) - ubu) < 0.0001, "Ubu lancado fica depois de buscar de novo"
+    Ok rb = LinhaBlocoN(1) And Abs(CDbl(shAcomp.Cells(lSi + 1, ColHora(sM)).Value) - ubu) < 0.0001, _
+       "Ubu lancado a mao (horario sem MES) fica depois de buscar de novo"
+    k = 0
+    For i = 1 To n
+        If ENumero(Celula(i, pSi, 1)) Then
+            If Abs(CDbl(shAcomp.Cells(lSi + 1, ColHora(i)).Value) - CDbl(Celula(i, pSi, 1))) < 0.000001 Then k = k + 1
+        End If
+    Next i
+    Ok k > 0, "Ubu do MES volta para o bloco (" & k & " horarios)"
     Ok CStr(CelObs(shAcomp, rb).Value) = "SiO2 acima na 1a leitura", "observacao escrita a mao fica depois de buscar de novo"
     gUltimaMsg = ""
     SalvarHistorico
@@ -344,11 +371,19 @@ Public Sub TesteLO()
     rb = LinhaBloco(shAcomp, 296)
     rb2 = LinhaBloco(shAcomp, 295)
     Ok rb = LinhaBlocoN(2) And rb2 = LinhaBlocoN(1), "296 no 2o lugar, 295 continua no 1o (" & rb2 & ", " & rb & ")"
-    Ok Abs(CDbl(shAcomp.Cells(LinhaAnalise(rb2, 1) + 1, ColHora(1)).Value) - ubu) < 0.0001, "Ubu do 295 continua la"
+    Ok Abs(CDbl(shAcomp.Cells(LinhaAnalise(rb2, 1) + 1, ColHora(sM)).Value) - ubu) < 0.0001, "Ubu do 295 continua la"
     Ok CStr(CelObs(shAcomp, rb2).Value) = "SiO2 acima na 1a leitura", "observacao do 295 continua la"
     Ok InStr(CStr(shAcomp.Cells(rb2, 2).Value), "EM PROCESSAMENTO") = 0 And InStr(CStr(shAcomp.Cells(rb, 2).Value), _
-       "2 DE 5   " & ChrW(183) & "   EM PROCESSAMENTO") > 0, "so o ultimo batch fica como em processamento"
-    Ok Not ENumero(shAcomp.Cells(LinhaAnalise(rb, 1) + 1, ColHora(1)).Value), "296 sem Ubu (nao repete o do 295)"
+       "BATCH 296   " & ChrW(183) & "   EM PROCESSAMENTO") = 1, "so o ultimo batch fica como em processamento"
+    k = 0
+    For i = 1 To CLng(V("bNHor"))
+        If ENumero(Celula(i, pSi, 1)) Then
+            If Abs(CDbl(shAcomp.Cells(LinhaAnalise(rb, 1) + 1, ColHora(i)).Value) - CDbl(Celula(i, pSi, 1))) < 0.000001 Then k = k + 1
+        ElseIf Not ENumero(shAcomp.Cells(LinhaAnalise(rb, 1) + 1, ColHora(i)).Value) Then
+            k = k + 1
+        End If
+    Next i
+    Ok k = CLng(V("bNHor")), "296: Ubu so do MES (nao repete o do 295)"
     Ok InStr(CStr(CelObs(shAcomp, rb).Value), "Nível dos tanques: Alto") > 0, "296: observacao automatica com o nivel dele"
     ' nivel corrigido e nova busca: a observacao automatica (nao editada) acompanha
     Nm("bNivel").Value = "Baixo"
@@ -382,6 +417,11 @@ Public Sub TesteLO()
     Ok rb = LinhaBlocoN(3) And Abs(CDbl(shAcomp.Cells(LinhaAnalise(rb, 1), ColHora(n)).Value) - med) < 0.000001, _
        "297 no 3o lugar com os horarios estendidos"
     Ok InStr(CStr(CelObs(shAcomp, rb).Value), "estendido +6 h") > 0, "observacao avisa a extensao: " & CelObs(shAcomp, rb).Value
+    Ok ENumero(shAcomp.Cells(LinhaAnalise(rb, 4) + 1, ColHora(n)).Value), "Ubu do MES tambem nos horarios estendidos"
+    Ok Not shAcomp.Cells(LinhaAnalise(rb, 1), ColHora(n)).Font.Italic And _
+       shAcomp.Cells(LinhaAnalise(rb, 1), ColHora(n)).Interior.Color = shAcomp.Cells(LinhaAnalise(rb, 1), ColHora(1)).Interior.Color And _
+       shAcomp.Cells(LinhaHora(rb), ColHora(n)).NumberFormat = shAcomp.Cells(LinhaHora(rb), ColHora(1)).NumberFormat, _
+       "horarios estendidos com o mesmo visual dos demais"
     Nm("bExtH").Value = Empty
     ' buscar de novo um batch que ja esta na aba so atualiza o bloco dele
     Nm("bId").Value = 296

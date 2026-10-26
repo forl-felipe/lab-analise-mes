@@ -240,7 +240,7 @@ class Construtor:
     def ref(self, ws, r, c, absoluto=True):
         return '%s!%s' % (quote(ws), rc(r, c, absoluto, absoluto))
 
-    def botao(self, ws, row, col, texto, macro, largura=180, altura=34, estilo='p', x=0, y=0):
+    def botao(self, ws, row, col, texto, macro, largura=180, altura=34, estilo='p', x=0, y=0, pos=3):
         estilos = {'a': (AMARELO, AZUL_PROF, None), 'p': (NAVY2, BRANCO, None), 'g': (OK, BRANCO, None), 's': ('#E8EBF0', INK2, None),
                    'd': (BRANCO, NOK, '#F0C4C4'), 'n': (NAVY, BRANCO, None)}
         fundo, cor, borda = estilos[estilo]
@@ -251,7 +251,7 @@ class Construtor:
             'fill': {'color': fundo},
             'line': {'color': borda, 'width': 1} if borda else {'none': True},
             'description': 'macro:' + macro,
-            'object_position': 3,
+            'object_position': pos,
         })
 
     def faixa(self, ws, r, c1, c2, titulo, sub=None):
@@ -367,7 +367,7 @@ class Construtor:
         ws.set_column(12, 12, 60)
         self.faixa(ws, 1, 1, 12, 'CONFIGURAÇÕES',
                    'Tags do MES, consulta, padrões de um batch novo e títulos do report')
-        self.botao(ws, 1, 8, 'Voltar ao Batch', 'FecharConfiguracoes', 150, 26, 'a', x=80, y=4)
+        self.botao(ws, 1, 8, '← %s' % self.ws_bat.name, 'FecharConfiguracoes', 150, 26, 'a', x=80, y=4)
 
         self.secao(ws, 4, 1, 10, 'TAGS DO MES (UMA POR ANÁLISE E LABORATÓRIO)')
         ws.merge_range(5, 1, 5, 10, 'Tag em branco = análise fora da consulta (fica para lançamento manual). '
@@ -905,16 +905,18 @@ class Construtor:
 
         # botoes: navegacao na faixa do titulo; acoes na coluna da direita (ao lado das etapas 1 e 2)
         fac = self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True, valign='top')
-        if VARIANTE != 'COMP':
+        # planilha de acompanhamento: so Buscar no MES e Proximo batch (Configuracoes fica numa aba oculta)
+        if VARIANTE == 'COMPLETA':
             self.botao(ws, 1, 9, '%s →' % self.ws_aco.name, 'IrAcomp', 150, 28, 'p', x=20, y=5)
-        self.botao(ws, 1, 12, 'Configurações', 'AbrirConfiguracoes', 120, 28, 's', x=6, y=5)
+        if VARIANTE != 'ACOMP':
+            self.botao(ws, 1, 12, 'Configurações', 'AbrirConfiguracoes', 120, 28, 's', x=6, y=5)
         self.botao(ws, 5, 10, 'Buscar no MES', 'BuscarMES', 262, 40, 'a', x=8, y=6)
         if VARIANTE == 'ACOMP':
-            self.botao(ws, 9, 10, 'Ver o batch na aba %s →' % self.ws_aco.name, 'IrAcomp', 262, 34, 'n', x=8, y=4)
-            self.botao(ws, 12, 10, 'Próximo batch (limpar esta aba)', 'ProximoBatchAcomp', 262, 28, 'd', x=8, y=4)
-            ws.merge_range(14, 10, 16, 13, 'Buscar no MES: resultados de Germano do batch, que vão para o bloco dele na '
-                                           'aba %s (5 batches por planilha).  Próximo batch: limpa esta aba; o que '
-                                           'foi lançado na aba %s fica.' % (self.ws_aco.name, self.ws_aco.name), fac)
+            self.botao(ws, 9, 10, 'Próximo batch (limpar esta aba)', 'ProximoBatchAcomp', 262, 34, 'd', x=8, y=4)
+            ws.merge_range(12, 10, 16, 13, 'Buscar no MES: resultados de Germano e de Ubu do batch, que vão para o '
+                                           'bloco dele na aba %s (5 batches por planilha).  Próximo batch: limpa '
+                                           'esta aba; o que foi lançado na aba %s fica.'
+                                           % (self.ws_aco.name, self.ws_aco.name), fac)
         else:
             self.botao(ws, 9, 10, 'Salvar no histórico', 'SalvarHistorico', 262, 34, 'g', x=8, y=4)
             self.botao(ws, 12, 10, 'Ver painel →', 'IrPainel', 127, 28, 'n', x=8, y=4)
@@ -1392,17 +1394,23 @@ class Construtor:
         ws.set_column(2, 2, 17)             # Germano / Alimentacao 04 / Diferenca
         ws.set_column(3, 3 + NMAX - 1, 7.6) # um horario por coluna
         self.faixa(ws, 1, 1, c_fim, 'ACOMPANHAMENTO DOS BATCHES EM PROCESSAMENTO', '')
-        ws.write_formula(2, 1, '="Germano vem do MES (aba %s > Buscar no MES). "&padNomeUbuAcomp&": lançar a cada 2 h nas '
-                               'células amarelas (✎).  %d batches por planilha: com os %d preenchidos, comece uma '
-                               'planilha padrão limpa."' % (self.ws_bat.name, N_BLOCOS, N_BLOCOS),
+        ws.write_formula(2, 1, '="Germano e "&padNomeUbuAcomp&" vêm do MES (aba %s > Buscar no MES); onde "&'
+                               'padNomeUbuAcomp&" não vier, lançar a cada 2 h nas células amarelas (✎).  %d batches '
+                               'por planilha: com os %d preenchidos, comece uma planilha padrão limpa."'
+                         % (self.ws_bat.name, N_BLOCOS, N_BLOCOS),
                          self.f(font_size=9.5, bold=True, font_color=BRANCO, bg_color=NAVY2, indent=1))
         # botoes na faixa do titulo (mesma ancora, deslocados em pixels)
-        self.botao(ws, 1, 9, 'Copiar acompanhamento', 'CopiarAcompanhamento', 170, 30, 'a', x=0, y=6)
         if VARIANTE == 'COMPLETA':
-            self.botao(ws, 1, 9, 'Gerar planilha online', 'GerarPlanilhaOnline', 150, 30, 'p', x=176, y=6)
-            self.botao(ws, 1, 9, 'Trazer do online', 'TrazerDoOnline', 120, 30, 's', x=332, y=6)
-        self.botao(ws, 1, 15, '← %s' % self.ws_bat.name, 'IrBatch', 110, 30, 's', x=0, y=6)
+            self.botao(ws, 1, 9, 'Gerar planilha online', 'GerarPlanilhaOnline', 150, 30, 'p', x=0, y=6)
+            self.botao(ws, 1, 9, 'Trazer do online', 'TrazerDoOnline', 120, 30, 's', x=156, y=6)
         ws.freeze_panes(A_ROW0, 0)
+        # colunas depois do bloco mais largo ocultas (o VBA reajusta: ModAcomp.AtualizarTitulos)
+        ws.set_column(c_fim + 2, 16383, None, None, {'hidden': True})
+        # linhas sem uso ocultas: lugar livre = so a faixa; o VBA mostra as linhas do bloco ao desenhar o batch
+        ws.set_default_row(None, True)
+        for r in range(A_ROW0 + 1):
+            if r not in ws.set_rows:
+                ws.set_row(r, 15)
         # N_BLOCOS lugares livres; o VBA desenha o bloco quando o batch e buscado (ModAcomp.DesenharBloco)
         na = len(ACOMP_Q) + len(ACOMP_F)
         altura = 8 + 5 * na                         # ModAcomp.AlturaBloco
@@ -1410,9 +1418,12 @@ class Construtor:
                         indent=1)
         for i in range(N_BLOCOS):
             r = A_ROW0 + 1 + i * (altura + 2)        # ModAcomp.LinhaBlocoN (0-based)
+            ws.set_row(r - 1, 15)
             ws.set_row(r, 30)
-            ws.merge_range(r, 1, r, c_fim, 'BATCH %d DE %d   ·   livre: busque o batch na aba %s'
-                           % (i + 1, N_BLOCOS, self.ws_bat.name), flivre)
+            ws.merge_range(r, 1, r, c_fim, 'LIVRE   ·   o próximo batch buscado na aba %s entra aqui'
+                           % self.ws_bat.name, flivre)
+            # copiar o batch (imagem do bloco para o e-mail): aparece quando o bloco tem batch
+            self.botao(ws, r, 7, 'Copiar batch', 'CopiarBatch%d' % (i + 1), 104, 22, 'a', x=10, y=4, pos=2)
         ws.protect('', {'format_columns': True, 'format_rows': True})
         ws = self.ws_reg
         for i, h in enumerate(REG_COLS):
@@ -1803,7 +1814,9 @@ def _patch_anchor(m):
     if not achou:
         return bloco
     macro = achou.group(1)
-    bloco = bloco.replace(achou.group(0), 'descr="Botão: %s"' % macro)
+    # Copiar dos blocos de acompanhamento: oculto ate o bloco ter batch (ModAcomp.BotaoCopiar)
+    bloco = bloco.replace(achou.group(0), 'descr="Botão: %s"%s' % (macro, ' hidden="1"' if macro.startswith('CopiarBatch')
+                                                                  else ''))
     bloco = re.sub(r'<xdr:sp macro="[^"]*"', '<xdr:sp macro="[0]!%s"' % macro, bloco, count=1)
     bloco = bloco.replace('<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>',
                           '<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 12000"/>'

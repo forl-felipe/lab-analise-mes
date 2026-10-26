@@ -31,19 +31,21 @@ cinza = calculado):
 4. **Referência · últimos batches em Ubu**: os batches anteriores (ex.: no batch 5 aparecem 4, 3, 2 e 1) com nível,
    chegada, início no processo e tempo em Ubu.
 
-Ações: **Buscar no MES** (só Germano, em sequência; vai para o bloco do batch na aba Batch), **Ver o batch na aba
-Batch** e **Próximo batch** (limpa a aba Preenchimento; o que foi lançado na aba Batch fica). Não há PFUF, ajustes
-nem comentários do report nesta planilha.
+Só dois botões: **Buscar no MES** (Germano e Ubu do batch; vão para o bloco dele na aba Batch) e **Próximo batch**
+(limpa a aba Preenchimento; o que foi lançado na aba Batch fica). Não há PFUF, ajustes nem comentários do report
+nesta planilha.
 
 **Estender o batch (X horas)**: acrescenta `X / 2` bi-horários depois do último resultado de Germano (arredonda para
-o bi-horário mais próximo). Nesses bi-horários Germano = **média das leituras do MES** do batch, repetida; eles
-aparecem em itálico cinza e com `*` no horário, e a observação do bloco diz quantos foram estendidos. Em branco =
+o bi-horário mais próximo). Nesses bi-horários Germano = **média das leituras do MES** do batch, repetida, com o
+mesmo visual dos demais horários; a observação do bloco diz quantos foram estendidos. Ubu também vem do MES nesses
+horários. Em branco =
 só os resultados do MES.
 
 ### Aba Batch (5 batches por planilha)
 
-Cinco blocos, um por batch, no padrão do Painel. Cada **Buscar no MES** atualiza o bloco do batch (Germano e
-horários) **mantendo o Ubu e a observação lançados**; batch novo entra no primeiro bloco livre (*BATCH n · i DE 5*).
+Cinco blocos, um por batch, no padrão do Painel. Cada **Buscar no MES** atualiza o bloco do batch (Germano, Ubu e
+horários); batch novo entra no primeiro lugar livre (lugar livre = só uma faixa cinza "LIVRE"; o último batch buscado
+fica como *EM PROCESSAMENTO*).
 Com os 5 blocos ocupados a busca de um 6º batch não muda nada e avisa: comece uma cópia nova da planilha padrão
 limpa.
 
@@ -52,14 +54,17 @@ Cada bloco: faixa do batch (com "✔ todas dentro da tolerância" ou quantas an�
 campo só, que já vem escrito com chegada em Ubu, nível dos tanques, início no processo, Germano (EB06) e nº de
 bi-horários (atualiza sozinho enquanto ninguém edita; o que for escrito à mão fica); e **Leituras por bi-horário**
 com os horários de Ubu nas colunas e, para cada análise (SiO₂, P, PPC, S.E., <325#), as linhas Germano /
-✎ Alimentação 04 / Diferença. Os técnicos lançam Ubu à mão a cada 2 h nas células amarelas (só elas são
-digitáveis); diferença fora da tolerância em vermelho. **Copiar acompanhamento** copia a imagem do bloco da célula
-selecionada (ou do último preenchido) para o e-mail.
+✎ Alimentação 04 / Diferença. Ubu vem do MES nos bi-horários já iniciados; onde o MES não tiver resultado, os
+técnicos lançam à mão nas células amarelas (só elas são digitáveis); diferença fora da tolerância em vermelho.
+Cada bloco tem o seu botão **Copiar batch** na faixa (imagem do bloco para o e-mail). Colunas à direita do bloco
+mais largo e linhas abaixo do último bloco ficam ocultas.
 
 Regras do Germano no acompanhamento:
 - Janelas de 1 h começando 30 min depois do horário da grade; bi-horário sem resultado não deixa coluna vazia —
   o resultado seguinte entra na sequência.
-- Ubu no bloco vem **só** do que foi lançado no próprio bloco (nunca de outro batch).
+- Ubu: a cada busca, o que estiver na aba Preenchimento é limpo e o MES é consultado só para este batch (nunca vem
+  Ubu de outro batch). Valor do MES vale; nos horários sem resultado no MES fica o que foi lançado à mão no bloco.
+  A observação escrita à mão também fica.
 - Janela de Germano já passada sem resultado no MES aparece na mensagem, para conferir no MES.
 - Sem a chegada em Ubu ainda, o bloco sai sem os horários; ao informar a chegada e buscar de novo, eles entram.
 
@@ -82,8 +87,10 @@ de TI precisa permitir abrir .xlsm no navegador.
 
 ## Abas ocultas (nas duas)
 
-`Configurações` (muito oculta; abre pelo botão Configurações com a senha da constante `SENHA_CFG` do gerador e volta
-a ficar oculta ao sair e ao abrir o arquivo): tags do MES (batch e PFUF), consulta, atraso por nível dos tanques,
+`Configurações` — na planilha de acompanhamento é uma aba oculta comum (botão direito numa aba > Reexibir; as demais
+abas técnicas ficam muito ocultas, então só ela aparece); no comparativo é muito oculta e abre pelo botão
+Configurações com a senha da constante `SENHA_CFG` do gerador. Nas duas, as células de valor são editáveis e as
+demais protegidas com essa senha. Conteúdo: tags do MES (batch e PFUF), consulta, atraso por nível dos tanques,
 padrões de batch novo e títulos dos gráficos. `Dados_MES` (consultas ao Aspen), `_Graf` (séries dos gráficos, farol
 e resumo) e `_Acomp` (registro dos batches: chegada/término em Ubu, nível, Germano — base da referência dos últimos
 batches).

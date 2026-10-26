@@ -23,9 +23,6 @@ Private Const A_LARG_MIN As Long = 18
 ' (a formatacao condicional so aponta para eles: formula de formatacao condicional e escrita no idioma do Excel)
 Private Const A_COL_AUX As Long = 40
 Private Const VERSAO_BLOCO As String = "ACOMP5"
-' cor do Germano nos horarios estendidos (media dos resultados do MES)
-Private Const COR_ESTENDIDO As Long = 15461355     ' #EBEBEB
-Private Const COR_AZUL_CINZA As Long = 10192993     ' #61889B Azul acinzentado
 ' Paleta Samarco (kit visual): RGB() da cor
 Private Const COR_AZUL As Long = 5911296          ' #00335A Azul Samarco
 Private Const COR_AZUL_MEDIO As Long = 7356416    ' #004070 Azul medio
@@ -204,32 +201,67 @@ Private Sub BlocoLivre(ByVal ws As Worksheet, ByVal i As Long)
     area.UnMerge
     area.Clear
     SemFormatoCondicional area
-    area.EntireRow.Hidden = False
     area.EntireRow.RowHeight = 17
+    area.EntireRow.Hidden = False
+    ' so a faixa (e a linha de folga acima dela) aparece enquanto o lugar esta livre
+    ws.Range(ws.Cells(r + 1, 1), ws.Cells(r + AlturaBloco(), 1)).EntireRow.Hidden = True
     ws.Rows(r).RowHeight = 30
     Set rg = ws.Range(ws.Cells(r, A_COL_N), ws.Cells(r, ColFim(0)))
     Faixa rg, COR_FUNDO, COR_CINZA_TXT, 10
-    rg.Cells(1, 1).Value = "BATCH " & i & " DE " & N_BLOCOS & "   " & ChrW(183) & "   livre: busque o batch na aba " & _
-                           shBatch.Name
+    rg.Cells(1, 1).Value = "LIVRE   " & ChrW(183) & "   o próximo batch buscado na aba " & shBatch.Name & " entra aqui"
     rg.IndentLevel = 1
     rg.Borders.LineStyle = 1
     rg.Borders.Color = COR_LINHA2
     Proteger ws
 End Sub
 
-' Titulo de cada bloco ocupado: "BATCH 298 | 2 DE 5", e o ultimo com "EM PROCESSAMENTO"
+' Titulo de cada bloco ocupado: "BATCH 298", e o ultimo com "EM PROCESSAMENTO". Tambem: botao Copiar so nos blocos
+' ocupados e colunas depois do bloco mais largo ocultas
 Private Sub AtualizarTitulos(ByVal ws As Worksheet)
-    Dim i As Long, ult As Long, id As Variant
+    Dim i As Long, ult As Long, id As Variant, cMax As Long, n As Long, v As Variant
     For i = 1 To N_BLOCOS
         If ENumero(IdBlocoEm(ws, i)) Then ult = i
     Next i
     Desproteger ws
+    cMax = ColFim(0)
     For i = 1 To N_BLOCOS
         id = IdBlocoEm(ws, i)
-        If ENumero(id) Then ws.Cells(LinhaBlocoN(i), A_COL_N).Value = "BATCH " & id & "   |   " & i & " DE " & N_BLOCOS & _
-            IIf(i = ult, "   " & ChrW(183) & "   EM PROCESSAMENTO", "")
+        If ENumero(id) Then
+            ws.Cells(LinhaBlocoN(i), A_COL_N).Value = "BATCH " & id & IIf(i = ult, "   " & ChrW(183) & _
+                "   EM PROCESSAMENTO", "")
+            v = ws.Cells(LinhaBlocoN(i), A_COL_AUX + 1).Value
+            n = 0
+            If ENumero(v) Then n = CLng(v)
+            If ColFim(n) > cMax Then cMax = ColFim(n)
+        End If
+        BotaoCopiar ws, i, ENumero(id)
     Next i
+    If ws.Parent Is ThisWorkbook Then
+        On Error Resume Next
+        ws.Range(ws.Columns(1), ws.Columns(cMax + 1)).Hidden = False
+        ws.Range(ws.Columns(cMax + 2), ws.Columns(ws.Columns.Count)).Hidden = True
+        On Error GoTo 0
+    End If
     Proteger ws
+End Sub
+
+' Botao "Copiar batch" da faixa do bloco i (macro CopiarBatch<i>): so aparece com batch no bloco, na faixa dele
+' (logo depois do titulo)
+Private Sub BotaoCopiar(ByVal ws As Worksheet, ByVal i As Long, ByVal visivel As Boolean)
+    Dim shp As Object, acao As String, c As Range
+    On Error Resume Next
+    Set c = ws.Cells(LinhaBlocoN(i), A_COL_G1 + 4)
+    For Each shp In ws.Shapes
+        acao = ""
+        acao = shp.OnAction
+        If LCase$(Right$(acao, Len("CopiarBatch" & i))) = LCase$("CopiarBatch" & i) Then
+            shp.Visible = visivel
+            If visivel Then
+                shp.Top = c.Top + (c.Height - shp.Height) / 2
+                shp.Left = c.Left + 8
+            End If
+        End If
+    Next shp
 End Sub
 
 ' Informacoes do batch (aba Batch) que ja vem escritas nas observacoes
@@ -253,6 +285,7 @@ End Function
 Public Function MontarAcompanhamento(ByVal nEstend As Long) As String
     Dim id As Variant, n As Long, s As Long, k As Long, p As Long, ps As Variant, msg As String
     Dim tU() As Variant, tG() As Variant, ger() As Variant, v As Variant, faltam As String, temG As Boolean
+    Dim ubuMES() As Variant
     Dim wbO As Workbook, wsO As Worksheet, msgO As String, r As String, info As String
 
     id = Nm("bId").Value
@@ -266,6 +299,7 @@ Public Function MontarAcompanhamento(ByVal nEstend As Long) As String
     ReDim tU(1 To NMAX)
     ReDim tG(1 To NMAX)
     ReDim ger(1 To NAnalises(), 1 To NMAX)
+    ReDim ubuMES(1 To NAnalises(), 1 To NMAX)
     For s = 1 To n
         tU(s) = shBatch.Cells(B_ROW_G0 + s - 1, B_COL_TU).Value
         tG(s) = shBatch.Cells(B_ROW_G0 + s - 1, B_COL_TG).Value
@@ -277,6 +311,9 @@ Public Function MontarAcompanhamento(ByVal nEstend As Long) As String
                 ger(k, s) = CDbl(v)
                 temG = True
             End If
+            ' Ubu do MES (ModMES.BuscarAcompanhamento limpou a aba e buscou so este batch)
+            v = shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 1)).Value
+            If ENumero(v) Then ubuMES(k, s) = CDbl(v)
         Next k
         ' janelas de Germano ja passadas sem nenhum resultado: avisa (conferir no MES)
         If Not temG And EData(tG(s)) Then
@@ -293,7 +330,7 @@ Public Function MontarAcompanhamento(ByVal nEstend As Long) As String
         Set wbO = AbrirOnline(msgO)
         If Not wbO Is Nothing Then
             Set wsO = AbaOnline(wbO)
-            r = AtualizarBlocos(wsO, id, n, tU, ger, info, nEstend)
+            r = AtualizarBlocos(wsO, id, n, tU, ger, ubuMES, info, nEstend)
             If Left$(r, 5) <> "CHEIA" Then
                 wbO.Save
                 EspelharBlocos wsO, shAcomp
@@ -301,10 +338,10 @@ Public Function MontarAcompanhamento(ByVal nEstend As Long) As String
             End If
             FecharOnline wbO, False
         Else
-            r = AtualizarBlocos(shAcomp, id, n, tU, ger, info, nEstend)
+            r = AtualizarBlocos(shAcomp, id, n, tU, ger, ubuMES, info, nEstend)
         End If
     Else
-        r = AtualizarBlocos(shAcomp, id, n, tU, ger, info, nEstend)
+        r = AtualizarBlocos(shAcomp, id, n, tU, ger, ubuMES, info, nEstend)
     End If
     If Left$(r, 5) = "CHEIA" Then
         MontarAcompanhamento = Mid$(r, 6)
@@ -322,10 +359,10 @@ Public Function MontarAcompanhamento(ByVal nEstend As Long) As String
     MontarAcompanhamento = msg
 End Function
 
-' Coloca o batch no bloco dele em ws (ou no 1o lugar livre) com Germano e horarios novos; Ubu e observacoes ficam os
-' que ja estavam no bloco do batch. Devolve a mensagem ("CHEIA" + mensagem se os N_BLOCOS lugares estao ocupados).
+' Coloca o batch no bloco dele em ws (ou no 1o lugar livre) com Germano e horarios novos. Ubu: o do MES (ubuMES);
+' nos horarios sem resultado no MES fica o que ja estava lancado no bloco do batch; observacoes tambem ficam. Devolve a mensagem ("CHEIA" + mensagem se os N_BLOCOS lugares estao ocupados).
 Private Function AtualizarBlocos(ByVal ws As Worksheet, ByVal id As Double, ByVal n As Long, tU() As Variant, _
-                                 ger() As Variant, ByVal info As String, ByVal nEstend As Long) As String
+                                 ger() As Variant, ubuMES() As Variant, ByVal info As String, ByVal nEstend As Long) As String
     Dim alvo As Long, i As Long, s As Long, k As Long, ocupados As String, novo As Boolean
     Dim ubu() As Variant, obs As Variant, auto As Variant
     Dim vId As Variant, nV As Long, vU() As Variant, vGer() As Variant, vUbu() As Variant, vObs As Variant
@@ -365,6 +402,11 @@ Private Function AtualizarBlocos(ByVal ws As Worksheet, ByVal id As Double, ByVa
         obs = vObs
         auto = vAuto
     End If
+    For s = 1 To n
+        For k = 1 To NAnalises()
+            If ENumero(ubuMES(k, s)) Then ubu(k, s) = ubuMES(k, s)
+        Next k
+    Next s
     DesenharBloco ws, alvo, id, n, tU, ger, ubu, obs, auto, info, nEstend
     AtualizarTitulos ws
     AtualizarBlocos = "Aba " & ws.Name & ": batch " & id & " no lugar " & alvo & " de " & N_BLOCOS & ", " & n & " horários" & _
@@ -417,7 +459,7 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     ws.Rows(r).RowHeight = 30
     Set rg = ws.Range(ws.Cells(r, A_COL_N), ws.Cells(r, A_COL_G1 + 8))
     Faixa rg, COR_AZUL, COR_BRANCO, 14
-    rg.Cells(1, 1).Value = IIf(semBatch, "BATCH " & ChrW(8212), "BATCH " & id) & "   |   " & i & " DE " & N_BLOCOS
+    rg.Cells(1, 1).Value = IIf(semBatch, "BATCH " & ChrW(8212), "BATCH " & id)
     rg.IndentLevel = 1
     Set rg = ws.Range(ws.Cells(r, A_COL_G1 + 9), ws.Cells(r, cF))
     Faixa rg, COR_AZUL, COR_AMARELO, 10
@@ -518,8 +560,7 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     ' ---- LEITURAS POR BI-HORARIO: horarios nas colunas; por analise Germano / Alimentacao 04 / Diferenca
     rh = LinhaHora(r)
     TituloQuadro ws.Range(ws.Cells(rh - 2, A_COL_N), ws.Cells(rh - 2, cF)), "LEITURAS POR BI-HORÁRIO   " & ChrW(8212) & _
-        "   " & ChrW(9998) & " lançar " & nomeUbu & " nas células amarelas" & IIf(nEstend > 0 And Not semBatch, _
-        "      *  horário estendido: Germano = média das leituras do MES", "")
+        "   " & ChrW(9998) & " " & nomeUbu & " vem do MES; onde não vier, lançar nas células amarelas"
     Cabec ws.Range(ws.Cells(rh - 1, A_COL_N), ws.Cells(rh - 1, A_COL_SUB)), "DATA"
     Cabec ws.Range(ws.Cells(rh, A_COL_N), ws.Cells(rh, A_COL_SUB)), "HORÁRIO (UBU)"
     For s = 1 To nVis
@@ -537,10 +578,6 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
             If EData(tU(s)) Then
                 ws.Cells(rh - 1, c).Value = CDate(Int(CDbl(tU(s))))
                 rg.Value = CDate(tU(s))
-            End If
-            If s > n - nEstend Then
-                rg.NumberFormat = "hh:mm""*"""
-                rg.Interior.Color = COR_AZUL_CINZA
             End If
         End If
     Next s
@@ -570,13 +607,6 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
             If Not semBatch Then
                 If ENumero(ger(k, s)) Then ws.Cells(rr, c).Value = CDbl(ger(k, s))
                 If ENumero(ubu(k, s)) Then ws.Cells(rr + 1, c).Value = CDbl(ubu(k, s))
-                If s > n - nEstend Then
-                    ' estendido: Germano = media dos resultados do MES
-                    ws.Cells(rr, c).Interior.Color = COR_ESTENDIDO
-                    ws.Cells(rr, c).Font.Italic = True
-                    ws.Cells(rr, c).Font.Bold = False
-                    ws.Cells(rr, c).Font.Color = COR_CINZA_TXT
-                End If
             End If
             dif.Formula = "=IF(AND(ISNUMBER(" & ws.Cells(rr + 1, c).Address(False, False) & "),ISNUMBER(" & _
                 ws.Cells(rr, c).Address(False, False) & "))," & ws.Cells(rr + 1, c).Address(False, False) & "-" & _
@@ -972,9 +1002,30 @@ End Sub
 
 ' ---------------------------------------------------------------- copiar (e-mail do turno)
 ' Copia como imagem o bloco onde esta a celula selecionada (fora dos blocos: o batch em processamento)
+' Botoes Copiar de cada bloco (na faixa do batch)
+Public Sub CopiarBatch1()
+    CopiarBloco 1
+End Sub
+
+Public Sub CopiarBatch2()
+    CopiarBloco 2
+End Sub
+
+Public Sub CopiarBatch3()
+    CopiarBloco 3
+End Sub
+
+Public Sub CopiarBatch4()
+    CopiarBloco 4
+End Sub
+
+Public Sub CopiarBatch5()
+    CopiarBloco 5
+End Sub
+
+' Bloco onde esta a celula selecionada; fora dos blocos, o ultimo ocupado
 Public Sub CopiarAcompanhamento()
-    Dim i As Long, j As Long, r As Long, n As Long, area As Range, id As Variant, wb As Workbook, msg As String
-    ' bloco onde esta a celula selecionada; fora dos blocos, o ultimo ocupado
+    Dim i As Long, j As Long
     On Error Resume Next
     If ActiveSheet Is shAcomp Then
         For j = 1 To N_BLOCOS
@@ -982,6 +1033,12 @@ Public Sub CopiarAcompanhamento()
         Next j
     End If
     On Error GoTo 0
+    CopiarBloco i
+End Sub
+
+' Copia a imagem do bloco i (0 = o ultimo ocupado) para colar no e-mail
+Public Sub CopiarBloco(ByVal i As Long)
+    Dim j As Long, r As Long, n As Long, area As Range, id As Variant, wb As Workbook, msg As String, copiou As Boolean
     ' com planilha online: copia com o que foi lancado la
     If CfgTxt("cfgArqOnline") <> "" Then
         Set wb = AbrirOnline(msg, True)
@@ -1012,7 +1069,13 @@ Public Sub CopiarAcompanhamento()
     If ENumero(shAcomp.Cells(r, A_COL_AUX + 1).Value) Then n = CLng(shAcomp.Cells(r, A_COL_AUX + 1).Value)
     If n < 1 Then n = 1
     Set area = shAcomp.Range(shAcomp.Cells(r, A_COL_N), shAcomp.Cells(r + AlturaBloco() - 1, ColFim(n)))
-    If CopiarAreaImagem(shAcomp, area) Then
+    ' o botao nao entra na imagem
+    Desproteger shAcomp
+    BotaoCopiar shAcomp, i, False
+    copiou = CopiarAreaImagem(shAcomp, area)
+    BotaoCopiar shAcomp, i, True
+    Proteger shAcomp
+    If copiou Then
         Aviso "Acompanhamento do batch " & id & " copiado. Cole no e-mail com Ctrl+V.", vbInformation, _
               "Copiar acompanhamento"
     Else

@@ -31,11 +31,16 @@ Public Sub Inicializar()
     shGraf.Visible = XL_HIDDEN
     shLeituras.Visible = XL_HIDDEN
     shAcompReg.Visible = XL_HIDDEN
-    shConfig.Visible = XL_VERYHIDDEN
+    shConfig.Visible = VisConfig()
     ' abas que a variante nao usa: muito ocultas (o codigo e o mesmo nas duas planilhas)
     If VARIANTE = "ACOMP" Then
         shPainel.Visible = XL_VERYHIDDEN
         shHist.Visible = XL_VERYHIDDEN
+        ' em Reexibir aparece so Configuracoes
+        shDadosMES.Visible = XL_VERYHIDDEN
+        shGraf.Visible = XL_VERYHIDDEN
+        shLeituras.Visible = XL_VERYHIDDEN
+        shAcompReg.Visible = XL_VERYHIDDEN
     ElseIf VARIANTE = "COMP" Then
         shAcomp.Visible = XL_VERYHIDDEN
     End If
@@ -215,11 +220,16 @@ End Sub
 Public Sub IrBatch()
     On Error Resume Next
     shBatch.Activate
-    shDadosMES.Visible = XL_HIDDEN
-    shConfig.Visible = XL_VERYHIDDEN
+    shDadosMES.Visible = IIf(VARIANTE = "ACOMP", XL_VERYHIDDEN, XL_HIDDEN)
+    shConfig.Visible = VisConfig()
 End Sub
 
-' Configuracoes fica muito oculta (nao aparece em Reexibir); abre so com a senha
+' Planilha de acompanhamento: Configuracoes e uma aba oculta comum (botao direito numa aba > Reexibir).
+' Comparativo: muito oculta (nao aparece em Reexibir); abre so pelo botao Configuracoes, com a senha
+Public Function VisConfig() As Long
+    If VARIANTE = "ACOMP" Then VisConfig = XL_HIDDEN Else VisConfig = XL_VERYHIDDEN
+End Function
+
 Public Sub AbrirConfiguracoes()
     Dim s As Variant
     s = InputBox("Senha da aba Configurações:", "Configurações")

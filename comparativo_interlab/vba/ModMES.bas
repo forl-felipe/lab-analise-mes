@@ -162,10 +162,10 @@ Falha:
 End Sub
 
 ' ---------------------------------------------------------------- batch em processamento (acompanhamento)
-' So Germano (Ubu e lancado a mao nas abas Acomp. Quimico / Acomp. Fisico); monta os blocos das duas abas
+' Germano e Ubu do MES (Ubu: so os bi-horarios ja iniciados); monta o bloco do batch na aba de acompanhamento
 Private Sub BuscarAcompanhamento()
     Dim n As Long, nG As Long, iniG As Date, resG As Variant, okG As Boolean, qG As Long, simulado As Boolean
-    Dim nEstend As Long
+    Dim nEstend As Long, nU As Long, s As Long, iniU As Date, resU As Variant, okU As Boolean, qU As Long
     Dim msg As String, t0 As Single, seg As Long
 
     If Not ENumero(Nm("bId").Value) Then
@@ -207,12 +207,31 @@ Private Sub BuscarAcompanhamento()
         qG = GravarResultados(0, resG, nG, okG, iniG)
         GravarHorariosG nG
     End If
-    ' Ubu do batch em processamento e lancado na aba Acompanhamento: o que estiver na aba Batch e de outro
-    ' batch e nao pode ir para o bloco
-    LimparUbuBatch
     ' estender o batch: horarios a mais com a media de Germano
     nEstend = 0
     If okG Then nEstend = EstenderGermano(n)
+    ' Ubu: o que estiver na aba de preenchimento pode ser de outro batch; limpa e busca no MES os bi-horarios
+    ' deste batch ja iniciados (inclusive os estendidos). O que o MES trouxer vai para o bloco; nos horarios sem
+    ' resultado fica o que foi lancado a mao.
+    LimparUbuBatch
+    nU = 0
+    If EData(Nm("gJanU").Value) Then
+        iniU = CDate(Nm("gJanU").Value)
+        For s = 1 To n
+            If simulado Or CDbl(iniU) + (s - 1) * HORAS_SLOT / 24 < CDbl(Now) Then nU = s
+        Next s
+    End If
+    If nU > 0 Then
+        Application.StatusBar = "Consultando MES - " & CfgTxt("bLabB") & "..."
+        If simulado Then
+            resU = DadosSimulados(1, nU, iniU)
+            okU = True
+        Else
+            okU = ConsultarLab(1, iniU, nU, resU)
+        End If
+        Application.StatusBar = False
+        If okU Then qU = GravarResultados(1, resU, nU, okU, iniU)
+    End If
     msg = MontarAcompanhamento(nEstend)
     seg = Int(Timer - t0)
     If seg < 0 Then seg = seg + 86400
@@ -220,9 +239,12 @@ Private Sub BuscarAcompanhamento()
     AjustarGraficos
     Ampulheta False
     mOcupado = False
-    msg = "Acompanhamento do batch " & CfgTxt("bId") & " (só " & CfgTxt("bLabA") & "):" & vbCrLf & vbCrLf & _
+    msg = "Acompanhamento do batch " & CfgTxt("bId") & ":" & vbCrLf & vbCrLf & _
           "  " & CfgTxt("bLabA") & ": " & qG & IIf(okG, "", " (consulta falhou)") & "   (" & nG & _
-          " janelas a partir de " & Format$(iniG, "dd\/mm hh:mm") & ")" & vbCrLf & vbCrLf & msg & _
+          " janelas a partir de " & Format$(iniG, "dd\/mm hh:mm") & ")" & vbCrLf & _
+          "  " & CfgTxt("bLabB") & ": " & IIf(nU = 0, "sem horários iniciados ainda", qU & IIf(okU, "", _
+          " (consulta falhou)") & "   (" & nU & " janelas a partir de " & Format$(iniU, "dd\/mm hh:mm") & ")") & _
+          vbCrLf & vbCrLf & msg & _
           IIf(simulado, vbCrLf & vbCrLf & "Fonte: SIMULAÇÃO (dados fictícios).", vbCrLf & vbCrLf & _
           "Tempo total da consulta: " & seg & " s.")
     Aviso msg, vbInformation, "MES - acompanhamento"
