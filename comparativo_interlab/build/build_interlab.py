@@ -30,7 +30,16 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 VBA_DIR = os.path.join(RAIZ, 'vba')
 TESTE = '--teste' in sys.argv
-SAIDA = os.path.join(RAIZ, 'Comparativo_Interlab_Germano_Ubu%s.xlsm' % ('_TESTE' if TESTE else ''))
+# Variantes (mesmo VBA; as abas que uma nao usa ficam muito ocultas, para o Excel sempre compilar):
+#   ACOMP    - tecnicos de turno: Preenchimento (busca so Germano) e Batch (5 batches em processamento)
+#   COMP     - report diario: Batch, Painel e Historico (comparativo Germano x Ubu)
+#   COMPLETA - as duas juntas (so para o teste automatico)
+VARIANTES = {
+    'ACOMP': 'Acompanhamento_Batch_Germano_Ubu',
+    'COMP': 'Comparativo_Interlab_Germano_Ubu',
+    'COMPLETA': 'Comparativo_Interlab_Completa',
+}
+VARIANTE = 'COMPLETA'          # definida em main() para cada arquivo
 LOGO = os.path.join(AQUI, 'assets', 'logo_samarco.png')   # kit visual Samarco (fundo escuro)
 HIST_USUARIO = os.path.join(AQUI, 'historico.json')
 
@@ -135,10 +144,11 @@ B_COL_TG = 3              # D  data/hora Germano
 B_COL_V1 = 4              # E  1o valor (SE A); valor (p, lab) em B_COL_V1 + 2p + lab
 B_COL_D1 = 15             # P  1a diferenca
 B_COL_R1 = 20             # U  1o "rank" (par A/B para os graficos)
-B_ROW_G0 = 44             # 1a linha de leituras
+B_ROW_G0 = 45             # 1a linha de leituras
 B_ROW_MED = B_ROW_G0 + NMAX
 B_ROW_ULT = 24            # 1a linha da tabela dos ultimos batches (preenchida pelo VBA)
-N_ULT = 3                 # quantos batches anteriores mostrar
+N_ULT = 4                 # quantos batches anteriores mostrar
+N_BLOCOS = 5              # batches por planilha na aba de acompanhamento
 # colunas (0-based, inicio de cada campo) da tabela dos ultimos batches
 U_COL = dict(BATCH=1, NIVEL=3, CHEG=4, FIM=6, INIP=8, DUR=10, ORIGEM=12)
 # abas de acompanhamento (batch em processamento): 1a linha dos blocos (0-based) e analises de cada aba
@@ -285,11 +295,22 @@ class Construtor:
     # ============================================================ abas
     def construir(self):
         wb = self.wb
-        # ordem: preenchimento, acompanhamento, report, historico; o resto oculto
-        self.ws_bat = wb.add_worksheet('Batch')
-        self.ws_aco = wb.add_worksheet('Acompanhamento')
-        self.ws_pai = wb.add_worksheet('Painel')
-        self.ws_his = wb.add_worksheet('Histórico')
+        # ordem das abas por variante; as que a variante nao usa ficam no fim, ocultas
+        if VARIANTE == 'ACOMP':
+            self.ws_bat = wb.add_worksheet('Preenchimento')
+            self.ws_aco = wb.add_worksheet('Batch')
+            self.ws_pai = wb.add_worksheet('Painel')
+            self.ws_his = wb.add_worksheet('Histórico')
+        elif VARIANTE == 'COMP':
+            self.ws_bat = wb.add_worksheet('Batch')
+            self.ws_pai = wb.add_worksheet('Painel')
+            self.ws_his = wb.add_worksheet('Histórico')
+            self.ws_aco = wb.add_worksheet('Acompanhamento')
+        else:
+            self.ws_bat = wb.add_worksheet('Batch')
+            self.ws_aco = wb.add_worksheet('Acompanhamento')
+            self.ws_pai = wb.add_worksheet('Painel')
+            self.ws_his = wb.add_worksheet('Histórico')
         self.ws_bdl = wb.add_worksheet('BD_Leituras')
         self.ws_cfg = wb.add_worksheet('Configurações')
         self.ws_mes = wb.add_worksheet('Dados_MES')
@@ -325,6 +346,11 @@ class Construtor:
         self.ws_reg.hide()
         self.ws_cfg.hide()
         self.abas_acomp()
+        if VARIANTE == 'ACOMP':
+            self.ws_pai.hide()
+            self.ws_his.hide()
+        elif VARIANTE == 'COMP':
+            self.ws_aco.hide()
         self.ws_bat.activate()
 
     # ------------------------------------------------------------ Configurações
@@ -546,7 +572,8 @@ class Construtor:
         ws.set_column(14, 16383, None, None, {'hidden': True})   # diferencas, auxiliares e o resto: ocultos
         ws.set_default_row(18, True)   # linhas sem uso ocultas
         ws.set_row(1, 34)
-        ws.merge_range(1, 1, 1, 13, 'PREENCHIMENTO DO BATCH', self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY,
+        ws.merge_range(1, 1, 1, 13, 'PREENCHIMENTO · BATCH EM PROCESSAMENTO' if VARIANTE == 'ACOMP' else
+                       'PREENCHIMENTO DO BATCH', self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY,
                                                            bottom=5, bottom_color=AMARELO,
                                                            indent=1))
         fauto_dt = self.f(align='center', num_format='dd/mm/yy hh:mm', bg_color=AUTO, border=1,
@@ -568,37 +595,59 @@ class Construtor:
         # ---- 1 · identificacao (esquerda) e ACOES (direita)
         self.secao(ws, 4, 1, 8, '1 · IDENTIFICAÇÃO DO BATCH')
         self.secao(ws, 4, 10, 13, 'AÇÕES')
+        estender = VARIANTE != 'COMP'
         ws.merge_range(5, 1, 5, 2, 'BATCH Nº', fl)
-        ws.merge_range(5, 3, 5, 6, 'TIPO DA BUSCA NO MES', fl)
-        ws.merge_range(5, 7, 5, 8, 'NÍVEL DOS TANQUES (UBU)', fl)
+        ws.write(5, 3, 'NÍVEL DOS TANQUES (UBU)', fl)
+        ws.merge_range(5, 4, 5, 5, 'INÍCIO NO PROCESSO (MANUAL)', fl)
+        if estender:
+            ws.merge_range(5, 6, 5, 7, 'ESTENDER O BATCH (HORAS)', fl)
         ws.set_row(5, 14)
         ws.set_row(6, 30)
         ws.merge_range(6, 1, 6, 2, '', self.fi(align='center', bold=True, font_size=16))
         if b:
             ws.write_number(6, 1, b['id'], self.fi(align='center', bold=True, font_size=16))
         self.nome('bId', ws, 6, 1)
-        fmodo = self.fi(align='center', bold=True, font_size=10, font_color=NAVY2)
-        ws.merge_range(6, 3, 6, 6, MODOS[0], fmodo)
-        self.nome('bModo', ws, 6, 3)
-        ws.data_validation(6, 3, 6, 3, {'validate': 'list', 'source': MODOS,
-                                        'input_title': 'Tipo da busca',
-                                        'input_message': 'Comparativo: Germano e Ubu (batch já processado). '
-                                                         'Acompanhamento: só Germano, preenche a aba Acompanhamento.'})
-        ws.merge_range(6, 7, 6, 8, '', self.fi(align='center', bold=True, font_size=12))
+        ws.write_blank(6, 3, None, self.fi(align='center', bold=True, font_size=12))
         if b and b.get('nivel'):
-            ws.write_string(6, 7, b['nivel'].capitalize(), self.fi(align='center', bold=True, font_size=12))
-        self.nome('bNivel', ws, 6, 7)
-        ws.data_validation(6, 7, 6, 7, {'validate': 'list', 'source': '=lstNivel'})
+            ws.write_string(6, 3, b['nivel'].capitalize(), self.fi(align='center', bold=True, font_size=12))
+        self.nome('bNivel', ws, 6, 3)
+        ws.data_validation(6, 3, 6, 3, {'validate': 'list', 'source': '=lstNivel'})
+        self.entrada(ws, 6, 4, 5, None, self.fi(align='center', bold=True, font_size=11, num_format='dd/mm/yy hh:mm'),
+                     'bIniPMan')
+        ws.data_validation(6, 4, 6, 4, {'validate': 'any', 'input_title': 'Início no processo (manual)',
+                                        'input_message': 'Use quando o nível dos tanques não bater com o horário real. '
+                                                         'Ex.: 26/10/26 14:00. Em branco = chegada em Ubu + atraso '
+                                                         'do nível.'})
         fdica = self.f(font_size=8, font_color=MUTED, italic=True, valign='top', text_wrap=True)
         ws.merge_range(7, 1, 7, 2, 'número do batch no MES', fdica)
-        ws.merge_range(7, 3, 7, 6, 'Comparativo = batch já processado (Germano × Ubu)  ·  '
-                                   'Acompanhamento = em processamento (só Germano)', fdica)
         fatr = self.f(align='center', font_color=INK2, font_size=8.5, valign='top',
-                      num_format='"atraso no processo: "0.0" h"')
-        ws.merge_range(7, 7, 7, 8, '', fatr)
-        ws.write_formula(7, 7, '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),'
+                      num_format='"atraso: "0.0" h"')
+        ws.write_formula(7, 3, '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),'
                                'IF(bNivel<>"",gAtrasoNivel,""))', fatr)
-        self.nome('bAtraso', ws, 7, 7)
+        self.nome('bAtraso', ws, 7, 3)
+        ws.merge_range(7, 4, 7, 5, 'em branco = chegada em Ubu + atraso do nível', fdica)
+        # estender: os horarios a mais recebem a media dos resultados de Germano do MES
+        cx, rx = (6, 6) if estender else (16, 6)
+        if estender:
+            ws.merge_range(6, 6, 6, 7, '', self.fi(align='center', bold=True, font_size=12, num_format='0" h"'))
+            ws.merge_range(7, 6, 7, 7, '', fdica)
+            ws.write_formula(7, 6, '=IF(N(bExtH)>0,"+"&ROUND(N(bExtH)/2,0)&" bi-horários · Germano = média do MES",'
+                                   '"em branco = só os resultados do MES")', fdica)
+        else:
+            ws.write_blank(rx, cx, None, self.fi())
+        self.nome('bExtH', ws, rx, cx)
+        ws.data_validation(rx, cx, rx, cx, {'validate': 'integer', 'criteria': 'between', 'minimum': 0,
+                                            'maximum': 2 * NMAX, 'input_title': 'Estender o batch',
+                                            'input_message': 'Horas a mais além dos resultados do MES (2 h = 1 '
+                                                             'bi-horário). Germano nesses horários = média dos '
+                                                             'resultados do MES.',
+                                            'error_message': 'Informe as horas (0 a %d).' % (2 * NMAX)})
+        # tipo da busca: fixo pela variante (celula oculta; na completa da para trocar)
+        modo = MODOS[1] if VARIANTE == 'ACOMP' else MODOS[0]
+        ws.write_string(6, 15, modo, self.fi())
+        self.nome('bModo', ws, 6, 15)
+        if VARIANTE == 'COMPLETA':
+            ws.data_validation(6, 15, 6, 15, {'validate': 'list', 'source': MODOS})
         ws.set_row(7, 24)
         ws.set_row(8, 8)
         # ---- 2 · fases do evento: area de colar (sem nada mesclado em volta)
@@ -845,8 +894,6 @@ class Construtor:
         ws.merge_range(r + 2, 6, r + 2, 7, '', self.f(align='center', font_color=INK2, font_size=9, bold=True))
         ws.write_formula(r + 2, 6, '=IF(bRef=bLabA,bLabB&" − "&bLabA,bLabA&" − "&bLabB)',
                          self.f(align='center', font_color=INK2, font_size=9, bold=True))
-        self.rotulo(ws, r + 1, 8, 10, 'Início no processo (ajuste manual)')
-        self.entrada(ws, r + 2, 8, 10, None, self.fi(align='center', num_format='dd/mm/yyyy hh:mm'), 'bIniPMan')
         self.rotulo(ws, r + 5, 1, 13, 'Tolerâncias deste batch (|diferença| máxima aceita) — critério OK/NOK do farol')
         pos_tol = [(1, 2), (3, 3), (4, 5), (6, 7), (8, 9)]
         for p, pr in enumerate(PARAMS):
@@ -857,18 +904,31 @@ class Construtor:
         self.b_fim = r + 7
 
         # botoes: navegacao na faixa do titulo; acoes na coluna da direita (ao lado das etapas 1 e 2)
-        self.botao(ws, 1, 9, 'Acompanhamento →', 'IrAcomp', 150, 28, 'p', x=20, y=5)
+        fac = self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True, valign='top')
+        if VARIANTE != 'COMP':
+            self.botao(ws, 1, 9, '%s →' % self.ws_aco.name, 'IrAcomp', 150, 28, 'p', x=20, y=5)
         self.botao(ws, 1, 12, 'Configurações', 'AbrirConfiguracoes', 120, 28, 's', x=6, y=5)
         self.botao(ws, 5, 10, 'Buscar no MES', 'BuscarMES', 262, 40, 'a', x=8, y=6)
-        self.botao(ws, 9, 10, 'Salvar no histórico', 'SalvarHistorico', 262, 34, 'g', x=8, y=4)
-        self.botao(ws, 12, 10, 'Ver painel →', 'IrPainel', 127, 28, 'n', x=8, y=4)
-        self.botao(ws, 12, 12, 'Limpar leituras', 'LimparLeituras', 127, 28, 'd', x=4, y=4)
-        fac = self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True, valign='top')
-        ws.merge_range(14, 10, 16, 13, 'Buscar no MES: leituras do batch e PFUF (no acompanhamento, só Germano).  '
-                                       'Salvar no histórico: grava o comparativo e deixa a aba pronta para o próximo.',
-                       fac)
+        if VARIANTE == 'ACOMP':
+            self.botao(ws, 9, 10, 'Ver o batch na aba %s →' % self.ws_aco.name, 'IrAcomp', 262, 34, 'n', x=8, y=4)
+            self.botao(ws, 12, 10, 'Próximo batch (limpar esta aba)', 'ProximoBatchAcomp', 262, 28, 'd', x=8, y=4)
+            ws.merge_range(14, 10, 16, 13, 'Buscar no MES: resultados de Germano do batch, que vão para o bloco dele na '
+                                           'aba %s (5 batches por planilha).  Próximo batch: limpa esta aba; o que '
+                                           'foi lançado na aba %s fica.' % (self.ws_aco.name, self.ws_aco.name), fac)
+        else:
+            self.botao(ws, 9, 10, 'Salvar no histórico', 'SalvarHistorico', 262, 34, 'g', x=8, y=4)
+            self.botao(ws, 12, 10, 'Ver painel →', 'IrPainel', 127, 28, 'n', x=8, y=4)
+            self.botao(ws, 12, 12, 'Limpar leituras', 'LimparLeituras', 127, 28, 'd', x=4, y=4)
+            ws.merge_range(14, 10, 16, 13, 'Buscar no MES: leituras do batch (Germano e Ubu) e PFUF.  Salvar no '
+                                           'histórico: grava o comparativo e deixa a aba pronta para o próximo.', fac)
         ws.print_area(0, 0, self.b_fim, 13)
         ws.freeze_panes(2, 0)
+        if VARIANTE == 'ACOMP':
+            # so identificacao, fases, conferencia e referencia: PFUF, comentarios, leituras e ajustes ficam
+            # ocultos (os nomes continuam existindo para as macros)
+            for rr in range(B_ROW_ULT + N_ULT + 1, self.b_fim + 1):
+                ws.set_row(rr, None, None, {'hidden': True})
+            ws.print_area(0, 0, B_ROW_ULT + N_ULT, 13)
         ws.fit_to_pages(1, 0)
         ws.set_paper(9)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
@@ -1331,24 +1391,35 @@ class Construtor:
         ws.set_column(1, 1, 9)              # analise (SiO2, P...)
         ws.set_column(2, 2, 17)             # Germano / Alimentacao 04 / Diferenca
         ws.set_column(3, 3 + NMAX - 1, 7.6) # um horario por coluna
-        self.faixa(ws, 1, 1, c_fim, 'ACOMPANHAMENTO DO BATCH EM PROCESSAMENTO', '')
-        ws.write_formula(2, 1, '="Germano vem do MES (aba Batch, tipo da busca = Acompanhamento). "&padNomeUbuAcomp&'
-                               '": lançar a cada 2 h nas células amarelas (✎). Em cima o batch anterior, embaixo o em processamento."',
+        self.faixa(ws, 1, 1, c_fim, 'ACOMPANHAMENTO DOS BATCHES EM PROCESSAMENTO', '')
+        ws.write_formula(2, 1, '="Germano vem do MES (aba %s > Buscar no MES). "&padNomeUbuAcomp&": lançar a cada 2 h nas '
+                               'células amarelas (✎).  %d batches por planilha: com os %d preenchidos, comece uma '
+                               'planilha padrão limpa."' % (self.ws_bat.name, N_BLOCOS, N_BLOCOS),
                          self.f(font_size=9.5, bold=True, font_color=BRANCO, bg_color=NAVY2, indent=1))
         # botoes na faixa do titulo (mesma ancora, deslocados em pixels)
-        self.botao(ws, 1, 8, 'Copiar acompanhamento', 'CopiarAcompanhamento', 170, 30, 'a', x=0, y=6)
-        self.botao(ws, 1, 8, 'Gerar planilha online', 'GerarPlanilhaOnline', 160, 30, 'p', x=178, y=6)
-        self.botao(ws, 1, 8, 'Trazer do online', 'TrazerDoOnline', 130, 30, 's', x=346, y=6)
-        self.botao(ws, 1, 8, '← Batch', 'IrBatch', 70, 30, 's', x=484, y=6)
+        self.botao(ws, 1, 9, 'Copiar acompanhamento', 'CopiarAcompanhamento', 170, 30, 'a', x=0, y=6)
+        if VARIANTE == 'COMPLETA':
+            self.botao(ws, 1, 9, 'Gerar planilha online', 'GerarPlanilhaOnline', 150, 30, 'p', x=176, y=6)
+            self.botao(ws, 1, 9, 'Trazer do online', 'TrazerDoOnline', 120, 30, 's', x=332, y=6)
+        self.botao(ws, 1, 15, '← %s' % self.ws_bat.name, 'IrBatch', 110, 30, 's', x=0, y=6)
         ws.freeze_panes(A_ROW0, 0)
-        # os dois blocos (batch anterior e em processamento) sao desenhados pelo VBA ao abrir o arquivo
+        # N_BLOCOS lugares livres; o VBA desenha o bloco quando o batch e buscado (ModAcomp.DesenharBloco)
+        na = len(ACOMP_Q) + len(ACOMP_F)
+        altura = 8 + 5 * na                         # ModAcomp.AlturaBloco
+        flivre = self.f(font_size=10, bold=True, font_color=MUTED, bg_color=BG, border=1, border_color=LINE2,
+                        indent=1)
+        for i in range(N_BLOCOS):
+            r = A_ROW0 + 1 + i * (altura + 2)        # ModAcomp.LinhaBlocoN (0-based)
+            ws.set_row(r, 30)
+            ws.merge_range(r, 1, r, c_fim, 'BATCH %d DE %d   ·   livre: busque o batch na aba %s'
+                           % (i + 1, N_BLOCOS, self.ws_bat.name), flivre)
         ws.protect('', {'format_columns': True, 'format_rows': True})
         ws = self.ws_reg
         for i, h in enumerate(REG_COLS):
             ws.write(0, i, h, self.f(bold=True))
         ws.set_column(0, len(REG_COLS) - 1, 18)
         # batches em acompanhamento trazidos da planilha do laboratorio (ultimos batches da aba Batch)
-        if os.path.exists(HIST_USUARIO):
+        if os.path.exists(HIST_USUARIO) and VARIANTE == 'COMPLETA':
             with open(HIST_USUARIO, encoding='utf-8') as fh:
                 hu = json.load(fh)
             fdt = self.f(num_format='dd/mm/yyyy hh:mm')
@@ -1418,6 +1489,9 @@ class Construtor:
         # historico salvo pelo laboratorio (planilha de 26/10/2026: batches 284 e 293), mapeado pelo nome das colunas
         with open(HIST_USUARIO, encoding='utf-8') as fh:
             hu = json.load(fh)
+        if VARIANTE != 'COMPLETA':
+            # planilhas padrao: historico limpo (o do laboratorio fica so na versao de teste)
+            hu = dict(batches=[], leituras=[], colunas_leituras=hu['colunas_leituras'])
 
         def val(v):
             if isinstance(v, dict) and 'dt' in v:
@@ -1554,7 +1628,10 @@ class Construtor:
              "Public Const NPF As Long = %d" % len(PFUF),
              "' aba Batch: ultimos batches (1-based) e tipo da busca",
              "Public Const B_ROW_ULT As Long = %d" % (B_ROW_ULT + 1),
-             "Public Const N_ULT As Long = %d" % N_ULT] + \
+             "Public Const N_ULT As Long = %d" % N_ULT,
+             "' variante do arquivo (ACOMP = acompanhamento dos tecnicos, COMP = comparativo/report, COMPLETA = teste)",
+             'Public Const VARIANTE As String = "%s"' % VARIANTE,
+             "Public Const N_BLOCOS As Long = %d" % N_BLOCOS] + \
             ["Public Const U_COL_%s As Long = %d" % (k, v + 1) for k, v in U_COL.items()] + \
             ["' abas de acompanhamento: 1a linha dos blocos e analises (chaves) de cada aba",
              "Public Const A_ROW0 As Long = %d" % (A_ROW0 + 1),
@@ -1647,6 +1724,15 @@ def checar_nomes(modulos):
         for m in re.finditer(r'^(Public |Private |Global )?(?:Function|Sub|Property Get|Const) (\w+)', cod, re.M):
             (do_modulo[nome] if m.group(1) == 'Private ' else publicos).add(m.group(2).lower())
     erros = []
+    # palavras reservadas do VBA (sem diferenciar maiusculas): como nome de variavel o modulo nao compila
+    reservadas = {'next', 'for', 'to', 'step', 'if', 'then', 'else', 'end', 'do', 'loop', 'while', 'wend', 'until',
+                  'with', 'each', 'in', 'is', 'not', 'and', 'or', 'xor', 'mod', 'set', 'let', 'get', 'dim', 'as',
+                  'new', 'call', 'exit', 'sub', 'function', 'property', 'select', 'case', 'goto', 'on', 'error',
+                  'resume', 'private', 'public', 'const', 'type', 'enum', 'option', 'base', 'byval', 'byref',
+                  'optional', 'nothing', 'empty', 'null', 'true', 'false', 'me', 'like', 'stop', 'redim',
+                  'preserve', 'erase', 'static', 'date', 'string', 'integer', 'long', 'double', 'variant',
+                  'boolean', 'object', 'single', 'byte', 'currency', 'print', 'open', 'close', 'input', 'output',
+                  'name', 'kill', 'lock', 'unlock', 'width', 'len', 'mid', 'left', 'right', 'val', 'str'}
     for nome, cod in modulos.items():
         for blk in re.finditer(r'^(?:Public |Private )?(?:Function|Sub) (\w+)\((.*?)\)(.*?)^End (?:Function|Sub)', cod,
                                re.M | re.S):
@@ -1657,8 +1743,11 @@ def checar_nomes(modulos):
             for v in nomes:
                 if (v in publicos or v in do_modulo[nome]) and v != rotina.lower():
                     erros.append('%s.%s: "%s"' % (nome, rotina, v))
+                elif v in reservadas:
+                    erros.append('%s.%s: "%s" (palavra reservada)' % (nome, rotina, v))
     if erros:
-        raise SystemExit('ERRO VBA: variavel com o nome de uma rotina (o Excel nao compila): ' + ', '.join(erros))
+        raise SystemExit('ERRO VBA: variavel com nome de rotina ou palavra reservada (o Excel nao compila): ' +
+                         ', '.join(erros))
 
 
 def ler_vba(nome):
@@ -1724,8 +1813,11 @@ def _patch_anchor(m):
     return bloco
 
 
-def main():
-    c = Construtor(SAIDA + '.base.xlsm')
+def gerar(variante):
+    global VARIANTE
+    VARIANTE = variante
+    saida = os.path.join(RAIZ, VARIANTES[variante] + ('_TESTE' if TESTE else '') + '.xlsm')
+    c = Construtor(saida + '.base.xlsm')
     c.construir()
     vba_bin = montar_vba(c.modulo_layout())
     bin_path = os.path.join(AQUI, 'vbaProject.bin')
@@ -1733,10 +1825,16 @@ def main():
         fh.write(vba_bin)
     c.wb.add_vba_project(bin_path)
     c.wb.close()
-    os.replace(SAIDA + '.base.xlsm', SAIDA)
-    pos_processar(SAIDA)
+    os.replace(saida + '.base.xlsm', saida)
+    pos_processar(saida)
     os.remove(bin_path)
-    print('Gerado:', SAIDA)
+    print('Gerado:', saida)
+
+
+def main():
+    # as duas planilhas padrao (limpas); com --teste, tambem a completa (teste automatico de tudo)
+    for v in (['COMPLETA', 'ACOMP', 'COMP'] if TESTE else ['ACOMP', 'COMP']):
+        gerar(v)
 
 
 if __name__ == '__main__':

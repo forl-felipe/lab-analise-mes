@@ -27,6 +27,7 @@ Public Sub AjustarGraficos(Optional ByVal forcar As Boolean = False)
     Dim ordem As Variant, i As Long, k As String, p As Long, n As Long, c0 As Long, ult As Long
     Dim co As Object, ch As Object, s As Long, ser As Object, g As String, assin As String
     If gTesteLO Then Exit Sub
+    If VARIANTE = "ACOMP" Then Exit Sub          ' planilha de acompanhamento: sem Painel
     On Error Resume Next
     ordem = Split(GRAF_ORDEM, "|")
     assin = ""

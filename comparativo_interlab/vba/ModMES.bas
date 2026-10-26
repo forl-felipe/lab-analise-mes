@@ -165,6 +165,7 @@ End Sub
 ' So Germano (Ubu e lancado a mao nas abas Acomp. Quimico / Acomp. Fisico); monta os blocos das duas abas
 Private Sub BuscarAcompanhamento()
     Dim n As Long, nG As Long, iniG As Date, resG As Variant, okG As Boolean, qG As Long, simulado As Boolean
+    Dim nEstend As Long
     Dim msg As String, t0 As Single, seg As Long
 
     If Not ENumero(Nm("bId").Value) Then
@@ -209,7 +210,10 @@ Private Sub BuscarAcompanhamento()
     ' Ubu do batch em processamento e lancado na aba Acompanhamento: o que estiver na aba Batch e de outro
     ' batch e nao pode ir para o bloco
     LimparUbuBatch
-    msg = MontarAcompanhamento()
+    ' estender o batch: horarios a mais com a media de Germano
+    nEstend = 0
+    If okG Then nEstend = EstenderGermano(n)
+    msg = MontarAcompanhamento(nEstend)
     seg = Int(Timer - t0)
     If seg < 0 Then seg = seg + 86400
     Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & IIf(simulado, " (SIMULAÇÃO)", "  -  " & seg & " s")
@@ -229,6 +233,55 @@ Falha:
     mOcupado = False
     Aviso "Erro no acompanhamento: " & Err.Description, vbExclamation, "MES - acompanhamento"
 End Sub
+
+' Estender o batch (aba de preenchimento, horas): os bi-horarios a mais depois do ultimo resultado de Germano recebem a
+' media dos resultados do MES de cada analise. Atualiza o Nº de horarios (n) e devolve quantos foram estendidos.
+Public Function EstenderGermano(ByRef n As Long) As Long
+    Dim nMais As Long, ultimo As Long, s As Long, p As Long, nNovo As Long, soma As Double, cnt As Long, v As Variant
+    If Not ENumero(Nm("bExtH").Value) Then Exit Function
+    nMais = Int(CDbl(Nm("bExtH").Value) / HORAS_SLOT + 0.5)      ' 2 h = 1 bi-horario (3 h -> 2)
+    If nMais <= 0 Then Exit Function
+    ' ultimo bi-horario com algum resultado de Germano
+    For s = 1 To NMAX
+        For p = 1 To NP
+            If ENumero(shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 0)).Value) Then ultimo = s
+        Next p
+    Next s
+    If ultimo = 0 Then Exit Function
+    nNovo = ultimo + nMais
+    If nNovo > NMAX Then nNovo = NMAX
+    nMais = nNovo - ultimo
+    If nMais <= 0 Then Exit Function
+    ModoCarga True
+    Desproteger shBatch
+    For p = 1 To NP
+        soma = 0
+        cnt = 0
+        For s = 1 To ultimo
+            v = shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 0)).Value
+            If ENumero(v) Then
+                soma = soma + CDbl(v)
+                cnt = cnt + 1
+            End If
+        Next s
+        For s = ultimo + 1 To NMAX
+            If s <= nNovo And cnt > 0 Then
+                shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 0)).Value = soma / cnt
+            ElseIf s <= nNovo Then
+                shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 0)).ClearContents
+            End If
+        Next s
+    Next p
+    ' horario de Germano dos estendidos: nao ha (so referencia)
+    For s = ultimo + 1 To nNovo
+        shBatch.Cells(B_ROW_G0 + s - 1, B_COL_TG).ClearContents
+    Next s
+    Nm("bNHor").Value = nNovo
+    Proteger shBatch
+    ModoCarga False
+    n = nNovo
+    EstenderGermano = nMais
+End Function
 
 Private Sub LimparUbuBatch()
     Dim p As Long

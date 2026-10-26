@@ -419,6 +419,7 @@ Public Sub LimparBatch()
     Nm("bFimU").MergeArea.ClearContents
     Nm("bNivel").MergeArea.ClearContents
     Nm("bIniPMan").MergeArea.ClearContents
+    Nm("bExtH").MergeArea.ClearContents
     Nm("bIncAcomp").Value = "Sim"
     RestaurarComentariosAuto True
     Nm("bFasesMsg").MergeArea.ClearContents
@@ -446,6 +447,16 @@ Public Sub LimparBatch()
     gAlterado = False
     AjustarGraficos
     AtualizarUltimos
+End Sub
+
+' Planilha de acompanhamento: limpa a aba de preenchimento para buscar o proximo batch (os blocos da aba de
+' acompanhamento ficam)
+Public Sub ProximoBatchAcomp()
+    If Aviso("Limpar a aba " & shBatch.Name & " para o próximo batch?" & vbCrLf & vbCrLf & _
+             "O que foi lançado na aba " & shAcomp.Name & " fica como está.", vbQuestion + vbYesNo, "Próximo batch", 6) <> vbYes Then Exit Sub
+    LimparBatch
+    On Error Resume Next
+    Nm("bId").Select
 End Sub
 
 Public Sub LimparLeituras()

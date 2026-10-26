@@ -32,9 +32,15 @@ Public Sub Inicializar()
     shLeituras.Visible = XL_HIDDEN
     shAcompReg.Visible = XL_HIDDEN
     shConfig.Visible = XL_VERYHIDDEN
+    ' abas que a variante nao usa: muito ocultas (o codigo e o mesmo nas duas planilhas)
+    If VARIANTE = "ACOMP" Then
+        shPainel.Visible = XL_VERYHIDDEN
+        shHist.Visible = XL_VERYHIDDEN
+    ElseIf VARIANTE = "COMP" Then
+        shAcomp.Visible = XL_VERYHIDDEN
+    End If
     gAlterado = False
     AtualizarUltimos
-    GarantirModeloAcomp
     AjustarGraficos
     shBatch.Activate
 End Sub
