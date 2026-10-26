@@ -220,13 +220,12 @@ Public Sub TesteLO()
     Ok CStr(V("bNivel")) = "Médio", "nivel reaberto"
 
     ' --- acompanhamento (batch em processamento): so Germano; modelo fixo com batch anterior e em processamento
-    Dim rb As Long, rb2 As Long, ubu As Double, kSE As Long
+    '     bloco: resumo (media, diferenca, tol., status) + grade com uma linha por bi-horario
+    Dim rb As Long, rb2 As Long, ubu As Double, gl As Long, cSi As Long, cSE As Long, rRes As Long
     Nm("bModo").Value = "Acompanhamento (em processamento)"
     LimparBatch
     GarantirModeloAcomp
-    Ok CStr(shAcomp.Cells(LinhaBlocoN(1), 2).Value) = "Batch" And CStr(shAcomp.Cells(LinhaBlocoN(2), 2).Value) = "Batch", _
-       "modelo com os dois blocos (anterior e em processamento)"
-    Ok IsEmpty(IdBloco(1)) And IsEmpty(IdBloco(2)), "modelo em branco"
+    Ok IsEmpty(IdBloco(1)) And IsEmpty(IdBloco(2)), "modelo em branco com os dois blocos"
     Nm("bId").Value = 295
     Nm("bIniG").Value = DateSerial(2026, 10, 21) + TimeSerial(18, 10, 0)
     Nm("bFimG").Value = DateSerial(2026, 10, 22) + TimeSerial(20, 0, 0)
@@ -242,48 +241,58 @@ Public Sub TesteLO()
     Ok ENumero(Celula(1, pSi, 0)) And Not ENumero(Celula(1, pSi, 1)), "acompanhamento: Germano sim, Ubu nao"
     rb = LinhaBloco(shAcomp, 295)
     Ok rb = LinhaBlocoN(2) And IsEmpty(IdBloco(1)), "295 no bloco em processamento; anterior vazio (" & rb & ")"
-    Ok CStr(shAcomp.Cells(rb + 3, 2).Value) = PRotulo(pSi) And CStr(shAcomp.Cells(rb + 3, 3).Value) = "Germano", _
-       "rotulo SiO2 / Germano"
-    Ok CStr(shAcomp.Cells(rb + 4, 3).Value) = ChrW(9998) & " Alimentação 04", "rotulo Alimentacao 04 (para lancar)"
-    Ok ENumero(shAcomp.Cells(rb + 3, 4).Value), "SiO2 Germano no bloco"
-    Ok Not ENumero(shAcomp.Cells(rb + 4, 4).Value), "Ubu de outro batch (aba Batch) nao entra no bloco"
-    kSE = rb + 3 + 4 * 3
-    Ok CStr(shAcomp.Cells(kSE, 2).Value) = PRotulo(PIndice("SE")) And ENumero(shAcomp.Cells(kSE, 4).Value), _
-       "S.E. no mesmo bloco (fisico)"
-    Ok Abs(CDbl(shAcomp.Cells(rb + 2, 4).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value)) < 0.0001, _
-       "inicio aproximado no processo = horario de Ubu"
+    cSi = ColAnalise(1)
+    cSE = ColAnalise(4)
+    gl = LinhaGrade(rb, 1)
+    Ok InStr(CStr(shAcomp.Cells(rb, 2).Value), "BATCH 295") = 1 And InStr(CStr(shAcomp.Cells(rb, 2).Value), "EM PROCESSAMENTO") > 0, _
+       "faixa do batch (" & shAcomp.Cells(rb, 2).Value & ")"
+    Ok InStr(CStr(shAcomp.Cells(rb + 1, 2).Value), "Nível dos tanques: Médio") > 0, "informacoes do batch: " & shAcomp.Cells(rb + 1, 2).Value
+    Ok CStr(shAcomp.Cells(gl - 2, cSi).Value) = PRotulo(pSi) And CStr(shAcomp.Cells(gl - 1, cSi).Value) = "Germano", _
+       "cabecalho da grade: SiO2 / Germano"
+    Ok CStr(shAcomp.Cells(gl - 1, cSi + 1).Value) = ChrW(9998) & " Alimentação 04", "coluna para lancar Alimentacao 04"
+    Ok ENumero(shAcomp.Cells(gl, cSi).Value) And Not ENumero(shAcomp.Cells(gl, cSi + 1).Value), _
+       "SiO2 Germano na grade; Ubu de outro batch nao entra"
+    Ok ENumero(shAcomp.Cells(gl, cSE).Value), "S.E. Germano na mesma linha do horario"
+    Ok Abs(CDbl(shAcomp.Cells(gl, 3).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value)) < 0.0001, _
+       "horario da linha = horario de Ubu"
     n = CLng(V("bNHor"))
-    Ok CStr(shAcomp.Cells(rb, 4 + n).Value) = "Média" And CStr(shAcomp.Cells(rb, 6 + n).Value) = "Status", "coluna Media depois dos " & n & " horarios"
-    ' Ubu lancado a mao: diferenca e media; refazer a busca nao apaga
+    Ok Not shAcomp.Rows(LinhaGrade(rb, n)).Hidden And shAcomp.Rows(LinhaGrade(rb, n + 1)).Hidden, _
+       "so as linhas dos " & n & " horarios aparecem"
+    ' Ubu lancado a mao: diferenca, media e status no resumo; refazer a busca nao apaga
+    rRes = rb + 5                       ' linha da SiO2 no resumo
     shAcomp.Unprotect
-    shAcomp.Cells(rb + 4, 4).Value = CDbl(shAcomp.Cells(rb + 3, 4).Value) + 0.1
-    shAcomp.Calculate
-    Ok Abs(CDbl(shAcomp.Cells(rb + 5, 4).Value) - 0.1) < 0.0001, "diferenca Ubu - Germano"
-    ' Status compara as medias: Ubu em todos os horarios = Germano + 0,1 -> OK; + 0,5 -> NOK
     For i = 1 To n
-        If ENumero(shAcomp.Cells(rb + 3, 3 + i).Value) Then shAcomp.Cells(rb + 4, 3 + i).Value = CDbl(shAcomp.Cells(rb + 3, 3 + i).Value) + 0.1
+        If ENumero(shAcomp.Cells(LinhaGrade(rb, i), cSi).Value) Then _
+            shAcomp.Cells(LinhaGrade(rb, i), cSi + 1).Value = CDbl(shAcomp.Cells(LinhaGrade(rb, i), cSi).Value) + 0.1
     Next i
     shAcomp.Calculate
-    Ok CStr(shAcomp.Cells(rb + 3, 6 + n).Value) = "OK", "status da SiO2: OK (" & shAcomp.Cells(rb + 3, 6 + n).Value & ")"
+    Ok Abs(CDbl(shAcomp.Cells(gl, cSi + 2).Value) - 0.1) < 0.0001, "diferenca Ubu - Germano na grade"
+    Ok Abs(CDbl(shAcomp.Cells(rRes, 8).Value) - 0.1) < 0.0001, "diferenca das medias no resumo (" & shAcomp.Cells(rRes, 8).Value & ")"
+    Ok CStr(shAcomp.Cells(rRes, 11).Value) = "OK", "status da SiO2: OK (" & shAcomp.Cells(rRes, 11).Value & ")"
+    Ok InStr(CStr(shAcomp.Cells(rRes, 12).Value), "/ " & n) > 0, "leituras G / U: " & shAcomp.Cells(rRes, 12).Value
     For i = 1 To n
-        If ENumero(shAcomp.Cells(rb + 3, 3 + i).Value) Then shAcomp.Cells(rb + 4, 3 + i).Value = CDbl(shAcomp.Cells(rb + 3, 3 + i).Value) + 0.5
+        If ENumero(shAcomp.Cells(LinhaGrade(rb, i), cSi).Value) Then _
+            shAcomp.Cells(LinhaGrade(rb, i), cSi + 1).Value = CDbl(shAcomp.Cells(LinhaGrade(rb, i), cSi).Value) + 0.5
     Next i
     shAcomp.Calculate
-    Ok CStr(shAcomp.Cells(rb + 3, 6 + n).Value) = "NOK", "status da SiO2: NOK com diferenca 0,5"
-    shAcomp.Range(shAcomp.Cells(rb + 4, 5), shAcomp.Cells(rb + 4, 3 + n)).ClearContents
-    shAcomp.Cells(rb + 4, 4).Value = CDbl(shAcomp.Cells(rb + 3, 4).Value) + 0.1
+    Ok CStr(shAcomp.Cells(rRes, 11).Value) = "NOK", "status da SiO2: NOK com diferenca 0,5"
+    Ok InStr(CStr(shAcomp.Cells(rb, 12).Value), "1 análise fora") = 1, "faixa: 1 analise fora (" & shAcomp.Cells(rb, 12).Value & ")"
+    shAcomp.Range(shAcomp.Cells(LinhaGrade(rb, 2), cSi + 1), shAcomp.Cells(LinhaGrade(rb, n), cSi + 1)).ClearContents
+    shAcomp.Cells(gl, cSi + 1).Value = CDbl(shAcomp.Cells(gl, cSi).Value) + 0.1
+    shAcomp.Cells(gl, ColObsHora()).Value = "amostra repetida"
+    CelObs(shAcomp, rb).Value = "SiO2 acima na 1a leitura"
     shAcomp.Calculate
-    Ok ENumero(shAcomp.Cells(rb + 4, 4 + n).Value), "media de Ubu"
-    ubu = CDbl(shAcomp.Cells(rb + 4, 4).Value)
-    Ok CStr(shAcomp.Cells(rb + AlturaBloco() - 1, 2).Value) = "Observação", "linha de observacao no fim do bloco"
-    shAcomp.Cells(rb + AlturaBloco() - 1, 4).Value = "SiO2 acima na 1a leitura"
+    ubu = CDbl(shAcomp.Cells(gl, cSi + 1).Value)
     BuscarMES
     rb = LinhaBloco(shAcomp, 295)
-    Ok rb = LinhaBlocoN(2) And Abs(CDbl(shAcomp.Cells(rb + 4, 4).Value) - ubu) < 0.0001, "Ubu lancado fica depois de buscar de novo"
+    gl = LinhaGrade(rb, 1)
+    Ok rb = LinhaBlocoN(2) And Abs(CDbl(shAcomp.Cells(gl, cSi + 1).Value) - ubu) < 0.0001, "Ubu lancado fica depois de buscar de novo"
+    Ok CStr(shAcomp.Cells(gl, ColObsHora()).Value) = "amostra repetida" And _
+       CStr(CelObs(shAcomp, rb).Value) = "SiO2 acima na 1a leitura", "observacoes ficam depois de buscar de novo"
     gUltimaMsg = ""
     SalvarHistorico
     Ok LinhaHistorico(295) = 0 And InStr(gUltimaMsg, "Acompanhamento") > 0, "acompanhamento nao vai para o historico"
-    ' proximo batch: 295 vira anterior (com o Ubu lancado), 296 entra em processamento sem Ubu nenhum
+    ' proximo batch: 295 vira anterior (com o Ubu e as observacoes), 296 entra em processamento sem Ubu nenhum
     Nm("bId").Value = 296
     AtualizarUltimos
     Ok CStr(shBatch.Cells(B_ROW_ULT, U_COL_BATCH).Value) = "Batch 295", "ultimo batch = 295 (" & _
@@ -296,11 +305,14 @@ Public Sub TesteLO()
     rb = LinhaBloco(shAcomp, 296)
     rb2 = LinhaBloco(shAcomp, 295)
     Ok rb = LinhaBlocoN(2) And rb2 = LinhaBlocoN(1), "295 anterior em cima, 296 em processamento embaixo (" & rb2 & ", " & rb & ")"
-    Ok Abs(CDbl(shAcomp.Cells(rb2 + 4, 4).Value) - ubu) < 0.0001, "Ubu do 295 vai junto para o bloco anterior"
-    Ok CStr(shAcomp.Cells(rb2 + AlturaBloco() - 1, 4).Value) = "SiO2 acima na 1a leitura", "observacao vai junto com o bloco"
-    Ok Vazio(shAcomp.Cells(rb + AlturaBloco() - 1, 4).Value), "296 sem observacao"
-    Ok Not ENumero(shAcomp.Cells(rb + 4, 4).Value), "296 sem Ubu (nao repete o do 295)"
-    Ok ENumero(shAcomp.Cells(rb2 + 3, 4).Value) And ENumero(shAcomp.Cells(rb + 3, 4).Value), "Germano nos dois blocos"
+    Ok Abs(CDbl(shAcomp.Cells(LinhaGrade(rb2, 1), cSi + 1).Value) - ubu) < 0.0001, "Ubu do 295 vai junto para o bloco anterior"
+    Ok CStr(CelObs(shAcomp, rb2).Value) = "SiO2 acima na 1a leitura" And _
+       CStr(shAcomp.Cells(LinhaGrade(rb2, 1), ColObsHora()).Value) = "amostra repetida", "observacoes vao junto com o bloco"
+    Ok InStr(CStr(shAcomp.Cells(rb2, 2).Value), "BATCH ANTERIOR") > 0, "faixa do 295: batch anterior"
+    Ok Not ENumero(shAcomp.Cells(LinhaGrade(rb, 1), cSi + 1).Value) And Vazio(CelObs(shAcomp, rb).Value), _
+       "296 sem Ubu e sem observacao (nao repete o do 295)"
+    Ok ENumero(shAcomp.Cells(LinhaGrade(rb2, 1), cSi).Value) And ENumero(shAcomp.Cells(LinhaGrade(rb, 1), cSi).Value), _
+       "Germano nos dois blocos"
     ' 297: 296 vira anterior e o 295 sai da aba
     Nm("bId").Value = 297
     BuscarMES

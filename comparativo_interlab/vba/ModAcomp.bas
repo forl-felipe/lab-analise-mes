@@ -10,12 +10,16 @@ Option Explicit
 
 ' Coluna auxiliar (oculta) com o teste de tolerancia da media: a formatacao condicional so aponta para ela
 ' (formula de formatacao condicional e escrita no idioma do Excel; referencia simples funciona em todos)
+' Bloco (padrao do Painel): faixa do batch, informacoes, RESUMO (tipo farol) + OBSERVACOES e a grade LEITURAS POR
+' BI-HORARIO (uma linha por horario; para cada analise: Germano | Alimentacao 04 | Diferenca; observacao do horario).
+' Colunas (1-based): B = No, C = horario (Ubu), D... = 3 por analise, depois a observacao do horario.
+Private Const A_COL_N As Long = 2
+Private Const A_COL_HORA As Long = 3
+Private Const A_COL_G1 As Long = 4
+' Colunas ocultas: numero do batch, Nº de horarios e versao do desenho (na 1a linha do bloco) e os testes de tolerancia
+' (a formatacao condicional so aponta para eles: formula de formatacao condicional e escrita no idioma do Excel)
 Private Const A_COL_AUX As Long = 40
-' colunas do bloco: B = analise (ou "Batch"/"Data"...), C = Germano / Alimentacao 04 / Diferenca, D... = bi-horarios,
-' depois Media, Tol. e Status
-Private Const A_COL_ROT As Long = 2
-Private Const A_COL_SUB As Long = 3
-Private Const A_COL_V1 As Long = 4
+Private Const VERSAO_BLOCO As String = "ACOMP3"
 ' Paleta Samarco (kit visual): RGB() da cor
 Private Const COR_AZUL As Long = 5911296          ' #00335A Azul Samarco
 Private Const COR_AZUL_MEDIO As Long = 7356416    ' #004070 Azul medio
@@ -35,6 +39,10 @@ Private Const COR_OK As Long = 5274634             ' #0A7C50
 Private Const COR_OK_BG As Long = 15529187         ' #E3F4EC
 Private Const COR_NOK As Long = 2631878            ' #C62828
 Private Const COR_NOK_BG As Long = 15132411        ' #FBE6E6
+Private Const COR_TH As Long = 15723494            ' #E6EBEF cabecalho de tabela (Painel)
+Private Const COR_LINHA As Long = 14143945         ' #C9D1D7
+Private Const COR_LINHA2 As Long = 15000541        ' #DDE3E4
+Private Const COR_CINZA_TXT As Long = 7826267      ' #5B6B77
 
 ' planilha online aberta por esta macro (fecha depois)
 Private mAbertaAqui As Workbook
@@ -47,7 +55,7 @@ End Function
 ' Modelo fixo com dois blocos: 1 = batch ANTERIOR (em cima), 2 = batch EM PROCESSAMENTO (embaixo).
 ' Buscar no MES so preenche: o batch da aba Batch atualiza o bloco dele; um batch novo (numero maior que o
 ' em processamento) passa o em processamento para anterior (com tudo o que foi lancado) e entra embaixo.
-' Ubu e observacao vem SO do que foi lancado no proprio bloco (nunca da aba Batch).
+' Ubu e observacoes vem SO do que foi lancado no proprio bloco (nunca da aba Batch).
 ' Planilha online (SharePoint, .xlsx sem macros): mesma aba, para o fisico e o quimico lancarem juntos no navegador.
 ' Com ela configurada, a busca atualiza a online (que e a que vale para Ubu) e esta aba vira copia dela.
 
@@ -59,24 +67,38 @@ Private Function NAnalises() As Long
     NAnalises = UBound(Split(ChavesAcomp(), "|")) + 1
 End Function
 
-' Linhas: Batch, Data, Inicio (Ubu); por analise Germano, Alimentacao 04, Diferenca e uma linha de folga;
-' no fim, Observacao
+' Linhas do bloco: faixa, informacoes, folga, titulos, cabecalho do resumo, 1 por analise, legenda, folga,
+' titulo da grade, 2 de cabecalho e NMAX horarios
 Public Function AlturaBloco() As Long
-    AlturaBloco = 3 + 4 * NAnalises()
+    AlturaBloco = 10 + NAnalises() + NMAX
 End Function
 
-' 1a linha do bloco i (1 = anterior, 2 = em processamento); a linha de cima e o titulo do bloco
+' 1a linha do bloco i (1 = anterior, 2 = em processamento)
 Public Function LinhaBlocoN(ByVal i As Long) As Long
     LinhaBlocoN = A_ROW0 + 1 + (i - 1) * (AlturaBloco() + 2)
 End Function
 
-' 1a linha (Germano) da analise k do bloco que comeca em r
-Private Function LinhaAnalise(ByVal r As Long, ByVal k As Long) As Long
-    LinhaAnalise = r + 3 + 4 * (k - 1)
+Private Function LinhaResumo(ByVal r As Long, ByVal k As Long) As Long
+    LinhaResumo = r + 4 + k
 End Function
 
-Private Function LinhaObs(ByVal r As Long) As Long
-    LinhaObs = r + AlturaBloco() - 1
+' Linha do horario s na grade do bloco que comeca em r
+Public Function LinhaGrade(ByVal r As Long, ByVal s As Long) As Long
+    LinhaGrade = r + 9 + NAnalises() + s
+End Function
+
+' Coluna de Germano da analise k (Alimentacao 04 = +1, Diferenca = +2)
+Public Function ColAnalise(ByVal k As Long) As Long
+    ColAnalise = A_COL_G1 + 3 * (k - 1)
+End Function
+
+Public Function ColObsHora() As Long
+    ColObsHora = A_COL_G1 + 3 * NAnalises()
+End Function
+
+' Observacao geral do bloco (canto direito do resumo)
+Public Function CelObs(ByVal ws As Worksheet, ByVal r As Long) As Range
+    Set CelObs = ws.Cells(r + 4, A_COL_G1 + 10)
 End Function
 
 ' Numero do batch do bloco i da aba Acompanhamento (Empty = bloco vazio)
@@ -87,8 +109,7 @@ End Function
 Private Function IdBlocoEm(ByVal ws As Worksheet, ByVal i As Long) As Variant
     Dim v As Variant
     IdBlocoEm = Empty
-    v = ws.Cells(LinhaBlocoN(i), A_COL_V1).Value
-    ' so celula numerica ("—" do modelo em branco nao e numero)
+    v = ws.Cells(LinhaBlocoN(i), A_COL_AUX).Value
     If VarType(v) = vbDouble Or VarType(v) = vbLong Or VarType(v) = vbInteger Or VarType(v) = vbCurrency Then
         IdBlocoEm = CDbl(v)
     End If
@@ -110,55 +131,65 @@ Public Function LinhaBloco(ByVal ws As Worksheet, ByVal id As Variant) As Long
     Next i
 End Function
 
-' Coluna "Media" do bloco que comeca em r
-Private Function ColunaMedia(ByVal ws As Worksheet, ByVal r As Long) As Long
-    Dim c As Long
-    ColunaMedia = 0
-    For c = A_COL_V1 To A_COL_V1 + NMAX
-        If CStr(ws.Cells(r, c).Value) = "Média" Then
-            ColunaMedia = c
-            Exit Function
-        End If
-    Next c
-End Function
-
-' Le o bloco i de ws: numero, horarios, horarios de Ubu, Germano e Ubu por analise e a observacao
+' Le o bloco i de ws (numero, Nº de horarios, horarios, Germano, Ubu, observacoes e a linha de informacoes)
 Private Sub LerBloco(ByVal ws As Worksheet, ByVal i As Long, ByRef id As Variant, ByRef n As Long, tU() As Variant, _
-                     ger() As Variant, ubu() As Variant, ByRef obs As Variant)
-    Dim r As Long, s As Long, k As Long, c As Long
+                     ger() As Variant, ubu() As Variant, ByRef obs As Variant, obsH() As Variant, ByRef info As Variant)
+    Dim r As Long, s As Long, k As Long, rr As Long, v As Variant
     r = LinhaBlocoN(i)
     id = IdBlocoEm(ws, i)
-    n = ColunaMedia(ws, r) - A_COL_V1
-    If n < 0 Then n = 0
+    n = 0
+    v = ws.Cells(r, A_COL_AUX + 1).Value
+    If ENumero(v) Then n = CLng(v)
+    If n > NMAX Then n = NMAX
     ReDim tU(1 To NMAX)
     ReDim ger(1 To NAnalises(), 1 To NMAX)
     ReDim ubu(1 To NAnalises(), 1 To NMAX)
-    For s = 1 To n
-        c = A_COL_V1 + s - 1
-        tU(s) = ws.Cells(r + 2, c).Value
-        For k = 1 To NAnalises()
-            ger(k, s) = ws.Cells(LinhaAnalise(r, k), c).Value
-            ubu(k, s) = ws.Cells(LinhaAnalise(r, k) + 1, c).Value
-        Next k
-    Next s
+    ReDim obsH(1 To NMAX)
     obs = Empty
-    If CStr(ws.Cells(LinhaObs(r), A_COL_ROT).Value) = "Observação" Then obs = ws.Cells(LinhaObs(r), A_COL_V1).Value
+    info = Empty
+    If CStr(ws.Cells(r, A_COL_AUX + 2).Value) <> VERSAO_BLOCO Then Exit Sub
+    For s = 1 To n
+        rr = LinhaGrade(r, s)
+        tU(s) = ws.Cells(rr, A_COL_HORA).Value
+        For k = 1 To NAnalises()
+            ger(k, s) = ws.Cells(rr, ColAnalise(k)).Value
+            ubu(k, s) = ws.Cells(rr, ColAnalise(k) + 1).Value
+        Next k
+        obsH(s) = ws.Cells(rr, ColObsHora()).Value
+    Next s
+    obs = CelObs(ws, r).Value
+    info = ws.Cells(r + 1, A_COL_N).Value
 End Sub
 
 ' Copia os dois blocos de uma aba para outra (online -> esta, ou esta -> online)
 Private Sub EspelharBlocos(ByVal origem As Worksheet, ByVal destino As Worksheet)
     Dim i As Long, id As Variant, n As Long, tU() As Variant, ger() As Variant, ubu() As Variant, obs As Variant
+    Dim obsH() As Variant, info As Variant
     For i = 1 To 2
-        LerBloco origem, i, id, n, tU, ger, ubu, obs
-        DesenharBloco destino, i, id, n, tU, ger, ubu, obs
+        LerBloco origem, i, id, n, tU, ger, ubu, obs, obsH, info
+        DesenharBloco destino, i, id, n, tU, ger, ubu, obs, obsH, info
     Next i
 End Sub
+
+' Linha de informacoes do batch (aba Batch)
+Private Function InfoBatch(ByVal n As Long) As String
+    Dim t As String
+    If EData(Nm("bIniU").Value) Then t = "Chegada em Ubu (UBU3): " & Format$(CDate(Nm("bIniU").Value), "dd\/mm hh:mm")
+    If CfgTxt("bNivel") <> "" Then t = t & IIf(t <> "", "   " & ChrW(183) & "   ", "") & "Nível dos tanques: " & CfgTxt("bNivel")
+    If EData(Nm("bIniP").Value) Then t = t & IIf(t <> "", "   " & ChrW(183) & "   ", "") & "Início no processo: " & _
+        Format$(CDate(Nm("bIniP").Value), "dd\/mm hh:mm")
+    If EData(Nm("bIniG").Value) Then t = t & IIf(t <> "", "   " & ChrW(183) & "   ", "") & "Germano (EB06): " & _
+        Format$(CDate(Nm("bIniG").Value), "dd\/mm hh:mm") & IIf(EData(Nm("bFimG").Value), " a " & _
+        Format$(CDate(Nm("bFimG").Value), "dd\/mm hh:mm"), "")
+    t = t & IIf(t <> "", "   " & ChrW(183) & "   ", "") & n & " bi-horários"
+    InfoBatch = t
+End Function
 
 ' Monta/atualiza o bloco do batch da aba Batch; devolve uma linha para a mensagem
 Public Function MontarAcompanhamento() As String
     Dim id As Variant, n As Long, s As Long, k As Long, p As Long, ps As Variant, msg As String
     Dim tU() As Variant, tG() As Variant, ger() As Variant, v As Variant, vazios As String, temG As Boolean
-    Dim wbO As Workbook, wsO As Worksheet, msgO As String, r As String
+    Dim wbO As Workbook, wsO As Worksheet, msgO As String, r As String, info As String
 
     id = Nm("bId").Value
     If Not ENumero(id) Then Exit Function
@@ -192,13 +223,14 @@ Public Function MontarAcompanhamento() As String
             End If
         End If
     Next s
+    info = InfoBatch(n)
 
     ' planilha online: e la que o fisico e o quimico lancam Ubu; atualiza la e copia para esta aba
     If CfgTxt("cfgArqOnline") <> "" Then
         Set wbO = AbrirOnline(msgO)
         If Not wbO Is Nothing Then
             Set wsO = AbaOnline(wbO)
-            r = AtualizarBlocos(wsO, id, n, tU, ger)
+            r = AtualizarBlocos(wsO, id, n, tU, ger, info)
             If r <> "CANCELADO" Then
                 wbO.Save
                 EspelharBlocos wsO, shAcomp
@@ -206,10 +238,10 @@ Public Function MontarAcompanhamento() As String
             End If
             FecharOnline wbO, False
         Else
-            r = AtualizarBlocos(shAcomp, id, n, tU, ger)
+            r = AtualizarBlocos(shAcomp, id, n, tU, ger, info)
         End If
     Else
-        r = AtualizarBlocos(shAcomp, id, n, tU, ger)
+        r = AtualizarBlocos(shAcomp, id, n, tU, ger, info)
     End If
     If r = "CANCELADO" Then
         MontarAcompanhamento = "Aba Acompanhamento não alterada."
@@ -227,16 +259,18 @@ Public Function MontarAcompanhamento() As String
     MontarAcompanhamento = msg
 End Function
 
-' Coloca o batch nos blocos de ws (anterior / em processamento) com Germano e horarios novos; Ubu e observacao
+' Coloca o batch nos blocos de ws (anterior / em processamento) com Germano e horarios novos; Ubu e observacoes
 ' ficam os que ja estavam no bloco do batch. Devolve a mensagem ("CANCELADO" se o usuario desistiu).
 Private Function AtualizarBlocos(ByVal ws As Worksheet, ByVal id As Double, ByVal n As Long, tU() As Variant, _
-                                 ger() As Variant) As String
+                                 ger() As Variant, ByVal info As String) As String
     Dim alvo As Long, s As Long, k As Long, msg As String, id1 As Variant, id2 As Variant
-    Dim ubu() As Variant, obs As Variant
+    Dim ubu() As Variant, obs As Variant, obsH() As Variant
     Dim vId As Variant, nV As Long, vU() As Variant, vGer() As Variant, vUbu() As Variant, vObs As Variant
+    Dim vObsH() As Variant, vInfo As Variant
 
     GarantirModeloEm ws
     ReDim ubu(1 To NAnalises(), 1 To NMAX)
+    ReDim obsH(1 To NMAX)
     id1 = IdBlocoEm(ws, 1)
     id2 = IdBlocoEm(ws, 2)
     If ENumero(id2) And CDbl(id2) = id Then
@@ -247,9 +281,9 @@ Private Function AtualizarBlocos(ByVal ws As Worksheet, ByVal id As Double, ByVa
         alvo = 2
     ElseIf id > CDbl(id2) Then
         ' batch novo: o em processamento passa a anterior, com tudo o que foi lancado
-        LerBloco ws, 2, vId, nV, vU, vGer, vUbu, vObs
-        DesenharBloco ws, 1, vId, nV, vU, vGer, vUbu, vObs
-        DesenharBloco ws, 2, Empty, 0, vU, vGer, vUbu, Empty
+        LerBloco ws, 2, vId, nV, vU, vGer, vUbu, vObs, vObsH, vInfo
+        DesenharBloco ws, 1, vId, nV, vU, vGer, vUbu, vObs, vObsH, vInfo
+        DesenharBloco ws, 2, Empty, 0, vU, vGer, vUbu, Empty, vObsH, Empty
         msg = "Batch " & id2 & " passou para ""batch anterior"". "
         alvo = 2
     Else
@@ -261,183 +295,152 @@ Private Function AtualizarBlocos(ByVal ws As Worksheet, ByVal id As Double, ByVa
         End If
         alvo = 1
     End If
-    ' Ubu e observacao: so o que ja estava lancado no bloco deste batch (por horario de Ubu; sem horario, posicao)
+    ' Ubu e observacoes: so o que ja estava lancado no bloco deste batch (por horario de Ubu; sem horario, posicao)
     If LinhaBloco(ws, id) > 0 Then
-        LerBloco ws, alvo, vId, nV, vU, vGer, vUbu, vObs
+        LerBloco ws, alvo, vId, nV, vU, vGer, vUbu, vObs, vObsH, vInfo
         For s = 1 To n
             For k = 1 To NAnalises()
                 ubu(k, s) = ValorVelho(vU, vUbu, nV, k, s, tU(s))
             Next k
+            obsH(s) = ObsVelha(vU, vObsH, nV, s, tU(s))
         Next s
         obs = vObs
     End If
-    DesenharBloco ws, alvo, id, n, tU, ger, ubu, obs
+    DesenharBloco ws, alvo, id, n, tU, ger, ubu, obs, obsH, info
     AtualizarBlocos = msg & "Aba Acompanhamento: batch " & id & IIf(alvo = 2, " em processamento", " (batch anterior)") & _
                       ", " & n & " horários."
 End Function
 
 ' Desenha o bloco i de ws (id vazio = modelo em branco) com os dados passados
 Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Variant, ByVal n As Long, tU() As Variant, _
-                          ger() As Variant, ubu() As Variant, ByVal obs As Variant)
-    Dim ps As Variant, h As Long, r As Long, k As Long, s As Long, p As Long, c As Long
-    Dim cM As Long, cT As Long, cS As Long, rr As Long, dec As Long, fmt As String, rg As Range, nomeUbu As String
-    Dim chave As String, cG As String, cU As String, area As Range, aux As Range, ro As Long
+                          ger() As Variant, ubu() As Variant, ByVal obs As Variant, obsH() As Variant, ByVal info As Variant)
+    Dim ps As Variant, na As Long, h As Long, r As Long, k As Long, s As Long, p As Long, c As Long, rr As Long
+    Dim dec As Long, fmt As String, rg As Range, nomeUbu As String, chave As String, area As Range, aux As Range
+    Dim cO As Long, rG1 As Long, rGn As Long, colG As String, colU As String, tol As Range, dif As Range
+    Dim st As Range, nVis As Long, vazio As Boolean
 
     ps = Split(ChavesAcomp(), "|")
+    na = NAnalises()
     h = AlturaBloco()
     r = LinhaBlocoN(i)
+    cO = ColObsHora()
+    vazio = Not ENumero(id)
     nomeUbu = CfgTxt("padNomeUbuAcomp")
     If nomeUbu = "" Then nomeUbu = "Ubu"
-    If n < 1 Then n = 12                       ' modelo em branco
+    nVis = n
+    If nVis < 1 Then nVis = 12                       ' modelo em branco
     Desproteger ws
-    ' limpa a area do bloco (com o titulo) sem mexer nas linhas da aba
-    Set area = ws.Range(ws.Cells(r - 1, 1), ws.Cells(r + h, A_COL_AUX + NMAX))
+    Set area = ws.Range(ws.Cells(r - 1, 1), ws.Cells(r + h, A_COL_AUX + na + 2))
     area.UnMerge
     area.Clear
     SemFormatoCondicional area
-    cM = A_COL_V1 + n
-    cT = cM + 1
-    cS = cM + 2
-    ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 18
-    ws.Rows(r).RowHeight = 26
-    ws.Rows(r - 1).RowHeight = 22
+    area.EntireRow.Hidden = False
+    ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 17
+    ' marcadores ocultos
+    If Not vazio Then ws.Cells(r, A_COL_AUX).Value = CDbl(id)
+    ws.Cells(r, A_COL_AUX + 1).Value = IIf(vazio, 0, n)
+    ws.Cells(r, A_COL_AUX + 2).Value = VERSAO_BLOCO
 
-    ' titulo do bloco
-    With ws.Cells(r - 1, A_COL_ROT)
-        .Value = IIf(i = 1, "BATCH ANTERIOR", "BATCH EM PROCESSAMENTO")
-        .Font.Bold = True
-        .Font.Name = "Segoe UI"
-        .Font.Size = 10
-        .Font.Color = COR_AZUL_TIT
-        .VerticalAlignment = -4107
-    End With
-    With ws.Range(ws.Cells(r - 1, A_COL_ROT), ws.Cells(r - 1, cS)).Borders(9)
-        .LineStyle = 1
-        .Weight = -4138
-        .Color = COR_AMARELO
-    End With
+    ' ---- faixa do batch (como o cabecalho do Painel) e informacoes
+    ws.Rows(r).RowHeight = 30
+    Set rg = ws.Range(ws.Cells(r, A_COL_N), ws.Cells(r, A_COL_G1 + 7))
+    Faixa rg, COR_AZUL, COR_BRANCO, 14
+    rg.Cells(1, 1).Value = IIf(vazio, "BATCH " & ChrW(8212), "BATCH " & id) & "   |   " & _
+                           IIf(i = 1, "BATCH ANTERIOR", "EM PROCESSAMENTO")
+    rg.IndentLevel = 1
+    Set rg = ws.Range(ws.Cells(r, A_COL_G1 + 8), ws.Cells(r, cO))
+    Faixa rg, COR_AZUL, COR_AMARELO, 10
+    rg.HorizontalAlignment = -4152
+    rg.IndentLevel = 1
+    ws.Rows(r + 1).RowHeight = 20
+    Set rg = ws.Range(ws.Cells(r + 1, A_COL_N), ws.Cells(r + 1, cO))
+    Faixa rg, COR_AZUL_MEDIO, COR_BRANCO, 9
+    If Not vazio And Not Vazio(info) Then rg.Cells(1, 1).Value = CStr(info)
+    rg.IndentLevel = 1
+    LinhaAmarela rg
+    ws.Rows(r + 2).RowHeight = 8
 
-    ' cabecalho: Batch / Data / Inicio aproximado no processo (horario oficial = Ubu)
-    Juntar ws.Range(ws.Cells(r, A_COL_ROT), ws.Cells(r, A_COL_SUB)), "Batch", COR_AZUL, COR_BRANCO, True
-    Set rg = ws.Range(ws.Cells(r, A_COL_V1), ws.Cells(r, cM - 1))
-    Celulas rg, COR_AZUL, COR_BRANCO, True
-    rg.Merge
-    If ENumero(id) Then
-        rg.Cells(1, 1).Value = CDbl(id)
-    Else
-        rg.Cells(1, 1).Value = "—"
-    End If
-    rg.Cells(1, 1).NumberFormat = """Batch ""0"
-    rg.Font.Size = 14
-    rg.HorizontalAlignment = -4108
-    Rotulo ws.Cells(r, cM), "Média", COR_AZUL_MEDIO, COR_BRANCO, True
-    Rotulo ws.Cells(r, cT), "Tol. (±)", COR_AZUL_MEDIO, COR_BRANCO, True
-    Rotulo ws.Cells(r, cS), "Status", COR_AZUL_MEDIO, COR_BRANCO, True
-    LinhaAmarela ws.Range(ws.Cells(r, A_COL_ROT), ws.Cells(r, cS))
-    Juntar ws.Range(ws.Cells(r + 1, A_COL_ROT), ws.Cells(r + 1, A_COL_SUB)), "Data", COR_CINZA_CLARO, COR_AZUL_TIT, True
-    Juntar ws.Range(ws.Cells(r + 2, A_COL_ROT), ws.Cells(r + 2, A_COL_SUB)), "Início aproximado no processo", _
-           COR_CINZA_CLARO, COR_AZUL_TIT, True
-    ws.Cells(r + 2, A_COL_ROT).Font.Size = 8.5
-    For s = 1 To n
-        c = A_COL_V1 + s - 1
-        Celulas ws.Cells(r + 1, c), COR_BRANCO, COR_AZUL_TIT, False
-        Celulas ws.Cells(r + 2, c), COR_BRANCO, COR_LARANJA, True
-        If ENumero(id) Then
-            If EData(tU(s)) Then
-                ws.Cells(r + 1, c).Value = CDate(Int(CDbl(tU(s))))
-                ws.Cells(r + 2, c).Value = CDate(tU(s))
-            End If
-        End If
-        ws.Cells(r + 1, c).NumberFormat = "dd/mm"
-        ws.Cells(r + 2, c).NumberFormat = "hh:mm"
-    Next s
-    Set rg = ws.Range(ws.Cells(r + 1, cM), ws.Cells(r + 2, cS))
-    Celulas rg, COR_BRANCO, COR_AZUL_TIT, False
-    rg.Merge
-
-    ' analises (quimicas e fisicas juntas): nome | Germano (MES) / Alimentacao 04 (a mao) / Diferenca (Ubu - Germano)
-    For k = 1 To NAnalises()
+    ' ---- RESUMO (tipo farol do Painel) e OBSERVACOES
+    Titulo ws.Range(ws.Cells(r + 3, A_COL_N), ws.Cells(r + 3, A_COL_G1 + 8)), "RESUMO DO BATCH   (média de todas as leituras)"
+    Titulo ws.Range(ws.Cells(r + 3, A_COL_G1 + 10), ws.Cells(r + 3, cO)), "OBSERVAÇÕES"
+    ws.Rows(r + 4).RowHeight = 28
+    Cabec ws.Range(ws.Cells(r + 4, A_COL_N), ws.Cells(r + 4, A_COL_HORA)), "ANÁLISE"
+    Cabec ws.Range(ws.Cells(r + 4, A_COL_G1), ws.Cells(r + 4, A_COL_G1 + 1)), "GERMANO" & vbLf & "(MÉDIA)"
+    Cabec ws.Range(ws.Cells(r + 4, A_COL_G1 + 2), ws.Cells(r + 4, A_COL_G1 + 3)), UCase$(nomeUbu) & vbLf & "(MÉDIA)"
+    Cabec ws.Range(ws.Cells(r + 4, A_COL_G1 + 4), ws.Cells(r + 4, A_COL_G1 + 5)), "DIFERENÇA" & vbLf & "(UBU " & ChrW(8722) & " GERMANO)"
+    Cabec ws.Range(ws.Cells(r + 4, A_COL_G1 + 6), ws.Cells(r + 4, A_COL_G1 + 6)), "TOLER." & vbLf & "(±)"
+    Cabec ws.Range(ws.Cells(r + 4, A_COL_G1 + 7), ws.Cells(r + 4, A_COL_G1 + 7)), "STATUS"
+    Cabec ws.Range(ws.Cells(r + 4, A_COL_G1 + 8), ws.Cells(r + 4, A_COL_G1 + 8)), "LEITURAS" & vbLf & "G / U"
+    rG1 = LinhaGrade(r, 1)
+    rGn = LinhaGrade(r, nVis)
+    For k = 1 To na
         chave = CStr(ps(k - 1))
         p = PIndice(chave)
         dec = PDec(p)
         If dec = 0 Then fmt = "0" Else fmt = "0." & String$(dec, "0")
-        rr = LinhaAnalise(r, k)
-        Set rg = ws.Range(ws.Cells(rr, A_COL_ROT), ws.Cells(rr + 2, A_COL_ROT))
-        Celulas rg, COR_AZUL, COR_BRANCO, True
+        rr = LinhaResumo(r, k)
+        ws.Rows(rr).RowHeight = 21
+        colG = ws.Range(ws.Cells(rG1, ColAnalise(k)), ws.Cells(rGn, ColAnalise(k))).Address(False, False)
+        colU = ws.Range(ws.Cells(rG1, ColAnalise(k) + 1), ws.Cells(rGn, ColAnalise(k) + 1)).Address(False, False)
+        Set rg = ws.Range(ws.Cells(rr, A_COL_N), ws.Cells(rr, A_COL_HORA))
+        CelulaTabela rg, True
         rg.Merge
         rg.Cells(1, 1).Value = PRotulo(p)
-        rg.Font.Size = 12
-        rg.HorizontalAlignment = -4108
-        rg.VerticalAlignment = -4108
-        Rotulo ws.Cells(rr, A_COL_SUB), "Germano", COR_AZUL_MEDIO, COR_BRANCO, True
-        Rotulo ws.Cells(rr + 1, A_COL_SUB), ChrW(9998) & " " & nomeUbu, COR_AMARELO, COR_AZUL_PROF, True
-        Rotulo ws.Cells(rr + 2, A_COL_SUB), "Diferença", COR_CINZA_CLARO, COR_AZUL_TIT, False
-        Set rg = ws.Range(ws.Cells(rr, cT), ws.Cells(rr + 2, cT))
-        Celulas rg, COR_FUNDO, COR_AZUL_TIT, False
+        rg.HorizontalAlignment = -4131
+        rg.IndentLevel = 1
+        Set rg = ws.Range(ws.Cells(rr, A_COL_G1), ws.Cells(rr, A_COL_G1 + 1))
+        CelulaTabela rg, False
         rg.Merge
+        rg.Cells(1, 1).Formula = "=IF(COUNT(" & colG & ")=0,""—"",AVERAGE(" & colG & "))"
+        rg.NumberFormat = fmt
+        Set rg = ws.Range(ws.Cells(rr, A_COL_G1 + 2), ws.Cells(rr, A_COL_G1 + 3))
+        CelulaTabela rg, False
+        rg.Merge
+        rg.Cells(1, 1).Formula = "=IF(COUNT(" & colU & ")=0,""—"",AVERAGE(" & colU & "))"
+        rg.NumberFormat = fmt
+        Set tol = ws.Cells(rr, A_COL_G1 + 6)
+        CelulaTabela tol, False
         ' tolerancia (Configuracoes); na planilha online vai o numero (ela nao depende desta)
         If ws.Parent Is ThisWorkbook Then
-            rg.Cells(1, 1).Formula = "=padTol_" & chave
+            tol.Formula = "=padTol_" & chave
         Else
-            rg.Cells(1, 1).Value = CDbl(Nm("padTol_" & chave).Value)
+            tol.Value = CDbl(Nm("padTol_" & chave).Value)
         End If
-        rg.NumberFormat = fmt
-        rg.HorizontalAlignment = -4108
-        rg.VerticalAlignment = -4108
-        For s = 1 To n
-            c = A_COL_V1 + s - 1
-            ' MES e calculo: cinza (nao digita); lancamento: amarelo com borda dourada
-            Celulas ws.Cells(rr, c), COR_FUNDO, COR_AZUL_PROF, True
-            Celulas ws.Cells(rr + 2, c), COR_FUNDO, COR_AZUL_TIT, False
-            CelulaDigitar ws.Cells(rr + 1, c)
-            If ENumero(id) Then
-                If ENumero(ger(k, s)) Then ws.Cells(rr, c).Value = CDbl(ger(k, s))
-                If ENumero(ubu(k, s)) Then ws.Cells(rr + 1, c).Value = CDbl(ubu(k, s))
-            End If
-            cG = ws.Cells(rr, c).Address(False, False)
-            cU = ws.Cells(rr + 1, c).Address(False, False)
-            ws.Cells(rr + 2, c).Formula = "=IF(AND(ISNUMBER(" & cU & "),ISNUMBER(" & cG & "))," & cU & "-" & cG & ","""")"
-            ws.Range(ws.Cells(rr, c), ws.Cells(rr + 2, c)).NumberFormat = fmt
-            ' diferenca do bi-horario fora da tolerancia (celula Tol. do bloco): vermelho
-            Set aux = ws.Cells(rr + 2, A_COL_AUX + s)
-            aux.Formula = ForaTol(ws.Cells(rr + 2, c), dec, ws.Cells(rr, cT))
-            MarcarForaTol ws.Cells(rr + 2, c), aux
-        Next s
-        ' Media (de todas as leituras), Tol. e Status (media da diferenca x tolerancia)
-        Set rg = ws.Range(ws.Cells(rr, A_COL_V1), ws.Cells(rr, cM - 1))
-        ws.Cells(rr, cM).Formula = "=IF(COUNT(" & rg.Address(False, False) & ")=0,"""",AVERAGE(" & rg.Address(False, False) & "))"
-        Set rg = ws.Range(ws.Cells(rr + 1, A_COL_V1), ws.Cells(rr + 1, cM - 1))
-        ws.Cells(rr + 1, cM).Formula = "=IF(COUNT(" & rg.Address(False, False) & ")=0,"""",AVERAGE(" & rg.Address(False, False) & "))"
-        cG = ws.Cells(rr, cM).Address(False, False)
-        cU = ws.Cells(rr + 1, cM).Address(False, False)
-        ws.Cells(rr + 2, cM).Formula = "=IF(AND(ISNUMBER(" & cU & "),ISNUMBER(" & cG & "))," & cU & "-" & cG & ","""")"
-        Celulas ws.Range(ws.Cells(rr, cM), ws.Cells(rr + 1, cM)), COR_AZUL, COR_BRANCO, True
-        Celulas ws.Cells(rr + 2, cM), COR_CINZA_CLARO, COR_AZUL_PROF, True
-        ws.Range(ws.Cells(rr, cM), ws.Cells(rr + 2, cM)).NumberFormat = fmt
-        Set aux = ws.Cells(rr + 2, A_COL_AUX)
-        aux.Formula = ForaTol(ws.Cells(rr + 2, cM), dec, ws.Cells(rr, cT))
-        MarcarForaTol ws.Cells(rr + 2, cM), aux
-        Set rg = ws.Range(ws.Cells(rr, cS), ws.Cells(rr + 2, cS))
-        Celulas rg, COR_BRANCO, COR_AZUL_TIT, True
-        rg.Merge
-        rg.Cells(1, 1).Formula = "=IF(" & ws.Cells(rr + 2, cM).Address(False, False) & "="""","""",IF(" & _
-            aux.Address(False, False) & ",""NOK"",""OK""))"
-        rg.Font.Size = 11
-        rg.HorizontalAlignment = -4108
-        rg.VerticalAlignment = -4108
-        MarcarStatus rg
-        ' folga entre as analises
-        If k < NAnalises() Then ws.Rows(rr + 3).RowHeight = 6
+        tol.NumberFormat = fmt
+        Set dif = ws.Range(ws.Cells(rr, A_COL_G1 + 4), ws.Cells(rr, A_COL_G1 + 5))
+        CelulaTabela dif, True
+        dif.Merge
+        dif.Cells(1, 1).Formula = "=IF(AND(ISNUMBER(" & ws.Cells(rr, A_COL_G1 + 2).Address(False, False) & "),ISNUMBER(" & _
+            ws.Cells(rr, A_COL_G1).Address(False, False) & "))," & ws.Cells(rr, A_COL_G1 + 2).Address(False, False) & "-" & _
+            ws.Cells(rr, A_COL_G1).Address(False, False) & ",""—"")"
+        dif.NumberFormat = "+" & fmt & ";" & ChrW(8722) & fmt & ";" & fmt
+        Set aux = ws.Cells(rr, A_COL_AUX)
+        aux.Formula = ForaTol(dif.Cells(1, 1), dec, tol)
+        MarcarForaTol dif, aux
+        Set st = ws.Cells(rr, A_COL_G1 + 7)
+        CelulaTabela st, True
+        st.Formula = "=IF(ISNUMBER(" & dif.Cells(1, 1).Address(False, False) & "),IF(" & aux.Address(False, False) & _
+                     ",""NOK"",""OK""),""—"")"
+        MarcarStatus st
+        Set rg = ws.Cells(rr, A_COL_G1 + 8)
+        CelulaTabela rg, False
+        rg.Formula = "=COUNT(" & colG & ")&"" / ""&COUNT(" & colU & ")"
+        rg.Font.Color = COR_CINZA_TXT
     Next k
-    ws.Range(ws.Cells(r + 1, A_COL_V1), ws.Cells(r + h - 2, cM)).HorizontalAlignment = -4108
-
-    ' observacao (para comentar o que ficou fora da tolerancia)
-    ro = LinhaObs(r)
-    ws.Rows(ro).RowHeight = 36
-    Juntar ws.Range(ws.Cells(ro, A_COL_ROT), ws.Cells(ro, A_COL_SUB)), "Observação", COR_AMARELO, COR_AZUL_PROF, True
-    ws.Cells(ro, A_COL_ROT).Value = "Observação"
-    ws.Range(ws.Cells(ro, A_COL_ROT), ws.Cells(ro, A_COL_SUB)).VerticalAlignment = -4108
-    Set rg = ws.Range(ws.Cells(ro, A_COL_V1), ws.Cells(ro, cS))
+    ' legenda (como no Painel)
+    rr = LinhaResumo(r, na) + 1
+    ws.Rows(rr).RowHeight = 15
+    Set rg = ws.Range(ws.Cells(rr, A_COL_N), ws.Cells(rr, A_COL_G1 + 3))
+    Legenda rg, "OK " & ChrW(8212) & " DENTRO DA TOLERÂNCIA", -4131
+    Set rg = ws.Range(ws.Cells(rr, A_COL_G1 + 4), ws.Cells(rr, A_COL_G1 + 8))
+    Legenda rg, "NOK " & ChrW(8212) & " FORA DA TOLERÂNCIA", -4152
+    ' resumo no canto da faixa: quantas analises fora
+    Set st = ws.Range(ws.Cells(LinhaResumo(r, 1), A_COL_G1 + 7), ws.Cells(LinhaResumo(r, na), A_COL_G1 + 7))
+    ws.Cells(r, A_COL_G1 + 8).Formula = "=IF(COUNTIF(" & st.Address(False, False) & ",""NOK"")>0,COUNTIF(" & _
+        st.Address(False, False) & ",""NOK"")&IF(COUNTIF(" & st.Address(False, False) & ",""NOK"")=1,"" análise fora"","" análises fora"")&"" da tolerância"",IF(COUNTIF(" & _
+        st.Address(False, False) & ",""OK"")>0,""" & ChrW(10004) & " Todas dentro da tolerância"",""""))"
+    ' observacoes gerais (para comentar o que ficou fora)
+    Set rg = ws.Range(ws.Cells(r + 4, A_COL_G1 + 10), ws.Cells(rr, cO))
     CelulaDigitar rg
     rg.Merge
     rg.HorizontalAlignment = -4131
@@ -445,14 +448,166 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     rg.WrapText = True
     rg.Font.Bold = False
     rg.IndentLevel = 1
-    If ENumero(id) And Not Vazio(obs) Then rg.Cells(1, 1).Value = obs
-    With ws.Range(ws.Cells(ro, A_COL_ROT), ws.Cells(ro, cS)).Borders(9)
+    If Not vazio And Not Vazio(obs) Then rg.Cells(1, 1).Value = obs
+    ws.Rows(rr + 1).RowHeight = 10
+
+    ' ---- LEITURAS POR BI-HORARIO: uma linha por horario
+    rr = LinhaGrade(r, 0) - 2
+    Titulo ws.Range(ws.Cells(rr, A_COL_N), ws.Cells(rr, cO)), "LEITURAS POR BI-HORÁRIO   " & ChrW(8212) & "   " & _
+        ChrW(9998) & " lançar " & nomeUbu & " nas células amarelas"
+    ws.Rows(rr + 1).RowHeight = 18
+    ws.Rows(rr + 2).RowHeight = 26
+    Set rg = ws.Range(ws.Cells(rr + 1, A_COL_N), ws.Cells(rr + 2, A_COL_N))
+    Cabec rg, "Nº"
+    Set rg = ws.Range(ws.Cells(rr + 1, A_COL_HORA), ws.Cells(rr + 2, A_COL_HORA))
+    Cabec rg, "HORÁRIO" & vbLf & "(UBU)"
+    For k = 1 To na
+        p = PIndice(CStr(ps(k - 1)))
+        Set rg = ws.Range(ws.Cells(rr + 1, ColAnalise(k)), ws.Cells(rr + 1, ColAnalise(k) + 2))
+        Faixa rg, COR_AZUL, COR_BRANCO, 10
+        rg.Cells(1, 1).Value = PRotulo(p)
+        rg.HorizontalAlignment = -4108
+        Cabec ws.Cells(rr + 2, ColAnalise(k)), "Germano"
+        Set rg = ws.Cells(rr + 2, ColAnalise(k) + 1)
+        Cabec rg, ChrW(9998) & " " & nomeUbu
+        rg.Interior.Color = COR_AMARELO
+        rg.Font.Color = COR_AZUL_PROF
+        Cabec ws.Cells(rr + 2, ColAnalise(k) + 2), "Dif."
+    Next k
+    Set rg = ws.Range(ws.Cells(rr + 1, cO), ws.Cells(rr + 2, cO))
+    Cabec rg, "OBSERVAÇÃO DO HORÁRIO"
+    For s = 1 To NMAX
+        rr = LinhaGrade(r, s)
+        If s > nVis Then
+            ws.Rows(rr).Hidden = True
+        Else
+            ws.Rows(rr).RowHeight = 19
+            Set rg = ws.Cells(rr, A_COL_N)
+            CelulaTabela rg, False
+            rg.Value = s
+            rg.Font.Color = COR_CINZA_TXT
+            Set rg = ws.Cells(rr, A_COL_HORA)
+            CelulaTabela rg, True
+            rg.Font.Color = COR_AZUL_TIT
+            rg.NumberFormat = "dd/mm hh:mm"
+            If Not vazio Then
+                If EData(tU(s)) Then rg.Value = CDate(tU(s))
+            End If
+            For k = 1 To na
+                p = PIndice(CStr(ps(k - 1)))
+                dec = PDec(p)
+                If dec = 0 Then fmt = "0" Else fmt = "0." & String$(dec, "0")
+                c = ColAnalise(k)
+                Set rg = ws.Cells(rr, c)
+                Celulas rg, COR_FUNDO, COR_AZUL_PROF, True
+                rg.NumberFormat = fmt
+                CelulaDigitar ws.Cells(rr, c + 1)
+                ws.Cells(rr, c + 1).NumberFormat = fmt
+                Set dif = ws.Cells(rr, c + 2)
+                Celulas dif, COR_BRANCO, COR_AZUL_TIT, False
+                dif.NumberFormat = "+" & fmt & ";" & ChrW(8722) & fmt & ";" & fmt
+                If Not vazio Then
+                    If ENumero(ger(k, s)) Then rg.Value = CDbl(ger(k, s))
+                    If ENumero(ubu(k, s)) Then ws.Cells(rr, c + 1).Value = CDbl(ubu(k, s))
+                End If
+                dif.Formula = "=IF(AND(ISNUMBER(" & ws.Cells(rr, c + 1).Address(False, False) & "),ISNUMBER(" & _
+                    rg.Address(False, False) & "))," & ws.Cells(rr, c + 1).Address(False, False) & "-" & _
+                    rg.Address(False, False) & ","""")"
+                Set aux = ws.Cells(rr, A_COL_AUX + k)
+                aux.Formula = ForaTol(dif, dec, ws.Cells(LinhaResumo(r, k), A_COL_G1 + 6))
+                MarcarForaTol dif, aux
+                ' separacao entre as analises
+                With ws.Cells(rr, c).Borders(7)
+                    .LineStyle = 1
+                    .Weight = -4138
+                    .Color = COR_AZUL
+                End With
+            Next k
+            Set rg = ws.Cells(rr, cO)
+            CelulaDigitar rg
+            rg.Font.Bold = False
+            rg.HorizontalAlignment = -4131
+            rg.IndentLevel = 1
+            If Not vazio And Not Vazio(obsH(s)) Then rg.Value = obsH(s)
+        End If
+    Next s
+    ' linha de fechamento
+    With ws.Range(ws.Cells(LinhaGrade(r, nVis), A_COL_N), ws.Cells(LinhaGrade(r, nVis), cO)).Borders(9)
         .LineStyle = 1
         .Weight = -4138
         .Color = COR_AZUL
     End With
-    ws.Range(ws.Columns(A_COL_AUX), ws.Columns(A_COL_AUX + NMAX)).Hidden = True
+    ws.Range(ws.Columns(A_COL_AUX), ws.Columns(A_COL_AUX + na + 2)).Hidden = True
     Proteger ws
+End Sub
+
+Private Sub Faixa(ByVal rg As Range, ByVal fundo As Long, ByVal cor As Long, ByVal tam As Double)
+    On Error Resume Next
+    rg.Merge
+    rg.Interior.Color = fundo
+    rg.Font.Name = "Segoe UI"
+    rg.Font.Bold = True
+    rg.Font.Size = tam
+    rg.Font.Color = cor
+    rg.VerticalAlignment = -4108
+End Sub
+
+' Titulo de quadro (como "COMENTARIOS" no Painel)
+Private Sub Titulo(ByVal rg As Range, ByVal texto As String)
+    On Error Resume Next
+    rg.Merge
+    rg.Cells(1, 1).Value = texto
+    rg.Interior.Color = COR_FUNDO
+    rg.Font.Name = "Segoe UI"
+    rg.Font.Bold = True
+    rg.Font.Size = 8
+    rg.Font.Color = COR_AZUL_PROF
+    rg.IndentLevel = 1
+    rg.VerticalAlignment = -4108
+    rg.Borders.LineStyle = 1
+    rg.Borders.Color = COR_LINHA
+    rg.EntireRow.RowHeight = 20
+End Sub
+
+' Cabecalho de tabela (cinza, 7,5, com quebra)
+Private Sub Cabec(ByVal rg As Range, ByVal texto As String)
+    On Error Resume Next
+    If rg.Cells.Count > 1 Then rg.Merge
+    rg.Cells(1, 1).Value = texto
+    rg.Interior.Color = COR_TH
+    rg.Font.Name = "Segoe UI"
+    rg.Font.Bold = True
+    rg.Font.Size = 7.5
+    rg.Font.Color = COR_AZUL_TIT
+    rg.HorizontalAlignment = -4108
+    rg.VerticalAlignment = -4108
+    rg.WrapText = True
+    rg.Borders.LineStyle = 1
+    rg.Borders.Color = COR_LINHA
+End Sub
+
+Private Sub CelulaTabela(ByVal rg As Range, ByVal negrito As Boolean)
+    On Error Resume Next
+    rg.Interior.Color = COR_BRANCO
+    rg.Font.Name = "Segoe UI"
+    rg.Font.Size = 10
+    rg.Font.Bold = negrito
+    rg.Font.Color = COR_AZUL_PROF
+    rg.HorizontalAlignment = -4108
+    rg.VerticalAlignment = -4108
+    rg.Borders.LineStyle = 1
+    rg.Borders.Color = COR_LINHA2
+End Sub
+
+Private Sub Legenda(ByVal rg As Range, ByVal texto As String, ByVal alinh As Long)
+    On Error Resume Next
+    rg.Merge
+    rg.Cells(1, 1).Value = texto
+    rg.Font.Name = "Segoe UI"
+    rg.Font.Size = 7
+    rg.Font.Color = COR_CINZA_TXT
+    rg.HorizontalAlignment = alinh
+    rg.IndentLevel = 1
 End Sub
 
 ' Celula para lancar: amarela, borda dourada, desbloqueada
@@ -471,14 +626,6 @@ Private Function ForaTol(ByVal c As Range, ByVal dec As Long, ByVal tol As Range
               c.Address(False, False) & "," & dec & "))>" & tol.Address(True, True) & "+1E-9)"
 End Function
 
-Private Sub Juntar(ByVal rg As Range, ByVal texto As String, ByVal fundo As Long, ByVal cor As Long, _
-                   ByVal negrito As Boolean)
-    Celulas rg, fundo, cor, negrito
-    rg.Merge
-    rg.Cells(1, 1).Value = texto
-    rg.HorizontalAlignment = -4108
-End Sub
-
 ' Status OK (verde) / NOK (vermelho): condicao por valor da celula (independe do idioma do Excel)
 Private Sub MarcarStatus(ByVal rg As Range)
     Dim fc As Object
@@ -492,20 +639,20 @@ Private Sub MarcarStatus(ByVal rg As Range)
     fc.Interior.Color = COR_OK_BG
 End Sub
 
-' Modelo em branco nos dois blocos (aba nova, ou depois de limpar)
+' Modelo em branco nos dois blocos (aba nova, desenho antigo ou depois de limpar)
 Public Sub GarantirModeloAcomp()
     GarantirModeloEm shAcomp
 End Sub
 
 Private Sub GarantirModeloEm(ByVal ws As Worksheet)
-    Dim i As Long, vU() As Variant, vGer() As Variant, vUbu() As Variant
+    Dim i As Long, vU() As Variant, vGer() As Variant, vUbu() As Variant, vObsH() As Variant
     ReDim vU(1 To NMAX)
     ReDim vGer(1 To NAnalises(), 1 To NMAX)
     ReDim vUbu(1 To NAnalises(), 1 To NMAX)
+    ReDim vObsH(1 To NMAX)
     For i = 1 To 2
-        If CStr(ws.Cells(LinhaBlocoN(i), A_COL_ROT).Value) <> "Batch" Or _
-           CStr(ws.Cells(LinhaObs(LinhaBlocoN(i)), A_COL_ROT).Value) <> "Observação" Then
-            DesenharBloco ws, i, Empty, 0, vU, vGer, vUbu, Empty
+        If CStr(ws.Cells(LinhaBlocoN(i), A_COL_AUX + 2).Value) <> VERSAO_BLOCO Then
+            DesenharBloco ws, i, Empty, 0, vU, vGer, vUbu, Empty, vObsH, Empty
         End If
     Next i
 End Sub
@@ -532,11 +679,27 @@ Private Function ValorVelho(velhoT() As Variant, velhoU() As Variant, ByVal nVel
     If s <= nVelho Then ValorVelho = velhoU(k, s)
 End Function
 
-Private Sub Rotulo(ByVal c As Range, ByVal texto As String, ByVal fundo As Long, ByVal cor As Long, ByVal negrito As Boolean)
-    c.Value = texto
-    Celulas c, fundo, cor, negrito
-    c.HorizontalAlignment = -4108
-End Sub
+' Observacao do horario: mesma regra do Ubu (pelo horario; sem horario, pela posicao)
+Private Function ObsVelha(velhoT() As Variant, velhaObs() As Variant, ByVal nVelho As Long, ByVal s As Long, _
+                          ByVal t As Variant) As Variant
+    Dim j As Long
+    ObsVelha = Empty
+    If nVelho = 0 Then Exit Function
+    If EData(t) Then
+        For j = 1 To nVelho
+            If EData(velhoT(j)) Then
+                If Abs(CDbl(velhoT(j)) - CDbl(t)) < 1 / 1440 Then
+                    ObsVelha = velhaObs(j)
+                    Exit Function
+                End If
+            End If
+        Next j
+        For j = 1 To nVelho
+            If EData(velhoT(j)) Then Exit Function
+        Next j
+    End If
+    If s <= nVelho Then ObsVelha = velhaObs(s)
+End Function
 
 Private Sub Celulas(ByVal rg As Range, ByVal fundo As Long, ByVal cor As Long, ByVal negrito As Boolean)
     On Error Resume Next
@@ -545,8 +708,10 @@ Private Sub Celulas(ByVal rg As Range, ByVal fundo As Long, ByVal cor As Long, B
     rg.Font.Bold = negrito
     rg.Font.Name = "Segoe UI"
     rg.Font.Size = 10
+    rg.HorizontalAlignment = -4108
+    rg.VerticalAlignment = -4108
     rg.Borders.LineStyle = 1
-    rg.Borders.Color = COR_CINZA_LOGO
+    rg.Borders.Color = COR_LINHA2
 End Sub
 
 Private Sub LinhaAmarela(ByVal rg As Range)
@@ -570,9 +735,9 @@ Private Sub MarcarForaTol(ByVal c As Range, ByVal aux As Range)
     If gTesteLO Then Exit Sub
     c.FormatConditions.Delete
     Set fc = c.FormatConditions.Add(Type:=2, Formula1:="=" & aux.Address(True, True))
-    fc.Font.Color = RGB(198, 40, 40)
+    fc.Font.Color = COR_NOK
     fc.Font.Bold = True
-    fc.Interior.Color = RGB(251, 230, 230)
+    fc.Interior.Color = COR_NOK_BG
 End Sub
 
 ' ---------------------------------------------------------------- planilha online (SharePoint)
@@ -634,13 +799,15 @@ Private Sub PrepararAbaOnline(ByVal ws As Worksheet)
     On Error Resume Next
     Desproteger ws
     ws.Parent.Windows(1).DisplayGridlines = False
+    ' mesmas larguras da aba Acompanhamento (build_interlab.abas_acomp)
     ws.Columns(1).ColumnWidth = 1.5
-    ws.Columns(A_COL_ROT).ColumnWidth = 9
-    ws.Columns(A_COL_SUB).ColumnWidth = 18
-    For c = A_COL_V1 To A_COL_V1 + NMAX + 3
-        ws.Columns(c).ColumnWidth = 8.4
+    ws.Columns(A_COL_N).ColumnWidth = 5
+    ws.Columns(A_COL_HORA).ColumnWidth = 12
+    For c = A_COL_G1 To ColObsHora() - 1
+        ws.Columns(c).ColumnWidth = 8.3
     Next c
-    With ws.Range(ws.Cells(2, 2), ws.Cells(2, 17))
+    ws.Columns(ColObsHora()).ColumnWidth = 34
+    With ws.Range(ws.Cells(2, 2), ws.Cells(2, ColObsHora()))
         .UnMerge
         .ClearContents
         .Merge
@@ -653,8 +820,8 @@ Private Sub PrepararAbaOnline(ByVal ws As Worksheet)
         .RowHeight = 30
         .IndentLevel = 1
     End With
-    LinhaAmarela ws.Range(ws.Cells(2, 2), ws.Cells(2, 17))
-    With ws.Range(ws.Cells(3, 2), ws.Cells(3, 17))
+    LinhaAmarela ws.Range(ws.Cells(2, 2), ws.Cells(2, ColObsHora()))
+    With ws.Range(ws.Cells(3, 2), ws.Cells(3, ColObsHora()))
         .UnMerge
         .ClearContents
         .Merge
@@ -718,7 +885,7 @@ Public Function CriarPlanilhaOnline(ByVal arq As String) As Boolean
     Set ws = AbaOnline(wb)
     EspelharBlocos shAcomp, ws
     ws.Activate
-    ws.Cells(A_ROW0, 4).Select
+    ws.Cells(A_ROW0, A_COL_G1).Select
     ActiveWindow.FreezePanes = False
     ActiveWindow.FreezePanes = True
     Proteger ws
@@ -745,12 +912,13 @@ End Sub
 Private Sub MesclarLancamentos(ByVal origem As Worksheet, ByVal destino As Worksheet)
     Dim i As Long, j As Long, id As Variant, n As Long, tU() As Variant, ger() As Variant, ubu() As Variant
     Dim obs As Variant, dId As Variant, dn As Long, dU() As Variant, dGer() As Variant, dUbu() As Variant
-    Dim dObs As Variant, s As Long, k As Long, v As Variant
+    Dim dObs As Variant, s As Long, k As Long, v As Variant, obsH() As Variant, info As Variant
+    Dim dObsH() As Variant, dInfo As Variant
     For i = 1 To 2
-        LerBloco origem, i, id, n, tU, ger, ubu, obs
+        LerBloco origem, i, id, n, tU, ger, ubu, obs, obsH, info
         If ENumero(id) Then
             For j = 1 To 2
-                LerBloco destino, j, dId, dn, dU, dGer, dUbu, dObs
+                LerBloco destino, j, dId, dn, dU, dGer, dUbu, dObs, dObsH, dInfo
                 If ENumero(dId) Then
                     If CDbl(dId) = CDbl(id) Then
                         For s = 1 To dn
@@ -758,9 +926,11 @@ Private Sub MesclarLancamentos(ByVal origem As Worksheet, ByVal destino As Works
                                 v = ValorVelho(tU, ubu, n, k, s, dU(s))
                                 If ENumero(v) Then dUbu(k, s) = v
                             Next k
+                            v = ObsVelha(tU, obsH, n, s, dU(s))
+                            If Not Vazio(v) Then dObsH(s) = v
                         Next s
                         If Not Vazio(obs) Then dObs = obs
-                        DesenharBloco destino, j, dId, dn, dU, dGer, dUbu, dObs
+                        DesenharBloco destino, j, dId, dn, dU, dGer, dUbu, dObs, dObsH, dInfo
                     End If
                 End If
             Next j
@@ -788,11 +958,11 @@ End Sub
 ' ---------------------------------------------------------------- copiar (e-mail do turno)
 ' Copia como imagem o bloco onde esta a celula selecionada (fora dos blocos: o batch em processamento)
 Public Sub CopiarAcompanhamento()
-    Dim i As Long, r As Long, cM As Long, area As Range, id As Variant, wb As Workbook, msg As String
+    Dim i As Long, r As Long, n As Long, area As Range, id As Variant, wb As Workbook, msg As String
     i = 2
     On Error Resume Next
     If ActiveSheet Is shAcomp Then
-        If ActiveCell.Row < LinhaBlocoN(2) - 1 Then i = 1
+        If ActiveCell.Row < LinhaBlocoN(2) Then i = 1
     End If
     On Error GoTo 0
     ' com planilha online: copia com o que foi lancado la
@@ -811,8 +981,10 @@ Public Sub CopiarAcompanhamento()
               "(aba Batch: tipo da busca = Acompanhamento e Buscar no MES).", vbInformation, "Copiar acompanhamento"
         Exit Sub
     End If
-    cM = ColunaMedia(shAcomp, r)
-    Set area = shAcomp.Range(shAcomp.Cells(r - 1, A_COL_ROT), shAcomp.Cells(r + AlturaBloco() - 1, cM + 2))
+    n = 12
+    If ENumero(shAcomp.Cells(r, A_COL_AUX + 1).Value) Then n = CLng(shAcomp.Cells(r, A_COL_AUX + 1).Value)
+    If n < 1 Then n = 1
+    Set area = shAcomp.Range(shAcomp.Cells(r, A_COL_N), shAcomp.Cells(LinhaGrade(r, n), ColObsHora()))
     If CopiarAreaImagem(shAcomp, area) Then
         Aviso "Acompanhamento do batch " & id & " copiado. Cole no e-mail com Ctrl+V.", vbInformation, _
               "Copiar acompanhamento"

@@ -11,8 +11,8 @@ Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTM
 
 | Aba | Para quê |
 |---|---|
-| **Batch** | ① **batch Nº** e ③ **nível dos tanques** à esquerda; ② área grande para **colar as Fases do Evento** do MES (sem células mescladas em volta); linha de conferência (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto); ④ **pellet feed ultra fino** (data do composto e os 4 resultados, buscados no MES junto com as leituras e editáveis); **comentários do report** (parâmetros fora e acompanhamento automáticos e editáveis + 6 tópicos); a grade de **leituras por horário**; no fim, ajustes opcionais. As diferenças por horário ficam só no Painel. Linhas e colunas sem uso ficam ocultas (também no Painel). Botões: Buscar no MES, Salvar no histórico, Ver painel, Limpar leituras, Acompanhamento e Configurações (com senha). **Salvar no histórico** já deixa a aba em branco para o próximo batch (tolerâncias, títulos e comentários voltam aos padrões de Configurações). Abre com um batch em branco. |
-| **Acompanhamento** | Modelo fixo com dois blocos: **batch anterior** (em cima) e **batch em processamento** (embaixo). Cada bloco é uma tabela única (químico e físico juntos, com uma folga entre as análises): Data e Início aproximado no processo (horário de Ubu); para cada análise (SiO₂, P, PPC, S.E., <325#) as linhas Germano (MES, cinza), **✎ Alimentação 04** (amarelas com borda dourada: as únicas para digitar) e Diferença (Ubu − Germano, em vermelho quando passa da tolerância); à direita **Média**, **Tol. (±)** e **Status** (OK/NOK da diferença das médias); no fim, **Observação** (texto livre). Botões: **Copiar acompanhamento** (imagem do bloco para o e-mail do turno), **Gerar planilha online** e **Trazer do online**. |
+| **Batch** | Preenchimento em etapas numeradas, com legenda dos campos (✎ amarelo com borda dourada = preencher; azul-claro = automático, dá para corrigir; cinza = calculado): **1 · Identificação** (batch Nº, tipo da busca, nível dos tanques e o atraso), **2 · Fases do evento** (área amarela para colar a tabela de fases do MES, com o passo a passo ao lado), **3 · Conferência** (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto), **Referência · últimos batches em Ubu**, **4 · Pellet feed ultra fino**, **5 · Comentários do report** e **6 · Leituras por horário**; ajustes opcionais no fim. Ações à direita: Buscar no MES, Salvar no histórico, Ver painel, Limpar leituras; na faixa do título: Acompanhamento e Configurações (com senha). **Salvar no histórico** já deixa a aba em branco para o próximo batch. |
+| **Acompanhamento** | No padrão do Painel. Dois blocos fixos: **batch anterior** (em cima) e **em processamento** (embaixo). Cada bloco: faixa do batch (com "✔ todas dentro da tolerância" ou quantas análises fora), linha de informações (chegada em Ubu, nível, início no processo, Germano EB06, nº de bi-horários), **Resumo do batch** como o farol do Painel (média de Germano e de Alimentação 04, diferença, tolerância, status OK/NOK e leituras G/U), **Observações** (texto livre) e **Leituras por bi-horário**: uma linha por horário de Ubu, com Germano / ✎ Alimentação 04 / Dif. para cada análise (SiO₂, P, PPC, S.E., <325#) e uma observação por horário. Só as células amarelas são digitáveis; diferença fora da tolerância em vermelho. Botões: Copiar acompanhamento (imagem do bloco para o e-mail), Gerar planilha online e Trazer do online. |
 | **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **pellet feed ultra fino** (composto diário do dia anterior: Fe, SiO₂, P, S.E.) e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo (texto curto para o corpo do e-mail). |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. |
 | **BD_Leituras** (oculta) | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
@@ -85,6 +85,16 @@ oculta ao sair e ao abrir o arquivo — a senha fica na constante `SENHA_CFG` do
   para preencher o próximo.
 
 ## Acompanhamento no SharePoint (físico e químico juntos)
+
+**Opção 1 — a própria planilha no SharePoint (mais simples).** Salve este .xlsm numa biblioteca do SharePoint. Quem
+busca no MES abre pelo aplicativo (Abrir no aplicativo da área de trabalho), roda o Buscar no MES (macros e Aspen
+só funcionam no aplicativo) e fecha. O físico e o químico abrem o mesmo arquivo pelo navegador e lançam juntos na aba
+Acompanhamento: no Excel online as fórmulas, cores e a proteção funcionam; os botões e as macros não (nada quebra,
+só não rodam). Cuidados: não rodar o Buscar no MES enquanto alguém lança no navegador; a política de TI precisa
+permitir abrir .xlsm no navegador.
+
+**Opção 2 — planilha online separada (.xlsx sem macros).** Descrita abaixo; útil se o .xlsm não puder ficar no
+SharePoint ou se a TI bloquear arquivos com macro no navegador.
 
 Copiar e colar as células leva só os valores. O caminho é uma **planilha online à parte** (.xlsx, sem macros), com a
 mesma aba Acompanhamento — fórmulas de diferença, média, tolerância (como número) e status, células de lançamento
