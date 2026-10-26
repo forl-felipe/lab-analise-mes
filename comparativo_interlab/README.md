@@ -12,7 +12,7 @@ Planilha `Comparativo_Interlab_Germano_Ubu.xlsm`: versão em Excel do painel HTM
 | Aba | Para quê |
 |---|---|
 | **Batch** | Preenchimento em etapas numeradas, com legenda dos campos (✎ amarelo com borda dourada = preencher; azul-claro = automático, dá para corrigir; cinza = calculado): **1 · Identificação** (batch Nº, tipo da busca, nível dos tanques e o atraso), **2 · Fases do evento** (área amarela para colar a tabela de fases do MES, com o passo a passo ao lado), **3 · Conferência** (Germano EB06, Ubu UBU3, início no processo, bi-horários, defasagem, data, mineroduto), **Referência · últimos batches em Ubu**, **4 · Pellet feed ultra fino**, **5 · Comentários do report** e **6 · Leituras por horário**; ajustes opcionais no fim. Ações à direita: Buscar no MES, Salvar no histórico, Ver painel, Limpar leituras; na faixa do título: Acompanhamento e Configurações (com senha). **Salvar no histórico** já deixa a aba em branco para o próximo batch. |
-| **Acompanhamento** | No padrão do Painel. Dois blocos fixos: **batch anterior** (em cima) e **em processamento** (embaixo). Cada bloco: faixa do batch (com "✔ todas dentro da tolerância" ou quantas análises fora), linha de informações (chegada em Ubu, nível, início no processo, Germano EB06, nº de bi-horários), **Resumo do batch** como o farol do Painel (média de Germano e de Alimentação 04, diferença, tolerância, status OK/NOK e leituras G/U), **Observações** (texto livre) e **Leituras por bi-horário**: uma linha por horário de Ubu, com Germano / ✎ Alimentação 04 / Dif. para cada análise (SiO₂, P, PPC, S.E., <325#) e uma observação por horário. Só as células amarelas são digitáveis; diferença fora da tolerância em vermelho. Botões: Copiar acompanhamento (imagem do bloco para o e-mail), Gerar planilha online e Trazer do online. |
+| **Acompanhamento** | No padrão do Painel. Dois blocos fixos: **batch anterior** (em cima) e **em processamento** (embaixo). Cada bloco: faixa do batch (com "✔ todas dentro da tolerância" ou quantas análises fora); **Resumo do batch** como o farol do Painel (média de Germano e de Alimentação 04, diferença, tolerância, status OK/NOK e leituras G/U); **Observações** — um campo só, que já vem escrito com chegada em Ubu, nível dos tanques, início no processo, Germano (EB06) e nº de bi-horários (atualiza sozinho enquanto ninguém edita; o que for escrito à mão fica); e **Leituras por bi-horário** com os horários de Ubu nas colunas e, para cada análise (SiO₂, P, PPC, S.E., <325#), as linhas Germano / ✎ Alimentação 04 / Diferença. Só as células amarelas são digitáveis; diferença fora da tolerância em vermelho. Botões: Copiar acompanhamento (imagem do bloco para o e-mail), Gerar planilha online e Trazer do online. |
 | **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **pellet feed ultra fino** (composto diário do dia anterior: Fe, SiO₂, P, S.E.) e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo (texto curto para o corpo do e-mail). |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. |
 | **BD_Leituras** (oculta) | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
@@ -141,6 +141,12 @@ lançamento no bloco (a macro refaz o bloco inteiro).
 ## Histórico
 
 A versão gerada traz o histórico salvo pelo laboratório (`build/historico.json`: batch 284 e as leituras dele).
+
+## Verificações do gerador
+
+Além dos testes automáticos (LibreOffice), o gerador recusa o VBA com: declaração de módulo depois de rotina, e
+variável/parâmetro com o nome de uma rotina ou constante (o Excel não compila esse módulo — o LibreOffice aceita, por
+isso a verificação é feita no gerador).
 
 ## Gerar de novo
 

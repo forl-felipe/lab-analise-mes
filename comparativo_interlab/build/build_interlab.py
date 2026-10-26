@@ -1326,14 +1326,12 @@ class Construtor:
     # ------------------------------------------------------------ acompanhamento (batch em processamento)
     def abas_acomp(self):
         ws = self.ws_aco
-        n_an = len(ACOMP_Q) + len(ACOMP_F)
-        c_obs = 3 + 3 * n_an                # observacao do horario (ModAcomp.ColObsHora - 1)
+        c_fim = 3 + 18 - 1                  # ultima coluna do bloco (ModAcomp.ColFim com A_LARG_MIN = 18)
         ws.set_column(0, 0, 1.5)
-        ws.set_column(1, 1, 5)              # Nº
-        ws.set_column(2, 2, 12)             # horario (Ubu)
-        ws.set_column(3, c_obs - 1, 8.3)    # Germano | Alimentacao 04 | Dif. por analise
-        ws.set_column(c_obs, c_obs, 34)
-        self.faixa(ws, 1, 1, c_obs, 'ACOMPANHAMENTO DO BATCH EM PROCESSAMENTO', '')
+        ws.set_column(1, 1, 9)              # analise (SiO2, P...)
+        ws.set_column(2, 2, 17)             # Germano / Alimentacao 04 / Diferenca
+        ws.set_column(3, 3 + NMAX - 1, 7.6) # um horario por coluna
+        self.faixa(ws, 1, 1, c_fim, 'ACOMPANHAMENTO DO BATCH EM PROCESSAMENTO', '')
         ws.write_formula(2, 1, '="Germano vem do MES (aba Batch, tipo da busca = Acompanhamento). "&padNomeUbuAcomp&'
                                '": lançar a cada 2 h nas células amarelas (✎). Em cima o batch anterior, embaixo o em processamento."',
                          self.f(font_size=9.5, bold=True, font_color=BRANCO, bg_color=NAVY2, indent=1))
@@ -1640,6 +1638,29 @@ def checar_declaracoes(nome, codigo):
     return codigo
 
 
+def checar_nomes(modulos):
+    """Variavel local ou parametro com o nome de uma rotina/constante publica (ou do mesmo modulo) esconde a rotina e
+    o Excel nao compila o modulo (o LibreOffice aceita, entao o teste automatico nao pega)."""
+    publicos, do_modulo = set(), {}
+    for nome, cod in modulos.items():
+        do_modulo[nome] = set()
+        for m in re.finditer(r'^(Public |Private |Global )?(?:Function|Sub|Property Get|Const) (\w+)', cod, re.M):
+            (do_modulo[nome] if m.group(1) == 'Private ' else publicos).add(m.group(2).lower())
+    erros = []
+    for nome, cod in modulos.items():
+        for blk in re.finditer(r'^(?:Public |Private )?(?:Function|Sub) (\w+)\((.*?)\)(.*?)^End (?:Function|Sub)', cod,
+                               re.M | re.S):
+            rotina, params, corpo = blk.group(1), blk.group(2), blk.group(3)
+            nomes = set(v.lower() for v in re.findall(r'(\w+)(?:\(\))? As ', params))
+            for d in re.findall(r'^\s*Dim (.*)$', corpo, re.M):
+                nomes |= set(v.lower() for v in re.findall(r'(\w+)(?:\(\))? As ', d))
+            for v in nomes:
+                if (v in publicos or v in do_modulo[nome]) and v != rotina.lower():
+                    erros.append('%s.%s: "%s"' % (nome, rotina, v))
+    if erros:
+        raise SystemExit('ERRO VBA: variavel com o nome de uma rotina (o Excel nao compila): ' + ', '.join(erros))
+
+
 def ler_vba(nome):
     with open(os.path.join(VBA_DIR, nome), encoding='utf-8') as fh:
         return checar_declaracoes(nome, fh.read())
@@ -1667,6 +1688,7 @@ def montar_vba(layout_code):
         mods.append({'name': cn, 'kind': 'sheet', 'code': eventos.get(cn, '')})
     for m in ['ModLayout', 'ModGeral', 'ModMES', 'ModBatch', 'ModPainel', 'ModAcomp']:
         mods.append({'name': m, 'kind': 'module', 'code': ler_vba(m + '.bas')})
+    checar_nomes({m['name']: m['code'] for m in mods if m['kind'] == 'module'})
     if TESTE:
         mods.append({'name': 'ModTesteLO', 'kind': 'module', 'code': ler_vba('../build/ModTesteLO.bas')})
     return build_vba_project(mods)
