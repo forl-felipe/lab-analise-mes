@@ -601,23 +601,25 @@ class Construtor:
         self.secao(ws, 4, 10, 13, 'AÇÕES')
         estender = VARIANTE != 'COMP'
         ws.merge_range(5, 1, 5, 2, 'BATCH Nº', fl)
-        ws.write(5, 3, 'NÍVEL DOS TANQUES (UBU)', fl)
+        ws.write(5, 3, 'NÍVEL DOS TANQUES', fl)
         ws.merge_range(5, 4, 5, 5, 'INÍCIO NO PROCESSO (MANUAL)', fl)
         if estender:
             ws.merge_range(5, 6, 5, 7, 'ESTENDER O BATCH (HORAS)', fl)
         ws.set_row(5, 14)
         ws.set_row(6, 30)
-        ws.merge_range(6, 1, 6, 2, '', self.fi(align='center', bold=True, font_size=16))
+        # cada campo e uma caixa separada: borda grossa branca dos lados abre um espaco entre elas
+        sep = dict(left=5, left_color=BRANCO, right=5, right_color=BRANCO)
+        ws.merge_range(6, 1, 6, 2, '', self.fi(align='center', bold=True, font_size=16, **sep))
         if b:
-            ws.write_number(6, 1, b['id'], self.fi(align='center', bold=True, font_size=16))
+            ws.write_number(6, 1, b['id'], self.fi(align='center', bold=True, font_size=16, **sep))
         self.nome('bId', ws, 6, 1)
-        ws.write_blank(6, 3, None, self.fi(align='center', bold=True, font_size=12))
+        ws.write_blank(6, 3, None, self.fi(align='center', bold=True, font_size=12, **sep))
         if b and b.get('nivel'):
-            ws.write_string(6, 3, b['nivel'].capitalize(), self.fi(align='center', bold=True, font_size=12))
+            ws.write_string(6, 3, b['nivel'].capitalize(), self.fi(align='center', bold=True, font_size=12, **sep))
         self.nome('bNivel', ws, 6, 3)
         ws.data_validation(6, 3, 6, 3, {'validate': 'list', 'source': '=lstNivel'})
-        self.entrada(ws, 6, 4, 5, None, self.fi(align='center', bold=True, font_size=11, num_format='dd/mm/yy hh:mm'),
-                     'bIniPMan')
+        self.entrada(ws, 6, 4, 5, None, self.fi(align='center', bold=True, font_size=11, num_format='dd/mm/yy hh:mm',
+                                                **sep), 'bIniPMan')
         ws.data_validation(6, 4, 6, 4, {'validate': 'any', 'input_title': 'Início no processo (manual)',
                                         'input_message': 'Use o nível dos tanques OU o início manual (preencher um '
                                                          'apaga o outro). Ex.: 26/10/26 14:00.'})
@@ -627,8 +629,9 @@ class Construtor:
         ws.conditional_format(6, 4, 6, 5, {'type': 'formula', 'criteria': '=$D$7<>""', 'format': fcinza})
         fdica = self.f(font_size=8, font_color=MUTED, italic=True, valign='top', text_wrap=True)
         ws.merge_range(7, 1, 7, 2, 'número do batch no MES', fdica)
-        fatr = self.f(align='center', font_color=INK2, font_size=8.5, valign='top',
-                      num_format='"atraso: "0.0" h"')
+        # sem nivel: mostra a dica (secao de texto do formato)
+        fatr = self.f(font_color=MUTED, italic=True, font_size=8, valign='top',
+                      num_format='"atraso: "0.0" h";;;"Alto / Médio / Baixo"')
         ws.write_formula(7, 3, '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),'
                                'IF(bNivel<>"",gAtrasoNivel,""))', fatr)
         self.nome('bAtraso', ws, 7, 3)
@@ -636,7 +639,7 @@ class Construtor:
         # estender: os horarios a mais recebem a media dos resultados de Germano do MES
         cx, rx = (6, 6) if estender else (16, 6)
         if estender:
-            ws.merge_range(6, 6, 6, 7, '', self.fi(align='center', bold=True, font_size=12, num_format='0" h"'))
+            ws.merge_range(6, 6, 6, 7, '', self.fi(align='center', bold=True, font_size=12, num_format='0" h"', **sep))
             ws.merge_range(7, 6, 7, 7, '', fdica)
             ws.write_formula(7, 6, '=IF(N(bExtH)>0,"+"&ROUND(N(bExtH)/2,0)&" bi-horários · Germano = média do MES",'
                                    '"em branco = só os resultados do MES")', fdica)
@@ -944,7 +947,7 @@ class Construtor:
         ws.fit_to_pages(1, 0)
         ws.set_paper(9)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
-        ws.protect('', {'format_columns': True, 'format_rows': True, 'select_locked_cells': True,
+        ws.protect(SENHA_CFG, {'format_columns': True, 'format_rows': True, 'select_locked_cells': True,
                         'select_unlocked_cells': True})
 
     @staticmethod
@@ -1432,7 +1435,8 @@ class Construtor:
             ws.set_row(r, 30)
             ws.merge_range(r, 1, r, c_fim, 'LIVRE   ·   o próximo batch buscado na aba %s entra aqui'
                            % self.ws_bat.name, flivre)
-        ws.protect('', {'format_columns': True, 'format_rows': True})
+        # com senha: apagar linha ou coluna desmonta os blocos (posicoes fixas)
+        ws.protect(SENHA_CFG, {'format_columns': True, 'format_rows': True})
         ws = self.ws_reg
         for i, h in enumerate(REG_COLS):
             ws.write(0, i, h, self.f(bold=True))

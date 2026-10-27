@@ -288,9 +288,10 @@ Public Sub Desproteger(ByVal ws As Worksheet)
     End If
 End Sub
 
-' Configuracoes tem senha propria (SENHA_CFG); as demais abas, SENHA
+' Configuracoes, a aba de preenchimento e a de acompanhamento tem senha (SENHA_CFG): o desenho delas e por posicao
+' (linhas e colunas fixas) e apagar uma linha ou coluna desmonta os blocos. As demais abas: SENHA
 Private Function SenhaAba(ByVal ws As Worksheet) As String
-    If ws Is shConfig Then SenhaAba = SENHA_CFG Else SenhaAba = SENHA
+    If ws Is shConfig Or ws Is shBatch Or ws Is shAcomp Then SenhaAba = SENHA_CFG Else SenhaAba = SENHA
 End Function
 
 Public Sub Proteger(ByVal ws As Worksheet)

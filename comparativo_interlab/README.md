@@ -49,9 +49,9 @@ Com os 5 blocos ocupados a busca de um 6º batch não muda nada e avisa: comece 
 limpa.
 
 Cada bloco: faixa do batch; **Resumo do batch**
-(média de Germano e de Alimentação 04, diferença, tolerância, status OK/NOK e leituras G/U); **Observações** — um
+(média de Germano e de Alimentação 04, diferença, tolerância, status OK/NOK); **Observações** — um
 campo só, que já vem escrito com chegada em Ubu, nível dos tanques, início no processo, Germano (EB06) e, se
-houver, a extensão do batch (atualiza sozinho enquanto ninguém edita; o que for escrito à mão fica); e **Leituras por bi-horário**
+houver, "Batch estendido +6 h" (atualiza sozinho enquanto ninguém edita; o que for escrito à mão fica); e **Leituras por bi-horário**
 com os horários de Ubu nas colunas e, para cada análise (SiO₂, P, PPC, S.E., <325#), as linhas Germano /
 ✎ Alimentação 04 / Diferença. Ubu vem do MES nos bi-horários já iniciados; onde o MES não tiver resultado, os
 técnicos lançam à mão nas células amarelas (só elas são digitáveis). Fora da tolerância só aparece no resumo
@@ -76,6 +76,10 @@ trabalho — macros e Aspen só rodam no aplicativo), roda o Buscar no MES e fec
 pelo navegador e lançam juntos na aba Batch: no Excel online as fórmulas, cores e a proteção funcionam; os botões
 não (nada quebra, só não rodam). Cuidados: não rodar o Buscar no MES enquanto alguém lança no navegador; a política
 de TI precisa permitir abrir .xlsm no navegador.
+
+**Abas protegidas com senha** (`Samarco@Lab`, a mesma de Configurações): Preenchimento e Batch. Os blocos ficam
+em linhas e colunas fixas; apagar ou inserir uma linha/coluna desloca tudo e a macro deixa de achar o batch (o bloco
+"trava"). Largura de coluna e altura de linha dá para mudar; mudança de desenho vai no gerador.
 
 ## Planilha 2 — Comparativo (report diário)
 

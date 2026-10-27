@@ -320,7 +320,7 @@ Public Sub TesteLO()
        "horario da coluna = horario de Ubu"
     ' Ubu lancado a mao: diferenca, media e status no resumo; refazer a busca nao apaga
     rRes = LinhaResumo(rb, 1)
-    shAcomp.Unprotect
+    Desproteger shAcomp
     For i = 1 To n
         If ENumero(shAcomp.Cells(lSi, ColHora(i)).Value) Then _
             shAcomp.Cells(lSi + 1, ColHora(i)).Value = CDbl(shAcomp.Cells(lSi, ColHora(i)).Value) + 0.1

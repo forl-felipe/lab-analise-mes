@@ -17,13 +17,12 @@ Option Explicit
 Private Const A_COL_N As Long = 2
 Private Const A_COL_SUB As Long = 3
 Private Const A_COL_G1 As Long = 4
-' Resumo do batch: uma coluna por campo (Germano, Alimentacao 04, diferenca, tolerancia, status, quantidade)
+' Resumo do batch: uma coluna por campo (Germano, Alimentacao 04, diferenca, tolerancia, status)
 Private Const R_COL_G As Long = 4
 Private Const R_COL_U As Long = 5
 Private Const R_COL_DIF As Long = 6
 Private Const R_COL_TOL As Long = 7
 Private Const R_COL_ST As Long = 8
-Private Const R_COL_QTD As Long = 9
 ' largura minima do bloco (colunas de horario), para o resumo e as observacoes caberem
 Private Const A_LARG_MIN As Long = 18
 ' Colunas ocultas: numero do batch, Nº de horarios e versao do desenho (na 1a linha do bloco) e os testes de tolerancia
@@ -121,7 +120,7 @@ End Function
 
 ' Observacoes do bloco (a direita do resumo)
 Public Function CelObs(ByVal ws As Worksheet, ByVal r As Long) As Range
-    Set CelObs = ws.Cells(r + 3, R_COL_QTD + 2)
+    Set CelObs = ws.Cells(r + 3, R_COL_ST + 2)
 End Function
 
 ' Numero do batch do bloco i da aba Acompanhamento (Empty = bloco vazio)
@@ -256,8 +255,7 @@ Private Function InfoBatch(ByVal n As Long, ByVal ext As Long) As String
     If EData(Nm("bIniG").Value) Then t = t & IIf(t <> "", vbLf, "") & "Germano (EB06): " & _
         Format$(CDate(Nm("bIniG").Value), "dd\/mm hh:mm") & IIf(EData(Nm("bFimG").Value), " a " & _
         Format$(CDate(Nm("bFimG").Value), "dd\/mm hh:mm"), "")
-    If ext > 0 Then t = t & IIf(t <> "", vbLf, "") & "Batch estendido +" & 2 * ext & " h: Germano nos " & ext & _
-        " últimos = média das " & (n - ext) & " leituras do MES"
+    If ext > 0 Then t = t & IIf(t <> "", vbLf, "") & "Batch estendido +" & 2 * ext & " h"
     InfoBatch = t
 End Function
 
@@ -446,8 +444,8 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     ws.Rows(r + 1).RowHeight = 8
 
     ' ---- RESUMO (tipo farol do Painel) e OBSERVACOES
-    TituloQuadro ws.Range(ws.Cells(r + 2, A_COL_N), ws.Cells(r + 2, R_COL_QTD)), "RESUMO DO BATCH   (média)"
-    TituloQuadro ws.Range(ws.Cells(r + 2, R_COL_QTD + 2), ws.Cells(r + 2, cF)), "OBSERVAÇÕES"
+    TituloQuadro ws.Range(ws.Cells(r + 2, A_COL_N), ws.Cells(r + 2, R_COL_ST)), "RESUMO DO BATCH   (média)"
+    TituloQuadro ws.Range(ws.Cells(r + 2, R_COL_ST + 2), ws.Cells(r + 2, cF)), "OBSERVAÇÕES"
     ws.Rows(r + 3).RowHeight = 26
     Cabec ws.Range(ws.Cells(r + 3, A_COL_N), ws.Cells(r + 3, A_COL_SUB)), "ANÁLISE"
     Cabec ws.Cells(r + 3, R_COL_G), "GERMANO (MÉDIA)"
@@ -456,8 +454,7 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     Cabec ws.Cells(r + 3, R_COL_DIF), "DIFERENÇA" & vbLf & "(U " & ChrW(8722) & " G)"
     Cabec ws.Cells(r + 3, R_COL_TOL), "TOLER. (±)"
     Cabec ws.Cells(r + 3, R_COL_ST), "STATUS"
-    Cabec ws.Cells(r + 3, R_COL_QTD), "QTD." & vbLf & "G / U"
-    ws.Range(ws.Cells(r + 3, A_COL_N), ws.Cells(r + 3, R_COL_QTD)).Font.Size = 7
+    ws.Range(ws.Cells(r + 3, A_COL_N), ws.Cells(r + 3, R_COL_ST)).Font.Size = 7
     For k = 1 To na
         chave = CStr(ps(k - 1))
         p = PIndice(chave)
@@ -504,18 +501,14 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
         st.Formula = "=IF(ISNUMBER(" & dif.Cells(1, 1).Address(False, False) & "),IF(" & aux.Address(False, False) & _
                      ",""NOK"",""OK""),""—"")"
         MarcarStatus st
-        Set rg = ws.Cells(rr, R_COL_QTD)
-        CelulaTabela rg, False
-        rg.Formula = "=COUNT(" & linG & ")&"" / ""&COUNT(" & linU & ")"
-        rg.Font.Color = COR_CINZA_TXT
     Next k
     ' legenda (como no Painel)
     rr = LinhaResumo(r, na) + 1
     ws.Rows(rr).RowHeight = 14
     Legenda ws.Range(ws.Cells(rr, A_COL_N), ws.Cells(rr, R_COL_U)), "OK " & ChrW(8212) & " DENTRO DA TOLERÂNCIA", -4131
-    Legenda ws.Range(ws.Cells(rr, R_COL_DIF), ws.Cells(rr, R_COL_QTD)), "NOK " & ChrW(8212) & " FORA DA TOLERÂNCIA", -4152
+    Legenda ws.Range(ws.Cells(rr, R_COL_DIF), ws.Cells(rr, R_COL_ST)), "NOK " & ChrW(8212) & " FORA DA TOLERÂNCIA", -4152
     ' observacoes: um campo so (ja vem com chegada em Ubu, nivel, inicio no processo, Germano)
-    Set rg = ws.Range(ws.Cells(r + 3, R_COL_QTD + 2), ws.Cells(rr, cF))
+    Set rg = ws.Range(ws.Cells(r + 3, R_COL_ST + 2), ws.Cells(rr, cF))
     CelulaDigitar rg
     rg.Merge
     rg.HorizontalAlignment = -4131
@@ -525,11 +518,10 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     rg.Font.Size = 9.5
     rg.IndentLevel = 1
     If Not semBatch And Not Vazio(obs) Then rg.Cells(1, 1).Value = "'" & CStr(obs)
-    ws.Rows(rr + 1).RowHeight = 10
-
     ' ---- LEITURAS POR BI-HORARIO: horarios nas colunas; por analise Germano / Alimentacao 04 / Diferenca
+    ' (antes delas so uma linha fina em branco)
     rh = LinhaHora(r)
-    TituloQuadro ws.Range(ws.Cells(rh - 2, A_COL_N), ws.Cells(rh - 2, cF)), "LEITURAS POR BI-HORÁRIO"
+    ws.Rows(rh - 2).RowHeight = 6
     Cabec ws.Range(ws.Cells(rh - 1, A_COL_N), ws.Cells(rh - 1, A_COL_SUB)), "DATA"
     Cabec ws.Range(ws.Cells(rh, A_COL_N), ws.Cells(rh, A_COL_SUB)), "HORÁRIO (UBU)"
     For s = 1 To nVis
