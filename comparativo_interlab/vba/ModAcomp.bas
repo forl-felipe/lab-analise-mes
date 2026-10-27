@@ -208,6 +208,7 @@ Private Sub BlocoLivre(ByVal ws As Worksheet, ByVal i As Long)
     area.Clear
     SemFormatoCondicional area
     area.EntireRow.RowHeight = 17
+    ws.Rows(r - 1).RowHeight = 6
     area.EntireRow.Hidden = False
     ' so a faixa (e a linha de folga acima dela) aparece enquanto o lugar esta livre
     ws.Range(ws.Cells(r + 1, 1), ws.Cells(r + AlturaBloco(), 1)).EntireRow.Hidden = True
@@ -427,6 +428,7 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     SemFormatoCondicional area
     area.EntireRow.Hidden = False
     ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 16
+    ws.Rows(r - 1).RowHeight = 6
     ' marcadores ocultos: numero, Nº de horarios, versao do desenho e o texto automatico das observacoes
     If Not semBatch Then ws.Cells(r, A_COL_AUX).Value = CDbl(id)
     ws.Cells(r, A_COL_AUX + 1).Value = IIf(semBatch, 0, n)
@@ -812,7 +814,7 @@ Private Sub PrepararAbaOnline(ByVal ws As Worksheet)
     ws.Columns(A_COL_N).ColumnWidth = 9
     ws.Columns(A_COL_SUB).ColumnWidth = 17
     For c = A_COL_G1 To A_COL_G1 + NMAX - 1
-        ws.Columns(c).ColumnWidth = 7.6
+        ws.Columns(c).ColumnWidth = 8.3
     Next c
     With ws.Range(ws.Cells(2, 2), ws.Cells(2, ColFim(0)))
         .UnMerge

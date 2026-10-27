@@ -152,11 +152,11 @@ N_BLOCOS = 5              # batches por planilha na aba de acompanhamento
 # colunas (0-based, inicio de cada campo) da tabela dos ultimos batches
 U_COL = dict(BATCH=1, NIVEL=3, CHEG=4, FIM=6, INIP=8, DUR=10, ORIGEM=12)
 # abas de acompanhamento (batch em processamento): 1a linha dos blocos (0-based) e analises de cada aba
-A_ROW0 = 4
+A_ROW0 = 1                # aba de acompanhamento: titulo na 1a linha, linha fina, e ja o 1o bloco
 ACOMP_Q = ['SiO2', 'P', 'PPC']     # analises quimicas do bloco (nesta ordem)
 ACOMP_F = ['SE', '325']            # analises fisicas
 # Senha da aba Configuracoes (muito oculta; abre pelo botao Configuracoes da aba Batch)
-SENHA_CFG = 'Samarco@Lab'
+SENHA_CFG = 'fislab'
 REG_COLS = ['Batch', 'Chegada Ubu (UBU3)', 'Término Ubu', 'Nível dos tanques', 'Início no processo',
             'Início Germano (EB06)', 'Término Germano', 'Nº bi-horários', 'Atualizado em']
 MODOS = ['Comparativo (batch processado)', 'Acompanhamento (em processamento)']
@@ -1405,17 +1405,16 @@ class Construtor:
         ws.set_column(0, 0, 1.5)
         ws.set_column(1, 1, 9)              # analise (SiO2, P...)
         ws.set_column(2, 2, 17)             # Germano / Alimentacao 04 / Diferenca
-        ws.set_column(3, 3 + NMAX - 1, 7.6) # um horario por coluna
-        self.faixa(ws, 1, 1, c_fim, 'ACOMPANHAMENTO DOS BATCHES EM PROCESSAMENTO', '')
-        ws.write_formula(2, 1, '="Germano e "&padNomeUbuAcomp&" vêm do MES (aba %s > Buscar no MES); onde "&'
-                               'padNomeUbuAcomp&" não vier, lançar a cada 2 h nas células amarelas (✎).  %d batches '
-                               'por planilha: com os %d preenchidos, comece uma planilha padrão limpa."'
-                         % (self.ws_bat.name, N_BLOCOS, N_BLOCOS),
-                         self.f(font_size=9.5, bold=True, font_color=BRANCO, bg_color=NAVY2, indent=1))
+        ws.set_column(3, 3 + NMAX - 1, 8.3) # um horario por coluna
+        # so o titulo na 1a linha (com a linha amarela embaixo); a linha 2 e fina e o 1o bloco ja vem na 3
+        ws.set_row(0, 30)
+        ws.merge_range(0, 1, 0, c_fim, 'ACOMPANHAMENTO BATCH EM PROCESSAMENTO',
+                       self.f(bold=True, font_size=14, font_color=BRANCO, bg_color=NAVY, align='center',
+                              valign='vcenter', bottom=5, bottom_color=AMARELO))
         # botoes na faixa do titulo (mesma ancora, deslocados em pixels)
         if VARIANTE == 'COMPLETA':
-            self.botao(ws, 1, 9, 'Gerar planilha online', 'GerarPlanilhaOnline', 150, 30, 'p', x=0, y=6)
-            self.botao(ws, 1, 9, 'Trazer do online', 'TrazerDoOnline', 120, 30, 's', x=156, y=6)
+            self.botao(ws, 0, 9, 'Gerar planilha online', 'GerarPlanilhaOnline', 150, 26, 'p', x=0, y=2)
+            self.botao(ws, 0, 9, 'Trazer do online', 'TrazerDoOnline', 120, 26, 's', x=156, y=2)
         ws.freeze_panes(A_ROW0, 0)
         # colunas depois do bloco mais largo ocultas (o VBA reajusta: ModAcomp.AtualizarTitulos)
         ws.set_column(c_fim + 2, 16383, None, None, {'hidden': True})
@@ -1431,7 +1430,7 @@ class Construtor:
                         indent=1)
         for i in range(N_BLOCOS):
             r = A_ROW0 + 1 + i * (altura + 2)        # ModAcomp.LinhaBlocoN (0-based)
-            ws.set_row(r - 1, 15)
+            ws.set_row(r - 1, 6)
             ws.set_row(r, 30)
             ws.merge_range(r, 1, r, c_fim, 'LIVRE   ·   o próximo batch buscado na aba %s entra aqui'
                            % self.ws_bat.name, flivre)

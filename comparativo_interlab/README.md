@@ -77,7 +77,7 @@ pelo navegador e lançam juntos na aba Batch: no Excel online as fórmulas, core
 não (nada quebra, só não rodam). Cuidados: não rodar o Buscar no MES enquanto alguém lança no navegador; a política
 de TI precisa permitir abrir .xlsm no navegador.
 
-**Abas protegidas com senha** (`Samarco@Lab`, a mesma de Configurações): Preenchimento e Batch. Os blocos ficam
+**Abas protegidas com senha** (`fislab`, a mesma de Configurações): Preenchimento e Batch. Os blocos ficam
 em linhas e colunas fixas; apagar ou inserir uma linha/coluna desloca tudo e a macro deixa de achar o batch (o bloco
 "trava"). Largura de coluna e altura de linha dá para mudar; mudança de desenho vai no gerador.
 
