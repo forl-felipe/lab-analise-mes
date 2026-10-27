@@ -451,6 +451,22 @@ End Sub
 
 ' Planilha de acompanhamento: limpa a aba de preenchimento para buscar o proximo batch (os blocos da aba de
 ' acompanhamento ficam)
+' Nivel dos tanques OU inicio no processo manual: preencher um apaga o outro (evento da aba de preenchimento)
+Public Sub NivelOuManual(ByVal veioNivel As Boolean)
+    Dim apagar As Range
+    If veioNivel Then
+        If Vazio(Nm("bNivel").Value) Then Exit Sub
+        Set apagar = Nm("bIniPMan").MergeArea
+    Else
+        If Vazio(Nm("bIniPMan").Value) Then Exit Sub
+        Set apagar = Nm("bNivel").MergeArea
+    End If
+    If Vazio(apagar.Cells(1, 1).Value) Then Exit Sub
+    ModoCarga True
+    apagar.ClearContents
+    ModoCarga False
+End Sub
+
 Public Sub ProximoBatchAcomp()
     If Aviso("Limpar a aba " & shBatch.Name & " para o próximo batch?" & vbCrLf & vbCrLf & _
              "O que foi lançado na aba " & shAcomp.Name & " fica como está.", vbQuestion + vbYesNo, "Próximo batch", 6) <> vbYes Then Exit Sub

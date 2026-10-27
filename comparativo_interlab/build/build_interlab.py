@@ -619,9 +619,12 @@ class Construtor:
         self.entrada(ws, 6, 4, 5, None, self.fi(align='center', bold=True, font_size=11, num_format='dd/mm/yy hh:mm'),
                      'bIniPMan')
         ws.data_validation(6, 4, 6, 4, {'validate': 'any', 'input_title': 'Início no processo (manual)',
-                                        'input_message': 'Use quando o nível dos tanques não bater com o horário real. '
-                                                         'Ex.: 26/10/26 14:00. Em branco = chegada em Ubu + atraso '
-                                                         'do nível.'})
+                                        'input_message': 'Use o nível dos tanques OU o início manual (preencher um '
+                                                         'apaga o outro). Ex.: 26/10/26 14:00.'})
+        # nivel OU inicio manual: o que nao vale fica apagado (cinza); o VBA limpa o outro (ModBatch.NivelOuManual)
+        fcinza = self.wb.add_format({'bg_color': '#EEF0F2', 'font_color': '#9AA3AD'})
+        ws.conditional_format(6, 3, 6, 3, {'type': 'formula', 'criteria': '=$E$7<>""', 'format': fcinza})
+        ws.conditional_format(6, 4, 6, 5, {'type': 'formula', 'criteria': '=$D$7<>""', 'format': fcinza})
         fdica = self.f(font_size=8, font_color=MUTED, italic=True, valign='top', text_wrap=True)
         ws.merge_range(7, 1, 7, 2, 'número do batch no MES', fdica)
         fatr = self.f(align='center', font_color=INK2, font_size=8.5, valign='top',
@@ -629,7 +632,7 @@ class Construtor:
         ws.write_formula(7, 3, '=IF(AND(ISNUMBER(bIniP),ISNUMBER(bIniU)),ROUND((bIniP-bIniU)*24,2),'
                                'IF(bNivel<>"",gAtrasoNivel,""))', fatr)
         self.nome('bAtraso', ws, 7, 3)
-        ws.merge_range(7, 4, 7, 5, 'em branco = chegada em Ubu + atraso do nível', fdica)
+        ws.merge_range(7, 4, 7, 5, 'use o nível OU o início manual (um apaga o outro)', fdica)
         # estender: os horarios a mais recebem a media dos resultados de Germano do MES
         cx, rx = (6, 6) if estender else (16, 6)
         if estender:
@@ -664,11 +667,14 @@ class Construtor:
         ws.merge_range(15, 1, 16, 2, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True,
                                                valign='top'))
         self.nome('bFasesMsg', ws, 15, 1)
+        # area amarela do tamanho da tabela do MES (4 colunas x 3 linhas); em volta, celulas livres sem cor para
+        # colar sem erro se vier cabecalho ou uma coluna a mais (LerFases le a area toda)
         fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4)
+        fsobra = self.f(font_size=8, num_format='dd/mm hh:mm', locked=False)
         for r in range(10, 17):
             for c in range(3, 9):
-                ws.write_blank(r, c, None, fpaste)
-            ws.set_row(r, 16)
+                ws.write_blank(r, c, None, fpaste if r <= 12 and c <= 6 else fsobra)
+            ws.set_row(r, 20 if r <= 12 else (16 if r >= 15 else 10))
         self.nome('bFases', ws, 10, 3, 16, 8)
         ws.set_row(17, 8)
         # conferencia (preenchida sozinha; da para corrigir): rotulos na linha RL, valores na RV
@@ -1409,7 +1415,7 @@ class Construtor:
             self.botao(ws, 1, 9, 'Trazer do online', 'TrazerDoOnline', 120, 30, 's', x=156, y=6)
         ws.freeze_panes(A_ROW0, 0)
         # colunas depois do bloco mais largo ocultas (o VBA reajusta: ModAcomp.AtualizarTitulos)
-        ws.set_column(c_fim + 4, 16383, None, None, {'hidden': True})   # c_fim+1..+3: botao Copiar batch
+        ws.set_column(c_fim + 2, 16383, None, None, {'hidden': True})
         # linhas sem uso ocultas: lugar livre = so a faixa; o VBA mostra as linhas do bloco ao desenhar o batch
         ws.set_default_row(None, True)
         for r in range(A_ROW0 + 1):
@@ -1426,8 +1432,6 @@ class Construtor:
             ws.set_row(r, 30)
             ws.merge_range(r, 1, r, c_fim, 'LIVRE   ·   o próximo batch buscado na aba %s entra aqui'
                            % self.ws_bat.name, flivre)
-            # copiar o batch (imagem do bloco para o e-mail): aparece quando o bloco tem batch
-            self.botao(ws, r, c_fim + 1, 'Copiar batch', 'CopiarBatch%d' % (i + 1), 104, 22, 'a', x=12, y=4, pos=2)
         ws.protect('', {'format_columns': True, 'format_rows': True})
         ws = self.ws_reg
         for i, h in enumerate(REG_COLS):
@@ -1784,6 +1788,8 @@ def montar_vba(layout_code):
                     '    On Error Resume Next\n    MarcarAlterado\n'
                     '    If gCarregando Then Exit Sub\n'
                     '    If Not Intersect(Target, Nm("bFases")) Is Nothing Then LerFases\n'
+                    '    If Not Intersect(Target, Nm("bNivel")) Is Nothing Then NivelOuManual True\n'
+                    '    If Not Intersect(Target, Nm("bIniPMan").MergeArea) Is Nothing Then NivelOuManual False\n'
                     '    If Not Intersect(Target, Nm("bId")) Is Nothing Then\n'
                     '        PreencherDoAcomp\n        AtualizarUltimos\n    End If\nEnd Sub\n'),
     }
@@ -1818,9 +1824,7 @@ def _patch_anchor(m):
     if not achou:
         return bloco
     macro = achou.group(1)
-    # Copiar dos blocos de acompanhamento: oculto ate o bloco ter batch (ModAcomp.BotaoCopiar)
-    bloco = bloco.replace(achou.group(0), 'descr="Botão: %s"%s' % (macro, ' hidden="1"' if macro.startswith('CopiarBatch')
-                                                                  else ''))
+    bloco = bloco.replace(achou.group(0), 'descr="Botão: %s"' % macro)
     bloco = re.sub(r'<xdr:sp macro="[^"]*"', '<xdr:sp macro="[0]!%s"' % macro, bloco, count=1)
     bloco = bloco.replace('<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>',
                           '<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 12000"/>'

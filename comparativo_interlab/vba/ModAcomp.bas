@@ -17,6 +17,13 @@ Option Explicit
 Private Const A_COL_N As Long = 2
 Private Const A_COL_SUB As Long = 3
 Private Const A_COL_G1 As Long = 4
+' Resumo do batch: uma coluna por campo (Germano, Alimentacao 04, diferenca, tolerancia, status, quantidade)
+Private Const R_COL_G As Long = 4
+Private Const R_COL_U As Long = 5
+Private Const R_COL_DIF As Long = 6
+Private Const R_COL_TOL As Long = 7
+Private Const R_COL_ST As Long = 8
+Private Const R_COL_QTD As Long = 9
 ' largura minima do bloco (colunas de horario), para o resumo e as observacoes caberem
 Private Const A_LARG_MIN As Long = 18
 ' Colunas ocultas: numero do batch, Nº de horarios e versao do desenho (na 1a linha do bloco) e os testes de tolerancia
@@ -114,7 +121,7 @@ End Function
 
 ' Observacoes do bloco (a direita do resumo)
 Public Function CelObs(ByVal ws As Worksheet, ByVal r As Long) As Range
-    Set CelObs = ws.Cells(r + 3, A_COL_G1 + 10)
+    Set CelObs = ws.Cells(r + 3, R_COL_QTD + 2)
 End Function
 
 ' Numero do batch do bloco i da aba Acompanhamento (Empty = bloco vazio)
@@ -215,56 +222,28 @@ Private Sub BlocoLivre(ByVal ws As Worksheet, ByVal i As Long)
     Proteger ws
 End Sub
 
-' Titulo de cada bloco ocupado: "BATCH 298", e o ultimo com "EM PROCESSAMENTO". Tambem: botao Copiar so nos blocos
-' ocupados e colunas depois do bloco mais largo ocultas
+' Titulo de cada bloco ocupado ("BATCH 298") e colunas depois do bloco mais largo ocultas
 Private Sub AtualizarTitulos(ByVal ws As Worksheet)
-    Dim i As Long, ult As Long, id As Variant, cMax As Long, n As Long, v As Variant
-    For i = 1 To N_BLOCOS
-        If ENumero(IdBlocoEm(ws, i)) Then ult = i
-    Next i
+    Dim i As Long, id As Variant, cMax As Long, n As Long, v As Variant
     Desproteger ws
     cMax = ColFim(0)
     For i = 1 To N_BLOCOS
         id = IdBlocoEm(ws, i)
         If ENumero(id) Then
-            ws.Cells(LinhaBlocoN(i), A_COL_N).Value = "BATCH " & id & IIf(i = ult, "   " & ChrW(183) & _
-                "   EM PROCESSAMENTO", "")
+            ws.Cells(LinhaBlocoN(i), A_COL_N).Value = "BATCH " & id
             v = ws.Cells(LinhaBlocoN(i), A_COL_AUX + 1).Value
             n = 0
             If ENumero(v) Then n = CLng(v)
             If ColFim(n) > cMax Then cMax = ColFim(n)
         End If
-        BotaoCopiar ws, i, ENumero(id)
     Next i
     If ws.Parent Is ThisWorkbook Then
         On Error Resume Next
-        ' cMax+1 a cMax+3: espaco do botao Copiar batch
-        ws.Range(ws.Columns(1), ws.Columns(cMax + 3)).Hidden = False
-        ws.Range(ws.Columns(cMax + 4), ws.Columns(ws.Columns.Count)).Hidden = True
+        ws.Range(ws.Columns(1), ws.Columns(cMax + 1)).Hidden = False
+        ws.Range(ws.Columns(cMax + 2), ws.Columns(ws.Columns.Count)).Hidden = True
         On Error GoTo 0
     End If
     Proteger ws
-End Sub
-
-' Botao "Copiar batch" do bloco i (macro CopiarBatch<i>): so aparece com batch no bloco, na altura da faixa e
-' fora do bloco (a direita), para nao sair num print do bloco
-Private Sub BotaoCopiar(ByVal ws As Worksheet, ByVal i As Long, ByVal visivel As Boolean)
-    Dim shp As Object, acao As String, c As Range, v As Variant, n As Long
-    On Error Resume Next
-    v = ws.Cells(LinhaBlocoN(i), A_COL_AUX + 1).Value
-    If ENumero(v) Then n = CLng(v)
-    Set c = ws.Cells(LinhaBlocoN(i), ColFim(n) + 1)
-    For Each shp In ws.Shapes
-        acao = ""
-        acao = shp.OnAction
-        If LCase$(Right$(acao, Len("CopiarBatch" & i))) = LCase$("CopiarBatch" & i) Then
-            shp.Visible = visivel
-            If visivel Then
-                shp.Top = c.Top + (c.Height - shp.Height) / 2
-                shp.Left = c.Left + 12
-            End If
-        End If
-    Next shp
 End Sub
 
 ' Informacoes do batch (aba Batch) que ja vem escritas nas observacoes
@@ -277,9 +256,8 @@ Private Function InfoBatch(ByVal n As Long, ByVal ext As Long) As String
     If EData(Nm("bIniG").Value) Then t = t & IIf(t <> "", vbLf, "") & "Germano (EB06): " & _
         Format$(CDate(Nm("bIniG").Value), "dd\/mm hh:mm") & IIf(EData(Nm("bFimG").Value), " a " & _
         Format$(CDate(Nm("bFimG").Value), "dd\/mm hh:mm"), "")
-    t = t & IIf(t <> "", vbLf, "") & n & " bi-horários"
-    If ext > 0 Then t = t & " (estendido +" & 2 * ext & " h: Germano nos " & ext & " últimos = média das " & (n - ext) & _
-        " leituras do MES)"
+    If ext > 0 Then t = t & IIf(t <> "", vbLf, "") & "Batch estendido +" & 2 * ext & " h: Germano nos " & ext & _
+        " últimos = média das " & (n - ext) & " leituras do MES"
     InfoBatch = t
 End Function
 
@@ -450,7 +428,7 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     area.Clear
     SemFormatoCondicional area
     area.EntireRow.Hidden = False
-    ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 17
+    ws.Range(ws.Cells(r, 1), ws.Cells(r + h - 1, 1)).EntireRow.RowHeight = 16
     ' marcadores ocultos: numero, Nº de horarios, versao do desenho e o texto automatico das observacoes
     If Not semBatch Then ws.Cells(r, A_COL_AUX).Value = CDbl(id)
     ws.Cells(r, A_COL_AUX + 1).Value = IIf(semBatch, 0, n)
@@ -459,37 +437,34 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
     ws.Cells(r, A_COL_AUX + 4).Value = IIf(semBatch, 0, nEstend)
 
     ' ---- faixa do batch (como o cabecalho do Painel)
-    ws.Rows(r).RowHeight = 30
-    Set rg = ws.Range(ws.Cells(r, A_COL_N), ws.Cells(r, A_COL_G1 + 8))
-    Faixa rg, COR_AZUL, COR_BRANCO, 14
+    ws.Rows(r).RowHeight = 36
+    Set rg = ws.Range(ws.Cells(r, A_COL_N), ws.Cells(r, cF))
+    Faixa rg, COR_AZUL, COR_BRANCO, 18
     rg.Cells(1, 1).Value = IIf(semBatch, "BATCH " & ChrW(8212), "BATCH " & id)
-    rg.IndentLevel = 1
-    Set rg = ws.Range(ws.Cells(r, A_COL_G1 + 9), ws.Cells(r, cF))
-    Faixa rg, COR_AZUL, COR_AMARELO, 10
-    rg.HorizontalAlignment = -4152
-    rg.IndentLevel = 1
+    rg.HorizontalAlignment = -4108
     LinhaAmarela ws.Range(ws.Cells(r, A_COL_N), ws.Cells(r, cF))
     ws.Rows(r + 1).RowHeight = 8
 
     ' ---- RESUMO (tipo farol do Painel) e OBSERVACOES
-    TituloQuadro ws.Range(ws.Cells(r + 2, A_COL_N), ws.Cells(r + 2, A_COL_G1 + 8)), _
-        "RESUMO DO BATCH   (média de todas as leituras)"
-    TituloQuadro ws.Range(ws.Cells(r + 2, A_COL_G1 + 10), ws.Cells(r + 2, cF)), "OBSERVAÇÕES"
-    ws.Rows(r + 3).RowHeight = 28
+    TituloQuadro ws.Range(ws.Cells(r + 2, A_COL_N), ws.Cells(r + 2, R_COL_QTD)), "RESUMO DO BATCH   (média)"
+    TituloQuadro ws.Range(ws.Cells(r + 2, R_COL_QTD + 2), ws.Cells(r + 2, cF)), "OBSERVAÇÕES"
+    ws.Rows(r + 3).RowHeight = 26
     Cabec ws.Range(ws.Cells(r + 3, A_COL_N), ws.Cells(r + 3, A_COL_SUB)), "ANÁLISE"
-    Cabec ws.Range(ws.Cells(r + 3, A_COL_G1), ws.Cells(r + 3, A_COL_G1 + 1)), "GERMANO" & vbLf & "(MÉDIA)"
-    Cabec ws.Range(ws.Cells(r + 3, A_COL_G1 + 2), ws.Cells(r + 3, A_COL_G1 + 3)), UCase$(nomeUbu) & vbLf & "(MÉDIA)"
-    Cabec ws.Range(ws.Cells(r + 3, A_COL_G1 + 4), ws.Cells(r + 3, A_COL_G1 + 5)), "DIFERENÇA" & vbLf & "(UBU " & ChrW(8722) & " GERMANO)"
-    Cabec ws.Cells(r + 3, A_COL_G1 + 6), "TOLER." & vbLf & "(±)"
-    Cabec ws.Cells(r + 3, A_COL_G1 + 7), "STATUS"
-    Cabec ws.Cells(r + 3, A_COL_G1 + 8), "QTD." & vbLf & "G / U"
+    Cabec ws.Cells(r + 3, R_COL_G), "GERMANO (MÉDIA)"
+    ' coluna estreita: "Alimentacao 04" vira "ALIM. 04"
+    Cabec ws.Cells(r + 3, R_COL_U), UCase$(Replace(nomeUbu, "Alimentação", "Alim.")) & " (MÉDIA)"
+    Cabec ws.Cells(r + 3, R_COL_DIF), "DIFERENÇA" & vbLf & "(U " & ChrW(8722) & " G)"
+    Cabec ws.Cells(r + 3, R_COL_TOL), "TOLER. (±)"
+    Cabec ws.Cells(r + 3, R_COL_ST), "STATUS"
+    Cabec ws.Cells(r + 3, R_COL_QTD), "QTD." & vbLf & "G / U"
+    ws.Range(ws.Cells(r + 3, A_COL_N), ws.Cells(r + 3, R_COL_QTD)).Font.Size = 7
     For k = 1 To na
         chave = CStr(ps(k - 1))
         p = PIndice(chave)
         dec = PDec(p)
         If dec = 0 Then fmt = "0" Else fmt = "0." & String$(dec, "0")
         rr = LinhaResumo(r, k)
-        ws.Rows(rr).RowHeight = 21
+        ws.Rows(rr).RowHeight = 17
         linG = ws.Range(ws.Cells(LinhaAnalise(r, k), ColHora(1)), ws.Cells(LinhaAnalise(r, k), cL)).Address(False, False)
         linU = ws.Range(ws.Cells(LinhaAnalise(r, k) + 1, ColHora(1)), ws.Cells(LinhaAnalise(r, k) + 1, cL)).Address(False, False)
         Set rg = ws.Range(ws.Cells(rr, A_COL_N), ws.Cells(rr, A_COL_SUB))
@@ -498,17 +473,15 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
         rg.Cells(1, 1).Value = PRotulo(p)
         rg.HorizontalAlignment = -4131
         rg.IndentLevel = 1
-        Set rg = ws.Range(ws.Cells(rr, A_COL_G1), ws.Cells(rr, A_COL_G1 + 1))
+        Set rg = ws.Cells(rr, R_COL_G)
         CelulaTabela rg, False
-        rg.Merge
-        rg.Cells(1, 1).Formula = "=IF(COUNT(" & linG & ")=0,""—"",AVERAGE(" & linG & "))"
+        rg.Formula = "=IF(COUNT(" & linG & ")=0,""—"",AVERAGE(" & linG & "))"
         rg.NumberFormat = fmt
-        Set rg = ws.Range(ws.Cells(rr, A_COL_G1 + 2), ws.Cells(rr, A_COL_G1 + 3))
+        Set rg = ws.Cells(rr, R_COL_U)
         CelulaTabela rg, False
-        rg.Merge
-        rg.Cells(1, 1).Formula = "=IF(COUNT(" & linU & ")=0,""—"",AVERAGE(" & linU & "))"
+        rg.Formula = "=IF(COUNT(" & linU & ")=0,""—"",AVERAGE(" & linU & "))"
         rg.NumberFormat = fmt
-        Set tol = ws.Cells(rr, A_COL_G1 + 6)
+        Set tol = ws.Cells(rr, R_COL_TOL)
         CelulaTabela tol, False
         ' tolerancia (Configuracoes); na planilha online vai o numero (ela nao depende desta)
         If ws.Parent Is ThisWorkbook Then
@@ -517,33 +490,32 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
             tol.Value = CDbl(Nm("padTol_" & chave).Value)
         End If
         tol.NumberFormat = fmt
-        Set dif = ws.Range(ws.Cells(rr, A_COL_G1 + 4), ws.Cells(rr, A_COL_G1 + 5))
+        Set dif = ws.Cells(rr, R_COL_DIF)
         CelulaTabela dif, True
-        dif.Merge
-        dif.Cells(1, 1).Formula = "=IF(AND(ISNUMBER(" & ws.Cells(rr, A_COL_G1 + 2).Address(False, False) & "),ISNUMBER(" & _
-            ws.Cells(rr, A_COL_G1).Address(False, False) & "))," & ws.Cells(rr, A_COL_G1 + 2).Address(False, False) & "-" & _
-            ws.Cells(rr, A_COL_G1).Address(False, False) & ",""—"")"
+        dif.Formula = "=IF(AND(ISNUMBER(" & ws.Cells(rr, R_COL_U).Address(False, False) & "),ISNUMBER(" & _
+            ws.Cells(rr, R_COL_G).Address(False, False) & "))," & ws.Cells(rr, R_COL_U).Address(False, False) & "-" & _
+            ws.Cells(rr, R_COL_G).Address(False, False) & ",""—"")"
         dif.NumberFormat = "+" & fmt & ";" & ChrW(8722) & fmt & ";" & fmt
         Set aux = ws.Cells(rr, A_COL_AUX)
         aux.Formula = ForaTol(dif.Cells(1, 1), dec, tol)
         MarcarForaTol dif, aux
-        Set st = ws.Cells(rr, A_COL_G1 + 7)
+        Set st = ws.Cells(rr, R_COL_ST)
         CelulaTabela st, True
         st.Formula = "=IF(ISNUMBER(" & dif.Cells(1, 1).Address(False, False) & "),IF(" & aux.Address(False, False) & _
                      ",""NOK"",""OK""),""—"")"
         MarcarStatus st
-        Set rg = ws.Cells(rr, A_COL_G1 + 8)
+        Set rg = ws.Cells(rr, R_COL_QTD)
         CelulaTabela rg, False
         rg.Formula = "=COUNT(" & linG & ")&"" / ""&COUNT(" & linU & ")"
         rg.Font.Color = COR_CINZA_TXT
     Next k
     ' legenda (como no Painel)
     rr = LinhaResumo(r, na) + 1
-    ws.Rows(rr).RowHeight = 15
-    Legenda ws.Range(ws.Cells(rr, A_COL_N), ws.Cells(rr, A_COL_G1 + 3)), "OK " & ChrW(8212) & " DENTRO DA TOLERÂNCIA", -4131
-    Legenda ws.Range(ws.Cells(rr, A_COL_G1 + 4), ws.Cells(rr, A_COL_G1 + 8)), "NOK " & ChrW(8212) & " FORA DA TOLERÂNCIA", -4152
+    ws.Rows(rr).RowHeight = 14
+    Legenda ws.Range(ws.Cells(rr, A_COL_N), ws.Cells(rr, R_COL_U)), "OK " & ChrW(8212) & " DENTRO DA TOLERÂNCIA", -4131
+    Legenda ws.Range(ws.Cells(rr, R_COL_DIF), ws.Cells(rr, R_COL_QTD)), "NOK " & ChrW(8212) & " FORA DA TOLERÂNCIA", -4152
     ' observacoes: um campo so (ja vem com chegada em Ubu, nivel, inicio no processo, Germano)
-    Set rg = ws.Range(ws.Cells(r + 3, A_COL_G1 + 10), ws.Cells(rr, cF))
+    Set rg = ws.Range(ws.Cells(r + 3, R_COL_QTD + 2), ws.Cells(rr, cF))
     CelulaDigitar rg
     rg.Merge
     rg.HorizontalAlignment = -4131
@@ -997,27 +969,6 @@ End Sub
 
 ' ---------------------------------------------------------------- copiar (e-mail do turno)
 ' Copia como imagem o bloco onde esta a celula selecionada (fora dos blocos: o batch em processamento)
-' Botoes Copiar de cada bloco (na faixa do batch)
-Public Sub CopiarBatch1()
-    CopiarBloco 1
-End Sub
-
-Public Sub CopiarBatch2()
-    CopiarBloco 2
-End Sub
-
-Public Sub CopiarBatch3()
-    CopiarBloco 3
-End Sub
-
-Public Sub CopiarBatch4()
-    CopiarBloco 4
-End Sub
-
-Public Sub CopiarBatch5()
-    CopiarBloco 5
-End Sub
-
 ' Bloco onde esta a celula selecionada; fora dos blocos, o ultimo ocupado
 Public Sub CopiarAcompanhamento()
     Dim i As Long, j As Long
@@ -1064,12 +1015,7 @@ Public Sub CopiarBloco(ByVal i As Long)
     If ENumero(shAcomp.Cells(r, A_COL_AUX + 1).Value) Then n = CLng(shAcomp.Cells(r, A_COL_AUX + 1).Value)
     If n < 1 Then n = 1
     Set area = shAcomp.Range(shAcomp.Cells(r, A_COL_N), shAcomp.Cells(r + AlturaBloco() - 1, ColFim(n)))
-    ' o botao nao entra na imagem
-    Desproteger shAcomp
-    BotaoCopiar shAcomp, i, False
     copiou = CopiarAreaImagem(shAcomp, area)
-    BotaoCopiar shAcomp, i, True
-    Proteger shAcomp
     If copiou Then
         Aviso "Acompanhamento do batch " & id & " copiado. Cole no e-mail com Ctrl+V.", vbInformation, _
               "Copiar acompanhamento"

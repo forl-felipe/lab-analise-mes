@@ -21,9 +21,10 @@ não usa ficam muito ocultas, sem ser apagadas, para o código compilar igual na
 Só o necessário, em etapas:
 
 1. **Identificação do batch**: batch Nº; **nível dos tanques** (lista Alto / Médio / Baixo — define o atraso entre a
-   chegada em Ubu e o início no processo); **início no processo (manual)** — quando preenchido, vale ele e não a
-   chegada + atraso do nível; **estender o batch (horas)** — ver abaixo.
-2. **Fases do evento**: área amarela para colar a tabela de fases do MES (Germano EB06 e Ubu UBU3 entram sozinhos
+   chegada em Ubu e o início no processo) **ou** **início no processo (manual)** — preencher um apaga o outro e o
+   que não vale fica cinza; **estender o batch (horas)** — ver abaixo.
+2. **Fases do evento**: área amarela do tamanho da tabela do MES (4 colunas × 3 linhas; cabeçalho ou coluna a mais
+   também são aceitos) para colar a tabela de fases (Germano EB06 e Ubu UBU3 entram sozinhos
    na conferência).
 3. **Conferência**: Germano início/término, Ubu chegada/término, início no processo, bi-horários, defasagem, data
    e mineroduto — dá para corrigir.
@@ -43,20 +44,20 @@ só os resultados do MES.
 ### Aba Batch (5 batches por planilha)
 
 Cinco blocos, um por batch, no padrão do Painel. Cada **Buscar no MES** atualiza o bloco do batch (Germano, Ubu e
-horários); batch novo entra no primeiro lugar livre (lugar livre = só uma faixa cinza "LIVRE"; o último batch buscado
-fica como *EM PROCESSAMENTO*).
+horários); batch novo entra no primeiro lugar livre (lugar livre = só uma faixa cinza "LIVRE").
 Com os 5 blocos ocupados a busca de um 6º batch não muda nada e avisa: comece uma cópia nova da planilha padrão
 limpa.
 
 Cada bloco: faixa do batch; **Resumo do batch**
 (média de Germano e de Alimentação 04, diferença, tolerância, status OK/NOK e leituras G/U); **Observações** — um
-campo só, que já vem escrito com chegada em Ubu, nível dos tanques, início no processo, Germano (EB06) e nº de
-bi-horários (atualiza sozinho enquanto ninguém edita; o que for escrito à mão fica); e **Leituras por bi-horário**
+campo só, que já vem escrito com chegada em Ubu, nível dos tanques, início no processo, Germano (EB06) e, se
+houver, a extensão do batch (atualiza sozinho enquanto ninguém edita; o que for escrito à mão fica); e **Leituras por bi-horário**
 com os horários de Ubu nas colunas e, para cada análise (SiO₂, P, PPC, S.E., <325#), as linhas Germano /
 ✎ Alimentação 04 / Diferença. Ubu vem do MES nos bi-horários já iniciados; onde o MES não tiver resultado, os
 técnicos lançam à mão nas células amarelas (só elas são digitáveis). Fora da tolerância só aparece no resumo
-(pela média: diferença em vermelho e status NOK); a grade fica sem marcação. Cada bloco tem o seu botão **Copiar
-batch** à direita da faixa, fora do bloco (imagem do bloco para o e-mail; não sai num print do bloco). Colunas à direita do bloco
+(pela média: diferença em vermelho e status NOK); a grade fica sem marcação. Sem botões na aba: o bloco é
+pensado para um print direto (inclusive no Excel online) para o e-mail — faixa só com "BATCH 300", resumo compacto
+(uma coluna por campo) e espaço livre nas Observações e à direita para os horários estendidos. Colunas à direita do bloco
 mais largo e linhas abaixo do último bloco ficam ocultas.
 
 Regras do Germano no acompanhamento:

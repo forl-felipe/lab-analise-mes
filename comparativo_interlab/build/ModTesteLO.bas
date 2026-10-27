@@ -303,8 +303,8 @@ Public Sub TesteLO()
         End If
     Next i
     Ok k = n And sM > 0, "Ubu do MES no bloco, sem o 9,99 de outro batch (" & k & " de " & n & ", sem MES no " & sM & ")"
-    Ok InStr(CStr(shAcomp.Cells(rb, 2).Value), "BATCH 295") = 1 And InStr(CStr(shAcomp.Cells(rb, 2).Value), "DE 5") = 0 And _
-       InStr(CStr(shAcomp.Cells(rb, 2).Value), "EM PROCESSAMENTO") > 0, "faixa do batch (" & shAcomp.Cells(rb, 2).Value & ")"
+    Ok CStr(shAcomp.Cells(rb, 2).Value) = "BATCH 295", "faixa so com o batch (" & shAcomp.Cells(rb, 2).Value & ")"
+    Ok InStr(CStr(CelObs(shAcomp, rb).Value), "bi-horários") = 0, "observacoes sem o Nº de bi-horarios"
     Ok shAcomp.Columns(30).Hidden And Not shAcomp.Columns(21).Hidden, "colunas depois do bloco ocultas"
     Ok shAcomp.Rows(LinhaBlocoN(2) + 3).Hidden And Not shAcomp.Rows(LinhaBlocoN(2)).Hidden And _
        Not shAcomp.Rows(rb + 3).Hidden, "lugar livre: so a faixa aparece"
@@ -327,14 +327,14 @@ Public Sub TesteLO()
     Next i
     shAcomp.Calculate
     Ok Abs(CDbl(shAcomp.Cells(lSi + 2, ColHora(1)).Value) - 0.1) < 0.0001, "diferenca Ubu - Germano na grade"
-    Ok Abs(CDbl(shAcomp.Cells(rRes, 8).Value) - 0.1) < 0.0001, "diferenca das medias no resumo (" & shAcomp.Cells(rRes, 8).Value & ")"
-    Ok CStr(shAcomp.Cells(rRes, 11).Value) = "OK", "status da SiO2: OK (" & shAcomp.Cells(rRes, 11).Value & ")"
+    Ok Abs(CDbl(shAcomp.Cells(rRes, 6).Value) - 0.1) < 0.0001, "diferenca das medias no resumo (" & shAcomp.Cells(rRes, 6).Value & ")"
+    Ok CStr(shAcomp.Cells(rRes, 8).Value) = "OK", "status da SiO2: OK (" & shAcomp.Cells(rRes, 8).Value & ")"
     For i = 1 To n
         If ENumero(shAcomp.Cells(lSi, ColHora(i)).Value) Then _
             shAcomp.Cells(lSi + 1, ColHora(i)).Value = CDbl(shAcomp.Cells(lSi, ColHora(i)).Value) + 0.5
     Next i
     shAcomp.Calculate
-    Ok CStr(shAcomp.Cells(rRes, 11).Value) = "NOK", "status da SiO2: NOK com diferenca 0,5"
+    Ok CStr(shAcomp.Cells(rRes, 8).Value) = "NOK", "status da SiO2: NOK com diferenca 0,5"
     Ok Vazio(shAcomp.Cells(rb, 13).Value), "faixa so com o batch (sem contagem de analises fora)"
     shAcomp.Range(shAcomp.Cells(lSi + 1, ColHora(1)), shAcomp.Cells(lSi + 1, ColHora(n))).ClearContents
     shAcomp.Cells(lSi + 1, ColHora(sM)).Value = CDbl(shAcomp.Cells(lSi, ColHora(sM)).Value) + 0.1
@@ -373,8 +373,7 @@ Public Sub TesteLO()
     Ok rb = LinhaBlocoN(2) And rb2 = LinhaBlocoN(1), "296 no 2o lugar, 295 continua no 1o (" & rb2 & ", " & rb & ")"
     Ok Abs(CDbl(shAcomp.Cells(LinhaAnalise(rb2, 1) + 1, ColHora(sM)).Value) - ubu) < 0.0001, "Ubu do 295 continua la"
     Ok CStr(CelObs(shAcomp, rb2).Value) = "SiO2 acima na 1a leitura", "observacao do 295 continua la"
-    Ok InStr(CStr(shAcomp.Cells(rb2, 2).Value), "EM PROCESSAMENTO") = 0 And InStr(CStr(shAcomp.Cells(rb, 2).Value), _
-       "BATCH 296   " & ChrW(183) & "   EM PROCESSAMENTO") = 1, "so o ultimo batch fica como em processamento"
+    Ok CStr(shAcomp.Cells(rb2, 2).Value) = "BATCH 295" And CStr(shAcomp.Cells(rb, 2).Value) = "BATCH 296", "faixas 295 e 296"
     k = 0
     For i = 1 To CLng(V("bNHor"))
         If ENumero(Celula(i, pSi, 1)) Then
@@ -394,6 +393,14 @@ Public Sub TesteLO()
     Nm("bIniPMan").Value = DateSerial(2026, 10, 23) + TimeSerial(16, 0, 0)
     Recalcular
     Ok Abs(CDbl(V("bIniP")) - CDbl(DateSerial(2026, 10, 23) + TimeSerial(16, 0, 0))) < 0.0001, "inicio no processo manual vale"
+    NivelOuManual False
+    Ok Vazio(V("bNivel")), "inicio manual apaga o nivel"
+    Nm("bNivel").Value = "Baixo"
+    NivelOuManual True
+    Ok Vazio(V("bIniPMan")), "nivel apaga o inicio manual"
+    Nm("bIniPMan").Value = DateSerial(2026, 10, 23) + TimeSerial(16, 0, 0)
+    NivelOuManual False
+    Recalcular
     ' estender o batch: +6 h = 3 bi-horarios com a media de Germano
     Nm("bId").Value = 297
     Nm("bIniPMan").Value = Empty
