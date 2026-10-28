@@ -1,0 +1,6 @@
+﻿tag;descricao;tipo;endereco_opc;campo_valor;campo_timestamp;campo_qualidade;unidade;escala_exibicao;estados_ou_limites;severidade_proposta;observacoes
+307-GI-001;Carga média;Analógico;DELTAV01.307-PLC-001.PV_D.307-GI-001;IP_INPUT_VALUE;IP_INPUT_TIME;IP_INPUT_QUALITY;daN/pelota (a confirmar);0 a 500;Referências em 100, 150 e 200;;Formato com 1 casa decimal e vírgula decimal
+307-GI-002;Desvio padrão;Analógico;DELTAV01.307-PLC-001.PV_D.307-GI-002;IP_INPUT_VALUE;IP_INPUT_TIME;IP_INPUT_QUALITY;daN/pelota (a confirmar);0 a 150;Sem limite definido;;Formato com 1 casa decimal e vírgula decimal
+307-QI-001;Menor que 100;Discreto;DELTAV01.307-PLC-001.PV_D.307-QI-001;IP_INPUT_VALUE;IP_INPUT_TIME;IP_INPUT_QUALITY;Adimensional;0 ou 1;0 = Inativo, 1 = Ativo (a confirmar);Crítico;Carga média abaixo de 100 daN/pelota (hipótese H6)
+307-QI-002;Menor que 150;Discreto;DELTAV01.307-PLC-001.PV_D.307-QI-002;IP_INPUT_VALUE;IP_INPUT_TIME;IP_INPUT_QUALITY;Adimensional;0 ou 1;0 = Inativo, 1 = Ativo (a confirmar);Alerta;Carga média abaixo de 150 daN/pelota (hipótese H6)
+307-QI-003;Menor que 200;Discreto;DELTAV01.307-PLC-001.PV_D.307-QI-003;IP_INPUT_VALUE;IP_INPUT_TIME;IP_INPUT_QUALITY;Adimensional;0 ou 1;0 = Inativo, 1 = Ativo (a confirmar);Atenção;Carga média abaixo de 200 daN/pelota (hipótese H6)

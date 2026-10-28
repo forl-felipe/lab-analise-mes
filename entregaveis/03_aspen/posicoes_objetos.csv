@@ -1,0 +1,38 @@
+﻿n;objeto;tag;atributo;descricao;x;y;largura;altura
+1;Imagem;;;Logotipo oficial da Samarco (arquivo fornecido pela comunicação);32;16;200;56
+2;Campo de dados;307-GI-001;IP_INPUT_TIME;Data e hora do último ensaio;1688;46;200;21
+3;Campo de dados;307-GI-001;IP_INPUT_VALUE;Valor da carga média;57;171;220;76
+4;Texto condicional;307-QI-003;IP_INPUT_VALUE;Aviso de faixa (aparece quando alguma faixa está ativa);57;255;330;30
+5;Tendência;307-GI-001;IP_TREND_VALUE;Minitendência da carga média, 8 h;397;181;210;100
+6;Campo de dados;307-GI-001;IP_INPUT_TIME;Timestamp da carga média;159;311;190;17
+7;Campo de dados;307-GI-001;IP_INPUT_QUALITY;Qualidade da carga média;452;310;100;19
+8;Campo de dados;307-GI-002;IP_INPUT_VALUE;Valor do desvio padrão;677;171;220;76
+9;Tendência;307-GI-002;IP_TREND_VALUE;Minitendência do desvio padrão, 8 h;1017;181;210;100
+10;Campo de dados;307-GI-002;IP_INPUT_TIME;Timestamp do desvio padrão;779;311;190;17
+11;Campo de dados;307-GI-002;IP_INPUT_QUALITY;Qualidade do desvio padrão;1072;310;100;19
+12;Campo de dados;(tag de cálculo a criar);IP_INPUT_VALUE;Quantidade de tags com qualidade Good (opcional, Aspen Calc);1297;167;56;48
+13;Campo de dados;307-GI-001;IP_INPUT_QUALITY;Qualidade 307-GI-001;1308;253;85;19
+14;Campo de dados;307-GI-002;IP_INPUT_QUALITY;Qualidade 307-GI-002;1423;253;85;19
+15;Campo de dados;307-QI-001;IP_INPUT_QUALITY;Qualidade 307-QI-001;1538;253;85;19
+16;Campo de dados;307-QI-002;IP_INPUT_QUALITY;Qualidade 307-QI-002;1652;253;85;19
+17;Campo de dados;307-QI-003;IP_INPUT_QUALITY;Qualidade 307-QI-003;1767;253;85;19
+18;Campo de dados;(tag de cálculo a criar);IP_INPUT_VALUE;Tempo desde o último ensaio, em horas (opcional, Aspen Calc);1398;308;330;19
+19;Tendência;307-GI-001 (+ banda e referências);IP_TREND_VALUE;Tendência principal, janela de 8 h, escala 0 a 500;57;466;1290;266
+20;Campo de dados;307-QI-003;IP_INPUT_VALUE;Estado da faixa menor que 200;1686;470;160;28
+21;Campo de dados;307-QI-002;IP_INPUT_VALUE;Estado da faixa menor que 150;1686;560;160;28
+22;Campo de dados;307-QI-001;IP_INPUT_VALUE;Estado da faixa menor que 100;1686;650;160;28
+23;Campo de dados;307-GI-001;IP_INPUT_VALUE;Tabela: valor;597;860;190;34
+24;Campo de dados;307-GI-001;IP_INPUT_TIME;Tabela: timestamp;787;860;270;34
+25;Campo de dados;307-GI-001;IP_INPUT_QUALITY;Tabela: qualidade;1057;860;170;34
+26;Campo de dados;307-GI-002;IP_INPUT_VALUE;Tabela: valor;597;895;190;34
+27;Campo de dados;307-GI-002;IP_INPUT_TIME;Tabela: timestamp;787;895;270;34
+28;Campo de dados;307-GI-002;IP_INPUT_QUALITY;Tabela: qualidade;1057;895;170;34
+29;Campo de dados;307-QI-001;IP_INPUT_VALUE;Tabela: valor;597;930;190;34
+30;Campo de dados;307-QI-001;IP_INPUT_TIME;Tabela: timestamp;787;930;270;34
+31;Campo de dados;307-QI-001;IP_INPUT_QUALITY;Tabela: qualidade;1057;930;170;34
+32;Campo de dados;307-QI-002;IP_INPUT_VALUE;Tabela: valor;597;965;190;34
+33;Campo de dados;307-QI-002;IP_INPUT_TIME;Tabela: timestamp;787;965;270;34
+34;Campo de dados;307-QI-002;IP_INPUT_QUALITY;Tabela: qualidade;1057;965;170;34
+35;Campo de dados;307-QI-003;IP_INPUT_VALUE;Tabela: valor;597;1000;190;34
+36;Campo de dados;307-QI-003;IP_INPUT_TIME;Tabela: timestamp;787;1000;270;34
+37;Campo de dados;307-QI-003;IP_INPUT_QUALITY;Tabela: qualidade;1057;1000;170;34

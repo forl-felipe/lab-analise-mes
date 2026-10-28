@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compressão de pelotas</title>
+<!--
+  Protótipo estático da tela de monitoramento do ensaio de compressão de pelotas.
+  Dados simulados. Modos de exibição (parâmetro na URL):
+    ?modo=demo   tela completa com dados simulados (padrão)
+    ?modo=fundo  apenas a parte estática, para gerar a imagem de fundo do Aspen
+    ?modo=mapa   parte estática com a posição numerada de cada objeto dinâmico
+-->
+<style>
+  :root {
+    --bg: #161b22;          /* RGB 22, 27, 34   fundo da tela */
+    --card: #1f2630;        /* RGB 31, 38, 48   fundo dos painéis e dos campos de dados */
+    --card-line: #2e3744;   /* RGB 46, 55, 68   bordas e divisórias */
+    --head: #1a2029;        /* RGB 26, 32, 41   cabeçalho da tabela */
+    --text: #e6eaf0;        /* RGB 230, 234, 240 valores e títulos */
+    --muted: #8b96a5;       /* RGB 139, 150, 165 rótulos */
+    --dim: #6b7480;         /* RGB 107, 116, 128 sem dado confiável */
+    --trend: #5cc8f0;       /* RGB 92, 200, 240 linha da carga média */
+    --band: rgba(92, 200, 240, .14);
+    --attn: #f2c94c;        /* RGB 242, 201, 76 atenção */
+    --alert: #f2994a;       /* RGB 242, 153, 74 alerta */
+    --crit: #eb5757;        /* RGB 235, 87, 87  crítico */
+    --ui: "Segoe UI", Inter, "Liberation Sans", Arial, sans-serif;
+    --data: Arial, "Liberation Sans", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0d1117; color: var(--text); font-family: var(--ui); overflow: hidden; height: 100%; }
+  #palco { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: var(--bg); transform-origin: 0 0; overflow: hidden; }
+
+  /* Cabeçalho */
+  .cab { position: absolute; left: 0; top: 0; width: 1920px; height: 88px; background: #11161d; border-bottom: 1px solid var(--card-line); display: flex; align-items: center; padding: 0 32px; gap: 28px; }
+  .logo { width: 200px; height: 56px; border: 1px dashed #4a5464; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; line-height: 1.3; color: var(--muted); }
+  .titulo h1 { font-size: 28px; font-weight: 600; letter-spacing: .2px; }
+  .titulo p { font-size: 15px; color: var(--muted); margin-top: 4px; }
+  .cab .dir { margin-left: auto; text-align: right; }
+  .cab .dir .local { font-size: 15px; color: var(--muted); }
+  .cab .dir .atual { margin-top: 6px; display: flex; gap: 10px; align-items: baseline; justify-content: flex-end; }
+  .cab .dir .atual span:first-child { font-size: 14px; color: var(--muted); }
+
+  /* Painéis */
+  .card { position: absolute; background: var(--card); border: 1px solid var(--card-line); border-radius: 14px; padding: 20px 24px; }
+  .card h2 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+  .chip { font-family: var(--data); font-size: 13px; font-weight: 400; color: var(--muted); border: 1px solid var(--card-line); border-radius: 999px; padding: 3px 10px; }
+  .sub { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .rot { font-size: 14px; color: var(--muted); }
+
+  /* Campos dinâmicos */
+  .slot { font-family: var(--data); color: var(--text); }
+  .v-grande { font-size: 76px; font-weight: 700; line-height: 1; letter-spacing: -1px; }
+  .v-med { font-size: 18px; font-weight: 700; }
+  .v-peq { font-size: 15px; }
+  .semdado { color: var(--dim) !important; font-weight: 400 !important; }
+  .semdado.v-grande { font-size: 22px; letter-spacing: 0; }
+
+  .kpi .corpo { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 18px; }
+  .kpi .unid { font-size: 18px; color: var(--muted); margin-left: 10px; }
+  .kpi .spark { width: 210px; height: 100px; }
+  .kpi .corpo .slot.v-grande { display: inline-block; width: 220px; text-align: right; white-space: nowrap; }
+  .kpi .rodape .slot.v-peq { display: inline-block; }
+  .kpi .rodape { display: flex; gap: 28px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--card-line); align-items: baseline; }
+  .kpi .rodape div { display: flex; gap: 8px; align-items: baseline; }
+  .aviso { display: inline-flex; gap: 6px; align-items: center; font-size: 15px; font-weight: 600; padding: 4px 10px; border-radius: 6px; margin-left: 14px; vertical-align: middle; }
+
+  .qual .grande { margin-top: 14px; display: flex; align-items: baseline; gap: 10px; }
+  .qual .lista { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 14px; }
+  .qual .lista > div { border: 1px solid var(--card-line); border-radius: 8px; padding: 8px 10px; }
+  .qual .lista .slot { display: block; }
+  .qual .lista .t { font-family: var(--data); font-size: 13px; color: var(--muted); }
+  .qual .com { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-line); display: flex; gap: 10px; align-items: baseline; }
+
+  .graf { width: 100%; height: 266px; margin-top: 12px; }
+
+  .faixa { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--card-line); border-left: 6px solid var(--card-line); border-radius: 10px; padding: 12px 16px; margin-top: 12px; height: 78px; }
+  .faixa .nome { font-size: 17px; font-weight: 600; }
+  .faixa .det { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .estado { display: inline-block; width: 160px; height: 28px; line-height: 28px; text-align: right; font-size: 18px; font-weight: 700; }
+  .nota { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 15px; }
+  th { background: var(--head); color: var(--muted); font-weight: 600; text-align: left; padding: 9px 12px; font-size: 13px; text-transform: uppercase; letter-spacing: .4px; }
+  td { padding: 0 12px; height: 34px; border-top: 1px solid var(--card-line); }
+  td.mono { font-family: var(--data); }
+  td.dyn { padding: 0; }
+  td.dyn .slot { display: block; padding: 0 12px; line-height: 34px; height: 34px; }
+
+  /* Modos fundo e mapa */
+  body.fundo .slot, body.mapa .slot { visibility: hidden; }
+  body.fundo .slot.box, body.mapa .slot.box { visibility: visible; }
+  body.fundo .slot.box > *, body.mapa .slot.box > * { visibility: hidden; }
+  body.fundo .slot.box, body.fundo .logo { border-color: transparent !important; color: transparent; }
+  body.mapa .slot { visibility: visible !important; color: transparent !important; outline: 2px dashed #ff4fd8; outline-offset: -2px; position: relative; background: rgba(255,79,216,.08); }
+  body.mapa .slot > * { visibility: hidden !important; }
+  body.mapa .slot::after { content: attr(data-slot); position: absolute; left: 4px; top: 2px; font: 700 14px/1 Arial, sans-serif; color: #fff; background: #c2189e; padding: 2px 5px; border-radius: 3px; visibility: visible; }
+
+  #cenarios { position: fixed; right: 12px; bottom: 12px; background: #11161d; border: 1px solid var(--card-line); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--muted); z-index: 9; }
+  #cenarios select { margin-left: 6px; font: inherit; background: var(--card); color: var(--text); border: 1px solid var(--card-line); border-radius: 4px; padding: 2px 4px; }
+  body.fundo #cenarios, body.mapa #cenarios, body.captura #cenarios { display: none; }
+</style>
+</head>
+<body>
+<div id="palco">
+
+  <header class="cab">
+    <div class="logo slot box" data-slot="1" data-obj="Imagem" data-tag="" data-attr="" data-desc="Logotipo oficial da Samarco (arquivo fornecido pela comunicação)">Logotipo oficial<br>(inserir arquivo da marca)</div>
+    <div class="titulo">
+      <h1>Monitoramento do ensaio de compressão de pelotas</h1>
+      <p>Prensa automática de compressão &nbsp;|&nbsp; PLC 307-PLC-001 &nbsp;|&nbsp; Fonte DeltaV01</p>
+    </div>
+    <div class="dir">
+      <div class="local">Unidade Ubu &nbsp;|&nbsp; Laboratório de Controle de Embarque</div>
+      <div class="atual"><span>Última atualização</span><span class="slot v-med" style="display:inline-block; width:200px; text-align:right" id="s-atual" data-slot="2" data-obj="Campo de dados" data-tag="307-GI-001" data-attr="IP_INPUT_TIME" data-desc="Data e hora do último ensaio">--/--/---- --:--:--</span></div>
+    </div>
+  </header>
+
+  <!-- Carga média -->
+  <section class="card kpi" style="left:32px; top:108px; width:600px; height:260px;">
+    <h2>Carga média <span class="chip">307-GI-001</span></h2>
+    <div class="corpo">
+      <div>
+        <span class="slot v-grande" id="s-gi1" data-slot="3" data-obj="Campo de dados" data-tag="307-GI-001" data-attr="IP_INPUT_VALUE" data-desc="Valor da carga média">000,0</span><span class="unid">daN/pelota</span>
+        <div style="height:26px; margin-top:8px;"><span class="slot" style="display:inline-block; width:330px; height:30px; white-space:nowrap" id="s-gi1-aviso" data-slot="4" data-obj="Texto condicional" data-tag="307-QI-003" data-attr="IP_INPUT_VALUE" data-desc="Aviso de faixa (aparece quando alguma faixa está ativa)"></span></div>
+      </div>
+      <div class="spark slot box" data-slot="5" data-obj="Tendência" data-tag="307-GI-001" data-attr="IP_TREND_VALUE" data-desc="Minitendência da carga média, 8 h"><svg id="sp1" width="210" height="100"></svg></div>
+    </div>
+    <div class="rodape">
+      <div><span class="rot">Atualizado em</span><span class="slot v-peq" style="width:190px" id="s-gi1-ts" data-slot="6" data-obj="Campo de dados" data-tag="307-GI-001" data-attr="IP_INPUT_TIME" data-desc="Timestamp da carga média">--</span></div>
+      <div><span class="rot">Qualidade</span><span class="slot v-peq" style="width:100px" id="s-gi1-q" data-slot="7" data-obj="Campo de dados" data-tag="307-GI-001" data-attr="IP_INPUT_QUALITY" data-desc="Qualidade da carga média">--</span></div>
+    </div>
+  </section>
+
+  <!-- Desvio padrão -->
+  <section class="card kpi" style="left:652px; top:108px; width:600px; height:260px;">
+    <h2>Desvio padrão <span class="chip">307-GI-002</span></h2>
+    <div class="corpo">
+      <div>
+        <span class="slot v-grande" id="s-gi2" data-slot="8" data-obj="Campo de dados" data-tag="307-GI-002" data-attr="IP_INPUT_VALUE" data-desc="Valor do desvio padrão">00,0</span><span class="unid">daN/pelota</span>
+        <div style="height:26px; margin-top:8px;"><span class="rot">Dispersão entre as pelotas do ensaio</span></div>
+      </div>
+      <div class="spark slot box" data-slot="9" data-obj="Tendência" data-tag="307-GI-002" data-attr="IP_TREND_VALUE" data-desc="Minitendência do desvio padrão, 8 h"><svg id="sp2" width="210" height="100"></svg></div>
+    </div>
+    <div class="rodape">
+      <div><span class="rot">Atualizado em</span><span class="slot v-peq" style="width:190px" id="s-gi2-ts" data-slot="10" data-obj="Campo de dados" data-tag="307-GI-002" data-attr="IP_INPUT_TIME" data-desc="Timestamp do desvio padrão">--</span></div>
+      <div><span class="rot">Qualidade</span><span class="slot v-peq" style="width:100px" id="s-gi2-q" data-slot="11" data-obj="Campo de dados" data-tag="307-GI-002" data-attr="IP_INPUT_QUALITY" data-desc="Qualidade do desvio padrão">--</span></div>
+    </div>
+  </section>
+
+  <!-- Qualidade e comunicação -->
+  <section class="card qual" style="left:1272px; top:108px; width:616px; height:260px;">
+    <h2>Qualidade dos dados</h2>
+    <div class="grande"><span class="slot v-grande" style="font-size:48px; display:inline-block; width:56px; text-align:center" id="s-nq" data-slot="12" data-obj="Campo de dados" data-tag="(tag de cálculo a criar)" data-attr="IP_INPUT_VALUE" data-desc="Quantidade de tags com qualidade Good (opcional, Aspen Calc)">5</span><span class="rot" style="font-size:17px">de 5 tags com qualidade Good</span></div>
+    <div class="lista">
+      <div><div class="t">GI-001</div><span class="slot v-peq" id="q1" data-slot="13" data-obj="Campo de dados" data-tag="307-GI-001" data-attr="IP_INPUT_QUALITY" data-desc="Qualidade 307-GI-001">Good</span></div>
+      <div><div class="t">GI-002</div><span class="slot v-peq" id="q2" data-slot="14" data-obj="Campo de dados" data-tag="307-GI-002" data-attr="IP_INPUT_QUALITY" data-desc="Qualidade 307-GI-002">Good</span></div>
+      <div><div class="t">QI-001</div><span class="slot v-peq" id="q3" data-slot="15" data-obj="Campo de dados" data-tag="307-QI-001" data-attr="IP_INPUT_QUALITY" data-desc="Qualidade 307-QI-001">Good</span></div>
+      <div><div class="t">QI-002</div><span class="slot v-peq" id="q4" data-slot="16" data-obj="Campo de dados" data-tag="307-QI-002" data-attr="IP_INPUT_QUALITY" data-desc="Qualidade 307-QI-002">Good</span></div>
+      <div><div class="t">QI-003</div><span class="slot v-peq" id="q5" data-slot="17" data-obj="Campo de dados" data-tag="307-QI-003" data-attr="IP_INPUT_QUALITY" data-desc="Qualidade 307-QI-003">Good</span></div>
+    </div>
+    <div class="com"><span class="rot">Comunicação</span><span class="slot v-peq" style="display:inline-block; width:330px" id="s-com" data-slot="18" data-obj="Campo de dados" data-tag="(tag de cálculo a criar)" data-attr="IP_INPUT_VALUE" data-desc="Tempo desde o último ensaio, em horas (opcional, Aspen Calc)">--</span><span class="rot" style="margin-left:auto">Limite: 4 h</span></div>
+  </section>
+
+  <!-- Tendência -->
+  <section class="card" style="left:32px; top:388px; width:1340px; height:360px;">
+    <h2>Tendência da carga média <span class="chip">307-GI-001</span> <span class="chip">307-GI-002</span></h2>
+    <div class="sub">Janela de 8 h &nbsp;|&nbsp; banda de mais ou menos um desvio padrão &nbsp;|&nbsp; referências em 100, 150 e 200 daN/pelota</div>
+    <div class="graf slot box" data-slot="19" data-obj="Tendência" data-tag="307-GI-001 (+ banda e referências)" data-attr="IP_TREND_VALUE" data-desc="Tendência principal, janela de 8 h, escala 0 a 500"><svg id="tend" width="1290" height="266"></svg></div>
+  </section>
+
+  <!-- Faixas -->
+  <section class="card" style="left:1392px; top:388px; width:496px; height:360px;">
+    <h2>Faixas de classificação</h2>
+    <div class="faixa" id="f3"><div><div class="nome">Menor que 200 daN/pelota</div><div class="det">307-QI-003 &nbsp;|&nbsp; Atenção</div></div><span class="slot estado" id="s-qi3" data-slot="20" data-obj="Campo de dados" data-tag="307-QI-003" data-attr="IP_INPUT_VALUE" data-desc="Estado da faixa menor que 200">Inativo</span></div>
+    <div class="faixa" id="f2"><div><div class="nome">Menor que 150 daN/pelota</div><div class="det">307-QI-002 &nbsp;|&nbsp; Alerta</div></div><span class="slot estado" id="s-qi2" data-slot="21" data-obj="Campo de dados" data-tag="307-QI-002" data-attr="IP_INPUT_VALUE" data-desc="Estado da faixa menor que 150">Inativo</span></div>
+    <div class="faixa" id="f1"><div><div class="nome">Menor que 100 daN/pelota</div><div class="det">307-QI-001 &nbsp;|&nbsp; Crítico</div></div><span class="slot estado" id="s-qi1" data-slot="22" data-obj="Campo de dados" data-tag="307-QI-001" data-attr="IP_INPUT_VALUE" data-desc="Estado da faixa menor que 100">Inativo</span></div>
+    <div class="nota">Severidade proposta, pendente de aprovação do LCE.</div>
+  </section>
+
+  <!-- Tabela -->
+  <section class="card" style="left:32px; top:768px; width:1856px; height:284px;">
+    <h2>Tags do ensaio</h2>
+    <table>
+      <colgroup><col style="width:170px"><col style="width:230px"><col style="width:140px"><col style="width:190px"><col style="width:270px"><col style="width:170px"><col></colgroup>
+      <thead><tr><th>Tag</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Timestamp</th><th>Qualidade</th><th>Endereço OPC</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </section>
+</div>
+
+<div id="cenarios">Cenário simulado
+  <select id="cen">
+    <option value="normal">Normal</option>
+    <option value="f200">Carga abaixo de 200</option>
+    <option value="f100">Carga abaixo de 100</option>
+    <option value="bad">Qualidade Bad na carga média</option>
+    <option value="defasado">Comunicação perdida</option>
+  </select>
+</div>
+
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const modo = params.get('modo') || 'demo';
+  if (modo === 'fundo' || modo === 'mapa') document.body.classList.add(modo);
+  if (params.get('captura')) document.body.classList.add('captura');
+
+  // Ajusta o palco de 1920 x 1080 à janela, sem rolagem.
+  const palco = document.getElementById('palco');
+  function escala() {
+    if (params.get('captura')) return;
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    palco.style.transform = `scale(${s})`;
+    palco.style.left = ((innerWidth - 1920 * s) / 2) + 'px';
+    palco.style.top = ((innerHeight - 1080 * s) / 2) + 'px';
+  }
+  addEventListener('resize', escala); escala();
+
+  const LIMITE_H = 4;
+  const TAGS = [
+    { tag: '307-GI-001', desc: 'Carga média', tipo: 'Analógico', opc: 'DELTAV01.307-PLC-001.PV_D.307-GI-001', id: 'gi1' },
+    { tag: '307-GI-002', desc: 'Desvio padrão', tipo: 'Analógico', opc: 'DELTAV01.307-PLC-001.PV_D.307-GI-002', id: 'gi2' },
+    { tag: '307-QI-001', desc: 'Menor que 100', tipo: 'Discreto', opc: 'DELTAV01.307-PLC-001.PV_D.307-QI-001', id: 'qi1' },
+    { tag: '307-QI-002', desc: 'Menor que 150', tipo: 'Discreto', opc: 'DELTAV01.307-PLC-001.PV_D.307-QI-002', id: 'qi2' },
+    { tag: '307-QI-003', desc: 'Menor que 200', tipo: 'Discreto', opc: 'DELTAV01.307-PLC-001.PV_D.307-QI-003', id: 'qi3' },
+  ];
+  const SEV = { qi3: ['Atenção', 'var(--attn)', '▲'], qi2: ['Alerta', 'var(--alert)', '◆'], qi1: ['Crítico', 'var(--crit)', '■'] };
+
+  const tb = document.getElementById('tb');
+  let n = 23;
+  TAGS.forEach(t => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="mono">${t.tag}</td><td>${t.desc}</td><td>${t.tipo}</td>
+      <td class="dyn"><span class="slot" id="t-${t.id}-v" data-slot="${n}" data-obj="Campo de dados" data-tag="${t.tag}" data-attr="IP_INPUT_VALUE" data-desc="Tabela: valor">--</span></td>
+      <td class="dyn"><span class="slot" id="t-${t.id}-ts" data-slot="${n + 1}" data-obj="Campo de dados" data-tag="${t.tag}" data-attr="IP_INPUT_TIME" data-desc="Tabela: timestamp">--</span></td>
+      <td class="dyn"><span class="slot" id="t-${t.id}-q" data-slot="${n + 2}" data-obj="Campo de dados" data-tag="${t.tag}" data-attr="IP_INPUT_QUALITY" data-desc="Tabela: qualidade">--</span></td>
+      <td class="mono" style="color:var(--muted)">${t.opc}</td>`;
+    tb.appendChild(tr);
+    n += 3;
+  });
+
+  // Formatação pt-BR
+  const num = (v, d = 1) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const p2 = x => String(x).padStart(2, '0');
+  const dh = d => `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+
+  // Série simulada: um ensaio a cada 30 min nas últimas 8 h (pseudoaleatório fixo).
+  let semente = 7;
+  const rnd = () => (semente = (semente * 16807) % 2147483647) / 2147483647;
+  function serie(cen) {
+    const agora = Date.now();
+    const atraso = cen === 'defasado' ? 6.5 * 3600e3 : 12 * 60e3;
+    const pts = [];
+    semente = 7;
+    for (let i = 16; i >= 0; i--) {
+      const t = agora - atraso - i * 30 * 60e3;
+      let m = 292 + 18 * Math.sin(i / 2.4) + (rnd() - .5) * 26;
+      const s = 48 + (rnd() - .5) * 16;
+      pts.push({ t, m, s });
+    }
+    const u = pts[pts.length - 1];
+    if (cen === 'f200') { u.m = 186.4; pts[pts.length - 2].m = 231.0; }
+    if (cen === 'f100') { u.m = 94.7; u.s = 71.2; pts[pts.length - 2].m = 168.0; }
+    return pts;
+  }
+
+  function svgEl(tag, attrs) {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function spark(svg, pts, key, ymax, cinza) {
+    svg.innerHTML = '';
+    const W = 210, H = 100, x = i => 4 + i * (W - 8) / (pts.length - 1), y = v => H - 6 - v / ymax * (H - 12);
+    svg.appendChild(svgEl('polyline', { points: pts.map((p, i) => `${x(i)},${y(p[key])}`).join(' '), fill: 'none', stroke: cinza ? 'var(--dim)' : 'var(--trend)', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }));
+    const u = pts.length - 1;
+    svg.appendChild(svgEl('circle', { cx: x(u), cy: y(pts[u][key]), r: 4, fill: cinza ? 'var(--dim)' : 'var(--trend)' }));
+    const tx = svgEl('text', { x: W - 4, y: 12, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 12, 'font-family': 'Arial' });
+    tx.textContent = 'últimas 8 h'; svg.appendChild(tx);
+  }
+
+  function tendencia(pts, cinza) {
+    const svg = document.getElementById('tend');
+    svg.innerHTML = '';
+    const W = 1290, H = 266, L = 56, R = 16, T = 10, B = 30, YMAX = 500;
+    const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+    const x = t => L + (t - t0) / (t1 - t0) * (W - L - R), y = v => T + (1 - v / YMAX) * (H - T - B);
+    for (let v = 0; v <= YMAX; v += 100) {
+      svg.appendChild(svgEl('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: 'var(--card-line)', 'stroke-width': 1 }));
+      const tx = svgEl('text', { x: L - 10, y: y(v) + 4, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 13, 'font-family': 'Arial' });
+      tx.textContent = v.toLocaleString('pt-BR'); svg.appendChild(tx);
+    }
+    [[200, 'var(--attn)'], [150, 'var(--alert)'], [100, 'var(--crit)']].forEach(([v, c]) => {
+      svg.appendChild(svgEl('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: c, 'stroke-width': 1.5, 'stroke-dasharray': '6 6', opacity: .75 }));
+      const tx = svgEl('text', { x: W - R - 4, y: y(v) - 6, 'text-anchor': 'end', fill: c, 'font-size': 12, 'font-family': 'Arial' });
+      tx.textContent = `${v} daN`; svg.appendChild(tx);
+    });
+    for (let i = 0; i < pts.length; i += 4) {
+      const tx = svgEl('text', { x: x(pts[i].t), y: H - 8, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-size': 13, 'font-family': 'Arial' });
+      const d = new Date(pts[i].t); tx.textContent = `${p2(d.getHours())}:${p2(d.getMinutes())}`; svg.appendChild(tx);
+    }
+    const sup = pts.map(p => `${x(p.t)},${y(p.m + p.s)}`), inf = pts.map(p => `${x(p.t)},${y(p.m - p.s)}`).reverse();
+    svg.appendChild(svgEl('polygon', { points: sup.concat(inf).join(' '), fill: cinza ? 'rgba(107,116,128,.15)' : 'var(--band)' }));
+    svg.appendChild(svgEl('polyline', { points: pts.map(p => `${x(p.t)},${y(p.m)}`).join(' '), fill: 'none', stroke: cinza ? 'var(--dim)' : 'var(--trend)', 'stroke-width': 3, 'stroke-linejoin': 'round' }));
+    pts.forEach(p => svg.appendChild(svgEl('circle', { cx: x(p.t), cy: y(p.m), r: 3.5, fill: '#1f2630', stroke: cinza ? 'var(--dim)' : 'var(--trend)', 'stroke-width': 2 })));
+  }
+
+  function set(id, txt, semdado) {
+    const e = document.getElementById(id);
+    e.textContent = txt;
+    e.classList.toggle('semdado', !!semdado);
+    e.style.color = '';
+    return e;
+  }
+
+  function render(cen) {
+    const pts = serie(cen), u = pts[pts.length - 1];
+    const ts = new Date(u.t);
+    const horas = (Date.now() - u.t) / 3600e3;
+    const defasado = horas > LIMITE_H;
+    const q = { gi1: cen === 'bad' ? 'Bad' : 'Good', gi2: 'Good', qi1: 'Good', qi2: 'Good', qi3: 'Good' };
+    const val = {
+      gi1: u.m, gi2: u.s,
+      qi1: u.m < 100 ? 1 : 0, qi2: u.m < 150 ? 1 : 0, qi3: u.m < 200 ? 1 : 0,
+    };
+    const confiavel = k => q[k] === 'Good' && !defasado;
+
+    set('s-atual', dh(ts)).style.color = defasado ? 'var(--alert)' : '';
+
+    // Carga média
+    if (confiavel('gi1')) set('s-gi1', num(val.gi1));
+    else set('s-gi1', q.gi1 !== 'Good' ? 'Sem dado confiável' : 'Dado defasado', true);
+    set('s-gi1-ts', dh(ts));
+    set('s-gi1-q', q.gi1 === 'Good' ? '✓ Good' : '✕ ' + q.gi1).style.color = q.gi1 === 'Good' ? '' : 'var(--alert)';
+
+    const aviso = document.getElementById('s-gi1-aviso');
+    aviso.innerHTML = '';
+    const ativa = ['qi1', 'qi2', 'qi3'].find(k => val[k] === 1 && confiavel(k));
+    if (ativa && confiavel('gi1')) {
+      const [nome, cor, simb] = SEV[ativa];
+      aviso.innerHTML = `<span class="aviso" style="margin-left:0; color:${cor}; border:1px solid ${cor}">${simb} ${nome}: ${TAGS.find(t => t.id === ativa).desc.toLowerCase()} daN</span>`;
+    }
+
+    // Desvio padrão
+    if (confiavel('gi2')) set('s-gi2', num(val.gi2)); else set('s-gi2', 'Dado defasado', true);
+    set('s-gi2-ts', dh(ts));
+    set('s-gi2-q', '✓ Good');
+
+    // Qualidade e comunicação
+    const nGood = Object.values(q).filter(v => v === 'Good').length;
+    set('s-nq', String(nGood)).style.color = nGood < 5 ? 'var(--alert)' : '';
+    ['gi1', 'gi2', 'qi1', 'qi2', 'qi3'].forEach((k, i) => {
+      set('q' + (i + 1), q[k] === 'Good' ? '✓ Good' : '✕ ' + q[k]).style.color = q[k] === 'Good' ? '' : 'var(--alert)';
+    });
+    const hh = Math.floor(horas), mm = Math.round((horas - hh) * 60);
+    set('s-com', defasado ? `◆ Sem atualização há ${hh} h ${p2(mm)} min` : `✓ Normal, último ensaio há ${hh} h ${p2(mm)} min`).style.color = defasado ? 'var(--alert)' : '';
+
+    // Faixas
+    ['qi3', 'qi2', 'qi1'].forEach(k => {
+      const [, cor, simb] = SEV[k];
+      const linha = document.getElementById('f' + k.slice(-1));
+      if (!confiavel(k)) {
+        set('s-' + k, 'Sem dado confiável', true).style.fontSize = '14px';
+        linha.style.borderLeftColor = 'var(--card-line)';
+      } else if (val[k] === 1) {
+        set('s-' + k, `${simb} Ativo`).style.color = cor;
+        document.getElementById('s-' + k).style.fontSize = '';
+        linha.style.borderLeftColor = cor;
+      } else {
+        set('s-' + k, '○ Inativo').style.color = 'var(--muted)';
+        document.getElementById('s-' + k).style.fontSize = '';
+        linha.style.borderLeftColor = 'var(--card-line)';
+      }
+    });
+
+    // Tabela
+    TAGS.forEach(t => {
+      const k = t.id;
+      const txt = k.startsWith('gi') ? num(val[k]) : (val[k] ? '1 (Ativo)' : '0 (Inativo)');
+      if (q[k] === 'Good') set(`t-${k}-v`, txt); else set(`t-${k}-v`, 'Sem dado confiável', true);
+      set(`t-${k}-ts`, dh(ts)).style.color = defasado ? 'var(--alert)' : '';
+      set(`t-${k}-q`, q[k] === 'Good' ? '✓ Good' : '✕ ' + q[k]).style.color = q[k] === 'Good' ? '' : 'var(--alert)';
+    });
+
+    spark(document.getElementById('sp1'), pts, 'm', 500, !confiavel('gi1'));
+    spark(document.getElementById('sp2'), pts, 's', 150, !confiavel('gi2'));
+    tendencia(pts, !confiavel('gi1'));
+  }
+
+  const sel = document.getElementById('cen');
+  sel.value = params.get('cenario') || 'normal';
+  sel.addEventListener('change', () => render(sel.value));
+  render(sel.value);
+})();
+</script>
+</body>
+</html>
