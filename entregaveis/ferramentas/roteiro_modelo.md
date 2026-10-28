@@ -1,252 +1,170 @@
-# Passo a passo: tela de compressão de pelotas no Aspen Process Graphics Editor V14.2
+# Passo a passo: tela de compressão de pelotas no Aspen
 
-**Tela:** Monitoramento do ensaio de compressão de pelotas (versão 3: sem a tabela de tags e sem o painel de qualidade dos dados; referência do laboratório em destaque)
+**Tela:** Monitoramento do ensaio de compressão de pelotas (versão 4: arquivo `.atgraphic` pronto, sem imagem de fundo)
 
-**Resultado esperado:** igual a `tela_exemplo_normal.png`
+**Resultado esperado:** igual a `tela_exemplo_normal.png`, nítida também com a janela maximizada
 
-**Tempo estimado:** 2 a 3 horas na primeira montagem
+**Tempo estimado:** 30 a 60 minutos
 
 ![Resultado esperado](tela_exemplo_normal.png)
 
-## Como esta tela é montada
+## O que mudou nesta versão
 
-A tela tem duas camadas:
+A versão anterior usava uma imagem de fundo com os textos. Quando a janela é maximizada, o Aspen estica a imagem e as letras perdem a nitidez. A tela PQ US04 não tem esse problema porque todos os textos e quadros são **objetos do próprio Aspen**, redesenhados em qualquer tamanho.
 
-1. **Imagem de fundo** (`fundo_1400x980.bmp` ou `.png`). Contém tudo o que não muda: cabeçalho, painéis, títulos, rótulos, unidades e símbolos de severidade. Você não desenha nenhum texto fixo no editor.
-2. **{{N_OBJ}} objetos dinâmicos** do Aspen colocados por cima da imagem: {{N_CAMPOS}} campos de dados, {{N_TEND}} tendências e 1 imagem para o logotipo. Cada um tem uma ficha na Parte E com tag, mapa, atributo, posição, tamanho, fonte e cores.
+Agora a tela segue o mesmo princípio e já vem **pronta, em um arquivo `.atgraphic`**, gerado no mesmo formato da tela PQ US04:
 
-**Tamanho da tela.** O editor mede a tela em **unidades**, não em pixels. O tamanho padrão é **50 x 35 unidades** (proporção 10:7), o mesmo da tela PQ US04. Toda a tela foi desenhada nessa proporção e todas as posições deste roteiro estão em unidades. A imagem tem 1400 x 980 pixels, também 10:7, perto do tamanho em que a tela aparece no monitor, para o Aspen não precisar esticar nem encolher muito a imagem.
+| Conteúdo do arquivo | Quantidade |
+|---|---|
+| Painéis, linhas, grade da tendência e linhas de referência 100, 150 e 200 (polígonos) | {{N_FORMAS}} |
+| Textos fixos (títulos, rótulos, unidades) | {{N_TEXTOS}} |
+| Campos de dados já ligados às tags | {{N_CAMPOS}} |
+| Tendências já ligadas às tags, com escala fixa | {{N_TEND}} |
 
-Para não errar a posição, você monta primeiro com a imagem `mapa_posicionamento.bmp`, que mostra um retângulo rosa numerado onde vai cada objeto. No fim, troca o mapa pelo fundo definitivo.
+Tamanho da tela: **50 x 35 unidades**, o padrão do editor e o mesmo da tela PQ US04. Não é preciso digitar posição nenhuma.
 
-![Mapa de posicionamento](mapa_posicionamento.png)
-
-### Arquivos do pacote
+### Arquivos
 
 | Arquivo | Para que serve |
 |---|---|
-| `fundo_1400x980.bmp` e `.png` | Imagem de fundo definitiva (mesmo conteúdo; use BMP se o editor não aceitar PNG) |
-| `mapa_posicionamento.bmp` e `.png` | Guia de montagem com os retângulos numerados |
-| `posicoes_objetos.xlsx` | Posição e tamanho de cada objeto, em unidades do editor |
-| `posicoes_objetos.csv` | Mesmas informações em texto |
-| `tela_exemplo_normal.png` | Como a tela deve ficar em operação normal |
-| `tela_exemplo_f200.png` | Carga abaixo de 200: faixa de Atenção ativa |
-| `tela_exemplo_bad.png` | Qualidade Bad na carga média |
-| `tela_exemplo_manual.png` | Cortador 07CR002 em manual |
+| `LCE_Compressao_Pelotas_Prensa01.atgraphic` | **A tela.** É o arquivo que você vai abrir |
+| `teste_minimo.atgraphic` | Arquivo de diagnóstico com 4 objetos (um painel, um texto, um campo e uma tendência). Só use se a tela não abrir |
+| `tela_exemplo_*.png` | Como a tela deve ficar: normal, faixa ativa, qualidade Bad e cortador em manual |
+| `mapa_posicionamento.png` | Número de cada objeto dinâmico, usado nas fichas do Anexo |
+| `posicoes_objetos.xlsx` | Posição e tamanho de cada objeto dinâmico, em unidades |
 
-### Paleta de cores (use sempre estes valores RGB)
+> **Importante:** o arquivo foi gerado por engenharia reversa do formato da tela PQ US04 e conferido por releitura completa, mas **não pôde ser aberto no Aspen** durante a preparação, porque o ambiente de desenvolvimento não tem acesso ao PIMS. A Parte A diz o que fazer se ele não abrir.
 
-| Uso | RGB | Hexadecimal |
-|---|---|---|
-| Fundo da tela | 22, 27, 34 | `#161B22` |
-| Fundo do cabeçalho | 17, 22, 29 | `#11161D` |
-| Fundo dos painéis e dos campos de dados | 31, 38, 48 | `#1F2630` |
-| Grade das tendências | 46, 55, 68 | `#2E3744` |
-| Texto de valores | 230, 234, 240 | `#E6EAF0` |
-| Texto de rótulos, eixos e estado Inativo | 139, 150, 165 | `#8B96A5` |
-| Linha do módulo | 92, 200, 240 | `#5CC8F0` |
-| Pontos do laboratório (MES) | 170, 179, 191 | `#AAB3BF` |
-| Atenção (menor que 200) | 242, 201, 76 | `#F2C94C` |
-| Alerta (menor que 150), qualidade ruim e modo Manual | 242, 153, 74 | `#F2994A` |
-| Crítico (menor que 100) | 235, 87, 87 | `#EB5757` |
+## Parte A. Abrir a tela
 
----
+**A1.** Copie `LCE_Compressao_Pelotas_Prensa01.atgraphic` para a pasta de rede onde ficam as telas do laboratório.
 
-## Parte A. Antes de abrir o editor
+**A2.** Abra o arquivo no **Aspen Process Graphics Editor** (para editar) ou no **Aspen Process Explorer** (para usar).
 
-**A1.** Copie a pasta `03_aspen` para uma pasta de rede que todas as estações do PIMS enxerguem. Sugestão: a mesma pasta onde ficam as telas do laboratório, por exemplo `G:\Grupos de Trabalho\UBU Gerência de Processos e Automação\Laboratório\17 - PIMS - ...\Compressão`.
+**A3.** Compare com `tela_exemplo_normal.png` e **maximize a janela**. Os textos devem continuar nítidos, como na tela PQ US04.
 
-> Isso é importante: se a imagem de fundo ficar no seu disco local (`C:`), outras pessoas podem abrir a tela sem o fundo, caso o editor guarde só o caminho do arquivo.
+**Se der erro ao abrir:**
 
-**A2.** Abra `posicoes_objetos.xlsx` no Excel e deixe aberto. Você vai consultar as posições nele.
+1. Tente abrir `teste_minimo.atgraphic`.
+2. Me envie uma captura da mensagem de erro e diga se o arquivo de teste abriu ou não. Com isso eu localizo o ponto do formato a corrigir.
 
-## Parte B. Aprender o padrão de vínculo com a tela PQ US04 (10 minutos)
+## Parte B. Ajustar os campos de dados (no editor)
 
-A tela PQ US04 já usa os mesmos tipos de vínculo que esta tela vai usar. Use-a como modelo.
+Os {{N_CAMPOS}} campos já vêm com tag, mapa, fonte, cor e posição. Faltam só os itens que dependem de nomes que só existem no seu PIMS e as regras de cor. Para abrir as propriedades de um campo, dê duplo clique nele.
 
-**B1.** No editor, abra `PIMS_PQ_US04_atual_rev_1`.
-
-**B2.** Dê duplo clique no valor de **Compressão** (o número ao lado do rótulo "Compressão", no painel "Qualidade"). Deve abrir a janela de propriedades do campo de dados, com:
-- **Tag:** `M4710050020-0031-HHLFU`
-- **Mapa:** `IP_MESVALOR`
-- **Atributo:** `VAL`
-
-Observe em que abas ficam fonte, cor do texto, cor de fundo, borda, formato numérico e cores condicionais. Faça uma captura dessa janela. Ela será útil se algo deste roteiro não bater.
-
-**B3.** Ainda nessa janela, abra a lista de **atributos** disponíveis (onde aparece `VAL`). Anote os nomes exatos:
+**B1. Conheça o diálogo pela tela PQ US04.** Abra a tela PQ US04 no editor, dê duplo clique no valor de **Compressão** e veja onde ficam: tag, mapa, atributo, formato e cores condicionais. Abra a lista de **atributos** (onde aparece `VAL`) e anote:
 
 | O que | Nome exato na lista (anote aqui) |
 |---|---|
-| Valor | `VAL` |
 | Data e hora do valor | ______________________ |
 | Qualidade do valor | ______________________ |
 
-Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALIDADE**, use os nomes que você anotou.
+Feche a tela PQ US04 **sem salvar**.
 
-**B4.** Confira os mapas das tags novas:
-- Clique no campo **Tag**, digite `307-GI-001` e abra a lista de mapas. Confirme se aparece `IP_ANALOGMAP`, como em `406-FX-001` na mesma tela.
-- Faça o mesmo com `307-QI-001` e anote o mapa de discreto disponível (provavelmente `IP_DISCRETEMAP`): ______________________
+**B2. Troque o atributo** nos campos abaixo. No arquivo eles vêm com `VAL`, que mostra o valor e não a hora ou a qualidade:
 
-**B5.** Dê duplo clique no indicador **Manual/Automático do 07CR002**. Confirme o vínculo `U04-07CR002`, mapa `IP_PIDMAP03`. Veja se o campo mostra o texto "Manual"/"Automático" ou um número. Anote: ______________________
-
-**B6.** Feche a tela PQ US04 **sem salvar**.
-
-## Parte C. Criar a tela nova
-
-**C1.** Menu **Arquivo > Novo**.
-
-**C2.** Abra as propriedades da tela (duplo clique numa área vazia do fundo cinza) e confira:
-- Largura **50 unidades** e altura **35 unidades**. É o padrão: **não altere**.
-- Cor de fundo **RGB 22, 27, 34**
-
-> Se a sua tela abrir com outro tamanho, volte para 50 x 35. Se não for possível, digite a largura que aparece na célula amarela da planilha `posicoes_objetos.xlsx` e use as colunas "no editor".
-
-**C3.** Salve na pasta da etapa A1 com o nome `LCE_Compressao_Pelotas_Prensa01`.
-
-## Parte D. Colocar o mapa e calibrar as unidades
-
-**D1.** Selecione a ferramenta **Imagem** na paleta da esquerda (ícone de figura) e clique no canto superior esquerdo da tela.
-
-**D2.** Escolha `mapa_posicionamento.bmp` (ou `.png`).
-
-**D3.** Nas propriedades da imagem, defina **X = 0, Y = 0, largura = 50, altura = 35** (unidades). Não redimensione arrastando com o mouse.
-
-**D4. Conferência, o passo mais importante.** A imagem deve cobrir a tela inteira, sem sobra e sem corte, e os textos devem aparecer na proporção certa, sem letras achatadas ou esticadas. Compare com `tela_exemplo_normal.png`:
-- **Imagem correta:** siga para D5.
-- **Letras esticadas na vertical ou na horizontal:** a imagem não está em 50 x 35. Refaça D3.
-- **Imagem nítida no monitor, mas um pouco serrilhada no editor:** é normal. O editor mostra a tela reduzida e não suaviza a imagem. Confira no modo de execução (Process Explorer), em tela cheia.
-
-**D5.** Envie a imagem para trás (**Editar > Enviar para trás**, ou o botão de ordem na paleta) e, se houver a opção, **bloqueie** o objeto para não arrastá-lo por engano.
-
-## Parte E. Objetos, um a um
-
-**Como usar as fichas:**
-
-1. Selecione a ferramenta indicada na ficha.
-2. Desenhe um retângulo aproximado sobre o retângulo rosa com o mesmo número.
-3. Na janela de propriedades, preencha tag, mapa e atributo.
-4. Digite X, Y, largura e altura **exatamente** como na ficha, em unidades e com as duas casas decimais. Se o editor não aceitar decimais, posicione arrastando até o objeto cobrir o retângulo rosa.
-5. Ajuste fonte, cores, alinhamento e formato.
-6. Se houver **regra de cor**, configure na aba de cores condicionais (a mesma que você viu no passo B2).
-
-**Comece pelo objeto 3** (carga média). Ele serve para calibrar a fonte: o número deve ocupar quase toda a altura do retângulo rosa, encostado à direita. Se o texto em 48 pt ficar maior ou menor que o retângulo, ajuste o tamanho até encaixar e aplique **a mesma proporção** em todos os outros objetos. Exemplo: se 48 pt precisou virar 40 pt, multiplique todos os tamanhos de fonte por 0,83.
-
-**Dica para ganhar tempo:** depois de configurar um objeto, copie e cole para os outros do mesmo tipo e troque só a tag, a posição e o que mudar. Por exemplo, o objeto 3 copiado gera os objetos 7 e 11, e o objeto 16 copiado gera os objetos 17 e 18.
-
-**Fundo dos campos de dados:** use a cor do painel onde o campo fica (indicada em cada ficha) ou "transparente", se o editor oferecer. Nunca deixe o fundo branco nem com borda.
-
-{{FICHAS}}
-
-## Parte F. Tendência principal (objeto 15): configuração detalhada
-
-A ficha do objeto 15 traz a posição. Aqui estão as penas (linhas) e a aparência.
-
-**F1. Penas.** Adicione nesta ordem:
-
-| Pena | Tag | Mapa | Cor RGB | Linha | Marcador | Escala |
-|---|---|---|---|---|---|---|
-| 1 | `307-GI-001` | `IP_ANALOGMAP` | 92, 200, 240 | contínua, espessura 3 | círculo | fixa de 0 a 500 |
-| 2 | `M4710050020-0031-HHLFU` | `IP_MESVALOR` | 170, 179, 191 | sem linha (ou a mais fina disponível) | quadrado | fixa de 0 a 500 |
-| 3 | `307-GI-001-SUP` (tag calculada, Parte K) | `IP_ANALOGMAP` | 92, 200, 240 | tracejada, espessura 1 | nenhum | fixa de 0 a 500 |
-| 4 | `307-GI-001-INF` (tag calculada, Parte K) | `IP_ANALOGMAP` | 92, 200, 240 | tracejada, espessura 1 | nenhum | fixa de 0 a 500 |
-| 5 | `307-REF-200` (tag calculada, Parte K) | `IP_ANALOGMAP` | 242, 201, 76 | tracejada, espessura 2 | nenhum | fixa de 0 a 500 |
-| 6 | `307-REF-150` (tag calculada, Parte K) | `IP_ANALOGMAP` | 242, 153, 74 | tracejada, espessura 2 | nenhum | fixa de 0 a 500 |
-| 7 | `307-REF-100` (tag calculada, Parte K) | `IP_ANALOGMAP` | 235, 87, 87 | tracejada, espessura 2 | nenhum | fixa de 0 a 500 |
-
-> **Todas as penas na mesma escala fixa de 0 a 500.** Se alguma ficar em autoescala, as linhas deixam de ser comparáveis. Esse é o erro mais comum em tendências.
->
-> As penas 3 a 7 só podem ser incluídas depois que as tags calculadas existirem (Parte K). Até lá, a tendência mostra as penas 1 e 2, e as linhas tracejadas não aparecem.
-
-**F2. Período:** 8 horas (`8:00:00`), terminando no horário atual, com atualização automática.
-
-**F3. Aparência:**
-
-| Item | Valor |
-|---|---|
-| Fundo do gráfico | RGB 31, 38, 48 |
-| Grade | RGB 46, 55, 68, linhas finas, horizontais a cada 100 |
-| Textos dos eixos | Arial 10 pt, RGB 139, 150, 165 |
-| Formato do eixo de tempo | `hh:mm` |
-| Legenda | oculta, se houver a opção. A legenda já está escrita na imagem de fundo, acima do gráfico |
-| Barra de tempo e botões | ocultos, se houver a opção |
-
-## Parte G. Minitendências (objetos 4 e 8)
-
-Iguais à tendência principal, com estas diferenças:
-
-| Item | Objeto 4 | Objeto 8 |
+| Objeto | Campo | Trocar `VAL` por |
 |---|---|---|
-| Pena | `307-GI-001`, `IP_ANALOGMAP` | `307-GI-002`, `IP_ANALOGMAP` |
-| Cor e linha | RGB 92, 200, 240, espessura 2 | RGB 92, 200, 240, espessura 2 |
-| Escala | fixa de 0 a 500 | fixa de 0 a 150 |
-| Período | 8 horas | 8 horas |
-| Eixos, grade, legenda, barra de tempo | ocultos | ocultos |
+| 2 | Última atualização (cabeçalho) | atributo de data e hora |
+| 5 | Carga média: atualizado em | atributo de data e hora |
+| 9 | Desvio padrão: atualizado em | atributo de data e hora |
+| 12 | Compressão MES: horário do resultado | atributo de data e hora |
+| 6 | Carga média: qualidade | atributo de qualidade |
+| 10 | Desvio padrão: qualidade | atributo de qualidade |
 
-## Parte H. Logotipo (objeto 1)
+**B3. Confira o mapa dos discretos** (objetos 16, 17 e 18, faixas de classificação). No arquivo eles vêm com o mapa `IP_DISCRETEMAP`. Se o campo mostrar erro ou ficar vazio, abra a lista de mapas e escolha o mapa de discreto disponível.
 
-Com a ferramenta **Imagem**, insira o arquivo **oficial** do logotipo fornecido pela Comunicação, dentro do retângulo 1, mantendo a proporção. Não redesenhe a marca. Se ainda não tiver o arquivo, pule esta etapa: o espaço fica vazio no fundo.
+**B4. Configure as regras de cor** (aba de cores condicionais):
 
-## Parte I. Trocar o mapa pelo fundo definitivo
+| Objetos | Condição | Cor do texto |
+|---|---|---|
+| 6 e 10 (qualidade) | igual a `Good` | RGB 230, 234, 240 |
+| | qualquer outro valor | RGB 242, 153, 74 (laranja) |
+| 13 e 14 (modo dos cortadores) | `Automático` | RGB 230, 234, 240 |
+| | `Manual` | RGB 242, 153, 74 (laranja) |
+| 16 (menor que 200) | `1` ou `Ativo` | RGB 242, 201, 76 (amarelo) |
+| 17 (menor que 150) | `1` ou `Ativo` | RGB 242, 153, 74 (laranja) |
+| 18 (menor que 100) | `1` ou `Ativo` | RGB 235, 87, 87 (vermelho) |
+| 16, 17 e 18 | `0` ou `Inativo` | RGB 139, 150, 165 (cinza) |
 
-**I1.** Desbloqueie e selecione a imagem do mapa.
+**B5. Confira as casas decimais:** carga média (3) e desvio padrão (7) com 1 casa; compressão MES (11) sem casas. Se o editor usar o formato da própria tag, deixe como estiver.
 
-**I2.** Troque o arquivo para `fundo_1400x980.bmp` (ou `.png`), mantendo X, Y, largura e altura. Se o editor não permitir trocar o arquivo, apague a imagem e repita D1 a D5 com o fundo definitivo.
+**B6. Alinhamento:** os valores grandes (3, 7 e 11) ficam melhor **alinhados à direita**, encostados na unidade "daN/pelota". Se o editor tiver a opção, use alinhamento à direita também em 2, 12, 13, 14, 16, 17 e 18.
 
-**I3.** Envie para trás, bloqueie e **salve**.
+## Parte C. Conferir as tendências
 
-## Parte J. Conferência final
+As três tendências já vêm prontas:
 
-Abra a tela em modo de execução (Process Explorer) e compare com as imagens de exemplo.
+| Objeto | Penas | Escala |
+|---|---|---|
+| 4 (minitendência da carga média) | `307-GI-001` (azul) | 0 a 500 |
+| 8 (minitendência do desvio padrão) | `307-GI-002` (azul) | 0 a 150 |
+| 15 (tendência principal) | `307-GI-001` (azul) e `M4710050020-0031-HHLFU`, mapa `IP_MESVALOR` (cinza) | 0 a 500 nas duas |
+
+**C1.** Na barra de tempo, embaixo da janela, troque o período de `2:00:00` para **`8:00:00`**.
+
+**C2.** A escala de 0 a 500, a grade e as linhas de 100, 150 e 200 da tendência principal são **parte fixa da tela**, desenhadas por cima da tendência. Por isso **não altere a escala das penas**: se ela mudar, os números da lateral deixam de corresponder às linhas.
+
+**C3.** Se o fundo da tendência aparecer preto em vez de cinza-azulado, ajuste a cor de fundo nas propriedades da tendência para RGB 31, 38, 48.
+
+## Parte D. Logotipo (objeto 1)
+
+Com a ferramenta **Imagem**, insira o arquivo **oficial** do logotipo fornecido pela Comunicação no canto superior esquerdo (objeto 1 do mapa), mantendo a proporção. Não redesenhe a marca. O logotipo é a única imagem da tela; se ele perder um pouco de nitidez ao maximizar, use um arquivo de maior resolução.
+
+## Parte E. Salvar e testar
+
+**E1.** No editor, **Arquivo > Salvar como**, na pasta de rede, com o nome `LCE_Compressao_Pelotas_Prensa01`.
+
+**E2.** Abra no Process Explorer, maximize e confira a Parte F.
+
+> A janela mostra "(Somente leitura)" quando a tela é aberta para uso. Para editar, abra pelo Graphics Editor.
+
+## Parte F. Conferência final
 
 | Nº | Verificar | Esperado |
 |---|---|---|
-| 1 | Nenhum retângulo rosa visível | Mapa trocado pelo fundo definitivo |
-| 2 | Campos sem borda e sem fundo branco | Os campos somem dentro dos painéis |
-| 3 | Carga média e desvio padrão | 1 casa decimal com vírgula, por exemplo `290,1` |
-| 4 | "Última atualização" e "Atualizado em" | Mesmo horário do último ensaio |
-| 5 | Qualidade da carga média e do desvio padrão | `Good` em branco. Qualquer outro texto em laranja |
-| 6 | Faixas | `Inativo` em cinza. `Ativo` em amarelo, laranja ou vermelho, conforme a faixa |
-| 7 | Compressão MES (painel do laboratório) | Mesmo valor da tela PQ US04 no mesmo horário |
-| 8 | Modo dos cortadores | Mesmo estado da tela PQ US04 |
-| 9 | Tendência | 8 h, escala de 0 a 500, quadrados cinza a cada 2 h |
-| 10 | Leitura a distância | Carga média legível a 3 metros |
+| 1 | Maximizar a janela | Textos e quadros nítidos, sem serrilhado |
+| 2 | Carga média e desvio padrão | 1 casa decimal com vírgula, por exemplo `290,1` |
+| 3 | Horários | Data e hora do último ensaio, não o valor |
+| 4 | Qualidade | `Good` em branco; outro texto em laranja |
+| 5 | Faixas | `Inativo` (ou 0) em cinza; `Ativo` (ou 1) em amarelo, laranja ou vermelho |
+| 6 | Compressão MES e modo dos cortadores | Mesmos valores da tela PQ US04 no mesmo horário |
+| 7 | Tendência | Período de 8 h, linha azul do módulo e linha cinza do laboratório entre 0 e 500 |
 
-## Parte K. O que depende do administrador do PIMS
+## Parte G. Pedido ao administrador do PIMS (opcional)
 
-Duas coisas não podem ser feitas no editor e precisam ser pedidas ao administrador do InfoPlus.21. Texto pronto para enviar:
+Texto pronto para enviar:
 
-> Prezados, para a tela de monitoramento do ensaio de compressão de pelotas (LCE), solicito:
+> Prezados, para a tela de monitoramento do ensaio de compressão de pelotas (LCE), solicito um **descritor de estados** para os discretos `307-QI-001`, `307-QI-002` e `307-QI-003`: 0 = Inativo, 1 = Ativo, para que a tela mostre o texto em vez do número.
 >
-> 1. **Tags calculadas no Aspen Calc**, recalculadas a cada novo valor de `307-GI-001`:
->    - `307-GI-001-SUP` = `307-GI-001` + `307-GI-002`
->    - `307-GI-001-INF` = `307-GI-001` menos `307-GI-002`
->    - `307-REF-200` = 200 (constante)
->    - `307-REF-150` = 150 (constante)
->    - `307-REF-100` = 100 (constante)
->
->    Os nomes são sugestões e podem seguir o padrão da área.
-> 2. **Descritor de estados** para os discretos `307-QI-001`, `307-QI-002` e `307-QI-003`: 0 = Inativo, 1 = Ativo, para que a tela mostre o texto em vez do número.
+> Se possível, também duas **tags calculadas** para a banda da tendência: `307-GI-001-SUP` = `307-GI-001` + `307-GI-002` e `307-GI-001-INF` = `307-GI-001` menos `307-GI-002`. Os nomes podem seguir o padrão da área.
 >
 > Obrigado.
 
-Enquanto isso não for feito, a tela funciona assim: a tendência mostra só o módulo e o laboratório, sem as linhas tracejadas, e as faixas mostram `0` ou `1`. Nesse caso, a regra de cor das fichas 16 a 18 usa os valores 0 e 1.
+Quando as tags calculadas existirem, adicione-as como penas na tendência 15, com escala de 0 a 500 e cor RGB 92, 200, 240.
 
-## Parte L. Problemas comuns
+## Parte H. Problemas comuns
 
 | Problema | Causa provável | Solução |
 |---|---|---|
-| Letras achatadas ou esticadas | Imagem fora de 50 x 35 unidades, ou tela com outro tamanho | Confira C2 (50 x 35) e refaça D3 |
-| Letras um pouco serrilhadas só no editor | O editor mostra a tela reduzida, sem suavizar | Normal. Confira no modo de execução |
-| Os campos ficam desalinhados em relação ao fundo | Posição digitada sem as casas decimais, ou tela com tamanho diferente de 50 x 35 | Digite com duas casas ou ajuste arrastando sobre o retângulo rosa |
-| O campo aparece com caixa branca | Fundo do campo no padrão do editor | Defina o fundo na cor da ficha ou transparente, e remova a borda |
+| Erro ao abrir o arquivo | Diferença de formato não prevista | Tente `teste_minimo.atgraphic` e envie a captura do erro (Parte A) |
+| Campo mostra erro ou "?" | Mapa ou atributo inexistente no PIMS | Partes B2 e B3 |
+| Horário mostra um número | Atributo ainda em `VAL` | Parte B2 |
+| Tendência com escala diferente | Escala da pena alterada | Volte para 0 a 500 (ou 0 a 150 no objeto 8) |
 | Número com ponto em vez de vírgula | Configuração regional da estação | Verifique em Ferramentas > Opções; se não houver ajuste, peça à TI |
-| A tendência sobe e desce a escala sozinha | Pena em autoescala | Defina escala fixa em todas as penas (F1) |
-| A imagem não aparece em outro computador | Arquivo em disco local | Mova as imagens para a pasta de rede (A1) e reinsira |
-| O número grande não cabe no retângulo | Fonte maior que o previsto | Recalibre no objeto 3 e aplique a proporção a todos |
-| Faixa mostra 0 ou 1 em vez de texto | Descritor de estados não configurado | Normal até o pedido da Parte K ser atendido |
+| Faixa mostra 0 ou 1 | Descritor de estados não configurado | Normal até o pedido da Parte G ser atendido |
+| Texto cortado ou sobrando | Fonte da estação diferente da prevista | Aumente um pouco a largura do objeto de texto no editor |
 
-## Limitações desta versão
+## Limitações
 
-- O **desenho interno das tendências** (fonte dos eixos, marcadores e espessuras) é feito pelo próprio Aspen. Ficará muito parecido com o exemplo, mas não idêntico ao pixel.
-- Os nomes exatos de menus e abas podem variar um pouco na V14.2. Se algo não for encontrado, envie a captura da etapa B2 para o roteiro ser ajustado.
-- A severidade das faixas (Atenção, Alerta e Crítico) está **proposta** e aguarda aprovação do LCE. Mudar a severidade exige regerar a imagem de fundo.
+- O arquivo não pôde ser testado no Aspen durante a preparação. Se algo aparecer diferente, envie uma captura para ajuste.
+- A tendência do Aspen desenha só as linhas. Os horários do eixo de tempo aparecem na barra de tempo, embaixo da janela, como na tela PQ US04.
+- A severidade das faixas (Atenção, Alerta e Crítico) está **proposta** e aguarda aprovação do LCE.
+
+## Anexo. Fichas dos objetos dinâmicos
+
+Referência caso algum objeto precise ser refeito à mão. As posições estão em unidades da tela de 50 x 35.
+
+![Mapa de posicionamento](mapa_posicionamento.png)
+
+{{FICHAS}}

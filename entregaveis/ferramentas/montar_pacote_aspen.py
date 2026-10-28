@@ -5,12 +5,11 @@ Uso (na pasta ferramentas):
     python montar_pacote_aspen.py
 
 Saídas em ../03_aspen/:
-    fundo_1400x980.bmp, mapa_posicionamento.bmp    cópias em BMP 24 bits das imagens PNG
     posicoes_objetos.xlsx                          posições em unidades do Aspen (tela de 50 x 35 unidades)
     posicoes_objetos.csv                           mesmas informações em texto
     roteiro_aspen_graphics.md / .html / .pdf       passo a passo completo, com uma ficha por objeto
 
-Requer: Pillow, openpyxl, markdown e Playwright (para o PDF).
+Requer: openpyxl, markdown e Playwright (para o PDF).
 """
 import csv
 import json
@@ -20,7 +19,6 @@ import subprocess
 import markdown
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from PIL import Image
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 SAIDA = os.path.join(AQUI, "..", "03_aspen")
@@ -30,9 +28,9 @@ ROTULO = "139, 150, 165"
 LARANJA = "242, 153, 74"
 PAINEL = "31, 38, 48"
 CABEC = "17, 22, 29"
-HORA = "**ATRIBUTO DE HORA** (anotado em B3)"
-QUAL = "**ATRIBUTO DE QUALIDADE** (anotado em B3)"
-DISC = "mapa de discreto anotado em B4 (provavelmente `IP_DISCRETEMAP`)"
+HORA = "`VAL` no arquivo: **trocar pelo atributo de data e hora** (Parte B)"
+QUAL = "`VAL` no arquivo: **trocar pelo atributo de qualidade** (Parte B)"
+DISC = "`IP_DISCRETEMAP` no arquivo: **conferir** (Parte B)"
 REGRA_QUAL = f"Texto igual a `Good`: RGB {TEXTO}. Qualquer outro texto: RGB {LARANJA}"
 DH = "dd/mm/aaaa hh:mm:ss"
 
@@ -47,31 +45,31 @@ def tendencia(nome, obs, tag=""):
 
 
 SPEC = {
-    1: dict(ferramenta="Imagem", nome="Logotipo oficial", obs="Arquivo oficial fornecido pela Comunicação. Manter a proporção dentro do retângulo. Ver Parte H."),
+    1: dict(ferramenta="Imagem", nome="Logotipo oficial", obs="Arquivo oficial fornecido pela Comunicação. Manter a proporção dentro do retângulo. Ver Parte D."),
     2: campo("Última atualização (cabeçalho)", "307-GI-001", "IP_ANALOGMAP", HORA, 14, True, "Direita", CABEC, DH,
              obs="Fica no cabeçalho, que tem fundo mais escuro que os painéis."),
     3: campo("Carga média: valor", "307-GI-001", "IP_ANALOGMAP", "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)",
              obs="Objeto de calibração da fonte (ver início da Parte E). A unidade daN/pelota já está no fundo."),
-    4: tendencia("Carga média: minitendência", "Ver Parte G.", "307-GI-001"),
+    4: tendencia("Carga média: minitendência", "Já vem pronta no arquivo. Ver Parte C.", "307-GI-001"),
     5: campo("Carga média: atualizado em", "307-GI-001", "IP_ANALOGMAP", HORA, 11, False, "Esquerda", PAINEL, DH),
     6: campo("Carga média: qualidade", "307-GI-001", "IP_ANALOGMAP", QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
     7: campo("Desvio padrão: valor", "307-GI-002", "IP_ANALOGMAP", "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)",
              obs="Copie o objeto 3 e troque a tag e a posição."),
-    8: tendencia("Desvio padrão: minitendência", "Ver Parte G.", "307-GI-002"),
+    8: tendencia("Desvio padrão: minitendência", "Já vem pronta no arquivo. Ver Parte C.", "307-GI-002"),
     9: campo("Desvio padrão: atualizado em", "307-GI-002", "IP_ANALOGMAP", HORA, 11, False, "Esquerda", PAINEL, DH,
              obs="Copie o objeto 5 e troque a tag e a posição."),
     10: campo("Desvio padrão: qualidade", "307-GI-002", "IP_ANALOGMAP", QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL,
               obs="Copie o objeto 6 e troque a tag e a posição."),
     11: campo("Compressão MES: último resultado", "M4710050020-0031-HHLFU", "IP_MESVALOR", "VAL", 57, True, "Direita", PAINEL,
-              "Sem casas decimais (0)", obs="Mesmo vínculo do campo Compressão da tela PQ US04 (passo B2). Mesma fonte do objeto 3: copie o 3 e troque tag, mapa e formato."),
+              "Sem casas decimais (0)", obs="Mesmo vínculo do campo Compressão da tela PQ US04. Mesma fonte do objeto 3: copie o 3 e troque tag, mapa e formato."),
     12: campo("Compressão MES: horário do resultado", "M4710050020-0031-HHLFU", "IP_MESVALOR", HORA, 11, False, "Esquerda", PAINEL,
               "dd/mm/aaaa hh:mm", obs="Copie o objeto 5 e troque tag, mapa e formato."),
     13: campo("Modo do cortador 07CR001", "U04-07CR001", "IP_PIDMAP03", "VAL", 14, True, "Direita", PAINEL, "Texto",
               f"Texto `Automático`: RGB {TEXTO}. Texto `Manual`: RGB {LARANJA}",
-              obs="Mesmo vínculo do indicador Manual/Automático da tela PQ US04 (passo B5). Se o campo mostrar número, use a regra de cor pelo número equivalente."),
+              obs="Mesmo vínculo do indicador Manual/Automático da tela PQ US04. Se o campo mostrar número, use a regra de cor pelo número equivalente."),
     14: campo("Modo do cortador 07CR002", "U04-07CR002", "IP_PIDMAP03", "VAL", 14, True, "Direita", PAINEL, "Texto",
               f"Texto `Automático`: RGB {TEXTO}. Texto `Manual`: RGB {LARANJA}", obs="Copie o objeto 13 e troque a tag."),
-    15: tendencia("Tendência principal da carga média", "Penas, escala, período e aparência na Parte F.", "307-GI-001 e M4710050020-0031-HHLFU (ver Parte F)"),
+    15: tendencia("Tendência principal da carga média", "Já vem pronta no arquivo, com as penas e a escala. Ver Parte C.", "307-GI-001 e M4710050020-0031-HHLFU (ver Parte F)"),
     16: campo("Faixa menor que 200 (Atenção)", "307-QI-003", DISC, "VAL", 18, True, "Direita", PAINEL, "Texto (ou número inteiro)",
               f"Valor `1` ou `Ativo`: RGB 242, 201, 76. Valor `0` ou `Inativo`: RGB {ROTULO}"),
     17: campo("Faixa menor que 150 (Alerta)", "307-QI-002", DISC, "VAL", 18, True, "Direita", PAINEL, "Texto (ou número inteiro)",
@@ -99,9 +97,9 @@ def ficha(n, s, pos):
               f"| Tamanho em unidades (largura ; altura) | {un(pos['w'])} ; {un(pos['h'])} |"]
     if s["ferramenta"] == "Campo de dados":
         linhas += [f"| Tag | `{s['tag']}` |",
-                   f"| Mapa | {s['mapa'] if s['mapa'].startswith('mapa') else '`' + s['mapa'] + '`'} |",
-                   f"| Atributo | {s['atrib'] if s['atrib'].startswith('**') else '`' + s['atrib'] + '`'} |",
-                   f"| Fonte | Arial {pt(s['pt'])} pt{', negrito' if s['negrito'] else ''} (calibrar no objeto 3) |",
+                   f"| Mapa | {s['mapa'] if '`' in s['mapa'] else '`' + s['mapa'] + '`'} |",
+                   f"| Atributo | {s['atrib'] if '`' in s['atrib'] else '`' + s['atrib'] + '`'} |",
+                   f"| Fonte | Arial{' negrito' if s['negrito'] else ''}, já definida no arquivo |",
                    f"| Alinhamento | {s['alin']} |",
                    f"| Cor do texto | RGB {s['cor']} |",
                    f"| Cor de fundo | RGB {s['fundo']} (ou transparente), sem borda |",
@@ -120,7 +118,7 @@ def planilha(posicoes, caminho):
     amarelo = PatternFill("solid", fgColor="FFF2CC")
     cab = PatternFill("solid", fgColor="1F2630")
     borda = Border(*(Side(style="thin", color="BFBFBF"),) * 4)
-    ws["A1"] = "Largura da tela no editor, em unidades (passo C2). O padrão do Aspen é 50."
+    ws["A1"] = "Largura da tela no editor, em unidades. O padrão do Aspen é 50; só altere se a tela tiver outro tamanho."
     ws["A1"].font = Font(name=f, bold=True)
     ws["F1"] = 50
     ws["F1"].fill = amarelo
@@ -140,7 +138,7 @@ def planilha(posicoes, caminho):
         cel.fill = cab
         cel.alignment = Alignment(wrap_text=True, vertical="center")
         ws.column_dimensions[cel.column_letter].width = w
-    linhas = [dict(n="Fundo", nome="Imagem de fundo ou mapa", ferramenta="Imagem", tag="", mapa="", atrib="", x=0, y=0, w=50, h=35)]
+    linhas = [dict(n="Tela", nome="Tela inteira (referência)", ferramenta="-", tag="", mapa="", atrib="", x=0, y=0, w=50, h=35)]
     for p in posicoes:
         s = SPEC[p["n"]]
         linhas.append(dict(n=p["n"], nome=s["nome"], ferramenta=s["ferramenta"], tag=s.get("tag", ""),
@@ -168,8 +166,6 @@ def main():
         posicoes = json.load(fh)
     assert {p["n"] for p in posicoes} == set(SPEC), "Objetos do protótipo e da especificação não conferem"
 
-    for nome in ("fundo_1400x980", "mapa_posicionamento"):
-        Image.open(os.path.join(SAIDA, nome + ".png")).convert("RGB").save(os.path.join(SAIDA, nome + ".bmp"))
 
     linhas = planilha(posicoes, os.path.join(SAIDA, "posicoes_objetos.xlsx"))
     with open(os.path.join(SAIDA, "posicoes_objetos.csv"), "w", newline="", encoding="utf-8-sig") as fh:
@@ -183,8 +179,10 @@ def main():
     fichas = "\n".join(ficha(p["n"], SPEC[p["n"]], p) for p in posicoes)
     n_campos = sum(1 for s in SPEC.values() if s["ferramenta"] == "Campo de dados")
     n_tend = sum(1 for s in SPEC.values() if s["ferramenta"].startswith("Tendência"))
-    texto = (modelo.replace("{{FICHAS}}", fichas).replace("{{N_OBJ}}", str(len(SPEC)))
-             .replace("{{N_CAMPOS}}", str(n_campos)).replace("{{N_TEND}}", str(n_tend)))
+    with open(os.path.join(SAIDA, "objetos_tela.json"), encoding="utf-8") as fh:
+        tela = json.load(fh)
+    texto = (modelo.replace("{{FICHAS}}", fichas).replace("{{N_CAMPOS}}", str(n_campos)).replace("{{N_TEND}}", str(n_tend))
+             .replace("{{N_FORMAS}}", str(len(tela["formas"]) + len(tela["simbolos"]))).replace("{{N_TEXTOS}}", str(len(tela["textos"]))))
     md_path = os.path.join(SAIDA, "roteiro_aspen_graphics.md")
     with open(md_path, "w", encoding="utf-8") as fh:
         fh.write(texto)

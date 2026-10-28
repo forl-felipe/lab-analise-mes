@@ -14,7 +14,7 @@ Situação de cada item: **Confirmado** (informado pelo LCE), **Adotado** (valor
 | H8 | Especificação e alarmes | Sem meta oficial informada. Nenhum alarme sonoro ou notificação, apenas sinalização visual na tela. | Pendente |
 | H9 | Periodicidade | Atualização por ensaio (por evento), não contínua. | Adotado |
 | H10 | Defasagem | Comunicação considerada perdida quando o último ensaio tem mais de 4 h. | Adotado, ajustar ao intervalo real entre ensaios |
-| H11 | Tamanho da tela | Tela do Aspen no tamanho padrão de 50 x 35 unidades (proporção 10:7, igual à tela PQ US04), com imagem de fundo de 1400 x 980 pixels. A versão anterior em 1920 x 1080 distorcia a imagem no editor. | Confirmado pelo LCE (50 x 35) |
+| H11 | Tamanho e construção da tela | Tela de 50 x 35 unidades (padrão do editor, igual à PQ US04), montada só com objetos nativos (polígonos, textos, campos de dados e tendências), sem imagem de fundo, para não perder nitidez ao maximizar. Arquivo `.atgraphic` gerado por engenharia reversa do formato da tela PQ US04. | Adotado; abertura no Aspen pendente de teste pelo LCE |
 | H12 | Logotipo | Usar somente o arquivo oficial fornecido pelo LCE ou pela comunicação. O protótipo reserva o espaço e não reproduz a marca. | Pendente (arquivo não recebido) |
 | H13 | Valores atuais iguais a zero | A leitura de 30/09/2026 com todas as tags em 0 e qualidade Good indica integração criada e ainda sem ensaios reais. Valor 0 na carga média não deve ser tratado como pelota fraca até haver ensaio real. | Adotado |
 | H14 | Tags de cálculo (opcionais) | Quantidade de tags Good, tempo desde o último ensaio, banda de mais ou menos um desvio padrão e linhas de referência dependem de tags calculadas no Aspen Calc, a criar pelo administrador do PIMS. Os nomes sugeridos no roteiro são provisórios. | Pendente |
@@ -24,7 +24,7 @@ Situação de cada item: **Confirmado** (informado pelo LCE), **Adotado** (valor
 | H18 | Modo da amostragem | Modo dos cortadores em `U04-07CR001` e `U04-07CR002` pelo mapa IP_PIDMAP03 (Automático ou Manual). Comparação válida só com os dois em automático e sem falha durante toda a janela. | Adotado |
 | H19 | Usina operando | Alimentação `406-FX-001` acima de 300 t/h. | Adotado, valor a confirmar |
 | H20 | Pelotas por ensaio | 60 no laboratório e 20 no módulo, usadas só para estimar a diferença esperada pelo acaso. | Pendente |
-| H21 | Vínculo de campos no Aspen | Campos de dados usam tag, mapa e atributo VAL, como na tela PQ US04. | Adotado |
+| H21 | Vínculo de campos no Aspen | Campos de dados usam tag, mapa e atributo VAL, como na tela PQ US04. Os campos de hora e de qualidade vêm com VAL e precisam ter o atributo trocado no editor. Mapa de discretos: IP_DISCRETEMAP, a confirmar. | Adotado |
 
 ## O que não pôde ser validado
 

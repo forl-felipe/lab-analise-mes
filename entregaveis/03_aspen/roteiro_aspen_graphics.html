@@ -12,21 +12,42 @@ code { background: #eef1f5; padding: 1px 4px; border-radius: 3px; font-size: 13p
 img { max-width: 100%; border: 1px solid #c5ccd6; }
 blockquote { border-left: 4px solid #f2994a; margin: 10px 0; padding: 4px 12px; background: #fff7ef; }
 hr { border: 0; border-top: 1px solid #c5ccd6; }
-</style></head><body><h1>Passo a passo: tela de compressão de pelotas no Aspen Process Graphics Editor V14.2</h1>
-<p><strong>Tela:</strong> Monitoramento do ensaio de compressão de pelotas (versão 3: sem a tabela de tags e sem o painel de qualidade dos dados; referência do laboratório em destaque)</p>
-<p><strong>Resultado esperado:</strong> igual a <code>tela_exemplo_normal.png</code></p>
-<p><strong>Tempo estimado:</strong> 2 a 3 horas na primeira montagem</p>
+</style></head><body><h1>Passo a passo: tela de compressão de pelotas no Aspen</h1>
+<p><strong>Tela:</strong> Monitoramento do ensaio de compressão de pelotas (versão 4: arquivo <code>.atgraphic</code> pronto, sem imagem de fundo)</p>
+<p><strong>Resultado esperado:</strong> igual a <code>tela_exemplo_normal.png</code>, nítida também com a janela maximizada</p>
+<p><strong>Tempo estimado:</strong> 30 a 60 minutos</p>
 <p><img alt="Resultado esperado" src="tela_exemplo_normal.png" /></p>
-<h2>Como esta tela é montada</h2>
-<p>A tela tem duas camadas:</p>
-<ol>
-<li><strong>Imagem de fundo</strong> (<code>fundo_1400x980.bmp</code> ou <code>.png</code>). Contém tudo o que não muda: cabeçalho, painéis, títulos, rótulos, unidades e símbolos de severidade. Você não desenha nenhum texto fixo no editor.</li>
-<li><strong>18 objetos dinâmicos</strong> do Aspen colocados por cima da imagem: 14 campos de dados, 3 tendências e 1 imagem para o logotipo. Cada um tem uma ficha na Parte E com tag, mapa, atributo, posição, tamanho, fonte e cores.</li>
-</ol>
-<p><strong>Tamanho da tela.</strong> O editor mede a tela em <strong>unidades</strong>, não em pixels. O tamanho padrão é <strong>50 x 35 unidades</strong> (proporção 10:7), o mesmo da tela PQ US04. Toda a tela foi desenhada nessa proporção e todas as posições deste roteiro estão em unidades. A imagem tem 1400 x 980 pixels, também 10:7, perto do tamanho em que a tela aparece no monitor, para o Aspen não precisar esticar nem encolher muito a imagem.</p>
-<p>Para não errar a posição, você monta primeiro com a imagem <code>mapa_posicionamento.bmp</code>, que mostra um retângulo rosa numerado onde vai cada objeto. No fim, troca o mapa pelo fundo definitivo.</p>
-<p><img alt="Mapa de posicionamento" src="mapa_posicionamento.png" /></p>
-<h3>Arquivos do pacote</h3>
+<h2>O que mudou nesta versão</h2>
+<p>A versão anterior usava uma imagem de fundo com os textos. Quando a janela é maximizada, o Aspen estica a imagem e as letras perdem a nitidez. A tela PQ US04 não tem esse problema porque todos os textos e quadros são <strong>objetos do próprio Aspen</strong>, redesenhados em qualquer tamanho.</p>
+<p>Agora a tela segue o mesmo princípio e já vem <strong>pronta, em um arquivo <code>.atgraphic</code></strong>, gerado no mesmo formato da tela PQ US04:</p>
+<table>
+<thead>
+<tr>
+<th>Conteúdo do arquivo</th>
+<th>Quantidade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Painéis, linhas, grade da tendência e linhas de referência 100, 150 e 200 (polígonos)</td>
+<td>30</td>
+</tr>
+<tr>
+<td>Textos fixos (títulos, rótulos, unidades)</td>
+<td>51</td>
+</tr>
+<tr>
+<td>Campos de dados já ligados às tags</td>
+<td>14</td>
+</tr>
+<tr>
+<td>Tendências já ligadas às tags, com escala fixa</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p>Tamanho da tela: <strong>50 x 35 unidades</strong>, o padrão do editor e o mesmo da tela PQ US04. Não é preciso digitar posição nenhuma.</p>
+<h3>Arquivos</h3>
 <table>
 <thead>
 <tr>
@@ -36,124 +57,42 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </thead>
 <tbody>
 <tr>
-<td><code>fundo_1400x980.bmp</code> e <code>.png</code></td>
-<td>Imagem de fundo definitiva (mesmo conteúdo; use BMP se o editor não aceitar PNG)</td>
+<td><code>LCE_Compressao_Pelotas_Prensa01.atgraphic</code></td>
+<td><strong>A tela.</strong> É o arquivo que você vai abrir</td>
 </tr>
 <tr>
-<td><code>mapa_posicionamento.bmp</code> e <code>.png</code></td>
-<td>Guia de montagem com os retângulos numerados</td>
+<td><code>teste_minimo.atgraphic</code></td>
+<td>Arquivo de diagnóstico com 4 objetos (um painel, um texto, um campo e uma tendência). Só use se a tela não abrir</td>
+</tr>
+<tr>
+<td><code>tela_exemplo_*.png</code></td>
+<td>Como a tela deve ficar: normal, faixa ativa, qualidade Bad e cortador em manual</td>
+</tr>
+<tr>
+<td><code>mapa_posicionamento.png</code></td>
+<td>Número de cada objeto dinâmico, usado nas fichas do Anexo</td>
 </tr>
 <tr>
 <td><code>posicoes_objetos.xlsx</code></td>
-<td>Posição e tamanho de cada objeto, em unidades do editor</td>
-</tr>
-<tr>
-<td><code>posicoes_objetos.csv</code></td>
-<td>Mesmas informações em texto</td>
-</tr>
-<tr>
-<td><code>tela_exemplo_normal.png</code></td>
-<td>Como a tela deve ficar em operação normal</td>
-</tr>
-<tr>
-<td><code>tela_exemplo_f200.png</code></td>
-<td>Carga abaixo de 200: faixa de Atenção ativa</td>
-</tr>
-<tr>
-<td><code>tela_exemplo_bad.png</code></td>
-<td>Qualidade Bad na carga média</td>
-</tr>
-<tr>
-<td><code>tela_exemplo_manual.png</code></td>
-<td>Cortador 07CR002 em manual</td>
+<td>Posição e tamanho de cada objeto dinâmico, em unidades</td>
 </tr>
 </tbody>
 </table>
-<h3>Paleta de cores (use sempre estes valores RGB)</h3>
-<table>
-<thead>
-<tr>
-<th>Uso</th>
-<th>RGB</th>
-<th>Hexadecimal</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Fundo da tela</td>
-<td>22, 27, 34</td>
-<td><code>#161B22</code></td>
-</tr>
-<tr>
-<td>Fundo do cabeçalho</td>
-<td>17, 22, 29</td>
-<td><code>#11161D</code></td>
-</tr>
-<tr>
-<td>Fundo dos painéis e dos campos de dados</td>
-<td>31, 38, 48</td>
-<td><code>#1F2630</code></td>
-</tr>
-<tr>
-<td>Grade das tendências</td>
-<td>46, 55, 68</td>
-<td><code>#2E3744</code></td>
-</tr>
-<tr>
-<td>Texto de valores</td>
-<td>230, 234, 240</td>
-<td><code>#E6EAF0</code></td>
-</tr>
-<tr>
-<td>Texto de rótulos, eixos e estado Inativo</td>
-<td>139, 150, 165</td>
-<td><code>#8B96A5</code></td>
-</tr>
-<tr>
-<td>Linha do módulo</td>
-<td>92, 200, 240</td>
-<td><code>#5CC8F0</code></td>
-</tr>
-<tr>
-<td>Pontos do laboratório (MES)</td>
-<td>170, 179, 191</td>
-<td><code>#AAB3BF</code></td>
-</tr>
-<tr>
-<td>Atenção (menor que 200)</td>
-<td>242, 201, 76</td>
-<td><code>#F2C94C</code></td>
-</tr>
-<tr>
-<td>Alerta (menor que 150), qualidade ruim e modo Manual</td>
-<td>242, 153, 74</td>
-<td><code>#F2994A</code></td>
-</tr>
-<tr>
-<td>Crítico (menor que 100)</td>
-<td>235, 87, 87</td>
-<td><code>#EB5757</code></td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>Parte A. Antes de abrir o editor</h2>
-<p><strong>A1.</strong> Copie a pasta <code>03_aspen</code> para uma pasta de rede que todas as estações do PIMS enxerguem. Sugestão: a mesma pasta onde ficam as telas do laboratório, por exemplo <code>G:\Grupos de Trabalho\UBU Gerência de Processos e Automação\Laboratório\17 - PIMS - ...\Compressão</code>.</p>
 <blockquote>
-<p>Isso é importante: se a imagem de fundo ficar no seu disco local (<code>C:</code>), outras pessoas podem abrir a tela sem o fundo, caso o editor guarde só o caminho do arquivo.</p>
+<p><strong>Importante:</strong> o arquivo foi gerado por engenharia reversa do formato da tela PQ US04 e conferido por releitura completa, mas <strong>não pôde ser aberto no Aspen</strong> durante a preparação, porque o ambiente de desenvolvimento não tem acesso ao PIMS. A Parte A diz o que fazer se ele não abrir.</p>
 </blockquote>
-<p><strong>A2.</strong> Abra <code>posicoes_objetos.xlsx</code> no Excel e deixe aberto. Você vai consultar as posições nele.</p>
-<h2>Parte B. Aprender o padrão de vínculo com a tela PQ US04 (10 minutos)</h2>
-<p>A tela PQ US04 já usa os mesmos tipos de vínculo que esta tela vai usar. Use-a como modelo.</p>
-<p><strong>B1.</strong> No editor, abra <code>PIMS_PQ_US04_atual_rev_1</code>.</p>
-<p><strong>B2.</strong> Dê duplo clique no valor de <strong>Compressão</strong> (o número ao lado do rótulo "Compressão", no painel "Qualidade"). Deve abrir a janela de propriedades do campo de dados, com:</p>
-<ul>
-<li><strong>Tag:</strong> <code>M4710050020-0031-HHLFU</code></li>
-<li><strong>Mapa:</strong> <code>IP_MESVALOR</code></li>
-<li><strong>Atributo:</strong> <code>VAL</code></li>
-</ul>
-<p>Observe em que abas ficam fonte, cor do texto, cor de fundo, borda, formato numérico e cores condicionais. Faça uma captura dessa janela. Ela será útil se algo deste roteiro não bater.</p>
-<p><strong>B3.</strong> Ainda nessa janela, abra a lista de <strong>atributos</strong> disponíveis (onde aparece <code>VAL</code>). Anote os nomes exatos:</p>
+<h2>Parte A. Abrir a tela</h2>
+<p><strong>A1.</strong> Copie <code>LCE_Compressao_Pelotas_Prensa01.atgraphic</code> para a pasta de rede onde ficam as telas do laboratório.</p>
+<p><strong>A2.</strong> Abra o arquivo no <strong>Aspen Process Graphics Editor</strong> (para editar) ou no <strong>Aspen Process Explorer</strong> (para usar).</p>
+<p><strong>A3.</strong> Compare com <code>tela_exemplo_normal.png</code> e <strong>maximize a janela</strong>. Os textos devem continuar nítidos, como na tela PQ US04.</p>
+<p><strong>Se der erro ao abrir:</strong></p>
+<ol>
+<li>Tente abrir <code>teste_minimo.atgraphic</code>.</li>
+<li>Me envie uma captura da mensagem de erro e diga se o arquivo de teste abriu ou não. Com isso eu localizo o ponto do formato a corrigir.</li>
+</ol>
+<h2>Parte B. Ajustar os campos de dados (no editor)</h2>
+<p>Os 14 campos já vêm com tag, mapa, fonte, cor e posição. Faltam só os itens que dependem de nomes que só existem no seu PIMS e as regras de cor. Para abrir as propriedades de um campo, dê duplo clique nele.</p>
+<p><strong>B1. Conheça o diálogo pela tela PQ US04.</strong> Abra a tela PQ US04 no editor, dê duplo clique no valor de <strong>Compressão</strong> e veja onde ficam: tag, mapa, atributo, formato e cores condicionais. Abra a lista de <strong>atributos</strong> (onde aparece <code>VAL</code>) e anote:</p>
 <table>
 <thead>
 <tr>
@@ -162,10 +101,6 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>Valor</td>
-<td><code>VAL</code></td>
-</tr>
 <tr>
 <td>Data e hora do valor</td>
 <td>______________________</td>
@@ -176,49 +111,254 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<p>Nas fichas da Parte E, onde estiver <strong>ATRIBUTO DE HORA</strong> ou <strong>ATRIBUTO DE QUALIDADE</strong>, use os nomes que você anotou.</p>
-<p><strong>B4.</strong> Confira os mapas das tags novas:</p>
-<ul>
-<li>Clique no campo <strong>Tag</strong>, digite <code>307-GI-001</code> e abra a lista de mapas. Confirme se aparece <code>IP_ANALOGMAP</code>, como em <code>406-FX-001</code> na mesma tela.</li>
-<li>Faça o mesmo com <code>307-QI-001</code> e anote o mapa de discreto disponível (provavelmente <code>IP_DISCRETEMAP</code>): ______________________</li>
-</ul>
-<p><strong>B5.</strong> Dê duplo clique no indicador <strong>Manual/Automático do 07CR002</strong>. Confirme o vínculo <code>U04-07CR002</code>, mapa <code>IP_PIDMAP03</code>. Veja se o campo mostra o texto "Manual"/"Automático" ou um número. Anote: ______________________</p>
-<p><strong>B6.</strong> Feche a tela PQ US04 <strong>sem salvar</strong>.</p>
-<h2>Parte C. Criar a tela nova</h2>
-<p><strong>C1.</strong> Menu <strong>Arquivo &gt; Novo</strong>.</p>
-<p><strong>C2.</strong> Abra as propriedades da tela (duplo clique numa área vazia do fundo cinza) e confira:</p>
-<ul>
-<li>Largura <strong>50 unidades</strong> e altura <strong>35 unidades</strong>. É o padrão: <strong>não altere</strong>.</li>
-<li>Cor de fundo <strong>RGB 22, 27, 34</strong></li>
-</ul>
+<p>Feche a tela PQ US04 <strong>sem salvar</strong>.</p>
+<p><strong>B2. Troque o atributo</strong> nos campos abaixo. No arquivo eles vêm com <code>VAL</code>, que mostra o valor e não a hora ou a qualidade:</p>
+<table>
+<thead>
+<tr>
+<th>Objeto</th>
+<th>Campo</th>
+<th>Trocar <code>VAL</code> por</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>Última atualização (cabeçalho)</td>
+<td>atributo de data e hora</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Carga média: atualizado em</td>
+<td>atributo de data e hora</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Desvio padrão: atualizado em</td>
+<td>atributo de data e hora</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Compressão MES: horário do resultado</td>
+<td>atributo de data e hora</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Carga média: qualidade</td>
+<td>atributo de qualidade</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Desvio padrão: qualidade</td>
+<td>atributo de qualidade</td>
+</tr>
+</tbody>
+</table>
+<p><strong>B3. Confira o mapa dos discretos</strong> (objetos 16, 17 e 18, faixas de classificação). No arquivo eles vêm com o mapa <code>IP_DISCRETEMAP</code>. Se o campo mostrar erro ou ficar vazio, abra a lista de mapas e escolha o mapa de discreto disponível.</p>
+<p><strong>B4. Configure as regras de cor</strong> (aba de cores condicionais):</p>
+<table>
+<thead>
+<tr>
+<th>Objetos</th>
+<th>Condição</th>
+<th>Cor do texto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6 e 10 (qualidade)</td>
+<td>igual a <code>Good</code></td>
+<td>RGB 230, 234, 240</td>
+</tr>
+<tr>
+<td></td>
+<td>qualquer outro valor</td>
+<td>RGB 242, 153, 74 (laranja)</td>
+</tr>
+<tr>
+<td>13 e 14 (modo dos cortadores)</td>
+<td><code>Automático</code></td>
+<td>RGB 230, 234, 240</td>
+</tr>
+<tr>
+<td></td>
+<td><code>Manual</code></td>
+<td>RGB 242, 153, 74 (laranja)</td>
+</tr>
+<tr>
+<td>16 (menor que 200)</td>
+<td><code>1</code> ou <code>Ativo</code></td>
+<td>RGB 242, 201, 76 (amarelo)</td>
+</tr>
+<tr>
+<td>17 (menor que 150)</td>
+<td><code>1</code> ou <code>Ativo</code></td>
+<td>RGB 242, 153, 74 (laranja)</td>
+</tr>
+<tr>
+<td>18 (menor que 100)</td>
+<td><code>1</code> ou <code>Ativo</code></td>
+<td>RGB 235, 87, 87 (vermelho)</td>
+</tr>
+<tr>
+<td>16, 17 e 18</td>
+<td><code>0</code> ou <code>Inativo</code></td>
+<td>RGB 139, 150, 165 (cinza)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>B5. Confira as casas decimais:</strong> carga média (3) e desvio padrão (7) com 1 casa; compressão MES (11) sem casas. Se o editor usar o formato da própria tag, deixe como estiver.</p>
+<p><strong>B6. Alinhamento:</strong> os valores grandes (3, 7 e 11) ficam melhor <strong>alinhados à direita</strong>, encostados na unidade "daN/pelota". Se o editor tiver a opção, use alinhamento à direita também em 2, 12, 13, 14, 16, 17 e 18.</p>
+<h2>Parte C. Conferir as tendências</h2>
+<p>As três tendências já vêm prontas:</p>
+<table>
+<thead>
+<tr>
+<th>Objeto</th>
+<th>Penas</th>
+<th>Escala</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4 (minitendência da carga média)</td>
+<td><code>307-GI-001</code> (azul)</td>
+<td>0 a 500</td>
+</tr>
+<tr>
+<td>8 (minitendência do desvio padrão)</td>
+<td><code>307-GI-002</code> (azul)</td>
+<td>0 a 150</td>
+</tr>
+<tr>
+<td>15 (tendência principal)</td>
+<td><code>307-GI-001</code> (azul) e <code>M4710050020-0031-HHLFU</code>, mapa <code>IP_MESVALOR</code> (cinza)</td>
+<td>0 a 500 nas duas</td>
+</tr>
+</tbody>
+</table>
+<p><strong>C1.</strong> Na barra de tempo, embaixo da janela, troque o período de <code>2:00:00</code> para <strong><code>8:00:00</code></strong>.</p>
+<p><strong>C2.</strong> A escala de 0 a 500, a grade e as linhas de 100, 150 e 200 da tendência principal são <strong>parte fixa da tela</strong>, desenhadas por cima da tendência. Por isso <strong>não altere a escala das penas</strong>: se ela mudar, os números da lateral deixam de corresponder às linhas.</p>
+<p><strong>C3.</strong> Se o fundo da tendência aparecer preto em vez de cinza-azulado, ajuste a cor de fundo nas propriedades da tendência para RGB 31, 38, 48.</p>
+<h2>Parte D. Logotipo (objeto 1)</h2>
+<p>Com a ferramenta <strong>Imagem</strong>, insira o arquivo <strong>oficial</strong> do logotipo fornecido pela Comunicação no canto superior esquerdo (objeto 1 do mapa), mantendo a proporção. Não redesenhe a marca. O logotipo é a única imagem da tela; se ele perder um pouco de nitidez ao maximizar, use um arquivo de maior resolução.</p>
+<h2>Parte E. Salvar e testar</h2>
+<p><strong>E1.</strong> No editor, <strong>Arquivo &gt; Salvar como</strong>, na pasta de rede, com o nome <code>LCE_Compressao_Pelotas_Prensa01</code>.</p>
+<p><strong>E2.</strong> Abra no Process Explorer, maximize e confira a Parte F.</p>
 <blockquote>
-<p>Se a sua tela abrir com outro tamanho, volte para 50 x 35. Se não for possível, digite a largura que aparece na célula amarela da planilha <code>posicoes_objetos.xlsx</code> e use as colunas "no editor".</p>
+<p>A janela mostra "(Somente leitura)" quando a tela é aberta para uso. Para editar, abra pelo Graphics Editor.</p>
 </blockquote>
-<p><strong>C3.</strong> Salve na pasta da etapa A1 com o nome <code>LCE_Compressao_Pelotas_Prensa01</code>.</p>
-<h2>Parte D. Colocar o mapa e calibrar as unidades</h2>
-<p><strong>D1.</strong> Selecione a ferramenta <strong>Imagem</strong> na paleta da esquerda (ícone de figura) e clique no canto superior esquerdo da tela.</p>
-<p><strong>D2.</strong> Escolha <code>mapa_posicionamento.bmp</code> (ou <code>.png</code>).</p>
-<p><strong>D3.</strong> Nas propriedades da imagem, defina <strong>X = 0, Y = 0, largura = 50, altura = 35</strong> (unidades). Não redimensione arrastando com o mouse.</p>
-<p><strong>D4. Conferência, o passo mais importante.</strong> A imagem deve cobrir a tela inteira, sem sobra e sem corte, e os textos devem aparecer na proporção certa, sem letras achatadas ou esticadas. Compare com <code>tela_exemplo_normal.png</code>:</p>
+<h2>Parte F. Conferência final</h2>
+<table>
+<thead>
+<tr>
+<th>Nº</th>
+<th>Verificar</th>
+<th>Esperado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Maximizar a janela</td>
+<td>Textos e quadros nítidos, sem serrilhado</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Carga média e desvio padrão</td>
+<td>1 casa decimal com vírgula, por exemplo <code>290,1</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Horários</td>
+<td>Data e hora do último ensaio, não o valor</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Qualidade</td>
+<td><code>Good</code> em branco; outro texto em laranja</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Faixas</td>
+<td><code>Inativo</code> (ou 0) em cinza; <code>Ativo</code> (ou 1) em amarelo, laranja ou vermelho</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Compressão MES e modo dos cortadores</td>
+<td>Mesmos valores da tela PQ US04 no mesmo horário</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Tendência</td>
+<td>Período de 8 h, linha azul do módulo e linha cinza do laboratório entre 0 e 500</td>
+</tr>
+</tbody>
+</table>
+<h2>Parte G. Pedido ao administrador do PIMS (opcional)</h2>
+<p>Texto pronto para enviar:</p>
+<blockquote>
+<p>Prezados, para a tela de monitoramento do ensaio de compressão de pelotas (LCE), solicito um <strong>descritor de estados</strong> para os discretos <code>307-QI-001</code>, <code>307-QI-002</code> e <code>307-QI-003</code>: 0 = Inativo, 1 = Ativo, para que a tela mostre o texto em vez do número.</p>
+<p>Se possível, também duas <strong>tags calculadas</strong> para a banda da tendência: <code>307-GI-001-SUP</code> = <code>307-GI-001</code> + <code>307-GI-002</code> e <code>307-GI-001-INF</code> = <code>307-GI-001</code> menos <code>307-GI-002</code>. Os nomes podem seguir o padrão da área.</p>
+<p>Obrigado.</p>
+</blockquote>
+<p>Quando as tags calculadas existirem, adicione-as como penas na tendência 15, com escala de 0 a 500 e cor RGB 92, 200, 240.</p>
+<h2>Parte H. Problemas comuns</h2>
+<table>
+<thead>
+<tr>
+<th>Problema</th>
+<th>Causa provável</th>
+<th>Solução</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Erro ao abrir o arquivo</td>
+<td>Diferença de formato não prevista</td>
+<td>Tente <code>teste_minimo.atgraphic</code> e envie a captura do erro (Parte A)</td>
+</tr>
+<tr>
+<td>Campo mostra erro ou "?"</td>
+<td>Mapa ou atributo inexistente no PIMS</td>
+<td>Partes B2 e B3</td>
+</tr>
+<tr>
+<td>Horário mostra um número</td>
+<td>Atributo ainda em <code>VAL</code></td>
+<td>Parte B2</td>
+</tr>
+<tr>
+<td>Tendência com escala diferente</td>
+<td>Escala da pena alterada</td>
+<td>Volte para 0 a 500 (ou 0 a 150 no objeto 8)</td>
+</tr>
+<tr>
+<td>Número com ponto em vez de vírgula</td>
+<td>Configuração regional da estação</td>
+<td>Verifique em Ferramentas &gt; Opções; se não houver ajuste, peça à TI</td>
+</tr>
+<tr>
+<td>Faixa mostra 0 ou 1</td>
+<td>Descritor de estados não configurado</td>
+<td>Normal até o pedido da Parte G ser atendido</td>
+</tr>
+<tr>
+<td>Texto cortado ou sobrando</td>
+<td>Fonte da estação diferente da prevista</td>
+<td>Aumente um pouco a largura do objeto de texto no editor</td>
+</tr>
+</tbody>
+</table>
+<h2>Limitações</h2>
 <ul>
-<li><strong>Imagem correta:</strong> siga para D5.</li>
-<li><strong>Letras esticadas na vertical ou na horizontal:</strong> a imagem não está em 50 x 35. Refaça D3.</li>
-<li><strong>Imagem nítida no monitor, mas um pouco serrilhada no editor:</strong> é normal. O editor mostra a tela reduzida e não suaviza a imagem. Confira no modo de execução (Process Explorer), em tela cheia.</li>
+<li>O arquivo não pôde ser testado no Aspen durante a preparação. Se algo aparecer diferente, envie uma captura para ajuste.</li>
+<li>A tendência do Aspen desenha só as linhas. Os horários do eixo de tempo aparecem na barra de tempo, embaixo da janela, como na tela PQ US04.</li>
+<li>A severidade das faixas (Atenção, Alerta e Crítico) está <strong>proposta</strong> e aguarda aprovação do LCE.</li>
 </ul>
-<p><strong>D5.</strong> Envie a imagem para trás (<strong>Editar &gt; Enviar para trás</strong>, ou o botão de ordem na paleta) e, se houver a opção, <strong>bloqueie</strong> o objeto para não arrastá-lo por engano.</p>
-<h2>Parte E. Objetos, um a um</h2>
-<p><strong>Como usar as fichas:</strong></p>
-<ol>
-<li>Selecione a ferramenta indicada na ficha.</li>
-<li>Desenhe um retângulo aproximado sobre o retângulo rosa com o mesmo número.</li>
-<li>Na janela de propriedades, preencha tag, mapa e atributo.</li>
-<li>Digite X, Y, largura e altura <strong>exatamente</strong> como na ficha, em unidades e com as duas casas decimais. Se o editor não aceitar decimais, posicione arrastando até o objeto cobrir o retângulo rosa.</li>
-<li>Ajuste fonte, cores, alinhamento e formato.</li>
-<li>Se houver <strong>regra de cor</strong>, configure na aba de cores condicionais (a mesma que você viu no passo B2).</li>
-</ol>
-<p><strong>Comece pelo objeto 3</strong> (carga média). Ele serve para calibrar a fonte: o número deve ocupar quase toda a altura do retângulo rosa, encostado à direita. Se o texto em 48 pt ficar maior ou menor que o retângulo, ajuste o tamanho até encaixar e aplique <strong>a mesma proporção</strong> em todos os outros objetos. Exemplo: se 48 pt precisou virar 40 pt, multiplique todos os tamanhos de fonte por 0,83.</p>
-<p><strong>Dica para ganhar tempo:</strong> depois de configurar um objeto, copie e cole para os outros do mesmo tipo e troque só a tag, a posição e o que mudar. Por exemplo, o objeto 3 copiado gera os objetos 7 e 11, e o objeto 16 copiado gera os objetos 17 e 18.</p>
-<p><strong>Fundo dos campos de dados:</strong> use a cor do painel onde o campo fica (indicada em cada ficha) ou "transparente", se o editor oferecer. Nunca deixe o fundo branco nem com borda.</p>
+<h2>Anexo. Fichas dos objetos dinâmicos</h2>
+<p>Referência caso algum objeto precise ser refeito à mão. As posições estão em unidades da tela de 50 x 35.</p>
+<p><img alt="Mapa de posicionamento" src="mapa_posicionamento.png" /></p>
 <h3>Objeto 1: Logotipo oficial</h3>
 <table>
 <thead>
@@ -242,7 +382,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>Arquivo oficial fornecido pela Comunicação. Manter a proporção dentro do retângulo. Ver Parte H.</td>
+<td>Arquivo oficial fornecido pela Comunicação. Manter a proporção dentro do retângulo. Ver Parte D.</td>
 </tr>
 </tbody>
 </table>
@@ -261,7 +401,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>42,75 ; 1,34</td>
+<td>42,75 ; 1,31</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -277,11 +417,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Atributo</td>
-<td><strong>ATRIBUTO DE HORA</strong> (anotado em B3)</td>
+<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 12 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -324,7 +464,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>1,78 ; 5,28</td>
+<td>1,78 ; 5,25</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -344,7 +484,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 48 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -387,7 +527,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>11,78 ; 5,50</td>
+<td>11,78 ; 5,44</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -395,7 +535,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>Ver Parte G.</td>
+<td>Já vem pronta no arquivo. Ver Parte C.</td>
 </tr>
 </tbody>
 </table>
@@ -414,7 +554,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>4,96 ; 9,59</td>
+<td>4,80 ; 9,53</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -430,11 +570,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Atributo</td>
-<td><strong>ATRIBUTO DE HORA</strong> (anotado em B3)</td>
+<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 9 pt (calibrar no objeto 3)</td>
+<td>Arial, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -473,7 +613,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>13,08 ; 9,59</td>
+<td>12,83 ; 9,53</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -489,11 +629,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Atributo</td>
-<td><strong>ATRIBUTO DE QUALIDADE</strong> (anotado em B3)</td>
+<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de qualidade</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 9 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -532,7 +672,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>18,66 ; 5,28</td>
+<td>18,66 ; 5,25</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -552,7 +692,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 48 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -595,7 +735,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>28,66 ; 5,50</td>
+<td>28,66 ; 5,44</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -603,7 +743,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>Ver Parte G.</td>
+<td>Já vem pronta no arquivo. Ver Parte C.</td>
 </tr>
 </tbody>
 </table>
@@ -622,7 +762,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>21,84 ; 9,59</td>
+<td>21,68 ; 9,53</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -638,11 +778,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Atributo</td>
-<td><strong>ATRIBUTO DE HORA</strong> (anotado em B3)</td>
+<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 9 pt (calibrar no objeto 3)</td>
+<td>Arial, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -685,7 +825,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>29,96 ; 9,59</td>
+<td>29,70 ; 9,53</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -701,11 +841,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Atributo</td>
-<td><strong>ATRIBUTO DE QUALIDADE</strong> (anotado em B3)</td>
+<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de qualidade</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 9 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -748,7 +888,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>35,53 ; 5,88</td>
+<td>35,53 ; 5,81</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -768,7 +908,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 48 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -792,7 +932,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>Mesmo vínculo do campo Compressão da tela PQ US04 (passo B2). Mesma fonte do objeto 3: copie o 3 e troque tag, mapa e formato.</td>
+<td>Mesmo vínculo do campo Compressão da tela PQ US04. Mesma fonte do objeto 3: copie o 3 e troque tag, mapa e formato.</td>
 </tr>
 </tbody>
 </table>
@@ -811,7 +951,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>43,53 ; 8,75</td>
+<td>43,53 ; 8,69</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -827,11 +967,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Atributo</td>
-<td><strong>ATRIBUTO DE HORA</strong> (anotado em B3)</td>
+<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 9 pt (calibrar no objeto 3)</td>
+<td>Arial, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -874,7 +1014,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>44,78 ; 11,31</td>
+<td>44,78 ; 11,22</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -894,7 +1034,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 12 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -918,7 +1058,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>Mesmo vínculo do indicador Manual/Automático da tela PQ US04 (passo B5). Se o campo mostrar número, use a regra de cor pelo número equivalente.</td>
+<td>Mesmo vínculo do indicador Manual/Automático da tela PQ US04. Se o campo mostrar número, use a regra de cor pelo número equivalente.</td>
 </tr>
 </tbody>
 </table>
@@ -937,7 +1077,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>44,78 ; 12,56</td>
+<td>44,78 ; 12,47</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -957,7 +1097,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 12 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -1000,15 +1140,15 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>1,78 ; 14,63</td>
+<td>3,03 ; 14,63</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
-<td>31,63 ; 18,63</td>
+<td>29,63 ; 18,00</td>
 </tr>
 <tr>
 <td>Observação</td>
-<td>Penas, escala, período e aparência na Parte F.</td>
+<td>Já vem pronta no arquivo, com as penas e a escala. Ver Parte C.</td>
 </tr>
 </tbody>
 </table>
@@ -1027,7 +1167,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>44,31 ; 19,94</td>
+<td>44,31 ; 19,91</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1039,7 +1179,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td>mapa de discreto anotado em B4 (provavelmente <code>IP_DISCRETEMAP</code>)</td>
+<td><code>IP_DISCRETEMAP</code> no arquivo: <strong>conferir</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1047,7 +1187,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 15 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -1086,7 +1226,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>44,31 ; 24,56</td>
+<td>44,31 ; 24,53</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1098,7 +1238,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td>mapa de discreto anotado em B4 (provavelmente <code>IP_DISCRETEMAP</code>)</td>
+<td><code>IP_DISCRETEMAP</code> no arquivo: <strong>conferir</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1106,7 +1246,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 15 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -1149,7 +1289,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>44,31 ; 29,19</td>
+<td>44,31 ; 29,16</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1161,7 +1301,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td>mapa de discreto anotado em B4 (provavelmente <code>IP_DISCRETEMAP</code>)</td>
+<td><code>IP_DISCRETEMAP</code> no arquivo: <strong>conferir</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1169,7 +1309,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 15 pt, negrito (calibrar no objeto 3)</td>
+<td>Arial negrito, já definida no arquivo</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -1196,312 +1336,4 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Copie o objeto 16.</td>
 </tr>
 </tbody>
-</table>
-<h2>Parte F. Tendência principal (objeto 15): configuração detalhada</h2>
-<p>A ficha do objeto 15 traz a posição. Aqui estão as penas (linhas) e a aparência.</p>
-<p><strong>F1. Penas.</strong> Adicione nesta ordem:</p>
-<table>
-<thead>
-<tr>
-<th>Pena</th>
-<th>Tag</th>
-<th>Mapa</th>
-<th>Cor RGB</th>
-<th>Linha</th>
-<th>Marcador</th>
-<th>Escala</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td><code>307-GI-001</code></td>
-<td><code>IP_ANALOGMAP</code></td>
-<td>92, 200, 240</td>
-<td>contínua, espessura 3</td>
-<td>círculo</td>
-<td>fixa de 0 a 500</td>
-</tr>
-<tr>
-<td>2</td>
-<td><code>M4710050020-0031-HHLFU</code></td>
-<td><code>IP_MESVALOR</code></td>
-<td>170, 179, 191</td>
-<td>sem linha (ou a mais fina disponível)</td>
-<td>quadrado</td>
-<td>fixa de 0 a 500</td>
-</tr>
-<tr>
-<td>3</td>
-<td><code>307-GI-001-SUP</code> (tag calculada, Parte K)</td>
-<td><code>IP_ANALOGMAP</code></td>
-<td>92, 200, 240</td>
-<td>tracejada, espessura 1</td>
-<td>nenhum</td>
-<td>fixa de 0 a 500</td>
-</tr>
-<tr>
-<td>4</td>
-<td><code>307-GI-001-INF</code> (tag calculada, Parte K)</td>
-<td><code>IP_ANALOGMAP</code></td>
-<td>92, 200, 240</td>
-<td>tracejada, espessura 1</td>
-<td>nenhum</td>
-<td>fixa de 0 a 500</td>
-</tr>
-<tr>
-<td>5</td>
-<td><code>307-REF-200</code> (tag calculada, Parte K)</td>
-<td><code>IP_ANALOGMAP</code></td>
-<td>242, 201, 76</td>
-<td>tracejada, espessura 2</td>
-<td>nenhum</td>
-<td>fixa de 0 a 500</td>
-</tr>
-<tr>
-<td>6</td>
-<td><code>307-REF-150</code> (tag calculada, Parte K)</td>
-<td><code>IP_ANALOGMAP</code></td>
-<td>242, 153, 74</td>
-<td>tracejada, espessura 2</td>
-<td>nenhum</td>
-<td>fixa de 0 a 500</td>
-</tr>
-<tr>
-<td>7</td>
-<td><code>307-REF-100</code> (tag calculada, Parte K)</td>
-<td><code>IP_ANALOGMAP</code></td>
-<td>235, 87, 87</td>
-<td>tracejada, espessura 2</td>
-<td>nenhum</td>
-<td>fixa de 0 a 500</td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p><strong>Todas as penas na mesma escala fixa de 0 a 500.</strong> Se alguma ficar em autoescala, as linhas deixam de ser comparáveis. Esse é o erro mais comum em tendências.</p>
-<p>As penas 3 a 7 só podem ser incluídas depois que as tags calculadas existirem (Parte K). Até lá, a tendência mostra as penas 1 e 2, e as linhas tracejadas não aparecem.</p>
-</blockquote>
-<p><strong>F2. Período:</strong> 8 horas (<code>8:00:00</code>), terminando no horário atual, com atualização automática.</p>
-<p><strong>F3. Aparência:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Item</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Fundo do gráfico</td>
-<td>RGB 31, 38, 48</td>
-</tr>
-<tr>
-<td>Grade</td>
-<td>RGB 46, 55, 68, linhas finas, horizontais a cada 100</td>
-</tr>
-<tr>
-<td>Textos dos eixos</td>
-<td>Arial 10 pt, RGB 139, 150, 165</td>
-</tr>
-<tr>
-<td>Formato do eixo de tempo</td>
-<td><code>hh:mm</code></td>
-</tr>
-<tr>
-<td>Legenda</td>
-<td>oculta, se houver a opção. A legenda já está escrita na imagem de fundo, acima do gráfico</td>
-</tr>
-<tr>
-<td>Barra de tempo e botões</td>
-<td>ocultos, se houver a opção</td>
-</tr>
-</tbody>
-</table>
-<h2>Parte G. Minitendências (objetos 4 e 8)</h2>
-<p>Iguais à tendência principal, com estas diferenças:</p>
-<table>
-<thead>
-<tr>
-<th>Item</th>
-<th>Objeto 4</th>
-<th>Objeto 8</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Pena</td>
-<td><code>307-GI-001</code>, <code>IP_ANALOGMAP</code></td>
-<td><code>307-GI-002</code>, <code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Cor e linha</td>
-<td>RGB 92, 200, 240, espessura 2</td>
-<td>RGB 92, 200, 240, espessura 2</td>
-</tr>
-<tr>
-<td>Escala</td>
-<td>fixa de 0 a 500</td>
-<td>fixa de 0 a 150</td>
-</tr>
-<tr>
-<td>Período</td>
-<td>8 horas</td>
-<td>8 horas</td>
-</tr>
-<tr>
-<td>Eixos, grade, legenda, barra de tempo</td>
-<td>ocultos</td>
-<td>ocultos</td>
-</tr>
-</tbody>
-</table>
-<h2>Parte H. Logotipo (objeto 1)</h2>
-<p>Com a ferramenta <strong>Imagem</strong>, insira o arquivo <strong>oficial</strong> do logotipo fornecido pela Comunicação, dentro do retângulo 1, mantendo a proporção. Não redesenhe a marca. Se ainda não tiver o arquivo, pule esta etapa: o espaço fica vazio no fundo.</p>
-<h2>Parte I. Trocar o mapa pelo fundo definitivo</h2>
-<p><strong>I1.</strong> Desbloqueie e selecione a imagem do mapa.</p>
-<p><strong>I2.</strong> Troque o arquivo para <code>fundo_1400x980.bmp</code> (ou <code>.png</code>), mantendo X, Y, largura e altura. Se o editor não permitir trocar o arquivo, apague a imagem e repita D1 a D5 com o fundo definitivo.</p>
-<p><strong>I3.</strong> Envie para trás, bloqueie e <strong>salve</strong>.</p>
-<h2>Parte J. Conferência final</h2>
-<p>Abra a tela em modo de execução (Process Explorer) e compare com as imagens de exemplo.</p>
-<table>
-<thead>
-<tr>
-<th>Nº</th>
-<th>Verificar</th>
-<th>Esperado</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>Nenhum retângulo rosa visível</td>
-<td>Mapa trocado pelo fundo definitivo</td>
-</tr>
-<tr>
-<td>2</td>
-<td>Campos sem borda e sem fundo branco</td>
-<td>Os campos somem dentro dos painéis</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Carga média e desvio padrão</td>
-<td>1 casa decimal com vírgula, por exemplo <code>290,1</code></td>
-</tr>
-<tr>
-<td>4</td>
-<td>"Última atualização" e "Atualizado em"</td>
-<td>Mesmo horário do último ensaio</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Qualidade da carga média e do desvio padrão</td>
-<td><code>Good</code> em branco. Qualquer outro texto em laranja</td>
-</tr>
-<tr>
-<td>6</td>
-<td>Faixas</td>
-<td><code>Inativo</code> em cinza. <code>Ativo</code> em amarelo, laranja ou vermelho, conforme a faixa</td>
-</tr>
-<tr>
-<td>7</td>
-<td>Compressão MES (painel do laboratório)</td>
-<td>Mesmo valor da tela PQ US04 no mesmo horário</td>
-</tr>
-<tr>
-<td>8</td>
-<td>Modo dos cortadores</td>
-<td>Mesmo estado da tela PQ US04</td>
-</tr>
-<tr>
-<td>9</td>
-<td>Tendência</td>
-<td>8 h, escala de 0 a 500, quadrados cinza a cada 2 h</td>
-</tr>
-<tr>
-<td>10</td>
-<td>Leitura a distância</td>
-<td>Carga média legível a 3 metros</td>
-</tr>
-</tbody>
-</table>
-<h2>Parte K. O que depende do administrador do PIMS</h2>
-<p>Duas coisas não podem ser feitas no editor e precisam ser pedidas ao administrador do InfoPlus.21. Texto pronto para enviar:</p>
-<blockquote>
-<p>Prezados, para a tela de monitoramento do ensaio de compressão de pelotas (LCE), solicito:</p>
-<ol>
-<li><strong>Tags calculadas no Aspen Calc</strong>, recalculadas a cada novo valor de <code>307-GI-001</code>:</li>
-<li><code>307-GI-001-SUP</code> = <code>307-GI-001</code> + <code>307-GI-002</code></li>
-<li><code>307-GI-001-INF</code> = <code>307-GI-001</code> menos <code>307-GI-002</code></li>
-<li><code>307-REF-200</code> = 200 (constante)</li>
-<li><code>307-REF-150</code> = 150 (constante)</li>
-<li><code>307-REF-100</code> = 100 (constante)</li>
-</ol>
-<p>Os nomes são sugestões e podem seguir o padrão da área.
-2. <strong>Descritor de estados</strong> para os discretos <code>307-QI-001</code>, <code>307-QI-002</code> e <code>307-QI-003</code>: 0 = Inativo, 1 = Ativo, para que a tela mostre o texto em vez do número.</p>
-<p>Obrigado.</p>
-</blockquote>
-<p>Enquanto isso não for feito, a tela funciona assim: a tendência mostra só o módulo e o laboratório, sem as linhas tracejadas, e as faixas mostram <code>0</code> ou <code>1</code>. Nesse caso, a regra de cor das fichas 16 a 18 usa os valores 0 e 1.</p>
-<h2>Parte L. Problemas comuns</h2>
-<table>
-<thead>
-<tr>
-<th>Problema</th>
-<th>Causa provável</th>
-<th>Solução</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Letras achatadas ou esticadas</td>
-<td>Imagem fora de 50 x 35 unidades, ou tela com outro tamanho</td>
-<td>Confira C2 (50 x 35) e refaça D3</td>
-</tr>
-<tr>
-<td>Letras um pouco serrilhadas só no editor</td>
-<td>O editor mostra a tela reduzida, sem suavizar</td>
-<td>Normal. Confira no modo de execução</td>
-</tr>
-<tr>
-<td>Os campos ficam desalinhados em relação ao fundo</td>
-<td>Posição digitada sem as casas decimais, ou tela com tamanho diferente de 50 x 35</td>
-<td>Digite com duas casas ou ajuste arrastando sobre o retângulo rosa</td>
-</tr>
-<tr>
-<td>O campo aparece com caixa branca</td>
-<td>Fundo do campo no padrão do editor</td>
-<td>Defina o fundo na cor da ficha ou transparente, e remova a borda</td>
-</tr>
-<tr>
-<td>Número com ponto em vez de vírgula</td>
-<td>Configuração regional da estação</td>
-<td>Verifique em Ferramentas &gt; Opções; se não houver ajuste, peça à TI</td>
-</tr>
-<tr>
-<td>A tendência sobe e desce a escala sozinha</td>
-<td>Pena em autoescala</td>
-<td>Defina escala fixa em todas as penas (F1)</td>
-</tr>
-<tr>
-<td>A imagem não aparece em outro computador</td>
-<td>Arquivo em disco local</td>
-<td>Mova as imagens para a pasta de rede (A1) e reinsira</td>
-</tr>
-<tr>
-<td>O número grande não cabe no retângulo</td>
-<td>Fonte maior que o previsto</td>
-<td>Recalibre no objeto 3 e aplique a proporção a todos</td>
-</tr>
-<tr>
-<td>Faixa mostra 0 ou 1 em vez de texto</td>
-<td>Descritor de estados não configurado</td>
-<td>Normal até o pedido da Parte K ser atendido</td>
-</tr>
-</tbody>
-</table>
-<h2>Limitações desta versão</h2>
-<ul>
-<li>O <strong>desenho interno das tendências</strong> (fonte dos eixos, marcadores e espessuras) é feito pelo próprio Aspen. Ficará muito parecido com o exemplo, mas não idêntico ao pixel.</li>
-<li>Os nomes exatos de menus e abas podem variar um pouco na V14.2. Se algo não for encontrado, envie a captura da etapa B2 para o roteiro ser ajustado.</li>
-<li>A severidade das faixas (Atenção, Alerta e Crítico) está <strong>proposta</strong> e aguarda aprovação do LCE. Mudar a severidade exige regerar a imagem de fundo.</li>
-</ul></body></html>
+</table></body></html>

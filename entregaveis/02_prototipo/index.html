@@ -25,7 +25,7 @@
     --attn: #f2c94c;        /* RGB 242, 201, 76  atenção */
     --alert: #f2994a;       /* RGB 242, 153, 74  alerta e qualidade ruim */
     --crit: #eb5757;        /* RGB 235, 87, 87   crítico */
-    --ui: "Segoe UI", Inter, "Liberation Sans", Arial, sans-serif;
+    --ui: Arial, "Liberation Sans", sans-serif;  /* mesma fonte do Aspen, para as medidas baterem */
     --data: Arial, "Liberation Sans", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -83,6 +83,16 @@
   body.mapa .slot > * { visibility: hidden !important; }
   body.mapa .slot::after { content: attr(data-slot); position: absolute; left: 4px; top: 2px; font: 700 14px/1 Arial, sans-serif; color: #fff; background: #c2189e; padding: 2px 5px; border-radius: 3px; }
 
+  /* Símbolos desenhados como formas (no Aspen viram polígonos) */
+  .simb { display: inline-block; width: 11px; height: 11px; background: currentColor; vertical-align: -1px; margin: 0 3px 0 1px; }
+  .simb.tri { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .simb.dia { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  .simb.circ { border-radius: 50%; }
+  .graf-area { position: relative; margin-top: 16px; height: 596px; }
+  .ylab { position: absolute; left: 0; width: 32px; text-align: right; font-size: 13px; color: var(--muted); line-height: 16px; }
+  .rlab { position: absolute; left: 992px; font-size: 13px; font-weight: 700; line-height: 16px; }
+  .gl { position: absolute; left: 40px; width: 948px; height: 1px; background: var(--card-line); }
+  .rl { position: absolute; left: 40px; width: 948px; height: 2px; }
   #cenarios { position: fixed; right: 12px; bottom: 12px; background: #11161d; border: 1px solid var(--card-line); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--muted); z-index: 9; }
   #cenarios select { margin-left: 6px; font: inherit; background: var(--card); color: var(--text); border: 1px solid var(--card-line); border-radius: 4px; padding: 2px 4px; }
   body.fundo #cenarios, body.mapa #cenarios, body.captura #cenarios { display: none; }
@@ -151,16 +161,16 @@
   <!-- Tendência -->
   <section class="card" style="left:32px; top:388px; width:1060px; height:700px;">
     <h2>Tendência da carga média <span class="chip">307-GI-001</span> <span class="chip">M4710050020-0031-HHLFU</span></h2>
-    <div class="sub">Janela de 8 h &nbsp;|&nbsp; <span style="color:var(--trend)">●</span> módulo, a cada 30 min &nbsp;|&nbsp; <span style="color:var(--mes)">■</span> laboratório (MES), a cada 2 h &nbsp;|&nbsp; <span style="color:var(--trend)">- - -</span> média mais ou menos um desvio padrão</div>
-    <div class="slot" style="width:1012px; height:596px; margin-top:14px" data-slot="15"><svg id="tend" width="1012" height="596"></svg></div>
+    <div class="sub">Período da barra de tempo (usar 8 h) &nbsp;|&nbsp; <span class="simb circ" style="color:var(--trend)"></span> módulo, a cada 30 min &nbsp;|&nbsp; <span class="simb sq" style="color:var(--mes)"></span> laboratório (MES), a cada 2 h &nbsp;|&nbsp; escala de 0 a 500 daN/pelota</div>
+    <div class="graf-area" id="graf-area"><div class="slot" style="position:absolute; left:40px; top:0; width:948px; height:576px" data-slot="15"><svg id="tend" width="948" height="576"></svg></div></div>
   </section>
 
   <!-- Faixas -->
   <section class="card faixas" style="left:1112px; top:528px; width:456px; height:560px;">
     <h2>Faixas de classificação</h2>
-    <div class="faixa"><div><div class="nome">Menor que 200 daN/pelota</div><div class="det">307-QI-003 &nbsp;|&nbsp; <span style="color:var(--attn)">▲</span> Atenção</div></div><span class="slot estado" id="s-qi3" data-slot="16">--</span></div>
-    <div class="faixa"><div><div class="nome">Menor que 150 daN/pelota</div><div class="det">307-QI-002 &nbsp;|&nbsp; <span style="color:var(--alert)">◆</span> Alerta</div></div><span class="slot estado" id="s-qi2" data-slot="17">--</span></div>
-    <div class="faixa"><div><div class="nome">Menor que 100 daN/pelota</div><div class="det">307-QI-001 &nbsp;|&nbsp; <span style="color:var(--crit)">■</span> Crítico</div></div><span class="slot estado" id="s-qi1" data-slot="18">--</span></div>
+    <div class="faixa"><div><div class="nome">Menor que 200 daN/pelota</div><div class="det">307-QI-003 &nbsp;|&nbsp; <span class="simb tri" style="color:var(--attn)"></span> Atenção</div></div><span class="slot estado" id="s-qi3" data-slot="16">--</span></div>
+    <div class="faixa"><div><div class="nome">Menor que 150 daN/pelota</div><div class="det">307-QI-002 &nbsp;|&nbsp; <span class="simb dia" style="color:var(--alert)"></span> Alerta</div></div><span class="slot estado" id="s-qi2" data-slot="17">--</span></div>
+    <div class="faixa"><div><div class="nome">Menor que 100 daN/pelota</div><div class="det">307-QI-001 &nbsp;|&nbsp; <span class="simb sq" style="color:var(--crit)"></span> Crítico</div></div><span class="slot estado" id="s-qi1" data-slot="18">--</span></div>
     <div class="nota">Severidade proposta, pendente de aprovação do LCE.</div>
   </section>
 
@@ -192,6 +202,19 @@
     palco.style.top = ((innerHeight - 1120 * s) / 2) + 'px';
   }
   addEventListener('resize', escala); escala();
+
+  // Escala fixa da tendência (0 a 500): rótulos, grade e linhas de referência são parte fixa da tela,
+  // desenhados por cima do objeto de tendência do Aspen, que só traça as linhas dos dados.
+  (function () {
+    const area = document.getElementById('graf-area'), H = 576, y = v => (1 - v / 500) * H;
+    const add = (cls, estilo, txt) => { const e = document.createElement('div'); e.className = cls; e.setAttribute('style', estilo); if (txt) e.textContent = txt; area.appendChild(e); };
+    for (let v = 0; v <= 500; v += 100) add('ylab', `top:${y(v) - 8}px`, v.toLocaleString('pt-BR'));
+    [100, 300, 400, 500].forEach(v => add('gl sobre', `top:${y(v)}px`));
+    [[200, 'var(--attn)'], [150, 'var(--alert)'], [100, 'var(--crit)']].forEach(([v, c]) => {
+      add('rl sobre', `top:${y(v) - 1}px; background:${c}`);
+      add('rlab', `top:${y(v) - 8}px; color:${c}`, String(v));
+    });
+  })();
 
   const COR = { attn: 'var(--attn)', alert: 'var(--alert)', crit: 'var(--crit)', muted: 'var(--muted)' };
   const num = (v, d = 1) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -235,25 +258,12 @@
   function tendencia(pts) {
     const svg = document.getElementById('tend');
     svg.innerHTML = '';
-    const W = 1012, H = 596, L = 52, R = 48, T = 12, B = 34, YMAX = 500;
+    const W = 948, H = 576;
     const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
-    const x = t => L + (t - t0) / (t1 - t0) * (W - L - R), y = v => T + (1 - v / YMAX) * (H - T - B);
-    for (let v = 0; v <= YMAX; v += 50) {
-      svg.appendChild(el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: 'var(--card-line)', 'stroke-width': v % 100 ? .5 : 1 }));
-      if (v % 100 === 0) txt(svg, L - 10, y(v) + 4, v.toLocaleString('pt-BR'), { 'text-anchor': 'end' });
-    }
-    for (let i = 0; i < pts.length; i += 2) {
-      svg.appendChild(el('line', { x1: x(pts[i].t), x2: x(pts[i].t), y1: T, y2: H - B, stroke: 'var(--card-line)', 'stroke-width': .5 }));
-      txt(svg, x(pts[i].t), H - 10, hm(new Date(pts[i].t)), { 'text-anchor': 'middle' });
-    }
-    [[200, 'var(--attn)'], [150, 'var(--alert)'], [100, 'var(--crit)']].forEach(([v, c]) => {
-      svg.appendChild(el('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: c, 'stroke-width': 2, 'stroke-dasharray': '8 6' }));
-      txt(svg, W - R + 8, y(v) + 4, `${v}`, { fill: c, 'font-size': 13 });
-    });
-    ['+', '-'].forEach(sg => svg.appendChild(el('polyline', { points: pts.map(p => `${x(p.t)},${y(sg === '+' ? p.m + p.s : p.m - p.s)}`).join(' '), fill: 'none', stroke: 'var(--trend)', 'stroke-width': 1.5, 'stroke-dasharray': '4 5', opacity: .7 })));
+    const x = t => 6 + (t - t0) / (t1 - t0) * (W - 12), y = v => (1 - v / 500) * H;
     svg.appendChild(el('polyline', { points: pts.map(p => `${x(p.t)},${y(p.m)}`).join(' '), fill: 'none', stroke: 'var(--trend)', 'stroke-width': 3, 'stroke-linejoin': 'round' }));
-    pts.forEach(p => svg.appendChild(el('circle', { cx: x(p.t), cy: y(p.m), r: 4.5, fill: 'var(--trend)' })));
-    pts.filter(p => p.mes !== null).forEach(p => svg.appendChild(el('rect', { x: x(p.t) - 7, y: y(p.mes) - 7, width: 14, height: 14, fill: 'var(--mes)' })));
+    const mes = pts.filter(p => p.mes !== null);
+    svg.appendChild(el('polyline', { points: mes.map(p => `${x(p.t)},${y(p.mes)}`).join(' '), fill: 'none', stroke: 'var(--mes)', 'stroke-width': 2 }));
   }
 
   function set(id, texto, cor) {
