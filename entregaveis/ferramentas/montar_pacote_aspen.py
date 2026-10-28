@@ -23,60 +23,59 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 AQUI = os.path.dirname(os.path.abspath(__file__))
 SAIDA = os.path.join(AQUI, "..", "03_aspen")
 
-TEXTO = "230, 234, 240"
-ROTULO = "139, 150, 165"
-LARANJA = "242, 153, 74"
-PAINEL = "31, 38, 48"
-CABEC = "17, 22, 29"
+TEXTO = "255, 255, 255"
+ROTULO = "181, 190, 196"
+LARANJA = "243, 112, 33"
+AZUL_CLARO = "89, 198, 242"
+PAINEL = "0, 51, 90"
+CABEC = "0, 51, 90"
 HORA = "`VAL` no arquivo: **trocar pelo atributo de data e hora** (Parte B)"
 QUAL = "`VAL` no arquivo: **trocar pelo atributo de qualidade** (Parte B)"
 DISC = "`IP_DISCRETEMAP` no arquivo: **conferir** (Parte B)"
+CALC = " Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor."
 REGRA_QUAL = f"Texto igual a `Good`: RGB {TEXTO}. Qualquer outro texto: RGB {LARANJA}"
 DH = "dd/mm/aaaa hh:mm:ss"
 
 
-def campo(nome, tag, mapa, atrib, pt, negrito, alin, fundo, formato, regra="Nenhuma", obs=""):
+def campo(nome, tag, mapa, atrib, pt, negrito, alin, fundo, formato, regra="Nenhuma", obs="", cor=TEXTO):
     return dict(ferramenta="Campo de dados", nome=nome, tag=tag, mapa=mapa, atrib=atrib, pt=pt, negrito=negrito,
-                alin=alin, cor=TEXTO, fundo=fundo, formato=formato, regra=regra, obs=obs)
+                alin=alin, cor=cor, fundo=fundo, formato=formato, regra=regra, obs=obs)
 
 
 def tendencia(nome, obs, tag=""):
     return dict(ferramenta="Tendência (plot)", nome=nome, obs=obs, tag=tag)
 
 
+A = "IP_ANALOGMAP"
+MES = "M4710050020-0031-HHLFU"
 SPEC = {
-    1: dict(ferramenta="Imagem", nome="Logotipo oficial", obs="Arquivo oficial fornecido pela Comunicação. Manter a proporção dentro do retângulo. Ver Parte D."),
-    2: campo("Última atualização (cabeçalho)", "307-GI-001", "IP_ANALOGMAP", HORA, 14, True, "Direita", CABEC, DH,
-             obs="Fica no cabeçalho, que tem fundo mais escuro que os painéis."),
-    3: campo("Carga média: valor", "307-GI-001", "IP_ANALOGMAP", "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)",
-             obs="Objeto de calibração da fonte (ver início da Parte E). A unidade daN/pelota já está no fundo."),
-    4: tendencia("Carga média: minitendência", "Já vem pronta no arquivo. Ver Parte C.", "307-GI-001"),
-    5: campo("Carga média: atualizado em", "307-GI-001", "IP_ANALOGMAP", HORA, 11, False, "Esquerda", PAINEL, DH),
-    6: campo("Carga média: qualidade", "307-GI-001", "IP_ANALOGMAP", QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
-    7: campo("Desvio padrão: valor", "307-GI-002", "IP_ANALOGMAP", "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)",
-             obs="Copie o objeto 3 e troque a tag e a posição."),
-    8: tendencia("Desvio padrão: minitendência", "Já vem pronta no arquivo. Ver Parte C.", "307-GI-002"),
-    9: campo("Desvio padrão: atualizado em", "307-GI-002", "IP_ANALOGMAP", HORA, 11, False, "Esquerda", PAINEL, DH,
-             obs="Copie o objeto 5 e troque a tag e a posição."),
-    10: campo("Desvio padrão: qualidade", "307-GI-002", "IP_ANALOGMAP", QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL,
-              obs="Copie o objeto 6 e troque a tag e a posição."),
-    11: campo("Compressão MES: último resultado", "M4710050020-0031-HHLFU", "IP_MESVALOR", "VAL", 57, True, "Direita", PAINEL,
-              "Sem casas decimais (0)", obs="Mesmo vínculo do campo Compressão da tela PQ US04. Mesma fonte do objeto 3: copie o 3 e troque tag, mapa e formato."),
-    12: campo("Compressão MES: horário do resultado", "M4710050020-0031-HHLFU", "IP_MESVALOR", HORA, 11, False, "Esquerda", PAINEL,
-              "dd/mm/aaaa hh:mm", obs="Copie o objeto 5 e troque tag, mapa e formato."),
-    13: campo("Modo do cortador 07CR001", "U04-07CR001", "IP_PIDMAP03", "VAL", 14, True, "Direita", PAINEL, "Texto",
-              f"Texto `Automático`: RGB {TEXTO}. Texto `Manual`: RGB {LARANJA}",
-              obs="Mesmo vínculo do indicador Manual/Automático da tela PQ US04. Se o campo mostrar número, use a regra de cor pelo número equivalente."),
-    14: campo("Modo do cortador 07CR002", "U04-07CR002", "IP_PIDMAP03", "VAL", 14, True, "Direita", PAINEL, "Texto",
-              f"Texto `Automático`: RGB {TEXTO}. Texto `Manual`: RGB {LARANJA}", obs="Copie o objeto 13 e troque a tag."),
-    15: tendencia("Tendência principal da carga média", "Já vem pronta no arquivo, com as penas e a escala. Ver Parte C.", "307-GI-001 e M4710050020-0031-HHLFU (ver Parte F)"),
-    16: campo("Faixa menor que 200 (Atenção)", "307-QI-003", DISC, "VAL", 18, True, "Direita", PAINEL, "Texto (ou número inteiro)",
-              f"Valor `1` ou `Ativo`: RGB 242, 201, 76. Valor `0` ou `Inativo`: RGB {ROTULO}"),
-    17: campo("Faixa menor que 150 (Alerta)", "307-QI-002", DISC, "VAL", 18, True, "Direita", PAINEL, "Texto (ou número inteiro)",
-              f"Valor `1` ou `Ativo`: RGB 242, 153, 74. Valor `0` ou `Inativo`: RGB {ROTULO}", obs="Copie o objeto 16."),
-    18: campo("Faixa menor que 100 (Crítico)", "307-QI-001", DISC, "VAL", 18, True, "Direita", PAINEL, "Texto (ou número inteiro)",
-              f"Valor `1` ou `Ativo`: RGB 235, 87, 87. Valor `0` ou `Inativo`: RGB {ROTULO}", obs="Copie o objeto 16."),
+    1: campo("Última atualização (cabeçalho)", "307-GI-001", A, HORA, 14, True, "Direita", CABEC, DH),
+    2: campo("Média prensa automática: valor", "307-GI-001", A, "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)"),
+    3: tendencia("Média prensa automática: minitendência", "Já vem pronta no arquivo, escala 0 a 500. Ver Parte C.", "307-GI-001"),
+    4: campo("Média prensa automática: atualizado às", "307-GI-001", A, HORA, 11, False, "Esquerda", PAINEL, DH),
+    5: campo("Média prensa automática: qualidade", "307-GI-001", A, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
+    6: campo("Desvio padrão: valor", "307-GI-002", A, "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)"),
+    7: tendencia("Desvio padrão: minitendência", "Já vem pronta no arquivo, escala 0 a 150. Ver Parte C.", "307-GI-002"),
+    8: campo("Desvio padrão: atualizado às", "307-GI-002", A, HORA, 11, False, "Esquerda", PAINEL, DH),
+    9: campo("Desvio padrão: qualidade", "307-GI-002", A, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
+    10: campo("Composto 2 h: prensa automática", "307-GI-001-C2H", A, "VAL", 45, True, "Esquerda", PAINEL, "1 casa decimal (0,0)",
+              obs="Média dos 4 cortes da janela." + CALC, cor=AZUL_CLARO),
+    11: campo("Composto 2 h: laboratório (MES)", MES, "IP_MESVALOR", "VAL", 45, True, "Esquerda", PAINEL, "Sem casas decimais (0)",
+              obs="Mesmo vínculo do campo Compressão da tela PQ US04."),
+    12: campo("Composto 2 h: fim da janela", "307-GI-001-C2H", A, HORA, 11, False, "Esquerda", PAINEL, "dd/mm/aaaa hh:mm", obs=CALC.strip()),
+    13: campo("Composto 2 h: diferença prensa menos laboratório", "307-GI-001-DIF2H", A, "VAL", 11, True, "Direita", PAINEL,
+              "1 casa decimal (0,0)", obs=CALC.strip()),
+    14: tendencia("Tendência: composto da prensa x composto do laboratório", "Já vem pronta no arquivo, com as 3 penas e escala 50 a 450. Ver Parte C.",
+                  "307-GI-001, 307-GI-001-C2H e " + MES),
 }
+for k in range(4):
+    SPEC[15 + k] = campo(f"Cortes do composto: hora do corte {k + 1}", f"307-GI-001-CORTE{k + 1}", A, HORA, 14, True, "Esquerda", PAINEL,
+                         "hh:mm", obs=CALC.strip())
+    SPEC[19 + k] = campo(f"Cortes do composto: resultado do corte {k + 1}", f"307-GI-001-CORTE{k + 1}", A, "VAL", 15, True, "Direita",
+                         PAINEL, "1 casa decimal (0,0)", obs=CALC.strip())
+for n, tag, lim in ((23, "307-QI-003", 200), (24, "307-QI-002", 150), (25, "307-QI-001", 100)):
+    SPEC[n] = campo(f"Pelotas abaixo de {lim} daN", tag, DISC, "VAL", 18, True, "Direita", PAINEL, "Sem casas decimais (0)",
+                    obs="A lâmpada ao lado acende na cor do limite quando há pelota abaixo dele (já vem pronta no arquivo).")
 
 
 def un(v):
@@ -182,7 +181,8 @@ def main():
     with open(os.path.join(SAIDA, "objetos_tela.json"), encoding="utf-8") as fh:
         tela = json.load(fh)
     texto = (modelo.replace("{{FICHAS}}", fichas).replace("{{N_CAMPOS}}", str(n_campos)).replace("{{N_TEND}}", str(n_tend))
-             .replace("{{N_FORMAS}}", str(len(tela["formas"]) + len(tela["simbolos"]))).replace("{{N_TEXTOS}}", str(len(tela["textos"]))))
+             .replace("{{N_FORMAS}}", str(len(tela["formas"]) + len(tela["simbolos"]) + 13)).replace("{{N_TEXTOS}}", str(len(tela["textos"])))
+             .replace("{{N_LAMPADAS}}", str(len(tela.get("lampadas", [])))))
     md_path = os.path.join(SAIDA, "roteiro_aspen_graphics.md")
     with open(md_path, "w", encoding="utf-8") as fh:
         fh.write(texto)

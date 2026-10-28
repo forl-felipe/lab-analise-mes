@@ -1,169 +1,104 @@
-# Passo a passo: tela de compressão de pelotas no Aspen
+# Passo a passo: tela de compressão de pelotas no Aspen (versão 6)
 
-**Tela:** Monitoramento do ensaio de compressão de pelotas (versão 4: arquivo `.atgraphic` pronto, sem imagem de fundo)
+**Tela:** Monitoramento do ensaio de compressão de pelotas, padrão visual Samarco, comparação composto com composto (2 h)
 
-**Resultado esperado:** igual a `tela_exemplo_normal.png`, nítida também com a janela maximizada
+**Resultado esperado:** igual a `tela_exemplo_normal.png`
 
-**Tempo estimado:** 30 a 60 minutos
+**Tempo estimado:** 30 minutos
 
 ![Resultado esperado](tela_exemplo_normal.png)
 
-## O que mudou nesta versão
+## O que vem pronto no arquivo
 
-A versão anterior usava uma imagem de fundo com os textos. Quando a janela é maximizada, o Aspen estica a imagem e as letras perdem a nitidez. A tela PQ US04 não tem esse problema porque todos os textos e quadros são **objetos do próprio Aspen**, redesenhados em qualquer tamanho.
+O arquivo `LCE_Compressao_Pelotas_Prensa01.atgraphic` segue o mesmo formato da versão que já abriu no seu PIMS. Tudo é objeto nativo do Aspen e não perde nitidez ao maximizar:
 
-Agora a tela segue o mesmo princípio e já vem **pronta, em um arquivo `.atgraphic`**, gerado no mesmo formato da tela PQ US04:
-
-| Conteúdo do arquivo | Quantidade |
+| Conteúdo | Quantidade |
 |---|---|
-| Painéis, linhas, grade da tendência e linhas de referência 100, 150 e 200 (polígonos) | {{N_FORMAS}} |
-| Textos fixos (títulos, rótulos, unidades) | {{N_TEXTOS}} |
-| Campos de dados já ligados às tags | {{N_CAMPOS}} |
-| Tendências já ligadas às tags, com escala fixa | {{N_TEND}} |
+| Painéis, linhas, limites tracejados e logotipo oficial em polígonos | {{N_FORMAS}} |
+| Textos fixos | {{N_TEXTOS}} |
+| Campos de dados ligados às tags | {{N_CAMPOS}} |
+| Tendências com penas e escala definidas | {{N_TEND}} |
+| Lâmpadas animadas (cortadores e pelotas abaixo do limite) | {{N_LAMPADAS}} |
 
-Tamanho da tela: **50 x 35 unidades**, o padrão do editor e o mesmo da tela PQ US04. Não é preciso digitar posição nenhuma.
+## Parte A. Abrir
 
-### Arquivos
+**A1.** Copie `LCE_Compressao_Pelotas_Prensa01.atgraphic` para a pasta de rede das telas do laboratório. Se a versão anterior estiver aberta, feche-a antes de substituir.
 
-| Arquivo | Para que serve |
+**A2.** Abra no **Aspen Process Graphics Editor**, compare com `tela_exemplo_normal.png` e maximize.
+
+**Se der erro ao abrir:** tente `teste_minimo.atgraphic` e me envie a captura da mensagem, dizendo se o arquivo de teste abriu.
+
+## Parte B. Ajustes nos campos (no editor)
+
+**B1. Atributo de data e hora.** Os campos abaixo vêm com o atributo `VAL` e mostram um número no lugar da hora. Dê duplo clique em cada um e troque `VAL` pelo atributo de data e hora da lista:
+
+| Objeto | Campo |
 |---|---|
-| `LCE_Compressao_Pelotas_Prensa01.atgraphic` | **A tela.** É o arquivo que você vai abrir |
-| `teste_minimo.atgraphic` | Arquivo de diagnóstico com 4 objetos (um painel, um texto, um campo e uma tendência). Só use se a tela não abrir |
-| `tela_exemplo_*.png` | Como a tela deve ficar: normal, faixa ativa, qualidade Bad e cortador em manual |
-| `mapa_posicionamento.png` | Número de cada objeto dinâmico, usado nas fichas do Anexo |
-| `posicoes_objetos.xlsx` | Posição e tamanho de cada objeto dinâmico, em unidades |
+| 1 | Última atualização (cabeçalho) |
+| 4 | Média prensa automática: atualizado às |
+| 8 | Desvio padrão: atualizado às |
+| 12 | Composto 2 h: fim da janela |
+| 15 a 18 | Cortes do composto: hora de cada corte |
 
-> **Importante:** o arquivo foi gerado por engenharia reversa do formato da tela PQ US04 e conferido por releitura completa, mas **não pôde ser aberto no Aspen** durante a preparação, porque o ambiente de desenvolvimento não tem acesso ao PIMS. A Parte A diz o que fazer se ele não abrir.
+Dica: depois de achar o atributo certo no objeto 1, me diga o nome. Na próxima versão ele já vem configurado em todos.
 
-## Parte A. Abrir a tela
+**B2. Atributo de qualidade** nos objetos 5 e 9 (qualidade da média e do desvio padrão), com a regra de cor: `Good` em branco e qualquer outro texto em laranja (RGB 243, 112, 33).
 
-**A1.** Copie `LCE_Compressao_Pelotas_Prensa01.atgraphic` para a pasta de rede onde ficam as telas do laboratório.
+**B3. Mapa dos discretos.** Os objetos 23, 24 e 25 (pelotas abaixo do limite) e as três lâmpadas ao lado deles usam o mapa `IP_DISCRETEMAP`, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.
 
-**A2.** Abra o arquivo no **Aspen Process Graphics Editor** (para editar) ou no **Aspen Process Explorer** (para usar).
-
-**A3.** Compare com `tela_exemplo_normal.png` e **maximize a janela**. Os textos devem continuar nítidos, como na tela PQ US04.
-
-**Se der erro ao abrir:**
-
-1. Tente abrir `teste_minimo.atgraphic`.
-2. Me envie uma captura da mensagem de erro e diga se o arquivo de teste abriu ou não. Com isso eu localizo o ponto do formato a corrigir.
-
-## Parte B. Ajustar os campos de dados (no editor)
-
-Os {{N_CAMPOS}} campos já vêm com tag, mapa, fonte, cor e posição. Faltam só os itens que dependem de nomes que só existem no seu PIMS e as regras de cor. Para abrir as propriedades de um campo, dê duplo clique nele.
-
-**B1. Conheça o diálogo pela tela PQ US04.** Abra a tela PQ US04 no editor, dê duplo clique no valor de **Compressão** e veja onde ficam: tag, mapa, atributo, formato e cores condicionais. Abra a lista de **atributos** (onde aparece `VAL`) e anote:
-
-| O que | Nome exato na lista (anote aqui) |
-|---|---|
-| Data e hora do valor | ______________________ |
-| Qualidade do valor | ______________________ |
-
-Feche a tela PQ US04 **sem salvar**.
-
-**B2. Troque o atributo** nos campos abaixo. No arquivo eles vêm com `VAL`, que mostra o valor e não a hora ou a qualidade:
-
-| Objeto | Campo | Trocar `VAL` por |
-|---|---|---|
-| 2 | Última atualização (cabeçalho) | atributo de data e hora |
-| 5 | Carga média: atualizado em | atributo de data e hora |
-| 9 | Desvio padrão: atualizado em | atributo de data e hora |
-| 12 | Compressão MES: horário do resultado | atributo de data e hora |
-| 6 | Carga média: qualidade | atributo de qualidade |
-| 10 | Desvio padrão: qualidade | atributo de qualidade |
-
-**B3. Confira o mapa dos discretos** (objetos 16, 17 e 18, faixas de classificação). No arquivo eles vêm com o mapa `IP_DISCRETEMAP`. Se o campo mostrar erro ou ficar vazio, abra a lista de mapas e escolha o mapa de discreto disponível.
-
-**B4. Configure as regras de cor** (aba de cores condicionais):
-
-| Objetos | Condição | Cor do texto |
-|---|---|---|
-| 6 e 10 (qualidade) | igual a `Good` | RGB 230, 234, 240 |
-| | qualquer outro valor | RGB 242, 153, 74 (laranja) |
-| 13 e 14 (modo dos cortadores) | `Automático` | RGB 230, 234, 240 |
-| | `Manual` | RGB 242, 153, 74 (laranja) |
-| 16 (menor que 200) | `1` ou `Ativo` | RGB 242, 201, 76 (amarelo) |
-| 17 (menor que 150) | `1` ou `Ativo` | RGB 242, 153, 74 (laranja) |
-| 18 (menor que 100) | `1` ou `Ativo` | RGB 235, 87, 87 (vermelho) |
-| 16, 17 e 18 | `0` ou `Inativo` | RGB 139, 150, 165 (cinza) |
-
-**B5. Confira as casas decimais:** carga média (3) e desvio padrão (7) com 1 casa; compressão MES (11) sem casas. Se o editor usar o formato da própria tag, deixe como estiver.
-
-**B6. Alinhamento:** os valores grandes (3, 7 e 11) ficam melhor **alinhados à direita**, encostados na unidade "daN/pelota". Se o editor tiver a opção, use alinhamento à direita também em 2, 12, 13, 14, 16, 17 e 18.
-
-## Parte C. Conferir as tendências
-
-As três tendências já vêm prontas:
+## Parte C. Tendências
 
 | Objeto | Penas | Escala |
 |---|---|---|
-| 4 (minitendência da carga média) | `307-GI-001` (azul) | 0 a 500 |
-| 8 (minitendência do desvio padrão) | `307-GI-002` (azul) | 0 a 150 |
-| 15 (tendência principal) | `307-GI-001` (azul) e `M4710050020-0031-HHLFU`, mapa `IP_MESVALOR` (cinza) | 0 a 500 nas duas |
+| 3 (minitendência da média) | `307-GI-001` | 0 a 500 |
+| 7 (minitendência do desvio padrão) | `307-GI-002` | 0 a 150 |
+| 14 (tendência principal) | `307-GI-001` (cada ensaio, linha azul escura), `M4710050020-0031-HHLFU` (laboratório, branca) e `307-GI-001-C2H` (composto da prensa, azul claro) | 50 a 450 nas três |
 
-**C1.** Na barra de tempo, embaixo da janela, troque o período de `2:00:00` para **`8:00:00`**.
+**C1.** Na barra de tempo, embaixo da janela, use **`8:00:00`**.
 
-**C2.** A escala de 0 a 500, a grade e as linhas de 100, 150 e 200 da tendência principal são **parte fixa da tela**, desenhadas por cima da tendência. Por isso **não altere a escala das penas**: se ela mudar, os números da lateral deixam de corresponder às linhas.
+**C2.** Os números de 100 a 400 e as linhas de 200, 150 e 100 são parte fixa da tela. **Não altere a escala das penas.**
 
-**C3.** Se o fundo da tendência aparecer preto em vez de cinza-azulado, ajuste a cor de fundo nas propriedades da tendência para RGB 31, 38, 48.
+**C3. Teste do composto sem tag calculada:** nas propriedades da pena `307-GI-001` da tendência 14, veja se existe opção de **média por período** (agregado). Se existir, adicione mais uma pena `307-GI-001` com **média de 2 h**, cor azul claro (RGB 89, 198, 242) e escala 50 a 450. Ela desenha o composto da prensa enquanto a tag calculada não existe.
 
-## Parte D. Logotipo (objeto 1)
+## Parte D. Lâmpadas (já prontas)
 
-Com a ferramenta **Imagem**, insira o arquivo **oficial** do logotipo fornecido pela Comunicação no canto superior esquerdo (objeto 1 do mapa), mantendo a proporção. Não redesenhe a marca. O logotipo é a única imagem da tela; se ele perder um pouco de nitidez ao maximizar, use um arquivo de maior resolução.
-
-## Parte E. Salvar e testar
-
-**E1.** No editor, **Arquivo > Salvar como**, na pasta de rede, com o nome `LCE_Compressao_Pelotas_Prensa01`.
-
-**E2.** Abra no Process Explorer, maximize e confira a Parte F.
-
-> A janela mostra "(Somente leitura)" quando a tela é aberta para uso. Para editar, abra pelo Graphics Editor.
-
-## Parte F. Conferência final
-
-| Nº | Verificar | Esperado |
+| Lâmpadas | Tag | Acende quando |
 |---|---|---|
-| 1 | Maximizar a janela | Textos e quadros nítidos, sem serrilhado |
-| 2 | Carga média e desvio padrão | 1 casa decimal com vírgula, por exemplo `290,1` |
-| 3 | Horários | Data e hora do último ensaio, não o valor |
-| 4 | Qualidade | `Good` em branco; outro texto em laranja |
-| 5 | Faixas | `Inativo` (ou 0) em cinza; `Ativo` (ou 1) em amarelo, laranja ou vermelho |
-| 6 | Compressão MES e modo dos cortadores | Mesmos valores da tela PQ US04 no mesmo horário |
-| 7 | Tendência | Período de 8 h, linha azul do módulo e linha cinza do laboratório entre 0 e 500 |
+| 07CR001 e 07CR002, Automático | `U04-07CR001`, `U04-07CR002` (mapa `IP_PIDMAP03`) | valor 32, em verde |
+| 07CR001 e 07CR002, Manual | mesmas tags | valor 16, em laranja |
+| Abaixo de 200, 150 e 100 daN | `307-QI-003`, `307-QI-002`, `307-QI-001` | pelo menos 1 pelota, na cor do limite |
 
-## Parte G. Pedido ao administrador do PIMS (opcional)
+Os valores 32 e 16 foram tirados dos indicadores Manual/Automático da tela PQ US04. Confira com o cortador em manual: a lâmpada laranja deve acender.
 
-Texto pronto para enviar:
+## Parte E. Salvar
 
-> Prezados, para a tela de monitoramento do ensaio de compressão de pelotas (LCE), solicito um **descritor de estados** para os discretos `307-QI-001`, `307-QI-002` e `307-QI-003`: 0 = Inativo, 1 = Ativo, para que a tela mostre o texto em vez do número.
->
-> Se possível, também duas **tags calculadas** para a banda da tendência: `307-GI-001-SUP` = `307-GI-001` + `307-GI-002` e `307-GI-001-INF` = `307-GI-001` menos `307-GI-002`. Os nomes podem seguir o padrão da área.
->
-> Obrigado.
+**E1.** **Arquivo > Salvar**. Abra no Process Explorer e maximize para conferir.
 
-Quando as tags calculadas existirem, adicione-as como penas na tendência 15, com escala de 0 a 500 e cor RGB 92, 200, 240.
+## Parte F. Tags calculadas (pedir ao administrador do PIMS)
 
-## Parte H. Problemas comuns
+Os campos do composto da prensa (10), da diferença (13) e dos cortes (15 a 22) e a linha azul clara da tendência já estão ligados às tags abaixo. **Assim que o administrador criar as tags com estes nomes, a tela passa a mostrar os valores sozinha**, sem nenhuma edição. Até lá, esses campos ficam vazios ou indicam tag inexistente.
 
-| Problema | Causa provável | Solução |
-|---|---|---|
-| Erro ao abrir o arquivo | Diferença de formato não prevista | Tente `teste_minimo.atgraphic` e envie a captura do erro (Parte A) |
-| Campo mostra erro ou "?" | Mapa ou atributo inexistente no PIMS | Partes B2 e B3 |
-| Horário mostra um número | Atributo ainda em `VAL` | Parte B2 |
-| Tendência com escala diferente | Escala da pena alterada | Volte para 0 a 500 (ou 0 a 150 no objeto 8) |
-| Número com ponto em vez de vírgula | Configuração regional da estação | Verifique em Ferramentas > Opções; se não houver ajuste, peça à TI |
-| Faixa mostra 0 ou 1 | Descritor de estados não configurado | Normal até o pedido da Parte G ser atendido |
-| Texto cortado ou sobrando | Fonte da estação diferente da prevista | Aumente um pouco a largura do objeto de texto no editor |
+| Tag | Cálculo |
+|---|---|
+| `307-GI-001-C2H` | Média de `307-GI-001` dos 4 cortes da janela de 2 h do composto do laboratório, gravada no fim da janela |
+| `307-GI-001-DIF2H` | `307-GI-001-C2H` menos `M4710050020-0031-HHLFU` da mesma janela |
+| `307-GI-001-CORTE1` a `307-GI-001-CORTE4` | Resultado de `307-GI-001` de cada um dos 4 cortes da janela atual, gravado no horário do corte |
 
-## Limitações
+Detalhes (janela pelo horário do corte, defasagem de 20 min até a entrada no PIMS, janelas incompletas e cortadores em manual) em `../05_proposta_visual/composto_2h_especificacao.md`. Se o administrador preferir outros nomes, me informe que eu regero o arquivo.
 
-- O arquivo não pôde ser testado no Aspen durante a preparação. Se algo aparecer diferente, envie uma captura para ajuste.
-- A tendência do Aspen desenha só as linhas. Os horários do eixo de tempo aparecem na barra de tempo, embaixo da janela, como na tela PQ US04.
-- A severidade das faixas (Atenção, Alerta e Crítico) está **proposta** e aguarda aprovação do LCE.
+## Parte G. Problemas comuns
+
+| Problema | Solução |
+|---|---|
+| Erro ao abrir | Tente `teste_minimo.atgraphic` e envie a captura (Parte A) |
+| Hora mostra um número | Parte B1 |
+| Campos do composto vazios ou com erro | Normal até as tags calculadas existirem (Parte F) |
+| Lâmpada de modo não muda | Confira se o valor de Manual é 16 e de Automático é 32 na tela PQ US04 |
+| Escala da tendência diferente | Volte para 50 a 450 (Parte C) |
 
 ## Anexo. Fichas dos objetos dinâmicos
 
-Referência caso algum objeto precise ser refeito à mão. As posições estão em unidades da tela de 50 x 35.
+Referência caso algum objeto precise ser refeito à mão. Posições em unidades da tela de 50 x 35.
 
 ![Mapa de posicionamento](mapa_posicionamento.png)
 

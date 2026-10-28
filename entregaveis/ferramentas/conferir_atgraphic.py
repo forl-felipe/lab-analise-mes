@@ -63,8 +63,14 @@ def ler(caminho):
         p += 12
         c1 = cor(); f1, = rd("<I"); c2 = cor(); rd("<I"); c3 = cor(); rd("<I")
         tagname, atributo, mapa, servidor = rstr(), rstr(), rstr(), rstr()
+        (animado,) = struct.unpack_from("<I", d, p)
         p += 10
         ob = dict(classe=nome, ret=ret, c1=c1, f1=f1, c2=c2, c3=c3, tag=tagname, mapa=mapa)
+        if animado:
+            ob["faixa"] = rd("<2f")
+            rstr(); rstr()
+            ob["acesa"] = cor()
+            p += 4
         if nome == "AtTextShape":
             ob["texto"] = rstr()
             ob["fonte"], = struct.unpack_from("<i", d, p)
@@ -105,7 +111,7 @@ def svg(tela, caminho):
         x1, y1, x2, y2 = o["ret"]
         if o["classe"] == "AtBasicShape":
             pts = " ".join(f"{a},{b}" for a, b in o["pontos"])
-            fill = "none" if o["f1"] else o["c1"]
+            fill = "none" if o["f1"] else o.get("acesa", o["c1"])
             s.append(f'<polygon points="{pts}" fill="{fill}" stroke="{o["c2"]}" stroke-width="3"/>')
         elif o["classe"] == "AtTrend":
             s.append(f'<rect x="{x1}" y="{y1}" width="{x2 - x1}" height="{y2 - y1}" fill="{o["c1"]}" stroke="#ff4fd8" stroke-width="4" stroke-dasharray="12 8"/>')

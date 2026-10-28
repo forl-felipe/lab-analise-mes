@@ -24,6 +24,7 @@ import sys
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, AQUI)
 from montar_pacote_aspen import SPEC  # noqa: E402  (tags, mapas e formatos dos campos)
+from logo_poligonos import poligonos  # noqa: E402
 
 SAIDA = os.path.join(AQUI, "..", "03_aspen")
 ARQUIVO = "LCE_Compressao_Pelotas_Prensa01.atgraphic"
@@ -119,22 +120,53 @@ def campo(c, spec):
 
 # Penas das tendências: (tag, mapa, mínimo, máximo, cor RGB). Escala fixa, igual para todas as penas.
 PENAS = {
-    4: [("307-GI-001", "IP_ANALOGMAP", 0, 500, (92, 200, 240))],
-    8: [("307-GI-002", "IP_ANALOGMAP", 0, 150, (92, 200, 240))],
-    15: [("307-GI-001", "IP_ANALOGMAP", 0, 500, (92, 200, 240)),
-         ("M4710050020-0031-HHLFU", "IP_MESVALOR", 0, 500, (170, 179, 191))],
+    3: [("307-GI-001", "IP_ANALOGMAP", 0, 500, (89, 198, 242))],
+    7: [("307-GI-002", "IP_ANALOGMAP", 0, 150, (89, 198, 242))],
+    14: [("307-GI-001", "IP_ANALOGMAP", 50, 450, (47, 127, 174)),                  # cada ensaio (linha fina)
+         ("M4710050020-0031-HHLFU", "IP_MESVALOR", 50, 450, (255, 255, 255)),      # composto do laboratório
+         ("307-GI-001-C2H", "IP_ANALOGMAP", 50, 450, (89, 198, 242))],             # composto da prensa (tag calculada)
 }
+FUNDO_TENDENCIA = {14: (1, 41, 74)}   # fundo da área do gráfico principal
 
 
 def tendencia(c):
     ret = (u(c["x"]), u(c["y"]), u(c["x"] + c["w"]), u(c["y"] + c["h"]))
-    fundo = rgb(c["fundo"])
-    corpo = comum(ret, fundo, 0, (46, 55, 68), 0, fundo, 1) + bytes(10)
+    fundo = FUNDO_TENDENCIA.get(c["n"], rgb(c["fundo"]))
+    corpo = comum(ret, fundo, 0, (22, 77, 120), 0, fundo, 1) + bytes(10)
     penas = PENAS[c["n"]]
     corpo += struct.pack("<H", len(penas))
     for tag, mapa, mn, mx, cor_pena in penas:
         corpo += wstr(tag) + wstr("VAL") + wstr(mapa) + wstr(SERVIDOR) + struct.pack("<2f", mn, mx) + cor(cor_pena) + b"\xff\xff"
     return "AtTrend", corpo
+
+
+def lampada(l):
+    """Lâmpada animada: cor apagada fora da faixa e cor acesa quando o valor está entre lo e hi
+    (mesma animação dos indicadores Manual/Automático da tela PQ US04)."""
+    cx, cy, r = l["x"] + l["w"] / 2, l["y"] + l["h"] / 2, l["w"] / 2
+    pts = [(u(cx + r * math.cos(math.radians(a))), u(cy + r * math.sin(math.radians(a)))) for a in range(0, 360, 20)]
+    pts.append(pts[0])
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    base, acesa = rgb(l["base"]), rgb(l["ativa"])
+    mapa = "IP_PIDMAP03" if l["tag"].startswith("U04-") else MAPA_DISCRETO
+    corpo = comum((min(xs), min(ys), max(xs), max(ys)), base, 0, base, 0, base, 1,
+                  tag=l["tag"], atributo="VAL", mapa=mapa, servidor=SERVIDOR)
+    corpo += bytes.fromhex("01000000010001000000") + struct.pack("<2f", l["lo"], l["hi"]) + wstr("") + wstr("") + cor(acesa) + bytes(4)
+    corpo += struct.pack("<H", len(pts)) + b"".join(struct.pack("<2i", *p) for p in pts)
+    return "AtBasicShape", corpo
+
+
+def logotipo(lg):
+    """Logotipo oficial (kit visual Samarco) convertido em polígonos, na caixa do protótipo."""
+    with open(os.path.join(AQUI, "..", "assets", "samarco-logo-branca.svg"), encoding="utf-8") as fh:
+        svg = fh.read()
+    w, h, polis = poligonos(svg, rgb(lg["fundo"]))
+    esc = min(lg["w"] / w, lg["h"] / h)
+    objs = []
+    for pts, c in polis:
+        p = [(u(lg["x"] + x * esc), u(lg["y"] + y * esc)) for x, y in pts]
+        objs.append(poligono(p + [p[0]], c, c, c))
+    return objs
 
 
 def simbolo(s):
@@ -161,9 +193,12 @@ def conteudo(dados):
 
     # Ordem de desenho: painéis, tendências, grade e referências por cima das tendências, símbolos, textos e campos.
     objetos = [forma(f) for f in dados["formas"] if not f.get("sobre")]
+    if dados.get("logo"):
+        objetos += logotipo(dados["logo"])
     objetos += [tendencia(c) for c in dados["campos"] if c["n"] in PENAS]
     objetos += [forma(f) for f in dados["formas"] if f.get("sobre")]
     objetos += [simbolo(s) for s in dados["simbolos"]]
+    objetos += [lampada(l) for l in dados.get("lampadas", [])]
     objetos += [texto(t) for t in dados["textos"]]
     for c in dados["campos"]:
         spec = SPEC[c["n"]]
@@ -210,28 +245,33 @@ def cfb(fluxo):
 
     if len(fluxo) >= 4096:                    # fluxo em setores normais
         n_dados = -(-len(fluxo) // SETOR)
-        fat = [FATSECT, END] + cadeia(2, n_dados)
+        n_fat = 1
+        while n_fat * 128 < n_fat + 1 + n_dados:
+            n_fat += 1
+        assert n_fat <= 109, "fluxo grande demais"
+        fat = [FATSECT] * n_fat + [END] + cadeia(n_fat + 1, n_dados)
         dados = fluxo.ljust(n_dados * SETOR, b"\0")
-        minifat_ini, n_minifat, raiz_ini, raiz_tam, cont_ini = END, 0, END, 0, 2
+        dir_ini, minifat_ini, n_minifat, raiz_ini, raiz_tam, cont_ini = n_fat, END, 0, END, 0, n_fat + 1
     else:                                     # fluxo pequeno vai no mini fluxo, como manda o formato
         n_mini = -(-len(fluxo) // MINI)
         mini = fluxo.ljust(n_mini * MINI, b"\0")
         n_cont = -(-len(mini) // SETOR)
+        n_fat = 1
         fat = [FATSECT, END, END] + cadeia(3, n_cont)
         minifat = cadeia(0, n_mini) + [FREE] * (128 - n_mini)
         dados = struct.pack("<128I", *minifat) + mini.ljust(n_cont * SETOR, b"\0")
-        minifat_ini, n_minifat, raiz_ini, raiz_tam, cont_ini = 2, 1, 3, len(mini), 0
-    assert len(fat) <= 128, "fluxo grande demais para uma única FAT"
-    fat += [FREE] * (128 - len(fat))
+        dir_ini, minifat_ini, n_minifat, raiz_ini, raiz_tam, cont_ini = 1, 2, 1, 3, len(mini), 0
+    fat += [FREE] * (n_fat * 128 - len(fat))
+    difat = list(range(n_fat)) + [FREE] * (109 - n_fat)
     cab = (bytes.fromhex("D0CF11E0A1B11AE1") + bytes(16) + struct.pack("<HHHHH", 0x3E, 3, 0xFFFE, 9, 6) + bytes(6)
-           + struct.pack("<IIIIIIIII", 0, 1, 1, 0, 4096, minifat_ini, n_minifat, END, 0)
-           + struct.pack("<I", 0) + struct.pack("<108I", *([FREE] * 108)))
+           + struct.pack("<IIIIIIIII", 0, n_fat, dir_ini, 0, 4096, minifat_ini, n_minifat, END, 0)
+           + struct.pack("<109I", *difat))
     assert len(cab) == 512
     diretorio = (entrada_dir("Root Entry", 5, 1, raiz_ini, raiz_tam, guid_bytes(CLSID_ASPEN))
                  + entrada_dir("Contents", 2, FREE, cont_ini, len(fluxo)))
     vazio = b"\0" * 64 + struct.pack("<HBB", 0, 0, 0) + struct.pack("<3I", FREE, FREE, FREE) + bytes(16 + 4 + 16 + 12)
     diretorio += vazio * 2
-    return cab + struct.pack("<128I", *fat) + diretorio + dados
+    return cab + struct.pack(f"<{len(fat)}I", *fat) + diretorio + dados
 
 
 def main():
@@ -248,7 +288,8 @@ def main():
 
     # Arquivo mínimo para diagnóstico: um painel, um texto, um campo e uma tendência.
     minimo = dict(dados, formas=[f for f in dados["formas"] if f["preenchimento"] and f["linha"]][:1],
-                  textos=dados["textos"][:1], simbolos=[], campos=[c for c in dados["campos"] if c["n"] in (3, 15)])
+                  textos=dados["textos"][:1], simbolos=[], lampadas=dados.get("lampadas", [])[:1], logo=None,
+                  campos=[c for c in dados["campos"] if c["n"] in (2, 14)])
     fluxo_min, objs_min = conteudo(minimo)
     with open(os.path.join(SAIDA, "teste_minimo.atgraphic"), "wb") as fh:
         fh.write(cfb(fluxo_min))

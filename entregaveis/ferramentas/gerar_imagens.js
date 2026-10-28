@@ -30,10 +30,16 @@ fs.mkdirSync(saida, { recursive: true });
     const visivel = c => c && c !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(c);
     const fora = el => el.closest('.slot') || el.closest('svg') || el.closest('#cenarios');
     const fundoDe = el => { for (let e = el; e; e = e.parentElement) { const c = getComputedStyle(e).backgroundColor; if (visivel(c)) return c; } return getComputedStyle(palco).backgroundColor; };
-    const formas = [], textos = [], simbolos = [];
+    const formas = [], textos = [], simbolos = [], lampadas = [];
+    const corCss = v => { const t = document.createElement('span'); t.style.color = v; document.body.appendChild(t); const c = getComputedStyle(t).color; t.remove(); return c; };
+    const varCor = nome => corCss(getComputedStyle(document.body).getPropertyValue(nome).trim());
     for (const el of palco.querySelectorAll('*')) {
       if (fora(el)) continue;
       const cs = getComputedStyle(el), r = box(el.getBoundingClientRect());
+      if (el.classList.contains('lampada')) {
+        lampadas.push({ ...r, tag: el.dataset.tag, lo: +el.dataset.lo, hi: +el.dataset.hi, base: varCor('--apagada'), ativa: varCor(el.dataset.ativa), fundo: fundoDe(el.parentElement) });
+        continue;
+      }
       if (el.classList.contains('simb')) { simbolos.push({ ...r, forma: [...el.classList].find(c => c !== 'simb'), cor: cs.color, fundo: fundoDe(el.parentElement) }); continue; }
       const bw = ['Top', 'Right', 'Bottom', 'Left'].map(l => parseFloat(cs['border' + l + 'Width']) || 0);
       const raio = Math.min(parseFloat(cs.borderTopLeftRadius) || 0, r.h / 2, r.w / 2);
@@ -60,7 +66,9 @@ fs.mkdirSync(saida, { recursive: true });
       const cs = getComputedStyle(el);
       return { n: +el.dataset.slot, ...box(el.getBoundingClientRect()), tamanho: parseFloat(cs.fontSize), peso: parseInt(cs.fontWeight), alinhamento: cs.textAlign, fundo: fundoDe(el.parentElement) };
     });
-    return { largura: P.width, altura: P.height, fundoTela: getComputedStyle(palco).backgroundColor, formas, textos, simbolos, campos };
+    const lg = document.getElementById('logo');
+    const logo = lg ? { ...box(lg.getBoundingClientRect()), fundo: fundoDe(lg.parentElement) } : null;
+    return { largura: P.width, altura: P.height, fundoTela: getComputedStyle(palco).backgroundColor, formas, textos, simbolos, lampadas, logo, campos };
   });
   fs.writeFileSync(path.join(saida, 'objetos_tela.json'), JSON.stringify(estatico, null, 1));
   const quebrados = estatico.textos.filter(t => t.linhas > 1);
