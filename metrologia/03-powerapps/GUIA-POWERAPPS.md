@@ -21,7 +21,7 @@ Os formulários **não são fixos**: são montados a partir das listas **PontosA
 
 ## 2.1 Criar o app
 
-1. Em **make.powerapps.com**, confira o **ambiente** no canto superior direito (o mesmo combinado com a TI).
+1. Em **make.powerapps.com**, troque para o **ambiente de produção** liberado pela TI (canto superior direito). **Não use o Sandbox:** ele é individual e a TI remove o compartilhamento. O pedido é feito pelo ServiceNow ("tornar o aplicativo um produto"). Se a TI pedir que o app fique numa **solução**, crie por Soluções > a solução combinada > + Novo > Aplicativo > Aplicativo de tela.
 2. **+ Criar > Aplicativo de tela em branco**. Nome: **Metrologia**. Formato: **Telefone**. Clique em **Criar**.
 
 ## 2.2 Conectar as 9 listas
@@ -92,7 +92,7 @@ If(IsBlank(Param("equip")), scrInicio, scrEquipamento)
 ## 2.8 Publicar e compartilhar
 
 1. **Salvar > Publicar**.
-2. make.powerapps.com > Aplicativos > (…) **Metrologia** > **Compartilhar** > adicione **Todos, exceto usuários externos** como **Usuário**. Coloque mais uma pessoa como **Coproprietário** (backup).
+2. make.powerapps.com > Aplicativos > (…) **Metrologia** > **Compartilhar** > adicione **só quem registra**: laboratoristas e instrumentação (as pessoas da lista Acessos), como **Usuário**. O colaborador comum não precisa do app: ele consulta pela câmera do celular (imagem no SharePoint). Coloque mais uma pessoa como **Coproprietário** (backup).
 3. (…) > **Detalhes** > copie o **Link da Web** e cole na configuração `LinkApp` da lista Configuracoes (é o botão "Abrir no app" dos e-mails). As etiquetas **não** usam esse link: elas apontam para as imagens da biblioteca ConsultaQR.
 4. Para quem usa no celular: instale o app **Power Apps** (Play Store / App Store), entre com a conta da empresa e marque o **Metrologia** como favorito. Também funciona pelo navegador.
 

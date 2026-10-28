@@ -273,7 +273,7 @@ Recalcula o Status de todos os equipamentos ─► agenda de ontem (feito x pend
 | TAG oficial do conjunto de peneiras circulares (provisória: PN-CIRCULARES) | Etiqueta do peneirador | Laboratório |
 | Datas de calibração de todos os equipamentos | Situação Liberado/Bloqueado | Instrumentação |
 | Perfil das pessoas com letra ADM | Lista Acessos | Gestor |
-| Ambiente do app (produção) | Publicação | TI |
+| Ambiente de produção do app e dos fluxos (pedido no ServiceNow; o Sandbox não permite compartilhar) | Publicação | TI |
 | Licença Power BI Pro para quem vê o painel | Compartilhamento | TI |
 
 ## 11. Próximas evoluções (fase 2)
