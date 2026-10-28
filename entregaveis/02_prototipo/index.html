@@ -5,185 +5,224 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Compressão de pelotas</title>
 <!--
-  Protótipo da tela de monitoramento do ensaio de compressão de pelotas (versão 2, sem a tabela de tags).
-  Dados simulados. Tudo o que aparece aqui pode ser montado no Aspen Process Graphics Editor:
-  a parte fixa vem da imagem de fundo e a parte dinâmica são campos de dados e tendências.
-  Modos de exibição (parâmetro na URL):
-    ?modo=demo   tela completa com dados simulados (padrão)
-    ?modo=fundo  apenas a parte fixa, que vira a imagem de fundo do Aspen
-    ?modo=mapa   parte fixa com a posição numerada de cada objeto dinâmico
+  Protótipo da tela de monitoramento do ensaio de compressão de pelotas (versão 5, padrão visual Samarco).
+  Dados simulados. Tudo o que aparece aqui vira objeto nativo do Aspen (polígonos, textos, campos de dados,
+  tendências e lâmpadas animadas), gerado por ferramentas/gerar_atgraphic.py.
+  Parâmetros na URL:
+    ?modo=demo | fundo | mapa     tela completa, só a parte fixa, ou a parte fixa com a posição numerada dos campos
+    ?tema=escuro | claro          azul Samarco (padrão) ou fundo claro
+    ?cenario=normal | f200 | bad | manual
 -->
 <style>
   :root {
-    --bg: #161b22;          /* RGB 22, 27, 34    fundo da tela */
-    --card: #1f2630;        /* RGB 31, 38, 48    fundo dos painéis e dos campos de dados */
-    --card-line: #2e3744;   /* RGB 46, 55, 68    bordas e divisórias */
-    --text: #e6eaf0;        /* RGB 230, 234, 240 valores e títulos */
-    --muted: #8b96a5;       /* RGB 139, 150, 165 rótulos */
-    --trend: #5cc8f0;       /* RGB 92, 200, 240  linha da carga média */
-    --mes: #aab3bf;         /* RGB 170, 179, 191 pontos do laboratório */
-    --attn: #f2c94c;        /* RGB 242, 201, 76  atenção */
-    --alert: #f2994a;       /* RGB 242, 153, 74  alerta e qualidade ruim */
-    --crit: #eb5757;        /* RGB 235, 87, 87   crítico */
-    --ui: Arial, "Liberation Sans", sans-serif;  /* mesma fonte do Aspen, para as medidas baterem */
-    --data: Arial, "Liberation Sans", sans-serif;
+    /* Paleta do kit visual Samarco */
+    --sam-azul: #00335A; --sam-medio: #004070; --sam-titulo: #003B6C; --sam-profundo: #002643;
+    --sam-amarelo: #FFC000; --sam-azul-claro: #59C6F2; --sam-laranja: #F37021; --sam-cinza: #B5BEC4;
+    --sam-acinzentado: #61889B;
+
+    /* Tema escuro (padrão) */
+    --bg: var(--sam-profundo);
+    --head: var(--sam-azul);
+    --card: var(--sam-azul);
+    --card-line: #0B4F82;
+    --plot: #01294A;
+    --grade: #164D78;
+    --text: #FFFFFF;
+    --muted: var(--sam-cinza);
+    --acento: var(--sam-amarelo);
+    --linha-prensa: var(--sam-azul-claro);
+    --linha-lab: #FFFFFF;
+    --lim-200: var(--sam-amarelo);
+    --lim-150: var(--sam-laranja);
+    --lim-100: #E53935;
+    --ok: #2ECC71;
+    --manual: var(--sam-laranja);
+    --apagada: #23506F;
+    --ui: Arial, "Liberation Sans", sans-serif;
+  }
+  body.claro {
+    --bg: #F3F5F7; --card: #FFFFFF; --card-line: #DDE3E8; --plot: #FFFFFF; --grade: #E3E8EC;
+    --text: var(--sam-azul); --muted: #5B6B77; --linha-prensa: #0091D5; --linha-lab: var(--sam-azul);
+    --lim-200: #E0A800; --apagada: #D5DCE1;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { background: #0d1117; color: var(--text); font-family: var(--ui); overflow: hidden; height: 100%; }
   #palco { position: absolute; left: 0; top: 0; width: 1600px; height: 1120px; background: var(--bg); transform-origin: 0 0; overflow: hidden; }
 
-  .cab { position: absolute; left: 0; top: 0; width: 1600px; height: 88px; background: #11161d; border-bottom: 1px solid var(--card-line); display: flex; align-items: center; padding: 0 32px; gap: 28px; }
-  .logo { width: 200px; height: 56px; border: 1px dashed #4a5464; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; line-height: 1.3; color: var(--muted); }
-  .titulo h1 { font-size: 28px; font-weight: 600; letter-spacing: .2px; }
-  .titulo p { font-size: 15px; color: var(--muted); margin-top: 4px; }
-  .cab .dir { margin-left: auto; text-align: right; }
-  .cab .dir .local { font-size: 15px; color: var(--muted); }
-  .cab .dir .atual { margin-top: 6px; display: flex; gap: 10px; align-items: center; justify-content: flex-end; }
-  .cab .dir .atual > span:first-child { font-size: 14px; color: var(--muted); }
+  /* Cabeçalho no padrão do kit: azul Samarco com filete amarelo */
+  .cab { position: absolute; left: 0; top: 0; width: 1600px; height: 92px; background: var(--head); display: flex; align-items: center; padding: 0 32px; }
+  .filete { position: absolute; left: 0; top: 92px; width: 1600px; height: 5px; background: var(--sam-amarelo); }
+  .logo { width: 220px; height: 48px; }
+  .logo img { width: 220px; height: 48px; display: block; }
+  .sep { width: 1px; height: 44px; background: #2C5C85; margin: 0 28px; }
+  .cab h1 { font-size: 27px; font-weight: 700; color: #FFFFFF; }
+  .cab .dir { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .cab .dir .rot { color: var(--sam-cinza); font-size: 15px; }
+  .cab .slot { color: #FFFFFF; }
 
-  .card { position: absolute; background: var(--card); border: 1px solid var(--card-line); border-radius: 14px; padding: 20px 24px; }
-  .card h2 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
-  .chip { font-family: var(--data); font-size: 13px; font-weight: 400; color: var(--muted); border: 1px solid var(--card-line); border-radius: 999px; padding: 3px 10px; }
-  .sub { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .card { position: absolute; background: var(--card); border: 1px solid var(--card-line); border-radius: 10px; padding: 20px 24px; }
+  .card h2 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--text); }
+  .acento { width: 5px; height: 22px; background: var(--acento); border-radius: 2px; }
   .rot { font-size: 14px; color: var(--muted); }
+  .unid { font-size: 18px; color: var(--muted); margin-left: 10px; }
 
-  /* Campos dinâmicos: cada .slot vira um objeto do Aspen, com o tamanho exato do retângulo. */
-  .slot { font-family: var(--data); color: var(--text); display: inline-block; white-space: nowrap; overflow: hidden; }
+  .slot { font-family: var(--ui); color: var(--text); display: inline-block; white-space: nowrap; overflow: hidden; }
   .v-grande { font-size: 76px; font-weight: 700; line-height: 84px; height: 84px; letter-spacing: -1px; text-align: right; }
   .v-med { font-size: 18px; font-weight: 700; line-height: 26px; height: 26px; }
   .v-peq { font-size: 15px; line-height: 22px; height: 22px; }
 
-  .kpi .corpo { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 16px; }
-  .kpi .unid { font-size: 18px; color: var(--muted); margin-left: 10px; }
-  .kpi .rodape { display: flex; gap: 20px; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--card-line); align-items: center; }
+  .kpi .corpo { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px; }
+  .kpi .rodape { display: flex; gap: 22px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--card-line); align-items: center; }
   .kpi .rodape div { display: flex; gap: 8px; align-items: center; }
 
+  .lab .corpo { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px; }
+  .lab .hora { text-align: right; }
 
-  .faixa { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--card-line); border-radius: 10px; padding: 12px 16px; margin-top: 12px; height: 78px; }
-  .faixa .nome { font-size: 17px; font-weight: 600; }
-  .faixa .det { font-size: 13px; color: var(--muted); margin-top: 3px; }
-  .estado { width: 120px; font-size: 18px; font-weight: 700; line-height: 28px; height: 28px; text-align: right; }
-  .nota { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .legenda { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 15px; color: var(--muted); }
+  .legenda .slot { font-size: 18px; font-weight: 700; line-height: 24px; height: 24px; text-align: right; }
+  .legenda .gap { width: 22px; }
+  .traco { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
+  .tracejado { display: inline-flex; gap: 3px; } .tracejado i { width: 6px; height: 3px; background: var(--muted); display: inline-block; }
 
-  .ref .unid { font-size: 18px; color: var(--muted); margin-left: 10px; }
-  .ref .rot { white-space: nowrap; }
-  .ref-div { border-top: 1px solid var(--card-line); margin: 16px 0 12px; }
-  .v-ref { font-size: 76px; font-weight: 700; line-height: 84px; height: 84px; width: 170px; text-align: right; letter-spacing: -1px; }
-  .ref-modo { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
-  .v-modo { font-size: 18px; font-weight: 700; line-height: 26px; height: 26px; width: 110px; text-align: right; }
-  .faixas .faixa { height: 134px; margin-top: 14px; padding: 14px 20px; }
-  .faixas .faixa .nome { font-size: 19px; white-space: nowrap; }
-  .faixas .faixa .det { font-size: 15px; margin-top: 6px; }
-  .faixas .estado { width: 104px; font-size: 24px; line-height: 32px; height: 32px; }
+  .graf-area { position: relative; margin-top: 14px; height: 560px; }
+  .plot-bg { position: absolute; left: 44px; top: 0; width: 990px; height: 560px; background: var(--plot); }
+  .ylab { position: absolute; left: 0; width: 36px; text-align: right; font-size: 13px; color: var(--muted); line-height: 16px; }
+  .rlab { position: absolute; left: 1040px; font-size: 13px; font-weight: 700; line-height: 16px; }
+  .gl { position: absolute; left: 44px; width: 990px; height: 1px; background: var(--grade); }
+  .dash { position: absolute; height: 2px; width: 14px; }
 
-  /* Modos fundo e mapa */
-  body.fundo .slot, body.fundo .logo { visibility: hidden; }
-  body.mapa .logo { color: transparent; border-color: transparent; }
-  body.mapa .slot { visibility: visible !important; color: transparent !important; outline: 2px dashed #ff4fd8; outline-offset: -2px; position: relative; background: rgba(255,79,216,.10); }
+  .faixas .linha { display: flex; align-items: center; height: 70px; border-top: 1px solid var(--card-line); }
+  .faixas .cabec { height: 34px; border-top: 0; margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .faixas .nome { font-size: 17px; font-weight: 700; margin-left: 14px; flex: 1; }
+  .faixas .slot { font-size: 30px; font-weight: 700; line-height: 36px; height: 36px; width: 64px; text-align: right; }
+  .faixas .un { font-size: 14px; color: var(--muted); margin-left: 8px; width: 52px; }
+
+  .lampada { width: 18px; height: 18px; border-radius: 50%; display: inline-block; background: var(--apagada); flex: none; }
+  .cort .linha { display: flex; align-items: center; height: 62px; border-top: 1px solid var(--card-line); gap: 10px; }
+  .cort .eq { font-size: 18px; font-weight: 700; width: 92px; }
+  .cort .estado { font-size: 15px; color: var(--muted); width: 92px; }
+
+  .nota { font-size: 12px; color: var(--muted); }
+
+  body.fundo .slot, body.fundo .lampada { visibility: hidden; }
+  body.mapa .slot { visibility: visible !important; color: transparent !important; outline: 2px dashed #ff4fd8; outline-offset: -2px; position: relative; background: rgba(255,79,216,.12); }
   body.mapa .slot > * { visibility: hidden !important; }
   body.mapa .slot::after { content: attr(data-slot); position: absolute; left: 4px; top: 2px; font: 700 14px/1 Arial, sans-serif; color: #fff; background: #c2189e; padding: 2px 5px; border-radius: 3px; }
 
-  /* Símbolos desenhados como formas (no Aspen viram polígonos) */
-  .simb { display: inline-block; width: 11px; height: 11px; background: currentColor; vertical-align: -1px; margin: 0 3px 0 1px; }
-  .simb.tri { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-  .simb.dia { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
-  .simb.circ { border-radius: 50%; }
-  .graf-area { position: relative; margin-top: 16px; height: 596px; }
-  .ylab { position: absolute; left: 0; width: 32px; text-align: right; font-size: 13px; color: var(--muted); line-height: 16px; }
-  .rlab { position: absolute; left: 992px; font-size: 13px; font-weight: 700; line-height: 16px; }
-  .gl { position: absolute; left: 40px; width: 948px; height: 1px; background: var(--card-line); }
-  .rl { position: absolute; left: 40px; width: 948px; height: 2px; }
-  #cenarios { position: fixed; right: 12px; bottom: 12px; background: #11161d; border: 1px solid var(--card-line); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--muted); z-index: 9; }
-  #cenarios select { margin-left: 6px; font: inherit; background: var(--card); color: var(--text); border: 1px solid var(--card-line); border-radius: 4px; padding: 2px 4px; }
-  body.fundo #cenarios, body.mapa #cenarios, body.captura #cenarios { display: none; }
+  #painel { position: fixed; right: 12px; bottom: 12px; background: #11161d; border: 1px solid #2e3744; border-radius: 8px; padding: 8px 10px; font-size: 13px; color: #b5bec4; z-index: 9; display: flex; gap: 12px; }
+  #painel select { margin-left: 6px; font: inherit; background: #1f2630; color: #fff; border: 1px solid #2e3744; border-radius: 4px; padding: 2px 4px; }
+  body.fundo #painel, body.mapa #painel, body.captura #painel { display: none; }
 </style>
 </head>
 <body>
 <div id="palco">
 
   <header class="cab">
-    <div class="logo slot" data-slot="1" style="font-family: var(--ui); white-space: normal">Logotipo oficial<br>(inserir arquivo da marca)</div>
-    <div class="titulo">
-      <h1>Monitoramento do ensaio de compressão de pelotas</h1>
-      <p>Prensa automática de compressão &nbsp;|&nbsp; PLC 307-PLC-001 &nbsp;|&nbsp; Fonte DeltaV01</p>
-    </div>
-    <div class="dir">
-      <div class="local">Unidade Ubu &nbsp;|&nbsp; Laboratório de Controle de Embarque</div>
-      <div class="atual"><span>Última atualização</span><span class="slot v-med" style="width:200px; text-align:right" id="s-atual" data-slot="2">--</span></div>
-    </div>
+    <div class="logo" id="logo"><img id="logo-img" src="../assets/samarco-logo-branca.svg" alt="Samarco"></div>
+    <div class="sep"></div>
+    <h1>Monitoramento do ensaio de compressão de pelotas</h1>
+    <div class="dir"><span class="rot">Última atualização</span><span class="slot v-med" style="width:200px; text-align:right" id="s-atual" data-slot="1">--</span></div>
   </header>
+  <div class="filete"></div>
 
-  <!-- Carga média -->
-  <section class="card kpi" style="left:32px; top:108px; width:520px; height:260px;">
-    <h2>Carga média <span class="chip">307-GI-001</span></h2>
+  <!-- Média prensa automática -->
+  <section class="card kpi" style="left:32px; top:117px; width:506px; height:260px;">
+    <h2><span class="acento"></span>Média prensa automática</h2>
     <div class="corpo">
       <div>
-        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi1" data-slot="3">--</span><span class="unid">daN/pelota</span></div>
+        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi1" data-slot="2">--</span><span class="unid">daN/pelota</span></div>
         <div class="rot" style="margin-top:6px">Média das pelotas do último ensaio</div>
       </div>
-      <div class="slot" style="width:150px; height:100px" data-slot="4"><svg id="sp1" width="150" height="100"></svg></div>
+      <div class="slot" style="width:140px; height:90px" data-slot="3"><svg id="sp1" width="140" height="90"></svg></div>
     </div>
     <div class="rodape">
-      <div><span class="rot">Atualizado em</span><span class="slot v-peq" style="width:165px" id="s-gi1-ts" data-slot="5">--</span></div>
-      <div><span class="rot">Qualidade</span><span class="slot v-peq" style="width:90px; font-weight:700" id="s-gi1-q" data-slot="6">--</span></div>
+      <div><span class="rot">Atualizado às</span><span class="slot v-peq" style="width:165px" id="s-gi1-ts" data-slot="4">--</span></div>
+      <div><span class="rot">Qualidade</span><span class="slot v-peq" style="width:80px; font-weight:700" id="s-gi1-q" data-slot="5">--</span></div>
     </div>
   </section>
 
   <!-- Desvio padrão -->
-  <section class="card kpi" style="left:572px; top:108px; width:520px; height:260px;">
-    <h2>Desvio padrão <span class="chip">307-GI-002</span></h2>
+  <section class="card kpi" style="left:558px; top:117px; width:506px; height:260px;">
+    <h2><span class="acento"></span>Desvio padrão</h2>
     <div class="corpo">
       <div>
-        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi2" data-slot="7">--</span><span class="unid">daN/pelota</span></div>
+        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi2" data-slot="6">--</span><span class="unid">daN/pelota</span></div>
         <div class="rot" style="margin-top:6px">Dispersão entre as pelotas do ensaio</div>
       </div>
-      <div class="slot" style="width:150px; height:100px" data-slot="8"><svg id="sp2" width="150" height="100"></svg></div>
+      <div class="slot" style="width:140px; height:90px" data-slot="7"><svg id="sp2" width="140" height="90"></svg></div>
     </div>
     <div class="rodape">
-      <div><span class="rot">Atualizado em</span><span class="slot v-peq" style="width:165px" id="s-gi2-ts" data-slot="9">--</span></div>
-      <div><span class="rot">Qualidade</span><span class="slot v-peq" style="width:90px; font-weight:700" id="s-gi2-q" data-slot="10">--</span></div>
+      <div><span class="rot">Atualizado às</span><span class="slot v-peq" style="width:165px" id="s-gi2-ts" data-slot="8">--</span></div>
+      <div><span class="rot">Qualidade</span><span class="slot v-peq" style="width:80px; font-weight:700" id="s-gi2-q" data-slot="9">--</span></div>
     </div>
   </section>
 
   <!-- Referência do laboratório -->
-  <section class="card ref" style="left:1112px; top:108px; width:456px; height:400px;">
-    <h2>Referência do laboratório <span class="chip">MES, a cada 2 h</span></h2>
-    <div class="rot" style="margin-top:16px">Compressão MES</div>
-    <div style="display:flex; align-items:baseline; margin-top:2px"><span class="slot v-ref" id="r-mes" data-slot="11">--</span><span class="unid">daN/pelota</span></div>
-    <div class="ref-modo" style="margin-top:8px"><span class="rot">Resultado das</span><span class="slot v-peq" style="width:150px; text-align:right" id="r-mes-ts" data-slot="12">--</span></div>
-    <div class="ref-div"></div>
-    <div class="rot">Modo dos cortadores, amostragem PQ US04</div>
-    <div class="ref-modo"><span class="rot">07CR001</span><span class="slot v-modo" id="r-cr1" data-slot="13">--</span></div>
-    <div class="ref-modo"><span class="rot">07CR002</span><span class="slot v-modo" id="r-cr2" data-slot="14">--</span></div>
-    <div class="rot" style="font-size:12px; margin-top:12px">Comparação válida com os dois cortadores em Automático.</div>
+  <section class="card lab" style="left:1084px; top:117px; width:484px; height:260px;">
+    <h2><span class="acento"></span>Referência do laboratório</h2>
+    <div class="corpo">
+      <div>
+        <div class="rot">Compressão MES</div>
+        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:160px" id="r-mes" data-slot="10">--</span><span class="unid">daN/pelota</span></div>
+      </div>
+      <div class="hora">
+        <div class="rot">Resultado das</div>
+        <span class="slot v-med" style="width:150px; text-align:right" id="r-mes-ts" data-slot="11">--</span>
+      </div>
+    </div>
+    <div class="kpi"><div class="rodape" style="margin-top:28px"><span class="rot">Resultado do laboratório (MES), um a cada 2 h</span></div></div>
   </section>
 
   <!-- Tendência -->
-  <section class="card" style="left:32px; top:388px; width:1060px; height:700px;">
-    <h2>Tendência da carga média <span class="chip">307-GI-001</span> <span class="chip">M4710050020-0031-HHLFU</span></h2>
-    <div class="sub">Período da barra de tempo (usar 8 h) &nbsp;|&nbsp; <span class="simb circ" style="color:var(--trend)"></span> módulo, a cada 30 min &nbsp;|&nbsp; <span class="simb sq" style="color:var(--mes)"></span> laboratório (MES), a cada 2 h &nbsp;|&nbsp; escala de 0 a 500 daN/pelota</div>
-    <div class="graf-area" id="graf-area"><div class="slot" style="position:absolute; left:40px; top:0; width:948px; height:576px" data-slot="15"><svg id="tend" width="948" height="576"></svg></div></div>
+  <section class="card" style="left:32px; top:397px; width:1130px; height:691px;">
+    <h2><span class="acento"></span>Prensa automática x laboratório</h2>
+    <div class="legenda">
+      <span class="traco" style="background:var(--linha-prensa)"></span><span>Prensa automática</span>
+      <span class="slot" style="width:78px; color:var(--linha-prensa)" id="l-gi1" data-slot="12">--</span><span>daN/pelota</span>
+      <span class="gap"></span>
+      <span class="traco" style="background:var(--linha-lab)"></span><span>Laboratório (MES)</span>
+      <span class="slot" style="width:52px" id="l-mes" data-slot="13">--</span><span>daN/pelota</span>
+      <span class="gap"></span>
+      <span class="tracejado"><i></i><i></i><i></i></span><span>Limites de 200, 150 e 100 daN/pelota</span>
+    </div>
+    <div class="graf-area" id="graf-area">
+      <div class="plot-bg"></div>
+      <div class="slot" style="position:absolute; left:44px; top:0; width:990px; height:560px" data-slot="14"><svg id="tend" width="990" height="560"></svg></div>
+    </div>
   </section>
 
-  <!-- Faixas -->
-  <section class="card faixas" style="left:1112px; top:528px; width:456px; height:560px;">
-    <h2>Faixas de classificação</h2>
-    <div class="faixa"><div><div class="nome">Menor que 200 daN/pelota</div><div class="det">307-QI-003 &nbsp;|&nbsp; <span class="simb tri" style="color:var(--attn)"></span> Atenção</div></div><span class="slot estado" id="s-qi3" data-slot="16">--</span></div>
-    <div class="faixa"><div><div class="nome">Menor que 150 daN/pelota</div><div class="det">307-QI-002 &nbsp;|&nbsp; <span class="simb dia" style="color:var(--alert)"></span> Alerta</div></div><span class="slot estado" id="s-qi2" data-slot="17">--</span></div>
-    <div class="faixa"><div><div class="nome">Menor que 100 daN/pelota</div><div class="det">307-QI-001 &nbsp;|&nbsp; <span class="simb sq" style="color:var(--crit)"></span> Crítico</div></div><span class="slot estado" id="s-qi1" data-slot="18">--</span></div>
-    <div class="nota">Severidade proposta, pendente de aprovação do LCE.</div>
+  <!-- Pelotas abaixo dos limites -->
+  <section class="card faixas" style="left:1182px; top:397px; width:386px; height:340px;">
+    <h2><span class="acento"></span>Pelotas abaixo do limite</h2>
+    <div class="rot" style="margin-top:4px">Último ensaio da prensa automática</div>
+    <div class="linha cabec"><span style="flex:1; margin-left:32px">Limite</span><span style="width:124px; text-align:right">Pelotas</span></div>
+    <div class="linha"><span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200"></span><span class="nome">Abaixo de 200 daN</span><span class="slot" id="s-qi3" data-slot="15">--</span><span class="un">pelotas</span></div>
+    <div class="linha"><span class="lampada" id="lq2" data-tag="307-QI-002" data-lo="0.5" data-hi="100000" data-ativa="--lim-150"></span><span class="nome">Abaixo de 150 daN</span><span class="slot" id="s-qi2" data-slot="16">--</span><span class="un">pelotas</span></div>
+    <div class="linha"><span class="lampada" id="lq1" data-tag="307-QI-001" data-lo="0.5" data-hi="100000" data-ativa="--lim-100"></span><span class="nome">Abaixo de 100 daN</span><span class="slot" id="s-qi1" data-slot="17">--</span><span class="un">pelotas</span></div>
   </section>
 
+  <!-- Cortadores -->
+  <section class="card cort" style="left:1182px; top:757px; width:386px; height:331px;">
+    <h2><span class="acento"></span>Cortadores da amostragem</h2>
+    <div class="rot" style="margin-top:4px; margin-bottom:14px">Sistema de amostragem PQ US04</div>
+    <div class="linha"><span class="eq">07CR001</span>
+      <span class="lampada" id="c1a" data-tag="U04-07CR001" data-lo="32" data-hi="32" data-ativa="--ok"></span><span class="estado">Automático</span>
+      <span class="lampada" id="c1m" data-tag="U04-07CR001" data-lo="16" data-hi="16" data-ativa="--manual"></span><span class="estado">Manual</span></div>
+    <div class="linha"><span class="eq">07CR002</span>
+      <span class="lampada" id="c2a" data-tag="U04-07CR002" data-lo="32" data-hi="32" data-ativa="--ok"></span><span class="estado">Automático</span>
+      <span class="lampada" id="c2m" data-tag="U04-07CR002" data-lo="16" data-hi="16" data-ativa="--manual"></span><span class="estado">Manual</span></div>
+    <div class="nota" style="margin-top:16px; line-height:1.5">Comparar prensa e laboratório só com os<br>dois cortadores em Automático.</div>
+  </section>
 </div>
 
-<div id="cenarios">Cenário simulado
-  <select id="cen">
+<div id="painel">
+  <label>Tema<select id="tema"><option value="escuro">Azul Samarco</option><option value="claro">Claro</option></select></label>
+  <label>Cenário<select id="cen">
     <option value="normal">Normal</option>
-    <option value="f200">Carga abaixo de 200</option>
-    <option value="f100">Carga abaixo de 100</option>
-    <option value="bad">Qualidade Bad na carga média</option>
-    <option value="manual">Amostragem em manual</option>
-  </select>
+    <option value="f200">Pelotas abaixo de 200 e 150</option>
+    <option value="bad">Qualidade Bad</option>
+    <option value="manual">Cortador em manual</option>
+  </select></label>
 </div>
 
 <script>
@@ -203,26 +242,32 @@
   }
   addEventListener('resize', escala); escala();
 
-  // Escala fixa da tendência (0 a 500): rótulos, grade e linhas de referência são parte fixa da tela,
+  function aplicarTema(t) {
+    document.body.classList.toggle('claro', t === 'claro');
+    // O cabeçalho é azul Samarco nos dois temas, por isso o logotipo é sempre a versão para fundo escuro.
+  }
+
+  // Escala fixa da tendência (50 a 450): rótulos, grade e limites tracejados são parte fixa da tela,
   // desenhados por cima do objeto de tendência do Aspen, que só traça as linhas dos dados.
+  const YMIN = 50, YMAX = 450, H = 560, PL = 44, PW = 990;
+  const yv = v => (1 - (v - YMIN) / (YMAX - YMIN)) * H;
   (function () {
-    const area = document.getElementById('graf-area'), H = 576, y = v => (1 - v / 500) * H;
-    const add = (cls, estilo, txt) => { const e = document.createElement('div'); e.className = cls; e.setAttribute('style', estilo); if (txt) e.textContent = txt; area.appendChild(e); };
-    for (let v = 0; v <= 500; v += 100) add('ylab', `top:${y(v) - 8}px`, v.toLocaleString('pt-BR'));
-    [100, 300, 400, 500].forEach(v => add('gl sobre', `top:${y(v)}px`));
-    [[200, 'var(--attn)'], [150, 'var(--alert)'], [100, 'var(--crit)']].forEach(([v, c]) => {
-      add('rl sobre', `top:${y(v) - 1}px; background:${c}`);
-      add('rlab', `top:${y(v) - 8}px; color:${c}`, String(v));
+    const area = document.getElementById('graf-area');
+    const add = (cls, estilo, txt) => { const e = document.createElement('div'); e.className = cls; e.setAttribute('style', estilo); if (txt) e.textContent = txt; area.appendChild(e); return e; };
+    for (let v = 100; v <= 400; v += 50) {
+      add('ylab', `top:${yv(v) - 8}px`, String(v));
+      if (![100, 150, 200].includes(v)) add('gl sobre', `top:${yv(v)}px`);
+    }
+    [[200, '--lim-200'], [150, '--lim-150'], [100, '--lim-100']].forEach(([v, c]) => {
+      for (let x = 0; x + 14 <= PW; x += 24) add('dash sobre', `left:${PL + x}px; top:${yv(v) - 1}px; background:var(${c})`);
+      add('rlab', `top:${yv(v) - 8}px; color:var(${c})`, String(v));
     });
   })();
 
-  const COR = { attn: 'var(--attn)', alert: 'var(--alert)', crit: 'var(--crit)', muted: 'var(--muted)' };
   const num = (v, d = 1) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
   const p2 = x => String(x).padStart(2, '0');
-  const dh = d => `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
-  const hm = d => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  const dh = d => `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
 
-  // Série simulada: um ensaio a cada 30 min nas últimas 8 h; MES a cada 2 h.
   let semente = 7;
   const rnd = () => (semente = (semente * 16807) % 2147483647) / 2147483647;
   function serie(cen) {
@@ -235,75 +280,59 @@
       pts.push({ t, m, s, mes: i % 4 === 0 ? Math.round(m - 7 + (rnd() - .5) * 14) : null });
     }
     const u = pts[pts.length - 1];
-    if (cen === 'f200') { u.m = 186.4; pts[pts.length - 2].m = 231.0; }
-    if (cen === 'f100') { u.m = 94.7; u.s = 71.2; pts[pts.length - 2].m = 168.0; }
+    if (cen === 'f200') { u.m = 214.6; u.s = 96.3; pts[pts.length - 2].m = 251.0; }
     return pts;
   }
 
-  function el(tag, attrs) {
-    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
-    return e;
-  }
-  function txt(svg, x, y, s, attrs) { const t = el('text', Object.assign({ x, y, 'font-family': 'Arial', 'font-size': 13, fill: 'var(--muted)' }, attrs)); t.textContent = s; svg.appendChild(t); }
-
+  function el(tag, attrs) { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
   function spark(svg, pts, key, ymax) {
     svg.innerHTML = '';
-    const W = 150, H = 100, x = i => 4 + i * (W - 8) / (pts.length - 1), y = v => H - 6 - v / ymax * (H - 12);
-    svg.appendChild(el('polyline', { points: pts.map((p, i) => `${x(i)},${y(p[key])}`).join(' '), fill: 'none', stroke: 'var(--trend)', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }));
-    const u = pts.length - 1;
-    svg.appendChild(el('circle', { cx: x(u), cy: y(pts[u][key]), r: 4, fill: 'var(--trend)' }));
+    const W = 140, Hs = 90, x = i => 4 + i * (W - 8) / (pts.length - 1), y = v => Hs - 6 - v / ymax * (Hs - 12);
+    svg.appendChild(el('polyline', { points: pts.map((p, i) => `${x(i)},${y(p[key])}`).join(' '), fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }));
   }
-
   function tendencia(pts) {
     const svg = document.getElementById('tend');
     svg.innerHTML = '';
-    const W = 948, H = 576;
-    const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
-    const x = t => 6 + (t - t0) / (t1 - t0) * (W - 12), y = v => (1 - v / 500) * H;
-    svg.appendChild(el('polyline', { points: pts.map(p => `${x(p.t)},${y(p.m)}`).join(' '), fill: 'none', stroke: 'var(--trend)', 'stroke-width': 3, 'stroke-linejoin': 'round' }));
-    const mes = pts.filter(p => p.mes !== null);
-    svg.appendChild(el('polyline', { points: mes.map(p => `${x(p.t)},${y(p.mes)}`).join(' '), fill: 'none', stroke: 'var(--mes)', 'stroke-width': 2 }));
+    const t0 = pts[0].t, t1 = pts[pts.length - 1].t, x = t => 6 + (t - t0) / (t1 - t0) * (PW - 12);
+    // O Aspen desenha as penas em degrau: o valor se mantém até o próximo ensaio.
+    const degrau = arr => arr.map((p, i) => (i ? `${x(p.t)},${yv(arr[i - 1].v)} ` : '') + `${x(p.t)},${yv(p.v)}`).join(' ') + ` ${PW - 2},${yv(arr[arr.length - 1].v)}`;
+    const mes = pts.filter(p => p.mes !== null).map(p => ({ t: p.t, v: p.mes }));
+    svg.appendChild(el('polyline', { points: degrau(mes), fill: 'none', stroke: 'var(--linha-lab)', 'stroke-width': 3 }));
+    svg.appendChild(el('polyline', { points: degrau(pts.map(p => ({ t: p.t, v: p.m }))), fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 3 }));
   }
-
-  function set(id, texto, cor) {
+  function set(id, texto, cor) { const e = document.getElementById(id); e.textContent = texto; e.style.color = cor || ''; return e; }
+  function lampada(id, valor) {
     const e = document.getElementById(id);
-    e.textContent = texto;
-    e.style.color = cor || '';
-    return e;
+    const ativa = valor >= +e.dataset.lo && valor <= +e.dataset.hi;
+    e.style.background = ativa ? `var(${e.dataset.ativa})` : '';
   }
-  const qual = q => [q, q === 'Good' ? '' : COR.alert];
 
   function render(cen) {
     const pts = serie(cen), u = pts[pts.length - 1], ts = new Date(u.t);
-    const q = { gi1: cen === 'bad' ? 'Bad' : 'Good', gi2: 'Good', qi1: 'Good', qi2: 'Good', qi3: 'Good' };
-    const ativo = { qi1: u.m < 100, qi2: u.m < 150, qi3: u.m < 200 };
-
+    const q = cen === 'bad' ? 'Bad' : 'Good';
+    const cont = cen === 'f200' ? [0, 4, 7] : [0, 0, 1];   // abaixo de 100, 150 e 200
     set('s-atual', dh(ts));
-    set('s-gi1', num(u.m));
-    set('s-gi1-ts', dh(ts));
-    set('s-gi1-q', ...qual(q.gi1));
-    set('s-gi2', num(u.s));
-    set('s-gi2-ts', dh(ts));
-    set('s-gi2-q', ...qual(q.gi2));
-    set('s-qi3', ativo.qi3 ? 'Ativo' : 'Inativo', ativo.qi3 ? COR.attn : COR.muted);
-    set('s-qi2', ativo.qi2 ? 'Ativo' : 'Inativo', ativo.qi2 ? COR.alert : COR.muted);
-    set('s-qi1', ativo.qi1 ? 'Ativo' : 'Inativo', ativo.qi1 ? COR.crit : COR.muted);
-
-    const ultMes = pts.filter(p => p.mes !== null).pop();
-    set('r-mes', num(ultMes.mes, 0));
-    set('r-mes-ts', dh(new Date(ultMes.t)).slice(0, 16));
-    set('r-cr1', 'Automático');
-    set('r-cr2', cen === 'manual' ? 'Manual' : 'Automático', cen === 'manual' ? COR.alert : '');
-
+    set('s-gi1', num(u.m)); set('s-gi1-ts', dh(ts)); set('s-gi1-q', q, q === 'Good' ? '' : 'var(--sam-laranja)');
+    set('s-gi2', num(u.s)); set('s-gi2-ts', dh(ts)); set('s-gi2-q', 'Good');
+    const ult = pts.filter(p => p.mes !== null).pop();
+    set('r-mes', String(ult.mes)); set('r-mes-ts', dh(new Date(ult.t)));
+    set('l-gi1', num(u.m), 'var(--linha-prensa)'); set('l-mes', String(ult.mes));
+    set('s-qi1', String(cont[0])); set('s-qi2', String(cont[1])); set('s-qi3', String(cont[2]));
+    lampada('lq1', cont[0]); lampada('lq2', cont[1]); lampada('lq3', cont[2]);
+    lampada('c1a', 32); lampada('c1m', 32);
+    const m2 = cen === 'manual' ? 16 : 32;
+    lampada('c2a', m2); lampada('c2m', m2);
     spark(document.getElementById('sp1'), pts, 'm', 500);
     spark(document.getElementById('sp2'), pts, 's', 150);
     tendencia(pts);
   }
 
-  const sel = document.getElementById('cen');
+  const sel = document.getElementById('cen'), tema = document.getElementById('tema');
   sel.value = params.get('cenario') || 'normal';
+  tema.value = params.get('tema') || 'escuro';
+  aplicarTema(tema.value);
   sel.addEventListener('change', () => render(sel.value));
+  tema.addEventListener('change', () => { aplicarTema(tema.value); render(sel.value); });
   render(sel.value);
 })();
 </script>
