@@ -1,0 +1,14 @@
+<!-- Corpo do e-mail da Parte E do fluxo F2 · Calibração vencida ontem (cole no modo código </> da ação "Enviar um email (V2)") -->
+<div style="font-family:Segoe UI,Arial,sans-serif;color:#172334;max-width:680px">
+  <div style="background:#b42318;color:#ffffff;padding:16px 20px;border-radius:8px 8px 0 0">
+    <div style="font-size:12px;letter-spacing:.08em;opacity:.85">METROLOGIA · ATUALIZE A IMAGEM DE CONSULTA</div>
+    <div style="font-size:20px;font-weight:700;margin-top:4px">@{length(body('VenceramOntem'))} calibração(ões) venceram ontem</div>
+  </div>
+  <div style="border:1px solid #e1e7ee;border-top:0;padding:18px 20px;border-radius:0 0 8px 8px">
+    <p style="font-size:14px;margin:0 0 10px">A partir de hoje, estes equipamentos devem mostrar <b>NÃO UTILIZAR</b> para quem lê o QR Code com a câmera:</p>
+    <ol style="font-size:13px;margin:0 0 10px;padding-left:20px"><li>Copie as linhas abaixo.</li><li>Abra o <b>gerador de imagens de consulta</b>, cole e clique em Gerar imagens.</li><li>Baixe as imagens (ou o .zip) e carregue na biblioteca ConsultaQR com <b>Substituir</b>.</li></ol>
+    <div style="font-family:Consolas,monospace;font-size:13px;background:#f2f5f8;border:1px dashed #9fb2c6;border-radius:6px;padding:10px 12px;white-space:pre-wrap">@{join(body('LinhasImagem'), '<br>')}</div>
+    <p style="margin-top:16px"><a href="@{first(body('CfgPasta'))?['Valor']}" style="display:inline-block;background:#0b2540;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600">Abrir a biblioteca ConsultaQR</a></p>
+    <p style="font-size:11px;color:#8a96a6;margin-top:18px">Mensagem automática do sistema Metrologia · fluxo F2, parte E</p>
+  </div>
+</div>

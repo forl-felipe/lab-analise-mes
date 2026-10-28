@@ -229,7 +229,7 @@
 - lblCaCertRot:
     Control: Label@2.5.1
     Properties:
-      Text: ="Nº DO CERTIFICADO (OPCIONAL)"
+      Text: ="Nº DO CERTIFICADO · VAI NA IMAGEM DE CONSULTA"
       X: =20
       Y: =676
       Width: =Parent.Width - 40
@@ -256,7 +256,7 @@
 - lblCaObsRot:
     Control: Label@2.5.1
     Properties:
-      Text: ="OBSERVAÇÕES (OPCIONAL)"
+      Text: ="OBSERVAÇÕES · O PRÓXIMO TÉCNICO VÊ NA FICHA"
       X: =20
       Y: =762
       Width: =Parent.Width - 40
@@ -268,7 +268,8 @@
     Control: Classic/TextInput@2.3.2
     Properties:
       Default: =""
-      HintText: ="Opcional"
+      HintText: |-
+        ="Ex.: calibrada, mas o pé de nivelamento está solto"
       X: =20
       Y: =788
       Width: =Parent.Width - 40
@@ -347,7 +348,8 @@
                                 ManutencaoSolicitada: wManut,
                                 ProximaCalibracao: wProx,
                                 Certificado: Trim(txtCaCert.Text),
-                                Observacoes: txtCaObs.Text
+                                Observacoes: Trim(txtCaObs.Text),
+                                ModoLeitura: gblModoLeitura
                             }
                         ),
                         Notify("Erro ao gravar a calibração: " & FirstError.Message, NotificationType.Error),
@@ -360,6 +362,7 @@
                                 ProximaCalibracao: wProx,
                                 UltimoResultado: locResultado,
                                 UltimoResponsavel: Trim(txtCaResp.Text),
+                                UltimoCertificado: Trim(txtCaCert.Text),
                                 MotivoRecusa: wMotivo,
                                 ManutencaoSolicitada: wManut,
                                 Local: Coalesce(Trim(txtCaLocal.Text), gblEquip.Local),

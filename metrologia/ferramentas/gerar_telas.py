@@ -290,7 +290,8 @@ def salvar(prefixo):
                                 RegistradoEm: Now(),
                                 TurnoRegistro: gblTurnoAtual,
                                 ForaDoTurno: wFora,
-                                Origem: "App"
+                                Origem: "App",
+                                ModoLeitura: gblModoLeitura
                             }}
                         )
                     ),
@@ -319,7 +320,8 @@ def salvar(prefixo):
                             RegistradoEm: Now(),
                             ForaDoTurno: wFora,
                             Situacao: "Ativo",
-                            Origem: "App"
+                            Origem: "App",
+                            ModoLeitura: gblModoLeitura
                         }}
                     ),
                     Notify("Resultados gravados, mas o resumo do lançamento falhou: " & FirstError.Message, NotificationType.Warning),
@@ -457,30 +459,96 @@ ClearCollect(
 )'''
 
 
+# Abrir um equipamento pela TAG (scanner do app ou TAG digitada). Mesma regra nos dois casos:
+# só abre equipamento cadastrado e ativo; nada de lista nem busca.
+def abrir_tag(expr_tag, modo, limpar=""):
+    return f'''
+        With(
+            {{wTag: Upper(Trim({expr_tag}))}},
+            If(
+                IsBlank(wTag), Notify("Digite a TAG do equipamento.", NotificationType.Error),
+                IsBlank(LookUp(Equipamentos, Title = wTag && Ativo = true)),
+                    Notify("Equipamento " & wTag & " não encontrado. Confira a TAG ou o QR Code.", NotificationType.Error),
+                Set(gblTag, wTag);
+                Set(gblModoLeitura, "{modo}");{limpar}
+                Navigate(scrEquipamento, ScreenTransition.Cover)
+            )
+        )'''
+
+
+# OnScan do leitor de QR. O conteúdo lido pode ser o endereço da imagem
+# (…/ConsultaQR/TAG.png), um link do app (…&equip=TAG) ou a própria TAG.
+ONSCAN = '''
+    With(
+        {wLido: Trim(First(bcrIniScanner.Barcodes).Value)},
+        With(
+            {wArq: Last(Split(First(Split(wLido, "?")).Value, "/")).Value},
+            With(
+                {
+                    wTag: Upper(
+                        If(
+                            "equip=" in Lower(wLido), First(Split(Last(Split(wLido, "equip=")).Value, "&")).Value,
+                            EndsWith(Lower(wArq), ".png"), Substitute(Left(wArq, Len(wArq) - 4), "%20", " "),
+                            wLido
+                        )
+                    )
+                },
+                If(
+                    IsBlank(LookUp(Equipamentos, Title = wTag && Ativo = true)),
+                        Notify("Este QR Code não é de um equipamento cadastrado (" & wTag & ").", NotificationType.Error),
+                    Set(gblTag, wTag);
+                    Set(gblModoLeitura, "QR");
+                    Navigate(scrEquipamento, ScreenTransition.Cover)
+                )
+            )
+        )
+    )'''
+
+
 def tela_inicio():
     pill_perfil = label("lblIniPerfil", "Upper(gblPerfil)", "Parent.Width - 200", 128, 180, 34, size=10, bold=True,
                         Align="Align.Center",
                         Fill=F(f'Switch(gblPerfil, "Laboratorista", {LAB_S}, "Instrumentação", {INS_S}, {MUT_S})'),
                         Color=F(f'Switch(gblPerfil, "Laboratorista", {LAB}, "Instrumentação", {INS}, {MUT})'))
     lab = 'gblPerfil = "Laboratorista"'
-    y_ag = F('If(IsBlank(gblUltimoLote), 300, 360)')
+    ins = 'gblPerfil = "Instrumentação"'
+    equipe = 'gblPerfil <> "Colaborador"'
+    y_scan = F(f'If({lab}, 206, 176)')
+    y_tag = F(f'If({lab}, 322, 292)')
+    y_prog = 390
+    y_ag = F(f'If(IsBlank(gblUltimoLote), {y_prog + 94}, {y_prog + 154})')
     completos = 'CountIf(colAgenda, Completo)'
+    vencidas = 'CountIf(colEquip, ControlaCalibracao && !IsBlank(ProximaCalibracao) && ProximaCalibracao < Today())'
+    vencendo = ('CountIf(colEquip, ControlaCalibracao && !IsBlank(ProximaCalibracao) && ProximaCalibracao >= Today() && '
+                'ProximaCalibracao <= DateAdd(Today(), gblDiasAviso, TimeUnit.Days))')
 
     filhos = cabecalho("Ini", '"Metrologia"', '"Laboratório físico · calibração e aferição"') + [
         label("lblIniOla", F('"Olá, " & First(Split(gblNome, " ")).Value'), 20, 124, "Parent.Width - 240", 42, size=18, bold=True),
         pill_perfil,
-        # ----- laboratorista: agenda do turno (só leitura)
         label("lblIniTurno", F('Text(gblDataTurnoAtual, "dd/mm/yyyy") & "   ·   Turno " & gblTurnoAtual & "   ·   Letra " & gblMinhaLetra'),
               20, 168, "Parent.Width - 40", 30, size=12, bold=True, color=NAVY, Visible=lab),
-        rect("recIniProg", 20, 206, "Parent.Width - 40", 84, fill=WHITE, Visible=lab),
-        label("lblIniProgRot", '"AGENDA DO TURNO"', 36, 212, "Parent.Width - 72", 26, size=10, bold=True, color=SUB, Visible=lab),
-        label("lblIniProg", F(f'{completos} & " de " & CountRows(colAgenda) & " ensaios completos"'), 36, 236, "Parent.Width - 72", 30,
+        # ----- leitor de QR Code (laboratorista e instrumentação)
+        # O controle "Leitor de código de barras" (bcrIniScanner) é inserido à mão por cima deste cartão (guia, seção 2.5).
+        rect("recIniScan", 20, y_scan, "Parent.Width - 40", 104, fill=NAVY, Visible=equipe, **radius(16)),
+        rect("recIniScanIco", 40, F(f'{y_scan[1:]} + 20'), 64, 64, fill=ACCENT, Visible=equipe, **radius(14)),
+        icon("icoIniScan", "Icon.Camera", 52, F(f'{y_scan[1:]} + 32'), 40, 40, Visible=equipe),
+        label("lblIniScanTit", '"Ler QR Code"', 124, F(f'{y_scan[1:]} + 18'), "Parent.Width - 164", 38, size=18, bold=True, color=WHITE, Visible=equipe),
+        label("lblIniScanSub", '"Toque e aponte a câmera para a etiqueta do equipamento"', 124, F(f'{y_scan[1:]} + 54'), "Parent.Width - 164", 34,
+              size=11, color=HEAD_SUB, Visible=equipe),
+        textinput("txtIniTag", 20, y_tag, "Parent.Width - 196", 56, '"Sem câmera? Digite a TAG (ex.: BAL-01)"', Visible=equipe),
+        button("btnIniAbrir", '"Abrir"', "Parent.Width - 168", y_tag, 148, 56,
+               F(abrir_tag("txtIniTag.Text", "Digitado", "\n                Reset(txtIniTag);")), fill=WHITE, color=NAVY, size=14,
+               BorderColor=NAVY, BorderThickness=2, Visible=equipe),
+        # ----- laboratorista: agenda do turno (só leitura)
+        rect("recIniProg", 20, y_prog, "Parent.Width - 40", 84, fill=WHITE, Visible=lab),
+        label("lblIniProgRot", '"AGENDA DO TURNO"', 36, y_prog + 6, "Parent.Width - 72", 26, size=10, bold=True, color=SUB, Visible=lab),
+        label("lblIniProg", F(f'{completos} & " de " & CountRows(colAgenda) & " ensaios completos"'), 36, y_prog + 30, "Parent.Width - 72", 30,
               size=16, bold=True, color=F(f'If({completos} = CountRows(colAgenda), {OK}, {NAVY})'), Visible=lab),
-        label("lblIniDica", '"Para lançar, vá até o equipamento e leia o QR Code dele."', 36, 262, "Parent.Width - 72", 24,
+        label("lblIniDica", '"Para lançar, leia o QR Code do equipamento."', 36, y_prog + 56, "Parent.Width - 72", 24,
               size=11, color=SUB, Visible=lab),
-        label("lblIniDesfazer", F('"Último envio: " & gblUltimoLoteTexto'), 20, 300, "Parent.Width - 200", 50, size=12, color=NAVY,
+        label("lblIniDesfazer", F('"Último envio: " & gblUltimoLoteTexto'), 20, y_prog + 94, "Parent.Width - 200", 50, size=12, color=NAVY,
               Fill=LAB_S, PaddingLeft=12, Visible=f'{lab} && !IsBlank(gblUltimoLote)'),
-        button("btnIniDesfazer", '"Desfazer"', "Parent.Width - 172", 300, 152, 50, F(f'''
+        button("btnIniDesfazer", '"Desfazer"', "Parent.Width - 172", y_prog + 94, 152, 50, F(f'''
             IfError(
                 Remove(Afericoes, Filter(Afericoes, Title = gblUltimoLote)),
                 Notify("Não foi possível desfazer: " & FirstError.Message, NotificationType.Error),
@@ -505,17 +573,25 @@ def tela_inicio():
         ], Visible=lab),
         label("lblIniAgVazia", '"Nenhum ensaio previsto para este turno."', 20, F(f'{y_ag[1:]} + 20'), "Parent.Width - 40", 60,
               size=13, color=SUB, Align="Align.Center", Visible=f'{lab} && CountRows(colAgenda) = 0'),
-        # ----- colaborador e instrumentação: leia o QR
-        rect("recIniQR", 20, 186, "Parent.Width - 40", 380, fill=WHITE, Visible=f'!({lab})'),
-        rect("recIniQRIco", "(Parent.Width - 120) / 2", 220, 120, 120, fill=NAVY, Visible=f'!({lab})', **radius(24)),
-        icon("icoIniQR", "Icon.Camera", "(Parent.Width - 72) / 2", 244, 72, 72, Visible=f'!({lab})'),
-        label("lblIniQRTit", '"Leia o QR Code do equipamento"', 40, 362, "Parent.Width - 80", 44, size=18, bold=True, color=NAVY,
-              Align="Align.Center", Visible=f'!({lab})'),
-        label("lblIniQRTxt", F('''
-            "Aponte a câmera do celular para a etiqueta. O app abre direto na ficha daquele equipamento." &
-            If(gblPerfil = "Instrumentação", Char(10) & Char(10) & "As calibrações pendentes chegam no e-mail diário das 7h.", "")'''),
-              48, 410, "Parent.Width - 96", 140, size=13, color=SUB, Align="Align.Center", VerticalAlign="VerticalAlign.Top",
-              Visible=f'!({lab})'),
+        # ----- instrumentação: só contagens (a lista das pendências chega no e-mail diário)
+        rect("recIniVenc", 20, 368, "(Parent.Width - 52) / 2", 104, fill=BAD_S, Visible=ins, **radius(14)),
+        label("lblIniVencN", F(vencidas), 36, 378, "(Parent.Width - 52) / 2 - 32", 50, size=26, bold=True, color=BAD, Visible=ins),
+        label("lblIniVencT", '"calibrações vencidas"', 36, 428, "(Parent.Width - 52) / 2 - 32", 34, size=12, color=BAD, Visible=ins),
+        rect("recIniBreve", "32 + (Parent.Width - 52) / 2", 368, "(Parent.Width - 52) / 2", 104, fill=WARN_S, Visible=ins, **radius(14)),
+        label("lblIniBreveN", F(vencendo), "48 + (Parent.Width - 52) / 2", 378, "(Parent.Width - 52) / 2 - 32", 50, size=26, bold=True, color=WARN, Visible=ins),
+        label("lblIniBreveT", F('"vencem em até " & gblDiasAviso & " dias"'), "48 + (Parent.Width - 52) / 2", 428, "(Parent.Width - 52) / 2 - 32", 34,
+              size=12, color=WARN, Visible=ins),
+        label("lblIniInsNota", '"A lista com as TAGs chega no e-mail diário das 7h. Para registrar uma calibração, leia o QR Code do equipamento ou digite a TAG."',
+              20, 484, "Parent.Width - 40", 70, size=12, color=SUB, Visible=ins),
+        # ----- colaborador: a consulta é pela câmera (imagem no SharePoint)
+        rect("recIniQR", 20, 186, "Parent.Width - 40", 400, fill=WHITE, Visible=f'!({equipe})'),
+        rect("recIniQRIco", "(Parent.Width - 120) / 2", 220, 120, 120, fill=NAVY, Visible=f'!({equipe})', **radius(24)),
+        icon("icoIniQR", "Icon.Camera", "(Parent.Width - 72) / 2", 244, 72, 72, Visible=f'!({equipe})'),
+        label("lblIniQRTit", '"Consulte pela câmera do celular"', 40, 362, "Parent.Width - 80", 44, size=18, bold=True, color=NAVY,
+              Align="Align.Center", Visible=f'!({equipe})'),
+        label("lblIniQRTxt", '"Aponte a câmera do celular para a etiqueta do equipamento: abre a situação da calibração." & Char(10) & Char(10) & "Este app é usado pela equipe do laboratório e da instrumentação para registrar aferições e calibrações."',
+              48, 410, "Parent.Width - 96", 160, size=13, color=SUB, Align="Align.Center", VerticalAlign="VerticalAlign.Top",
+              Visible=f'!({equipe})'),
         icon("icoIniAtualizar", "Icon.Reset", "Parent.Width - 64", 38, 46, 46, onselect=F(f'''
             Set(gblIniciado, false);
             {textwrap.indent(textwrap.dedent(INIT).strip(), "            ").strip()};
@@ -523,6 +599,7 @@ def tela_inicio():
                 gblPerfil = "Laboratorista",
                 {textwrap.indent(textwrap.dedent(AGENDA).strip(), "                ").strip()}
             );
+            If(gblPerfil = "Instrumentação", {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "                ").strip()});
             Notify("Dados atualizados.", NotificationType.Success)'''), Tooltip='"Atualizar"'),
     ]
     onvisible = F(f'''
@@ -530,7 +607,8 @@ def tela_inicio():
         If(
             gblPerfil = "Laboratorista",
             {textwrap.indent(textwrap.dedent(AGENDA).strip(), "            ").strip()}
-        )''')
+        );
+        If(gblPerfil = "Instrumentação", {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "            ").strip()})''')
     return {"scrInicio": {"Properties": {"Fill": f"={BG}", "OnVisible": onvisible}, "Children": filhos}}
 
 
@@ -554,6 +632,8 @@ STATUS_EQ = '''
 CARREGAR_FICHA = f'''
 Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
 ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
+// Instrumentação: as 3 últimas calibrações, com as observações do técnico
+ClearCollect(colCalHist, FirstN(Sort(Filter(Calibracoes, Title = gblTag), DataCalibracao, SortOrder.Descending), 3));
 Set(gblUltAfData, First(colHist).DataEnsaio);
 Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
 // Peneirador = conjunto com etiqueta própria; Peneira = item calibrado pela instrumentação
@@ -599,7 +679,8 @@ def acao_lancar(cod):
 def tela_equipamento():
     onvisible = F(f'''
         {textwrap.dedent(INIT).strip()};
-        If(IsBlank(gblTag), Set(gblTag, Param("equip")));
+        // Aberto por um link (botão de e-mail) com ?equip=TAG
+        If(IsBlank(gblTag), Set(gblTag, Upper(Param("equip"))); Set(gblModoLeitura, "Link"));
         If(CountRows(colEquip) = 0, {textwrap.indent(textwrap.dedent(CARREGAR_EQUIP).strip(), "    ").strip()});
         {textwrap.indent(textwrap.dedent(CARREGAR_FICHA).strip(), "        ").strip()};
         If(
@@ -735,7 +816,7 @@ def tela_equipamento():
                 nc.Responsavel & " · Letra " & nc.Letra & " · " & Text(nc.DataEnsaio, "dd/mm/yyyy")
             )'''), 20, 492, "Parent.Width - 40", 96, size=12, color=BAD, Fill=BAD_S, PaddingLeft=14, PaddingRight=14,
               VerticalAlign="VerticalAlign.Top", BorderColor=BAD, BorderThickness=1, Visible=f"{vivo} && gblUltAfNC && !gblEhPeneirador"),
-        label("lblEqHistRot", F('If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR", "HISTÓRICO DE AFERIÇÕES")'),
+        label("lblEqHistRot", F('If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR", gblPerfil = "Instrumentação", "ÚLTIMAS CALIBRAÇÕES E OBSERVAÇÕES", "HISTÓRICO DE AFERIÇÕES")'),
               20, F('If(gblUltAfNC && !gblEhPeneirador, 600, 494)'), "Parent.Width - 40", 30, size=11, bold=True, color=SUB, Visible=vivo),
         gallery("galEqHist", "colHist", 20, F('If(gblUltAfNC, 632, 526)'), "Parent.Width - 40",
                 F('Parent.Height - If(gblUltAfNC, 632, 526) - 112'), 80, [
@@ -747,7 +828,26 @@ def tela_equipamento():
                   Color=res_color("ThisItem.Resultado")),
             label("lblHiRes", F('Upper(ThisItem.Resultado)'), "Parent.TemplateWidth - 186", 40, 172, 26, size=9, bold=True,
                   Align="Align.Center", Fill=res_fill("ThisItem.Resultado"), Color=res_color("ThisItem.Resultado")),
-        ], Visible=f"{vivo} && !gblEhPeneirador"),
+        ], Visible=f'{vivo} && !gblEhPeneirador && gblPerfil <> "Instrumentação"'),
+        # instrumentação: o que os técnicos anotaram nas últimas calibrações
+        gallery("galEqCal", "colCalHist", 20, F('If(gblUltAfNC, 632, 526)'), "Parent.Width - 40",
+                F('Parent.Height - If(gblUltAfNC, 632, 526) - 112'), 128, [
+            rect("recCaCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 8", fill=WHITE),
+            rect("recCaFaixa", 0, 0, 6, "Parent.TemplateHeight - 8", fill=F(f'If(ThisItem.Resultado = "Recusada", {BAD}, {INS})')),
+            label("lblCaLinha1", F('Text(ThisItem.DataCalibracao, "dd/mm/yyyy") & " · " & ThisItem.Responsavel'), 20, 6,
+                  "Parent.TemplateWidth - 200", 30, size=13, bold=True, color=NAVY),
+            label("lblCaRes", F('Upper(ThisItem.Resultado) & If(ThisItem.ManutencaoSolicitada, " · MANUTENÇÃO", "")'),
+                  "Parent.TemplateWidth - 186", 8, 172, 28, size=9, bold=True, Align="Align.Center",
+                  Fill=F(f'If(ThisItem.Resultado = "Recusada", {BAD_S}, {OK_S})'), Color=F(f'If(ThisItem.Resultado = "Recusada", {BAD}, {OK})')),
+            label("lblCaCert", F('If(IsBlank(ThisItem.Certificado), "Sem nº de certificado", "Certificado " & ThisItem.Certificado) & If(IsBlank(ThisItem.MotivoRecusa), "", " · Recusa: " & ThisItem.MotivoRecusa)'),
+                  20, 36, "Parent.TemplateWidth - 34", 26, size=11, color=SUB),
+            label("lblCaObs", F('Coalesce(ThisItem.Observacoes, "Sem observação.")'), 20, 62, "Parent.TemplateWidth - 34", 54, size=12,
+                  color=F(f'If(IsBlank(ThisItem.Observacoes), {SUB}, {TXT})'), VerticalAlign="VerticalAlign.Top",
+                  Italic=F('IsBlank(ThisItem.Observacoes)')),
+        ], Visible=f'{vivo} && !gblEhPeneirador && gblPerfil = "Instrumentação"'),
+        label("lblEqCalVazio", '"Nenhuma calibração registrada no app ainda. A primeira que você registrar aparece aqui para o próximo técnico."',
+              20, F('If(gblUltAfNC, 646, 540)'), "Parent.Width - 40", 70, size=12, color=SUB, Align="Align.Center",
+              Visible=f'{vivo} && CountRows(colCalHist) = 0 && !gblEhPeneirador && gblPerfil = "Instrumentação"'),
         gallery("galEqPeneiras", "colPeneirasConj", 20, 526, "Parent.Width - 40", "Parent.Height - 526 - 112", 76, [
             rect("recPcCard", 0, 0, "Parent.TemplateWidth", "Parent.TemplateHeight - 6", fill=WHITE),
             rect("recPcFaixa", 0, 0, 6, "Parent.TemplateHeight - 6", fill=status_color("ThisItem.StatusPen")),
@@ -760,7 +860,7 @@ def tela_equipamento():
                   size=10, color=SUB, Align="Align.Right"),
         ], Visible=f"{vivo} && gblEhPeneirador"),
         label("lblEqHistVazio", '"Nenhuma aferição registrada para este equipamento."', 20, 540, "Parent.Width - 40", 60, size=12, color=SUB,
-              Align="Align.Center", Visible=f"{vivo} && CountRows(colHist) = 0 && !gblEhPeneirador"),
+              Align="Align.Center", Visible=f'{vivo} && CountRows(colHist) = 0 && !gblEhPeneirador && gblPerfil <> "Instrumentação"'),
         # rodapé por perfil
         rect("recEqRodape", 0, "Parent.Height - 104", "Parent.Width", 104, fill=WHITE, BorderColor=LINE, BorderThickness=1, Visible=vivo),
         button("btnEqLancar", F(f'If(CountRows(gblCodigos) >= 2, {texto_lancar("First(gblCodigos).Value", True)}, {texto_lancar("First(gblCodigos).Value", False)})'),
@@ -1208,7 +1308,8 @@ def tela_calibrar():
                                 ManutencaoSolicitada: wManut,
                                 ProximaCalibracao: wProx,
                                 Certificado: Trim(txt{p}Cert.Text),
-                                Observacoes: txt{p}Obs.Text
+                                Observacoes: Trim(txt{p}Obs.Text),
+                                ModoLeitura: gblModoLeitura
                             }}
                         ),
                         Notify("Erro ao gravar a calibração: " & FirstError.Message, NotificationType.Error),
@@ -1221,6 +1322,7 @@ def tela_calibrar():
                                 ProximaCalibracao: wProx,
                                 UltimoResultado: locResultado,
                                 UltimoResponsavel: Trim(txt{p}Resp.Text),
+                                UltimoCertificado: Trim(txt{p}Cert.Text),
                                 MotivoRecusa: wMotivo,
                                 ManutencaoSolicitada: wManut,
                                 Local: Coalesce(Trim(txt{p}Local.Text), gblEquip.Local),
@@ -1263,10 +1365,10 @@ def tela_calibrar():
                   Visible=F(f'{rec} && drp{p}Motivo.Selected.Value = "Outro"')),
         ctl(f"chk{p}Manut", "Classic/CheckBox@2.1.0", Text='"Enviar para manutenção"', Default=False, X=20, Y=620,
             Width="Parent.Width - 40", Height=48, Size=14, Visible=rec),
-        rot(f"lbl{p}CertRot", "Nº DO CERTIFICADO (OPCIONAL)", 676),
+        rot(f"lbl{p}CertRot", "Nº DO CERTIFICADO · VAI NA IMAGEM DE CONSULTA", 676),
         textinput(f"txt{p}Cert", 20, 702, "Parent.Width - 40", 52, '"Ex.: CERT-2026-0154"'),
-        rot(f"lbl{p}ObsRot", "OBSERVAÇÕES (OPCIONAL)", 762),
-        textinput(f"txt{p}Obs", 20, 788, "Parent.Width - 40", 84, '"Opcional"', Mode="TextMode.MultiLine", size=13),
+        rot(f"lbl{p}ObsRot", "OBSERVAÇÕES · O PRÓXIMO TÉCNICO VÊ NA FICHA", 762),
+        textinput(f"txt{p}Obs", 20, 788, "Parent.Width - 40", 84, '"Ex.: calibrada, mas o pé de nivelamento está solto"', Mode="TextMode.MultiLine", size=13),
         label(f"lbl{p}Prox", F(f'"Próxima calibração: " & Text(DateAdd(dtp{p}Data.SelectedDate, Coalesce(gblEquip.PeriodicidadeMeses, 12), TimeUnit.Months), "dd/mm/yyyy") & "  (a cada " & Coalesce(gblEquip.PeriodicidadeMeses, 12) & " meses)"'),
               20, 880, "Parent.Width - 40", 34, size=12, bold=True, color=NAVY),
         button(f"btn{p}Salvar", F('If(locSalvando, "Salvando...", "Salvar calibração")'), 20, 924, "Parent.Width - 40", 70, salvar_cal,
@@ -1302,6 +1404,68 @@ def emitir(no, ind=0):
     return out
 
 
+def para_ptbr(formula: str) -> str:
+    """Converte uma fórmula do formato invariável (vírgula) para o Studio em português (ponto e vírgula)."""
+    out, i, em_texto = [], 0, False
+    while i < len(formula):
+        c = formula[i]
+        if c == '"':
+            em_texto = not em_texto
+            out.append(c)
+        elif em_texto:
+            out.append(c)
+        elif c == ";":
+            out.append(";;")
+        elif c == ",":
+            out.append(";")
+        elif c == "." and i > 0 and formula[i - 1].isdigit() and i + 1 < len(formula) and formula[i + 1].isdigit():
+            j = i - 1
+            while j >= 0 and formula[j].isdigit():
+                j -= 1
+            out.append("," if j < 0 or not (formula[j].isalnum() or formula[j] == "_") else c)
+        else:
+            out.append(c)
+        i += 1
+    return "".join(out)
+
+
+def escrever_leitor_qr():
+    """Texto do OnScan do leitor de QR (controle inserido à mão na tela Início)."""
+    f = F(ONSCAN)[1:]
+    props = [
+        ("X", "20"), ("Y", 'If(gblPerfil = "Laboratorista", 206, 176)'), ("Width", "Parent.Width - 40"), ("Height", "104"),
+        ("Visible", 'gblPerfil <> "Colaborador"'), ("Text", '""'), ("Fill", "RGBA(0, 0, 0, 0)"), ("HoverFill", "RGBA(255, 255, 255, 0.08)"),
+        ("PressedFill", "RGBA(255, 255, 255, 0.16)"), ("BorderThickness", "0"),
+    ]
+    tab = "\n".join(f"  {k:<16} {para_ptbr(v)}" for k, v in props)
+    tab_en = "\n".join(f"  {k:<16} {v}" for k, v in props)
+    texto = f"""LEITOR DE QR CODE DA TELA INÍCIO (scrInicio) · gerado por ferramentas/gerar_telas.py
+Guia do Power Apps, seção 2.5.
+
+1. Selecione a tela scrInicio. Menu Inserir > Mídia > Leitor de código de barras
+   (em inglês: Insert > Media > Barcode reader).
+2. Renomeie o controle para:  bcrIniScanner
+3. Propriedades (o controle fica transparente, por cima do cartão azul "Ler QR Code"):
+   Se alguma propriedade de cor não existir na sua versão, deixe como está:
+   o botão continua funcionando.
+
+   --- Studio em português ---
+{tab}
+
+   --- Studio em inglês ---
+{tab_en}
+
+4. Propriedade OnScan: cole a fórmula abaixo (escolha o idioma do seu Studio).
+
+=== OnScan · Studio em PORTUGUÊS (o mais comum) ===
+{para_ptbr(f)}
+
+=== OnScan · Studio em INGLÊS ===
+{f}
+"""
+    (DESTINO.parent / "leitor-qr-OnScan.txt").write_text(texto, encoding="utf-8")
+
+
 def main():
     DESTINO.mkdir(parents=True, exist_ok=True)
     DESTINO_CTRL.mkdir(parents=True, exist_ok=True)
@@ -1328,9 +1492,12 @@ def main():
         ctrl = "\n".join(l[2:] if l.startswith("  ") else l for l in ctrl.split("\n")) + "\n"
         yaml.safe_load(ctrl)
         (DESTINO_CTRL / f"{arq}-controles.yaml").write_text(ctrl, encoding="utf-8")
-        (DESTINO_CTRL / f"{arq}-OnVisible.txt").write_text(corpo["Properties"]["OnVisible"] + "\n", encoding="utf-8")
+        onv = corpo["Properties"]["OnVisible"][1:]
+        (DESTINO_CTRL / f"{arq}-OnVisible.txt").write_text(
+            "=== Studio em PORTUGUÊS ===\n" + para_ptbr(onv) + "\n\n=== Studio em INGLÊS ===\n" + onv + "\n", encoding="utf-8")
         print(f"{arq}: {len(corpo['Children'])} controles, {len(texto.splitlines())} linhas")
     print(f"total de controles com nome único: {len(nomes)}")
+    escrever_leitor_qr()
 
 
 if __name__ == "__main__":

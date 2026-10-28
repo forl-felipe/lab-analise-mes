@@ -24,7 +24,7 @@ Cadastro único de equipamentos: calibração (instrumentação) e situação da
 
 **Quem edita:** Instrumentação (calibração) e gestor (cadastro). A situação da aferição é atualizada pelo fluxo F1.
 
-**Título (Title):** TAG do equipamento (única; é o que vai no QR Code) · **Impor valores exclusivos: Sim** (e indexar)
+**Título (Title):** TAG do equipamento (única; é o nome da imagem do QR Code: TAG.png) · **Impor valores exclusivos: Sim** (e indexar)
 
 | Nome exato da coluna | Tipo no SharePoint | Configuração | Para que serve |
 |---|---|---|---|
@@ -42,6 +42,7 @@ Cadastro único de equipamentos: calibração (instrumentação) e situação da
 | `ProximaCalibracao` | Data e hora · **Incluir hora: Não** |  |  |
 | `UltimoResultado` | Linha única de texto |  | Aprovada ou Recusada |
 | `UltimoResponsavel` | Linha única de texto |  |  |
+| `UltimoCertificado` | Linha única de texto |  | Número do certificado da última calibração (gravado pelo app). Vai na imagem de consulta |
 | `MotivoRecusa` | Várias linhas de texto (texto sem formatação) |  |  |
 | `ManutencaoSolicitada` | Sim/Não | Padrão: Não |  |
 | `UltimaAfericao` | Data e hora · **Incluir hora: Não** |  | Gravada pelo fluxo F1 |
@@ -163,6 +164,7 @@ Um resultado por linha. Mesmo conteúdo da aba BD_Afericoes (o Power BI lê esta
 | `TurnoRegistro` | Linha única de texto |  |  |
 | `ForaDoTurno` | Linha única de texto |  | Sim quando lançado depois do turno do ensaio |
 | `Origem` | Linha única de texto |  | App ou Planilha (importado) |
+| `ModoLeitura` | Linha única de texto |  | Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail) |
 
 ## Lancamentos
 
@@ -189,6 +191,7 @@ Um resumo por envio (substitui a aba Historico). Dispara o fluxo F1.
 | `ForaDoTurno` | Linha única de texto |  |  |
 | `Situacao` | Linha única de texto | Padrão: `Ativo` | Ativo ou Desfeito |
 | `Origem` | Linha única de texto |  |  |
+| `ModoLeitura` | Linha única de texto |  | Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail) |
 
 ## Calibracoes (existente)
 
@@ -209,7 +212,8 @@ Histórico de calibrações (já existe da versão 1).
 | `ManutencaoSolicitada` | Sim/Não | Padrão: Não |  |
 | `ProximaCalibracao` | Data e hora · **Incluir hora: Não** |  |  |
 | `Certificado` | Linha única de texto |  |  |
-| `Observacoes` | Várias linhas de texto (texto sem formatação) |  |  |
+| `Observacoes` | Várias linhas de texto (texto sem formatação) |  | Observação do técnico. As 3 últimas aparecem para a instrumentação na ficha do equipamento |
+| `ModoLeitura` | Linha única de texto |  | Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail) |
 
 ## Configuracoes
 

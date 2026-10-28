@@ -1,4 +1,21 @@
-=UpdateContext({locRevisar: false, locSalvando: false});
+=== Studio em PORTUGUÊS ===
+UpdateContext({locRevisar: false; locSalvando: false});;
+Reset(dtpEnData);; Reset(drpEnTurno);; Reset(drpEnCausa);; Reset(txtEnJust);; Reset(txtEnObs);;
+Reset(txtEnEstufa);; Reset(txtEnTara);; Reset(txtEnPIni);; Reset(txtEnPFin);;
+// Recriar a coleção zera os campos digitados da galeria
+ClearCollect(
+    colForm;
+    AddColumns(
+        Sort(Filter(colPontos; Ensaio = gblEnsaio.Title && (IsBlank(gblDestacar) || IsBlank(TAG) || TAG = gblDestacar)); Ordem);
+        Nom; LookUp(colLimites; Title = ChaveLimite).Nominal;
+        LI; LookUp(colLimites; Title = ChaveLimite).LimInferior;
+        LS; LookUp(colLimites; Title = ChaveLimite).LimSuperior;
+        Tol; LookUp(colLimites; Title = ChaveLimite).Tolerancia
+    )
+)
+
+=== Studio em INGLÊS ===
+UpdateContext({locRevisar: false, locSalvando: false});
 Reset(dtpEnData); Reset(drpEnTurno); Reset(drpEnCausa); Reset(txtEnJust); Reset(txtEnObs);
 Reset(txtEnEstufa); Reset(txtEnTara); Reset(txtEnPIni); Reset(txtEnPFin);
 // Recriar a coleção zera os campos digitados da galeria

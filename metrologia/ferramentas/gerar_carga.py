@@ -319,6 +319,8 @@ def main(planilha: Path, saida: Path):
         ("EmailsRelatorioDiario", "", "E-mails que recebem o relatório diário, separados por ponto e vírgula"),
         ("EmailsAlertaNaoConforme", "", "E-mails extras para alerta de não conformidade (a instrumentação já recebe)"),
         ("LinkApp", "", "Link da Web do app (Power Apps > Detalhes)"),
+        ("PastaImagensQR", "", "Endereço da biblioteca ConsultaQR (ex.: https://EMPRESA.sharepoint.com/sites/SITE/ConsultaQR). O QR Code de cada etiqueta é este endereço + /TAG.png"),
+        ("EmailsAvisoImagem", "", "Quem recebe o aviso para atualizar a imagem de consulta (calibração registrada e calibração vencida), separados por ponto e vírgula"),
     ]
     configs = [OrderedDict(Title=k, Valor=v, Descricao=d) for k, v, d in configs]
     if len(letras07) != 8:
@@ -373,7 +375,37 @@ def main(planilha: Path, saida: Path):
     resumo += [f"{n:<16} {len(v):>4} linhas" for n, v in tabelas.items()]
     resumo += ["", "PONTOS PARA CONFERIR:"] + [f"- {a}" for a in avisos] if avisos else []
     (saida / "resumo-carga.txt").write_text("\n".join(resumo) + "\n", encoding="utf-8")
+    escrever_listas_etiquetas(saida, list(equip.values()))
     print("\n".join(resumo))
+
+
+def situacao_imagem(e, hoje=None):
+    """Situação mostrada na imagem de consulta: NÃO UTILIZAR só quando a calibração está vencida."""
+    hoje = hoje or dt.date.today()
+    if not e["ControlaCalibracao"]:
+        return "SEM CALIBRAÇÃO PERIÓDICA"
+    if not e["ProximaCalibracao"]:
+        return "A CONFIRMAR"
+    return "NÃO UTILIZAR" if e["ProximaCalibracao"] < hoje else "CALIBRADO"
+
+
+def escrever_listas_etiquetas(saida: Path, equipamentos):
+    """Listas prontas para colar nos geradores (etiquetas físicas e imagens de consulta)."""
+    ativos = [e for e in equipamentos if e["Ativo"]]
+    eh_conjunto = lambda e: e["TipoEquipamento"] == "Peneirador" and "PEN" in e["EnsaioAfericao"].split(";")
+    linha = lambda e: f"{e['Title']}; {e['Descricao']}; {e['Grupo'] if e['TipoEquipamento'] == 'Peneira' and e['Grupo'] else e['Local']}"
+    grupos = {
+        "etiquetas-equipamentos.txt": [e for e in ativos if e["TipoEquipamento"] != "Peneira" and not eh_conjunto(e)],
+        "etiquetas-peneiradores.txt": [e for e in ativos if eh_conjunto(e)],
+        "etiquetas-peneiras.txt": [e for e in ativos if e["TipoEquipamento"] == "Peneira"],
+    }
+    for nome, lista in grupos.items():
+        (saida / nome).write_text("\n".join(linha(e) for e in lista) + "\n", encoding="utf-8")
+    fmt = lambda d: d.strftime("%d/%m/%Y") if d else ""
+    img = [f"{e['Title']}; {e['Descricao']}; {e['Local']}; {situacao_imagem(e)}; {fmt(e['UltimaCalibracao'])}; "
+           f"{fmt(e['ProximaCalibracao'])}; ; {e['PeriodicidadeMeses'] if e['ControlaCalibracao'] else ''}" for e in ativos]
+    (saida / "imagens-consulta.txt").write_text("\n".join(img) + "\n", encoding="utf-8")
+    print(f"listas: {', '.join(f'{n} ({len(l)})' for n, l in grupos.items())}, imagens-consulta.txt ({len(img)})")
 
 
 def valor_csv(v):

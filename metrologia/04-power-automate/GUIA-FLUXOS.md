@@ -1,14 +1,17 @@
 # Etapa 3 · Automações (Power Automate)
 
-Três fluxos, todos com **conectores padrão** (SharePoint, Office 365 Outlook): sem licença extra.
+Quatro fluxos, todos com **conectores padrão** (SharePoint, Office 365 Outlook): sem licença extra.
 
 | Fluxo | Quando roda | O que faz |
 |---|---|---|
 | **F0 · Sincronizar acessos** | Quando alguém muda a lista **Acessos** | Coloca ou tira a pessoa do grupo certo do SharePoint. A lista Acessos vira o **único lugar** onde se define acesso |
 | **F1 · Pós-lançamento** | A cada envio de aferição pelo app | Atualiza a situação dos equipamentos e manda **alerta imediato** de não conformidade para a instrumentação |
-| **F2 · Rotina diária** | Todo dia às 07:00 | Recalcula a situação de todos os equipamentos e envia o **relatório diário**: agenda de ontem (feito x pendente), não conformidades e calibrações |
+| **F2 · Rotina diária** | Todo dia às 07:00 | Recalcula a situação de todos os equipamentos e envia o **relatório diário**: agenda de ontem (feito x pendente), não conformidades e calibrações. **Parte E:** avisa quais calibrações venceram ontem, para você trocar a imagem por NÃO UTILIZAR |
+| **F3 · Calibração registrada** | A cada calibração registrada pelo app | Avisa você ("foi calibrada a balança tal") com a **linha pronta** para o gerador de imagens de consulta |
 
-> **Crie os três com a sua conta** (Proprietária do site). Eles gravam em listas que os laboratoristas não podem editar.
+> **As imagens de consulta (o que a câmera abre) só mudam em dois momentos:** quando uma calibração é **aprovada** (F3) e quando uma calibração **vence** (F2, parte E). Aferição não conforme **não** muda a imagem: ela bloqueia o equipamento só no app, para a equipe.
+
+> **Crie os quatro com a sua conta** (Proprietária do site). Eles gravam em listas que os laboratoristas não podem editar.
 >
 > **Renomeie as ações com os nomes indicados** (três pontinhos da ação > Renomear). As expressões usam esses nomes. Nomes sem acento e sem espaço evitam erro.
 >
@@ -91,6 +94,8 @@ Assim os 80 lançamentos importados da planilha não disparam e-mails.
 | 6 | Inicializar variável | `varLimite` | Cadeia · `formatDateTime(addDays(variables('varHoje'), int(coalesce(first(body('CfgDias'))?['Valor'], '30'))), 'yyyy-MM-dd')` |
 | 7 | Filtrar matriz | `CfgEmails` | De: `body('ObterConfig')?['value']` · `@equals(item()?['Title'], 'EmailsRelatorioDiario')` |
 | 8 | Inicializar variável | `varAlertasEquip` | Matriz · `[]` |
+| 9 | Filtrar matriz | `CfgAviso` | De: `body('ObterConfig')?['value']` · `@equals(item()?['Title'], 'EmailsAvisoImagem')` |
+| 10 | Filtrar matriz | `CfgPasta` | De: `body('ObterConfig')?['value']` · `@equals(item()?['Title'], 'PastaImagensQR')` |
 
 ### Parte A · Situação de todos os equipamentos
 
@@ -150,6 +155,49 @@ if(equals(item()?[concat(variables('varPrefixo'), 'D')], true),
 |---|---|---|
 | D1 | Enviar um email (V2) | **Para:** `first(body('CfgEmails'))?['Valor']` · **Assunto:** `[Metrologia] Relatório diário · @{formatDateTime(variables('varOntem'), 'dd/MM/yyyy')} · @{length(body('Pendentes'))} pendente(s) · @{length(body('ObterNCOntem')?['value'])} não conforme(s)` · **Corpo:** modo código, cole `email-relatorio-diario.html` |
 
+### Parte E · Calibrações que venceram ontem (imagem de consulta)
+
+Uma calibração "válida até 27/10" passa a vencida no dia 28. A rotina das 07:00 do dia 28 encontra esse equipamento e manda as linhas prontas para o gerador de imagens.
+
+| # | Ação | Nome | Configuração |
+|---|---|---|---|
+| E1 | Filtrar matriz | `VenceramOntem` | De: `body('ObterEquipamentos')?['value']` · Modo avançado: `@and(equals(item()?['ControlaCalibracao'], true), not(empty(item()?['ProximaCalibracao'])), equals(formatDateTime(coalesce(item()?['ProximaCalibracao'], '1900-01-01'), 'yyyy-MM-dd'), variables('varOntem')))` |
+| E2 | Selecionar | `LinhasImagem` | De: `body('VenceramOntem')` · Mapear (modo texto, ícone ⇄): expressão abaixo |
+| E3 | Condição | `TemVencida` | `length(body('VenceramOntem'))` **é maior que** `0` |
+| E4 | Se sim: Enviar um email (V2) | `EmailAvisoImagem` | **Para:** `first(body('CfgAviso'))?['Valor']` · **Assunto:** `[Metrologia] Atualize a imagem: @{length(body('VenceramOntem'))} calibração(ões) vencida(s)` · **Importância:** Alta · **Corpo:** modo código, cole `email-aviso-imagem.html` |
+
+**Expressão de E2** (uma linha no formato do gerador: TAG; Descrição; Local; Situação; Última; Próxima; Certificado; Periodicidade):
+```
+concat(item()?['Title'], '; ', coalesce(item()?['Descricao'], ''), '; ', coalesce(item()?['Local'], ''), '; NÃO UTILIZAR; ', if(empty(item()?['UltimaCalibracao']), '', formatDateTime(item()?['UltimaCalibracao'], 'dd/MM/yyyy')), '; ', formatDateTime(item()?['ProximaCalibracao'], 'dd/MM/yyyy'), '; ', coalesce(item()?['UltimoCertificado'], ''), '; ', coalesce(string(item()?['PeriodicidadeMeses']), ''))
+```
+
+> Prefere um e-mail só? Em vez de E4, cole o bloco de `email-aviso-imagem.html` dentro do relatório diário (D1). O separado é melhor porque chega com importância alta e você não perde no meio do relatório.
+
+---
+
+## F3 · Calibração registrada (aviso para atualizar a imagem)
+
+**Gatilho:** SharePoint · **Quando um item é criado** · Lista `Calibracoes`.
+
+| # | Ação | Nome | Configuração |
+|---|---|---|---|
+| 1 | Obter itens | `ObterEquipamento` | Lista `Equipamentos` · Filtro: `Title eq '@{triggerOutputs()?['body/Title']}'` · Contagem: `1` |
+| 2 | Compor | `Equip` | `first(body('ObterEquipamento')?['value'])` |
+| 3 | Obter itens | `ObterConfig` | Lista `Configuracoes` (sem filtro) |
+| 4 | Filtrar matriz | `CfgAviso` | De: `body('ObterConfig')?['value']` · `@equals(item()?['Title'], 'EmailsAvisoImagem')` |
+| 5 | Filtrar matriz | `CfgPasta` | Igual, com `'PastaImagensQR'` |
+| 6 | Filtrar matriz | `CfgLink` | Igual, com `'LinkApp'` |
+| 7 | Compor | `Aprovada` | `equals(triggerOutputs()?['body/Resultado'], 'Aprovada')` |
+| 8 | Compor | `Linha` | expressão abaixo |
+| 9 | Enviar um email (V2) | `EmailCalibracao` | **Para:** `first(body('CfgAviso'))?['Valor']` · **Assunto:** `[Metrologia] Calibração registrada · @{triggerOutputs()?['body/Title']} · @{triggerOutputs()?['body/Resultado']}` · **Corpo:** modo código, cole `email-calibracao-registrada.html` |
+
+**Expressão de `Linha`** (a situação sai da data: NÃO UTILIZAR só se a nova validade já tiver passado, o que acontece quando se registra uma calibração antiga):
+```
+concat(triggerOutputs()?['body/Title'], '; ', coalesce(outputs('Equip')?['Descricao'], ''), '; ', coalesce(triggerOutputs()?['body/Local'], outputs('Equip')?['Local'], ''), '; ', if(less(formatDateTime(triggerOutputs()?['body/ProximaCalibracao'], 'yyyy-MM-dd'), convertFromUtc(utcNow(), 'E. South America Standard Time', 'yyyy-MM-dd')), 'NÃO UTILIZAR', 'CALIBRADO'), '; ', formatDateTime(triggerOutputs()?['body/DataCalibracao'], 'dd/MM/yyyy'), '; ', formatDateTime(triggerOutputs()?['body/ProximaCalibracao'], 'dd/MM/yyyy'), '; ', coalesce(triggerOutputs()?['body/Certificado'], ''), '; ', coalesce(string(outputs('Equip')?['PeriodicidadeMeses']), ''))
+```
+
+**Calibração recusada:** o e-mail chega em vermelho e **sem** a linha do gerador. A imagem de consulta não muda (regra: só calibração aprovada ou vencimento mudam a imagem). Para a equipe, o app já mostra NÃO UTILIZAR.
+
 ---
 
 ## Relatório visual do Power BI (complemento, sem programar)
@@ -161,3 +209,5 @@ No Power BI online, abra o relatório > **Assinar** > **Criar assinatura**: esco
 - **F0:** mude o Perfil de uma pessoa de teste e confira o grupo em Pessoas e grupos.
 - **F1:** lance pelo app um Blaine de 1985 (não conforme). Em 1 a 2 minutos: e-mail para a instrumentação e equipamento bloqueado na lista.
 - **F2:** abra o fluxo > **Testar** > **Manualmente**. Confira o e-mail e a coluna Status da lista Equipamentos.
+- **F2, parte E:** num equipamento de teste, coloque `ProximaCalibracao` = ontem e rode o F2 manualmente. Chega o aviso "Atualize a imagem" com a linha NÃO UTILIZAR.
+- **F3:** registre pelo app uma calibração aprovada. Em 1 a 2 minutos chega o e-mail com a linha; cole no gerador de imagens e confira a imagem.

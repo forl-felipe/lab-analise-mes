@@ -5,15 +5,16 @@ Sistema de **calibração e aferição** do laboratório físico. Substitui a pl
 ## 1. Visão geral
 
 ```
-                         ┌────────────────────────────┐
-  Etiqueta QR ──────────►│  APP POWER APPS "Metrologia"│   3 perfis (lista Acessos)
-  (TAG do equipamento)   │  · Colaborador: consulta    │
-                         │  · Laboratorista: aferições │
-                         │  · Instrumentação: calibração│
-                         └──────────────┬─────────────┘
-                                        │ grava / lê
-              ┌─────────────────────────▼──────────────────────────┐
-              │                 SHAREPOINT (9 listas)               │
+                      ┌──────────────────────────────────────────────────────┐
+  Etiqueta QR         │ câmera do celular ─► imagem TAG.png no SharePoint     │  Colaborador comum
+  (endereço da        │                      (biblioteca ConsultaQR)          │  (só consulta)
+   imagem TAG.png) ───┤                                                      │
+                      │ scanner do app ───► APP POWER APPS "Metrologia"      │  Laboratorista: aferições
+                      │ (ou TAG digitada)    ficha só daquele equipamento    │  Instrumentação: calibrações
+                      └──────────────────────────────┬───────────────────────┘
+                                                     │ grava / lê
+              ┌──────────────────────────────────────▼─────────────┐
+              │      SHAREPOINT (9 listas + biblioteca ConsultaQR)  │
               │  Configuração: Acessos · Ensaios · PontosAfericao   │
               │                Limites · Configuracoes              │
               │  Cadastro:     Equipamentos                         │
@@ -25,7 +26,9 @@ Sistema de **calibração e aferição** do laboratório físico. Substitui a pl
           │  gestão: conformidade,│      │ F0 acessos → grupos     │
           │  aderência por letra, │      │ F1 alerta de NC         │
           │  tendência, calibração│      │ F2 situação + relatório │
-          └───────────────────────┘      └────────────────────────┘
+          └───────────────────────┘      │    + aviso "venceu ontem"│
+                                         │ F3 calibração registrada│
+                                         └────────────────────────┘
 ```
 
 ## 2. Princípios de projeto
@@ -35,20 +38,22 @@ Sistema de **calibração e aferição** do laboratório físico. Substitui a pl
 3. **Uma regra, quatro lugares, um teste.** A regra de aceitação e a de situação do equipamento estão no app (Power Fx), no fluxo diário, no Power BI e em `ferramentas/regras.py`. O script Python é conferido contra os dados reais da planilha.
 4. **Mesmas colunas da planilha.** A lista Afericoes tem o conteúdo da aba BD_Afericoes, e o Power BI recebe as mesmas colunas (`tbl_Afericoes`, `tbl_Limites`). O painel atual é aproveitado.
 5. **Histórico imutável.** Cada aferição grava o critério que valia no momento (limites e tolerância). Mudar um limite depois não altera resultados antigos.
-6. **Um QR Code, um equipamento.** O app não tem lista nem busca de equipamentos. Cada QR abre só a ficha daquele equipamento, e o perfil de quem leu decide os botões. Para ver outro equipamento, lê-se o QR dele.
+6. **Um QR Code, um equipamento, duas leituras.** Cada etiqueta tem um QR só, com o endereço da imagem do equipamento no SharePoint. A **câmera do celular** abre a imagem (consulta rápida, para qualquer pessoa). O **scanner do app** lê o mesmo QR e abre a ficha daquele equipamento (laboratorista e instrumentação). O app não tem lista nem busca: para ver outro equipamento, lê-se outro QR (ou, no computador, digita-se a TAG exata).
 7. **Só ferramentas já licenciadas.** SharePoint, Power Apps e Power Automate com conectores padrão. Power BI Pro para compartilhar o painel.
 
 ## 3. Perfis e acessos
 
 | Perfil | Quem | Como entra | No app | Permissão no SharePoint |
 |---|---|---|---|---|
-| **Colaborador** | Qualquer pessoa da empresa | Automático: não está na lista Acessos, ou está com Ativo = Não | Lê o QR e vê a situação, a validade e o histórico daquele equipamento, sem botões | Leitura em tudo |
-| **Laboratorista** | Quem executa os ensaios | Lista **Acessos** · Perfil = Laboratorista | Agenda do turno só de leitura; lê o QR do equipamento para lançar a aferição dele; justificativa; desfazer | Leitura + **Colaborar** em Afericoes e Lancamentos |
-| **Instrumentação** | Técnicos de calibração | Lista **Acessos** · Perfil = Instrumentação | Lê o QR e registra a calibração daquele equipamento; troca de peneira de posição. Pendências no e-mail diário | Leitura + **Colaborar** em Calibracoes, Equipamentos e PontosAfericao |
+| **Colaborador** | Qualquer pessoa da empresa | Automático: não está na lista Acessos, ou está com Ativo = Não | **Não precisa do app.** Lê o QR com a câmera do celular e vê a **imagem** do equipamento no SharePoint: situação da calibração e validade | Leitura em tudo |
+| **Laboratorista** | Quem executa os ensaios | Lista **Acessos** · Perfil = Laboratorista | Scanner do app (ou TAG digitada no computador) abre a ficha: situação da calibração e campos da aferição. Agenda do turno só de leitura; justificativa; desfazer | Leitura + **Colaborar** em Afericoes e Lancamentos |
+| **Instrumentação** | Técnicos de calibração | Lista **Acessos** · Perfil = Instrumentação | Scanner do app (ou TAG digitada) abre a ficha com a última calibração e as **3 últimas observações** dos técnicos; registra a calibração; troca peneira de posição. Pendências no e-mail diário | Leitura + **Colaborar** em Calibracoes, Equipamentos e PontosAfericao |
 
 **Um lugar só:** a lista **Acessos**. O fluxo **F0** sincroniza a lista com os grupos do SharePoint. O app lê a lista para mostrar os botões; o grupo garante que a gravação só acontece para quem pode.
 
-Administração (listas de configuração, fluxos, app) é dos **Proprietários do site**. Não é um quarto perfil do app.
+Administração (listas de configuração, fluxos, app e **troca das imagens de consulta**) é dos **Proprietários do site**. Não é um quarto perfil do app.
+
+**Modo de leitura:** cada aferição, lançamento e calibração grava em `ModoLeitura` como o equipamento foi aberto: `QR` (scanner), `Digitado` (TAG digitada, normalmente no computador) ou `Link` (botão de um e-mail). Na gestão, dá para ver o que foi registrado sem a leitura da etiqueta.
 
 ## 4. Modelo de dados
 
@@ -72,7 +77,8 @@ Administração (listas de configuração, fluxos, app) é dos **Proprietários 
 | Afericoes | Um resultado por linha (= BD_Afericoes) | ~5.000 por ano |
 | Lancamentos | Um resumo por envio | ~1.000 por ano |
 | Calibracoes | Histórico de calibrações | ~100 por ano |
-| Configuracoes | Escala, turnos, massas, e-mails | ~12 |
+| Configuracoes | Escala, turnos, massas, e-mails, endereço das imagens | ~14 |
+| **ConsultaQR** (biblioteca) | Uma imagem por equipamento (`TAG.png`), aberta pela câmera | ~60 imagens |
 
 Detalhe de todas as colunas: [DICIONARIO-DE-DADOS.md](DICIONARIO-DE-DADOS.md).
 
@@ -124,7 +130,36 @@ Detalhe de todas as colunas: [DICIONARIO-DE-DADOS.md](DICIONARIO-DE-DADOS.md).
 
 Mesma regra da macro da planilha: **No turno**, **No dia** (outro turno fora da rotina), **Com atraso** (antes da próxima data da rotina), **Não feito**. Turno em andamento e futuro não contam. Conferido contra o painel de outubro: 91 previstos, 83 realizados.
 
-## 5A. Peneiradores e peneiras
+## 5A. Consulta pela câmera: a imagem no SharePoint
+
+O colaborador comum não usa o app. O QR Code da etiqueta é o endereço `PastaImagensQR/TAG.png`; a câmera do celular abre a imagem do equipamento, no mesmo padrão visual do app.
+
+| Situação na imagem | Quando | Cor |
+|---|---|---|
+| **CALIBRADO** · válida até dd/mm/aaaa | Há data de próxima calibração e ela não passou | Verde |
+| **NÃO UTILIZAR** · calibração vencida | A data de próxima calibração já passou | Vermelho |
+| **A CONFIRMAR** | Equipamento sem data de calibração cadastrada | Cinza |
+| **SEM CALIBRAÇÃO PERIÓDICA** | Equipamento que não tem calibração controlada (escolhido à mão no gerador) | Azul |
+
+**Regra decidida:** a imagem mostra NÃO UTILIZAR **somente com a calibração vencida**. Uma aferição não conforme **não** muda a imagem: ela bloqueia o equipamento no app, para a equipe, que faz nova aferição ou chama a calibração.
+
+**Ciclo de atualização (manual, uns 3 minutos por equipamento):**
+```
+Instrumentação registra calibração APROVADA ──► F3: e-mail para você com a linha pronta
+Calibração vence (dia seguinte à validade)  ──► F2 parte E: e-mail com a linha NÃO UTILIZAR
+        │
+        ▼
+gerador-imagens-consulta.html (cola a linha) ──► baixa TAG.png ──► ConsultaQR › Carregar › mesmo nome › Substituir
+```
+- Substituir mantém o mesmo endereço: a etiqueta continua valendo. A imagem antiga fica no **histórico de versões** (registro de auditoria).
+- Toda imagem traz "**Imagem atualizada em**" e a frase "Se a data de validade já passou, não use o equipamento": mesmo uma imagem esquecida não engana.
+- Carga inicial de todas as imagens: exibição **Imagens de consulta** da lista Equipamentos > modo de grade > copiar as linhas > colar no gerador > **Baixar todas (.zip)**.
+- Calibração **recusada** não gera imagem nova (o e-mail do F3 avisa).
+- O SharePoint pede login da conta da empresa para abrir a imagem.
+
+**Por que não automatizar a imagem:** o Power Automate com conectores padrão não desenha imagens. Automatizar exigiria conector pago ou serviço externo. Com poucas calibrações por semana, o passo manual é simples e não custa nada.
+
+## 5B. Peneiradores e peneiras
 
 São dezenas de peneiras distribuídas em alguns conjuntos (peneiradores), verificadas várias vezes por semana. O desenho separa **posição** de **peneira**:
 
@@ -145,10 +180,10 @@ São dezenas de peneiras distribuídas em alguns conjuntos (peneiradores), verif
 
 | Etiqueta | Onde cola | Quem usa | O que abre |
 |---|---|---|---|
-| **Peneirador** (100 × 50 mm) | Na máquina ou no suporte das peneiras circulares | Laboratorista (e qualquer um para consulta) | Situação de todas as peneiras daquele conjunto e o botão **Verificar as peneiras deste peneirador**, que abre o checklist já filtrado |
-| **Peneira** (mini 50 × 25 mm) | No aro de cada peneira | Instrumentação (e qualquer um para consulta) | Calibração da peneira, onde está instalada e o histórico de verificações. Botões **Registrar calibração** e **Instalar em posição** |
+| **Peneirador** (100 × 50 mm) | Na máquina ou no suporte das peneiras circulares | Laboratorista (scanner do app) | Situação de todas as peneiras daquele conjunto e o botão **Verificar as peneiras**, que abre o checklist já filtrado |
+| **Peneira** (mini 50 × 25 mm) | No aro de cada peneira | Instrumentação (scanner do app) e qualquer um pela câmera | Calibração da peneira, onde está instalada, as últimas observações. Botões **Registrar calibração** e **Instalar em posição** |
 
-As duas etiquetas usam o mesmo link do app. O app decide o que mostrar pelo tipo do equipamento.
+As duas etiquetas seguem a regra geral: o QR é o endereço da imagem (`TAG.png`). Pela câmera, abre a imagem; pelo scanner do app, abre a ficha, e o app decide o que mostrar pelo tipo do equipamento.
 
 ### Verificação rápida (checklist)
 
@@ -179,21 +214,25 @@ Laboratorista vê na Agenda do turno o que falta ─► vai até o equipamento e
 
 **Leitura do QR Code**
 ```
-Câmera do celular ─► link do app com ?equip=TAG ─► scrEquipamento (só aquele equipamento)
-  ─► LIBERADO / NÃO UTILIZAR + botões do perfil:
-       Colaborador: nenhum · Laboratorista: Lançar · Instrumentação: Registrar calibração
-App aberto pelo ícone ─► Laboratorista: agenda do turno (só leitura) · demais: "Leia o QR Code do equipamento"
+Câmera do celular ─► …/ConsultaQR/TAG.png ─► imagem (CALIBRADO / NÃO UTILIZAR)            qualquer pessoa
+App › Ler QR Code ─► mesmo endereço ─► app tira a TAG do nome do arquivo ─► scrEquipamento  equipe
+App › Digite a TAG (computador, sem câmera) ─► scrEquipamento (registro marcado "Digitado")
+  Laboratorista: situação da calibração + Lançar · Instrumentação: últimas observações + Registrar calibração
+Botão "Abrir no app" dos e-mails ─► link com ?equip=TAG ─► scrEquipamento (marcado "Link")
 ```
 
 **Calibração**
 ```
-Instrumentação ─► lê o QR do equipamento ─► Registrar calibração ─► Calibracoes + Equipamentos (datas, resultado, status)
+Instrumentação ─► scanner do app (ou TAG digitada) ─► vê as 3 últimas observações ─► Registrar calibração
+  ─► Calibracoes + Equipamentos (datas, resultado, certificado, status)
+  ─► F3: e-mail para o gestor com a linha do gerador ─► imagem nova na ConsultaQR (Substituir)
 ```
 
 **Rotina diária 07:00 (F2)**
 ```
 Recalcula o Status de todos os equipamentos ─► agenda de ontem (feito x pendente)
   ─► NC de ontem ─► equipamentos bloqueados ou vencendo ─► e-mail
+  ─► parte E: calibrações que venceram ontem ─► e-mail "atualize a imagem" (linhas NÃO UTILIZAR)
 ```
 
 ## 7. Onde se configura cada coisa
@@ -207,6 +246,9 @@ Recalcula o Status de todos os equipamentos ─► agenda de ontem (feito x pend
 | Dias e turnos de cada ensaio | Lista **Ensaios** (SegD … DomN) |
 | Escala de letras, horários dos turnos, massas do tamboramento, aviso de vencimento, e-mails | Lista **Configuracoes** |
 | Cadastro e calibração de equipamentos | Lista **Equipamentos** e app (instrumentação) |
+| **Valor padrão de uma amostra nova** (ex.: compressão) | Lista **Limites**: `Nominal`, `Tolerancia`, `LimInferior`, `LimSuperior`. Vale no próximo lançamento |
+| Imagem que a câmera abre | Biblioteca **ConsultaQR** (gerador de imagens + Substituir) |
+| Endereço das imagens e quem recebe o aviso de imagem | Lista **Configuracoes**: `PastaImagensQR`, `EmailsAvisoImagem` |
 
 ## 8. Capacidade e desempenho
 
@@ -237,6 +279,6 @@ Recalcula o Status de todos os equipamentos ─► agenda de ontem (feito x pend
 ## 11. Próximas evoluções (fase 2)
 
 - **Certificado anexado** na calibração (fluxo "Power Apps (V2)" com arquivo, gravando na biblioteca Certificados).
-- **Leitor de QR dentro do app** (controle Leitor de código de barras) para ler outra etiqueta sem sair do app.
+- **Imagem de consulta automática** (conector Word ou serviço de imagem), se o volume de calibrações crescer.
 - **App no Teams** do laboratório.
 - **Fechamento de manutenção** com etapas (aberta, em manutenção, concluída, recalibrado).

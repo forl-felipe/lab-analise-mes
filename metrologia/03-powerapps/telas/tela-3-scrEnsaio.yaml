@@ -783,7 +783,8 @@ Screens:
                                       RegistradoEm: Now(),
                                       TurnoRegistro: gblTurnoAtual,
                                       ForaDoTurno: wFora,
-                                      Origem: "App"
+                                      Origem: "App",
+                                      ModoLeitura: gblModoLeitura
                                   }
                               )
                           ),
@@ -812,7 +813,8 @@ Screens:
                                   RegistradoEm: Now(),
                                   ForaDoTurno: wFora,
                                   Situacao: "Ativo",
-                                  Origem: "App"
+                                  Origem: "App",
+                                  ModoLeitura: gblModoLeitura
                               }
                           ),
                           Notify("Resultados gravados, mas o resumo do lançamento falhou: " & FirstError.Message, NotificationType.Warning),

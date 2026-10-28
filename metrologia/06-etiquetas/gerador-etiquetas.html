@@ -69,10 +69,11 @@
 </header>
 <main>
   <section class="painel">
-    <h2>1. Link do aplicativo</h2>
-    <label for="url">Link da Web do app no Power Apps</label>
-    <input type="text" id="url" placeholder="https://apps.powerapps.com/play/e/.../a/...?tenantId=...">
-    <div class="dica">Power Apps › Aplicativos › (…) do app › Detalhes › <b>Link da Web</b>. O gerador acrescenta <code>equip=TAG</code> automaticamente.</div>
+    <h2>1. Endereço da biblioteca de imagens</h2>
+    <label for="url">Endereço da biblioteca ConsultaQR no SharePoint</label>
+    <input type="text" id="url" placeholder="https://EMPRESA.sharepoint.com/sites/SITE/ConsultaQR">
+    <div class="dica">Abra a biblioteca ConsultaQR e copie o endereço da barra do navegador (pode colar com <code>/Forms/AllItems.aspx</code>: o gerador limpa). Cada QR Code vira <code>endereço/TAG.png</code>: a câmera do celular abre a imagem e o scanner do app abre a ficha.</div>
+    <div class="dica" style="color:#b54708"><b>Antes de imprimir:</b> carregue as imagens na biblioteca (gerador de imagens de consulta). Toque numa etiqueta aqui para testar: deve abrir a imagem do equipamento.</div>
 
     <h2 style="margin-top:20px">2. Equipamentos</h2>
     <label for="lista">Uma linha por equipamento: TAG; Descrição; Local</label>
@@ -83,9 +84,9 @@
       <div>
         <label for="modelo">Modelo de etiqueta</label>
         <select id="modelo">
-          <option value="equip">Equipamento (todos os perfis)</option>
-          <option value="peneirador">Peneirador (laboratorista verifica as peneiras)</option>
-          <option value="peneira">Peneira (instrumentação · calibração)</option>
+          <option value="equip">Equipamento</option>
+          <option value="peneirador">Peneirador (conjunto de peneiras)</option>
+          <option value="peneira">Peneira (mini)</option>
         </select>
       </div>
       <div>
@@ -103,7 +104,7 @@
       </div>
       <div>
         <label for="rodape">Texto do rodapé</label>
-        <input type="text" id="rodape" value="Escaneie para ver se pode usar">
+        <input type="text" id="rodape" value="Câmera: situação · App: registrar">
       </div>
     </div>
 
@@ -114,7 +115,7 @@
     <div id="msg"></div>
   </section>
 
-  <p class="naoimprime dica">Dica: clique em uma etiqueta para testar o link no navegador antes de imprimir.</p>
+  <p class="naoimprime dica">Dica: clique em uma etiqueta para testar o link (abre a imagem no SharePoint) antes de imprimir.</p>
   <div id="folha"></div>
 </main>
 
@@ -2424,11 +2425,11 @@ var qrcode = function() {
   var $ = function (id) { return document.getElementById(id); };
   var campos = ['url', 'lista', 'modelo', 'tamanho', 'cabecalho', 'rodape'];
   var MODELOS = {
-    equip: { tamanho: 'M', cab: 'CONTROLE METROLÓGICO', rod: 'Escaneie para ver se pode usar' },
-    peneirador: { tamanho: 'G', cab: 'PENEIRADOR · VERIFICAÇÃO', rod: 'Laboratorista: escaneie para verificar as peneiras' },
-    peneira: { tamanho: 'PP', cab: 'PENEIRA · CALIBRAÇÃO', rod: 'Instrumentação' }
+    equip: { tamanho: 'M', cab: 'CONTROLE METROLÓGICO', rod: 'Câmera: situação · App: registrar' },
+    peneirador: { tamanho: 'G', cab: 'PENEIRADOR · CONJUNTO', rod: 'Câmera: situação · App: verificar peneiras' },
+    peneira: { tamanho: 'PP', cab: 'PENEIRA · CALIBRAÇÃO', rod: 'Câmera: calibração' }
   };
-  var CHAVE = 'gerador-etiquetas-calibracao';
+  var CHAVE = 'gerador-etiquetas-metrologia-imagens';
 
   try {
     var salvo = JSON.parse(localStorage.getItem(CHAVE) || 'null');
@@ -2448,9 +2449,9 @@ var qrcode = function() {
     });
   }
 
+  // O QR Code aponta para a imagem do equipamento na biblioteca ConsultaQR (endereço/TAG.png).
   function montarLink(base, tag) {
-    var sep = base.indexOf('?') >= 0 ? '&' : '?';
-    return base + sep + 'equip=' + encodeURIComponent(tag);
+    return base + '/' + encodeURIComponent(tag) + '.png';
   }
 
   function mensagem(texto, tipo) { var m = $('msg'); m.textContent = texto; m.className = tipo || ''; }
@@ -2460,14 +2461,15 @@ var qrcode = function() {
     var base = $('url').value.trim();
     var folha = $('folha');
     folha.innerHTML = '';
-    if (!/^https?:\/\//i.test(base)) { mensagem('Informe o Link da Web do aplicativo (começa com https://).', 'erro'); return; }
-    base = base.replace(/[?&]equip=[^&]*/i, '').replace(/\?&/, '?').replace(/[?&]$/, '');
+    if (!/^https?:\/\//i.test(base)) { mensagem('Informe o endereço da biblioteca ConsultaQR (começa com https://).', 'erro'); return; }
+    base = base.replace(/[?#].*$/, '').replace(/\/Forms\/.*$/i, '').replace(/\/[^\/]+\.(png|aspx)$/i, '').replace(/\/+$/, '');
+    if (/apps\.powerapps\.com/i.test(base)) { mensagem('Este é o link do app. As etiquetas agora apontam para a biblioteca de imagens ConsultaQR no SharePoint.', 'erro'); return; }
 
     var linhas = $('lista').value.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
     var vistos = {}, duplicadas = [], html = [];
     linhas.forEach(function (l) {
       var p = l.split(/\t|;/).map(function (x) { return x.trim(); });
-      var tag = p[0]; if (!tag) return;
+      var tag = (p[0] || '').toUpperCase(); if (!tag || /^(T[IÍ]TULO|TITLE|TAG)$/.test(tag)) return;
       if (vistos[tag.toUpperCase()]) { duplicadas.push(tag); return; }
       vistos[tag.toUpperCase()] = true;
       var link = montarLink(base, tag);

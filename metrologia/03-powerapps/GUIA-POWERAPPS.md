@@ -8,13 +8,14 @@ Um app **novo**, chamado **Metrologia**, com 5 telas. O app da versão 1 continu
 
 | Tela | Arquivo | Quem usa | O que faz |
 |---|---|---|---|
-| `scrInicio` | `tela-1-scrInicio.yaml` | Todos | Abre pelo ícone do app. Laboratorista: **Agenda do turno** (só leitura) e Desfazer. Demais: "Leia o QR Code do equipamento" |
-| `scrEquipamento` | `tela-2-scrEquipamento.yaml` | Todos | Abre pelo **QR Code**: LIBERADO / NÃO UTILIZAR, calibração, última aferição, justificativa e histórico. **Peneirador:** lista as posições e as peneiras. **Peneira:** mostra onde está instalada; instrumentação pode trocá-la de posição |
+| `scrInicio` | `tela-1-scrInicio.yaml` | Todos | Laboratorista e instrumentação: botão **Ler QR Code** (scanner) e campo **Digite a TAG** (computador). Laboratorista: agenda do turno (só leitura) e Desfazer. Instrumentação: quantas calibrações vencidas e vencendo. Colaborador: orientação para usar a câmera |
+| `scrEquipamento` | `tela-2-scrEquipamento.yaml` | Laboratorista e instrumentação | Ficha **só daquele equipamento**: LIBERADO / NÃO UTILIZAR, calibração, última aferição. Laboratorista: histórico de aferições e **Lançar**. Instrumentação: **3 últimas calibrações com as observações** e **Registrar calibração**. Peneirador: posições e peneiras. Peneira: onde está instalada e troca de posição |
 | `scrEnsaio` | `tela-3-scrEnsaio.yaml` | Laboratorista | Formulário de **medição** (Blaine, tambor, Alpine, umidade, compressão, granulometria, tamboramento, Fisher). Calcula na hora |
 | `scrVerificacao` | `tela-4-scrVerificacao.yaml` | Laboratorista | **Checklist dos peneiradores**: tudo começa OK, botão **Marcar todos OK**, toque no item para corrigir. Só as peneiras do peneirador lido no QR |
-| `scrCalibrar` | `tela-5-scrCalibrar.yaml` | Instrumentação | Registro de **calibração** |
+| `scrCalibrar` | `tela-5-scrCalibrar.yaml` | Instrumentação | Registro de **calibração** (o certificado vai para a imagem de consulta; a observação aparece para o próximo técnico) |
+| Leitor de QR | `leitor-qr-OnScan.txt` | Laboratorista e instrumentação | Controle **inserido à mão** na scrInicio (seção 2.5): o YAML ainda não traz esse controle |
 
-**Regra do app: um QR Code, um equipamento.** Não existe lista nem busca de equipamentos. Cada QR abre só aquele equipamento, com os botões do perfil de quem leu. Os formulários de lançamento abrem só com os campos do equipamento lido.
+**Regra do app: um QR Code, um equipamento.** Não existe lista nem busca de equipamentos. O QR da etiqueta é o endereço da imagem do equipamento (`…/ConsultaQR/TAG.png`): a câmera do celular abre a imagem (colaborador comum, sem app); o **scanner do app** lê o mesmo QR, tira a TAG do nome do arquivo e abre só aquele equipamento, com os botões do perfil de quem leu. Os formulários de lançamento abrem só com os campos do equipamento lido.
 
 Os formulários **não são fixos**: são montados a partir das listas **PontosAfericao** (campos) e **Limites** (critérios). Para incluir uma peneira nova, basta acrescentar uma linha na PontosAfericao. Não precisa mexer no app.
 
@@ -47,11 +48,25 @@ Depois das cinco:
 - Arraste **scrInicio** para o topo da árvore.
 - Pode aparecer X vermelho enquanto faltam telas. Com as cinco coladas, os erros somem.
 
-> **Plano B**, se a tela inteira não colar: crie uma tela em branco com o nome certo (ex.: `scrInicio`), selecione a tela e cole o arquivo da pasta `alternativa-somente-controles`. Depois copie o conteúdo do arquivo `...-OnVisible.txt` para a propriedade **OnVisible** da tela. Fórmulas digitadas ou coladas na barra de fórmulas do Studio em português usam `;` no lugar de `,` (veja 2.9).
+> **Plano B**, se a tela inteira não colar: crie uma tela em branco com o nome certo (ex.: `scrInicio`), selecione a tela e cole o arquivo da pasta `alternativa-somente-controles`. Depois copie o conteúdo do arquivo `...-OnVisible.txt` para a propriedade **OnVisible** da tela. Fórmulas digitadas ou coladas na barra de fórmulas do Studio em português usam `;` no lugar de `,` (veja 2.11).
 
-## 2.5 Tela inicial pelo QR Code
+## 2.5 Leitor de QR Code (inserir à mão, 5 minutos)
 
-Clique em **App** na árvore > propriedade **StartScreen** > cole:
+O leitor de código de barras não vem no YAML. Você insere uma vez, por cima do cartão azul **Ler QR Code** da tela Início. Tudo o que precisa está no arquivo **`leitor-qr-OnScan.txt`** desta pasta.
+
+1. Selecione a tela **scrInicio**. Menu **Inserir > Mídia > Leitor de código de barras** (em inglês: *Insert > Media > Barcode reader*).
+2. Renomeie o controle para **`bcrIniScanner`** (exatamente assim: a fórmula usa esse nome).
+3. Copie as propriedades do arquivo (X, Y, Width, Height, Visible, Text, Fill, BorderThickness). O controle fica **transparente** por cima do cartão azul; quem toca no cartão abre a câmera.
+4. Propriedade **OnScan**: cole a fórmula do arquivo (há uma versão para o Studio em português e outra em inglês).
+5. Na árvore, confira que **bcrIniScanner** ficou **acima** dos controles `recIniScan…` (o último inserido fica por cima).
+
+**O que a fórmula faz:** lê o texto do QR (por exemplo `https://…/ConsultaQR/BAL-01.png`), tira a TAG do nome do arquivo (`BAL-01`), confere se o equipamento existe e está ativo e abre a ficha. Também aceita QR com o link do app (`…&equip=TAG`) ou só a TAG. QR de outra coisa mostra "Este QR Code não é de um equipamento cadastrado".
+
+> **Câmera no celular:** use o app **Power Apps** instalado (Play Store / App Store, login da empresa) ou o navegador do celular. Na primeira vez, o celular pede permissão para a câmera: toque em **Permitir**.
+
+## 2.6 Tela inicial por link (botões dos e-mails)
+
+Os e-mails dos fluxos têm o botão **Abrir no app** com `…&equip=TAG`. Para o app abrir direto na ficha, clique em **App** na árvore > propriedade **StartScreen** > cole:
 
 Studio em português:
 ```
@@ -62,24 +77,38 @@ Studio em inglês:
 If(IsBlank(Param("equip")), scrInicio, scrEquipamento)
 ```
 
-## 2.6 Testar no Studio
+## 2.7 Testar no Studio
 
 1. Cadastre-se na lista **Acessos** como **Laboratorista**.
 2. Selecione **scrInicio** e aperte **F5**. A agenda do turno deve aparecer, sem itens clicáveis.
-3. Para simular a leitura de um QR no Studio: em **App > OnStart** cole temporariamente `Set(gblTag, "TAG-DE-TESTE")`, rode o OnStart (… > Executar OnStart) e abra **scrEquipamento**. Apague a linha depois. No celular, teste com a etiqueta impressa ou com o link `...&equip=TAG`.
-4. Siga o **roteiro de testes** (`roteiro-de-testes.md`, no pacote de dados): 26 casos com o valor esperado de cada cálculo.
-5. Troque seu perfil para **Instrumentação** na lista Acessos, feche o app e abra de novo: o Início mostra "Leia o QR Code do equipamento" e a ficha do equipamento mostra **Registrar calibração**.
-6. Desmarque **Ativo**: você vira **Colaborador**. A ficha do equipamento aparece sem nenhum botão.
+3. **Digite uma TAG** no campo da tela Início e toque em **Abrir**: abre a ficha daquele equipamento (é o caminho do computador). TAG que não existe mostra aviso.
+4. **Scanner:** publique (2.8), abra o app no celular, toque em **Ler QR Code** e aponte para uma etiqueta impressa (ou para o QR na tela do gerador de etiquetas).
+5. Siga o **roteiro de testes** (`roteiro-de-testes.md`, no pacote de dados): 26 casos com o valor esperado de cada cálculo.
+6. Troque seu perfil para **Instrumentação** na lista Acessos, feche o app e abra de novo: o Início mostra o scanner e as contagens de calibração; a ficha mostra as **últimas observações** e **Registrar calibração**.
+7. Desmarque **Ativo**: você vira **Colaborador**. O Início orienta a usar a câmera do celular (a consulta do colaborador é pela imagem, não pelo app).
 
 > O perfil é lido quando o app abre. Depois de mudar a lista Acessos, feche e abra o app (ou use o botão **Atualizar** ↻ no topo do Início).
 
-## 2.7 Publicar e compartilhar
+## 2.8 Publicar e compartilhar
 
 1. **Salvar > Publicar**.
 2. make.powerapps.com > Aplicativos > (…) **Metrologia** > **Compartilhar** > adicione **Todos, exceto usuários externos** como **Usuário**. Coloque mais uma pessoa como **Coproprietário** (backup).
-3. (…) > **Detalhes** > copie o **Link da Web**. Ele vai no gerador de etiquetas (etapa 5) e na configuração `LinkApp` da lista Configuracoes.
+3. (…) > **Detalhes** > copie o **Link da Web** e cole na configuração `LinkApp` da lista Configuracoes (é o botão "Abrir no app" dos e-mails). As etiquetas **não** usam esse link: elas apontam para as imagens da biblioteca ConsultaQR.
+4. Para quem usa no celular: instale o app **Power Apps** (Play Store / App Store), entre com a conta da empresa e marque o **Metrologia** como favorito. Também funciona pelo navegador.
 
-## 2.8 Como o app funciona (para quem for manter)
+## 2.9 Celular e computador
+
+É **o mesmo app**. No computador ele abre pelo navegador (Link da Web) ou pelo Teams (+ Adicionar um app > Power Apps > Metrologia), com o mesmo login.
+
+| | Celular | Computador |
+|---|---|---|
+| Abrir um equipamento | **Ler QR Code** (câmera) | **Digite a TAG** exata e **Abrir** |
+| Formato da tela | Tela cheia | O mesmo formato de celular, centralizado |
+| Registro gravado como | `ModoLeitura = QR` | `ModoLeitura = Digitado` |
+
+Não existe lista nem busca no computador: para abrir, digita-se a TAG exata. Assim a regra "um equipamento por vez" continua valendo, e a gestão consegue ver no Power BI o que foi lançado sem a leitura da etiqueta.
+
+## 2.10 Como o app funciona (para quem for manter)
 
 ### Perfil
 
@@ -130,7 +159,7 @@ Essas regras foram conferidas contra **todos os 400 registros de outubro** (`rel
 |---|---|
 | Colaborador | nenhum ("Modo consulta") |
 | Laboratorista | um botão por ensaio da coluna `EnsaioAfericao` (ex.: `TAM;T515` = dois botões). Peneira instalada: **Verificar as peneiras do <peneirador>** |
-| Instrumentação | **Registrar calibração**. Peneira: também **Instalar em posição** |
+| Instrumentação | **Registrar calibração**. Peneira: também **Instalar em posição**. A lista mostra as **3 últimas calibrações** com resultado, certificado e a observação do técnico (coleção `colCalHist`) |
 
 O botão voltar da ficha leva ao Início (agenda ou "Leia o QR"). Nas telas de lançamento, voltar leva de volta à ficha do equipamento.
 
@@ -159,12 +188,12 @@ O botão voltar da ficha leva ao Início (agenda ou "Leia o QR"). Nas telas de l
 6. Vence em até `DiasAvisoCalibracao` dias → Liberado · Calibração vence em breve
 7. Senão → Liberado
 
-## 2.9 Vírgula e ponto e vírgula
+## 2.11 Vírgula e ponto e vírgula
 
 - **Colando YAML**: o Power Apps converte sozinho.
 - **Digitando ou colando na barra de fórmulas** com o Studio em português: troque `,` por `;` e `;` (entre comandos) por `;;`.
 
-## 2.10 Problemas comuns
+## 2.12 Problemas comuns
 
 | Sintoma | Causa provável | O que fazer |
 |---|---|---|
@@ -175,14 +204,19 @@ O botão voltar da ficha leva ao Início (agenda ou "Leia o QR"). Nas telas de l
 | Todo mundo aparece como Colaborador | E-mail da pessoa diferente do login | Escolha a pessoa pelo seletor (não digite) |
 | "Não foi possível gravar os resultados" | Pessoa sem permissão na lista Afericoes | Fluxo F0 ou grupo **Metrologia - Laboratoristas** |
 | Equipamento continua bloqueado depois do lançamento | O fluxo F1 ainda não rodou | Aguarde 1 a 2 minutos e use ↻ Atualizar |
+| Tocar em **Ler QR Code** não abre a câmera | Leitor não inserido, nome diferente de `bcrIniScanner`, ou ele ficou atrás do cartão | Seção 2.5. Na árvore, o leitor tem de ficar acima dos controles `recIniScan…` |
+| "Este QR Code não é de um equipamento cadastrado" | A imagem tem nome diferente da TAG, ou o equipamento está com Ativo = Não | Confira o nome do arquivo na ConsultaQR (`TAG.png`) e a lista Equipamentos |
+| A câmera abre, mas não lê | Pouca luz, etiqueta muito pequena ou suja | Aproxime até o QR ocupar o quadro. Etiqueta de peneira: imprima em boa resolução (seção 5 do guia de etiquetas) |
+| O celular não pede permissão da câmera | Permissão negada antes | Configurações do celular > Apps > Power Apps (ou o navegador) > Permissões > Câmera |
 
-## 2.11 Manutenção do dia a dia (sem mexer no app)
+## 2.13 Manutenção do dia a dia (sem mexer no app)
 
 | Quero | Onde |
 |---|---|
 | Dar ou tirar acesso | Lista **Acessos** |
-| Mudar uma tolerância | Lista **Limites** |
+| Mudar uma tolerância ou o **valor padrão de uma amostra nova** (ex.: compressão) | Lista **Limites** (`Nominal`, `Tolerancia`, `LimInferior`, `LimSuperior`). Vale no próximo lançamento |
 | Incluir ou trocar uma peneira, prensa ou tambor | Lista **PontosAfericao** (e **Equipamentos**) |
 | Mudar a agenda de um ensaio | Lista **Ensaios** (colunas SegD … DomN) |
 | Mudar a escala de letras, horário de turno ou massas de ensaio | Lista **Configuracoes** |
 | Cadastrar a data de calibração | App, perfil Instrumentação (ou lista **Equipamentos**) |
+| Atualizar a imagem que a câmera abre | **Gerador de imagens de consulta** + biblioteca **ConsultaQR** (Carregar > mesmo nome > Substituir) |

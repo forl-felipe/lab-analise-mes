@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from modelo import GRUPOS, LISTAS  # noqa: E402
+from modelo import BIBLIOTECA_IMAGENS, GRUPOS, LISTAS  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parents[1]
 
@@ -52,7 +52,9 @@ def main():
         "    2. Cria índices (necessários para a lista passar de 5.000 itens sem travar o app).",
         "    3. Cria os grupos 'Metrologia - Laboratoristas' e 'Metrologia - Instrumentação' e",
         "       aplica as permissões de cada lista.",
-        "    4. (Opcional, -ImportarDados) importa a carga inicial dos CSVs gerados por gerar_carga.py.",
+        "    4. Cria a biblioteca ConsultaQR (uma imagem por equipamento, aberta pela câmera do celular)",
+        "       e a exibição 'Imagens de consulta' na lista Equipamentos.",
+        "    5. (Opcional, -ImportarDados) importa a carga inicial dos CSVs gerados por gerar_carga.py.",
         "",
         "  Pré-requisitos: PowerShell 7+, módulo PnP.PowerShell e um App Registration do Entra ID",
         "  (Register-PnPEntraIDAppForInteractiveLogin). Peça à TI se não tiver.",
@@ -107,7 +109,20 @@ def main():
         out.append(f"Set-PnPView -List {ps_str(L.nome)} -Identity $v.Id -Fields @({', '.join(ps_str(x) for x in campos)}) | Out-Null")
         out.append("")
 
+    bib = BIBLIOTECA_IMAGENS
     out += [
+        f"# ---------------------------------------------------------------- Biblioteca {bib['nome']} (imagens do QR Code)",
+        f"if (-not (Get-PnPList -Identity {ps_str(bib['nome'])} -ErrorAction SilentlyContinue)) {{",
+        f"    New-PnPList -Title {ps_str(bib['nome'])} -Template DocumentLibrary -OnQuickLaunch | Out-Null",
+        f"    Write-Host 'Biblioteca criada: {bib['nome']}' -ForegroundColor Green",
+        "}",
+        f"Set-PnPList -Identity {ps_str(bib['nome'])} -Description {ps_str(bib['descricao'])} -EnableVersioning $true -MajorVersions 50 | Out-Null",
+        "# Herda as permissões do site: todos leem; só os proprietários substituem as imagens.",
+        f"if (-not (Get-PnPView -List 'Equipamentos' -Identity {ps_str(bib['exibicao'])} -ErrorAction SilentlyContinue)) {{",
+        f"    Add-PnPView -List 'Equipamentos' -Title {ps_str(bib['exibicao'])} -Fields @({', '.join(ps_str(x) for x in bib['campos_exibicao'])}) -Query \"<OrderBy><FieldRef Name='Title' /></OrderBy><Where><Eq><FieldRef Name='Ativo' /><Value Type='Boolean'>1</Value></Eq></Where>\" -RowLimit 500 | Out-Null",
+        f"    Write-Host 'Exibição criada: Equipamentos > {bib['exibicao']}' -ForegroundColor Green",
+        "}",
+        "",
         "# ---------------------------------------------------------------- Formatação de cores (Status / Resultado)",
         "$fmt = Join-Path $PSScriptRoot 'formatacao'",
         "if (Test-Path (Join-Path $fmt 'equipamentos-status.json')) {",

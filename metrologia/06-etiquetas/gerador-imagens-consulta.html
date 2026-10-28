@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gerador de imagens de consulta</title>
+<style>
+  :root {
+    --navy: #0b2540; --navy2: #163b62; --accent: #0e6ba8; --bg: #f2f5f8; --line: #d3dbe5; --txt: #172334; --sub: #5d6b7d;
+    --ok: #1e7f4f; --oks: #e2f3ea; --bad: #b42318; --bads: #fdeceb; --warn: #b54708; --warns: #fef0c7;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; color: var(--txt); background: var(--bg); }
+  header { background: var(--navy); color: #fff; padding: 18px 24px; }
+  header .in { max-width: 1200px; margin: 0 auto; display: flex; gap: 16px; justify-content: space-between; align-items: end; flex-wrap: wrap; }
+  header small { display: block; color: #9fc0de; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+  header h1 { margin: 2px 0 0; font-size: 24px; }
+  header p { margin: 4px 0 0; color: #c5d6e8; font-size: 14px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 50px; display: grid; gap: 18px; }
+  .painel { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 12px; }
+  .painel h2 { margin: 0; font-size: 16px; color: var(--navy); }
+  .passos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 900px) { .passos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .passos { grid-template-columns: minmax(0, 1fr); } }
+  .passo { background: var(--bg); border-radius: 10px; padding: 10px 12px; font-size: 13px; color: var(--sub); }
+  .passo .t { display: block; color: var(--navy); font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .passo b { color: var(--txt); }
+  label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  input[type=text], input[type=date], textarea, select { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 14px; background: #fff; color: var(--txt); }
+  textarea { min-height: 150px; font-family: Consolas, "Courier New", monospace; font-size: 13px; }
+  .linha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 760px) { .linha { grid-template-columns: minmax(0, 1fr); } }
+  .dica { color: var(--sub); font-size: 12.5px; }
+  code { font-family: Consolas, monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 12px; }
+  .botoes { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button, .btnlink { padding: 10px 18px; border-radius: 8px; border: 1px solid var(--navy); background: var(--navy); color: #fff; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; font-size: 14px; }
+  button.sec, .btnlink.sec { background: #fff; color: var(--navy); }
+  button:disabled { opacity: .5; cursor: default; }
+  button:focus-visible, .btnlink:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  #msg { font-size: 13.5px; }
+  #msg.erro { color: var(--bad); } #msg.ok { color: var(--ok); }
+  .resumo { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-size: 12px; font-weight: 700; border-radius: 99px; padding: 4px 10px; }
+  .c-ok { background: var(--oks); color: var(--ok); } .c-bad { background: var(--bads); color: var(--bad); } .c-mut { background: #eceff3; color: #556274; } .c-warn { background: var(--warns); color: var(--warn); }
+  #grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+  .item { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
+  .item canvas { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .item .av { font-size: 12px; color: var(--warn); background: var(--warns); border-radius: 6px; padding: 5px 8px; }
+  .item .ac { display: grid; gap: 6px; }
+  .item select { padding: 6px 8px; font-size: 12.5px; }
+  .item button { padding: 7px 10px; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<header><div class="in">
+  <div>
+    <small>Sistema Metrologia · consulta pelo QR Code</small>
+    <h1>Gerador de imagens de consulta</h1>
+    <p>Cria a imagem que a câmera do celular abre ao ler a etiqueta. Funciona offline: nada sai deste computador.</p>
+  </div>
+</div></header>
+
+<main>
+  <section class="painel">
+    <h2>Como usar</h2>
+    <div class="passos">
+      <div class="passo"><span class="t">1. Cole as linhas</span>Do e-mail de calibração (uma linha) ou da exibição <i>Imagens de consulta</i> da lista Equipamentos (todas).</div>
+      <div class="passo"><span class="t">2. Gere e confira</span>A situação é calculada pela data: <b>NÃO UTILIZAR</b> só quando a calibração está vencida.</div>
+      <div class="passo"><span class="t">3. Baixe</span>Cada imagem sai com o nome certo (<code>TAG.png</code>). Para várias, baixe o .zip.</div>
+      <div class="passo"><span class="t">4. Substitua no SharePoint</span>Biblioteca ConsultaQR › Carregar › mesmo nome › <b>Substituir</b>. A etiqueta continua valendo.</div>
+    </div>
+  </section>
+
+  <section class="painel">
+    <h2>Equipamentos</h2>
+    <div>
+      <label for="lista">Uma linha por equipamento: TAG; Descrição; Local; Situação; Última calibração; Próxima calibração; Certificado; Periodicidade (meses)</label>
+      <textarea id="lista" spellcheck="false" placeholder="BAL-01; Balança analítica; Sala de pesagem; ; 10/04/2026; 10/04/2027; CAL-2026-0412; 12"></textarea>
+      <p class="dica">Aceita ponto e vírgula (linha do e-mail) ou tabulação (copiado da lista no modo de grade). A coluna Situação pode ficar vazia ou ter o texto do Status da lista: o gerador decide pela data da próxima calibração.</p>
+    </div>
+    <div class="linha">
+      <div><label for="lab">Nome do laboratório (aparece no topo)</label><input type="text" id="lab" value="Laboratório físico"></div>
+      <div><label for="contato">Contato (aparece no rodapé)</label><input type="text" id="contato" value="Dúvidas: equipe de Instrumentação"></div>
+      <div><label for="hoje">Imagem atualizada em</label><input type="date" id="hoje"></div>
+    </div>
+    <div>
+      <label for="pasta">Endereço da biblioteca ConsultaQR (opcional, só para o atalho "Abrir a biblioteca")</label>
+      <input type="text" id="pasta" placeholder="https://EMPRESA.sharepoint.com/sites/SITE/ConsultaQR">
+    </div>
+    <div class="botoes">
+      <button id="gerar" type="button">Gerar imagens</button>
+      <button id="zip" class="sec" type="button" disabled>Baixar todas (.zip)</button>
+      <a id="abrirPasta" class="btnlink sec" href="#" target="_blank" rel="noopener" hidden>Abrir a biblioteca ConsultaQR</a>
+      <span id="msg" role="status"></span>
+    </div>
+    <div class="resumo" id="resumo"></div>
+  </section>
+
+  <div id="grade"></div>
+</main>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var CHAVE = 'metrologia-gerador-imagens';
+  var campos = ['lista', 'lab', 'contato', 'pasta'];
+  var W = 1080, H = 1350;
+  var SITUACOES = ['CALIBRADO', 'NÃO UTILIZAR', 'A CONFIRMAR', 'SEM CALIBRAÇÃO PERIÓDICA'];
+  var itens = [];
+
+  function hojeISO() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  try {
+    var salvo = JSON.parse(localStorage.getItem(CHAVE) || 'null');
+    if (salvo) campos.forEach(function (c) { if (salvo[c] != null) $(c).value = salvo[c]; });
+  } catch (e) { }
+  $('hoje').value = hojeISO();
+  function salvar() { try { var d = {}; campos.forEach(function (c) { d[c] = $(c).value; }); localStorage.setItem(CHAVE, JSON.stringify(d)); } catch (e) { } }
+
+  /* ---------- datas ---------- */
+  // Aceita dd/mm/aaaa, d/m/aa, aaaa-mm-dd e datas com hora (copiadas da lista).
+  function lerData(s) {
+    s = (s || '').trim(); if (!s) return null;
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/);
+    if (m) { var a = +m[3]; if (a < 100) a += 2000; var d = new Date(a, +m[2] - 1, +m[1]); return d.getMonth() === +m[2] - 1 ? d : undefined; }
+    return undefined;
+  }
+  function fmt(d) { return d ? String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear() : '—'; }
+  function hoje() { var h = lerData($('hoje').value) || new Date(); h.setHours(0, 0, 0, 0); return h; }
+
+  /* ---------- regra da situação: NÃO UTILIZAR só com calibração vencida ---------- */
+  function situacao(txt, prox, avisos) {
+    var t = (txt || '').trim().toUpperCase();
+    var vencida = prox && prox < hoje();
+    if (t.indexOf('SEM CALIBRA') === 0) return 'SEM CALIBRAÇÃO PERIÓDICA';
+    if (vencida) {
+      if (t === 'CALIBRADO') avisos.push('A linha dizia CALIBRADO, mas a calibração venceu em ' + fmt(prox) + ': a imagem sai como NÃO UTILIZAR.');
+      return 'NÃO UTILIZAR';
+    }
+    if (prox) {
+      if (t === 'NÃO UTILIZAR' || t === 'NAO UTILIZAR') avisos.push('A linha dizia NÃO UTILIZAR, mas a calibração está válida até ' + fmt(prox) + ': a imagem sai como CALIBRADO.');
+      return 'CALIBRADO';
+    }
+    if (t === 'NÃO UTILIZAR' || t === 'NAO UTILIZAR') return 'NÃO UTILIZAR';
+    return 'A CONFIRMAR';
+  }
+
+  function ler() {
+    var linhas = $('lista').value.split(/\r?\n/).map(function (l) { return l.replace(/\s+$/, ''); }).filter(function (l) { return l.trim(); });
+    var vistos = {}, out = [], problemas = [];
+    linhas.forEach(function (l, i) {
+      var p = l.split(l.indexOf('\t') >= 0 ? '\t' : ';').map(function (x) { return x.trim(); });
+      var tag = (p[0] || '').toUpperCase();
+      if (!tag || /^(T[IÍ]TULO|TITLE|TAG)$/.test(tag)) return;
+      if (/[\\\/:*?"<>|#%]/.test(tag)) { problemas.push('Linha ' + (i + 1) + ': a TAG "' + tag + '" tem caractere que não pode ir em nome de arquivo.'); return; }
+      if (vistos[tag]) { problemas.push('TAG repetida ignorada: ' + tag); return; }
+      vistos[tag] = true;
+      var av = [];
+      var ult = lerData(p[4]), prox = lerData(p[5]);
+      if (ult === undefined) { av.push('Data da última calibração não reconhecida: "' + p[4] + '".'); ult = null; }
+      if (prox === undefined) { av.push('Data da próxima calibração não reconhecida: "' + p[5] + '".'); prox = null; }
+      var per = (p[7] || '').replace(/[^\d]/g, '');
+      if (!prox && ult && per) { prox = new Date(ult); prox.setMonth(prox.getMonth() + (+per)); av.push('Próxima calibração calculada: última + ' + per + ' meses.'); }
+      var sit = situacao(p[3], prox, av);
+      if (sit === 'A CONFIRMAR') av.push('Sem data de calibração: a imagem diz "a confirmar". Confira com a instrumentação.');
+      out.push({ tag: tag, desc: p[1] || '', local: p[2] || '', sit: sit, ult: ult, prox: prox, cert: p[6] || '', per: per, avisos: av });
+    });
+    return { itens: out, problemas: problemas };
+  }
+
+  /* ---------- desenho da imagem (mesmo padrão visual do app) ---------- */
+  var FONTE = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
+  function fonte(peso, px) { return peso + ' ' + px + 'px ' + FONTE; }
+  function caber(ctx, texto, peso, px, larg, min) {
+    var s = px; ctx.font = fonte(peso, s);
+    while (ctx.measureText(texto).width > larg && s > (min || 18)) { s -= 2; ctx.font = fonte(peso, s); }
+    return s;
+  }
+  function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function quebrar(ctx, texto, larg) {
+    var pal = texto.split(' '), linhas = [], at = '';
+    pal.forEach(function (w) { var t = at ? at + ' ' + w : w; if (ctx.measureText(t).width > larg && at) { linhas.push(at); at = w; } else at = t; });
+    if (at) linhas.push(at); return linhas;
+  }
+  var CORES = {
+    'CALIBRADO': ['#1e7f4f', '#17663f'],
+    'NÃO UTILIZAR': ['#c0291d', '#9b1c13'],
+    'A CONFIRMAR': ['#556274', '#3f4a59'],
+    'SEM CALIBRAÇÃO PERIÓDICA': ['#0e6ba8', '#0b4f7d']
+  };
+  function subtitulo(it) {
+    if (it.sit === 'CALIBRADO') return 'Calibração válida até ' + fmt(it.prox);
+    if (it.sit === 'NÃO UTILIZAR') return it.prox ? 'Calibração vencida em ' + fmt(it.prox) : 'Calibração vencida';
+    if (it.sit === 'A CONFIRMAR') return 'Data de calibração a confirmar com a Instrumentação';
+    return 'Este equipamento não tem calibração periódica';
+  }
+  function desenhar(cv, it) {
+    cv.width = W; cv.height = H;
+    var c = cv.getContext('2d');
+    c.fillStyle = '#f2f5f8'; c.fillRect(0, 0, W, H);
+    // topo
+    c.fillStyle = '#0b2540'; c.fillRect(0, 0, W, 190);
+    c.fillStyle = '#0e6ba8'; rr(c, 60, 48, 94, 94, 22); c.fill();
+    c.strokeStyle = '#fff'; c.lineWidth = 11; c.lineCap = 'round'; c.lineJoin = 'round';
+    c.beginPath(); c.moveTo(84, 97); c.lineTo(102, 117); c.lineTo(132, 76); c.stroke();
+    c.fillStyle = '#fff'; c.font = fonte(800, 40); c.textBaseline = 'alphabetic';
+    c.fillText('CONTROLE METROLÓGICO', 182, 96);
+    c.fillStyle = '#a9c2dc'; caber(c, $('lab').value || 'Laboratório', 400, 32, 600); c.fillText($('lab').value || 'Laboratório', 182, 140);
+    c.fillStyle = 'rgba(255,255,255,0.14)'; rr(c, W - 250, 70, 190, 54, 27); c.fill();
+    c.fillStyle = '#dfe9f3'; c.font = fonte(700, 24); c.textAlign = 'center'; c.fillText('CONSULTA', W - 155, 106); c.textAlign = 'left';
+    // identificação
+    c.fillStyle = '#ffffff'; rr(c, 40, 220, W - 80, 230, 28); c.fill();
+    c.fillStyle = '#0b2540'; caber(c, it.tag, 900, 124, W - 160, 60); c.fillText(it.tag, 80, 358);
+    c.fillStyle = '#5d6b7d'; caber(c, it.desc || ' ', 400, 40, W - 160, 24); c.fillText(it.desc, 80, 414);
+    // situação
+    var g = c.createLinearGradient(40, 480, W - 40, 720); g.addColorStop(0, CORES[it.sit][0]); g.addColorStop(1, CORES[it.sit][1]);
+    c.fillStyle = g; rr(c, 40, 480, W - 80, 250, 28); c.fill();
+    c.fillStyle = 'rgba(255,255,255,0.18)'; c.beginPath(); c.arc(140, 605, 62, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#fff'; c.lineWidth = 12;
+    if (it.sit === 'CALIBRADO') { c.beginPath(); c.moveTo(110, 607); c.lineTo(133, 630); c.lineTo(172, 582); c.stroke(); }
+    else if (it.sit === 'NÃO UTILIZAR') { c.beginPath(); c.arc(140, 605, 34, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(116, 629); c.lineTo(164, 581); c.stroke(); }
+    else { c.fillStyle = '#fff'; c.font = fonte(900, 74); c.textAlign = 'center'; c.fillText(it.sit === 'A CONFIRMAR' ? '?' : 'i', 140, 631); c.textAlign = 'left'; }
+    c.fillStyle = '#fff'; caber(c, it.sit, 900, 76, W - 340, 40); c.fillText(it.sit, 236, 596);
+    c.fillStyle = 'rgba(255,255,255,0.95)'; caber(c, subtitulo(it), 600, 36, W - 320, 22); c.fillText(subtitulo(it), 238, 652);
+    // dados
+    var caixas = [['ÚLTIMA CALIBRAÇÃO', fmt(it.ult)], ['PRÓXIMA CALIBRAÇÃO', fmt(it.prox)], ['CERTIFICADO', it.cert || '—'], ['PERIODICIDADE', it.per ? it.per + ' meses' : '—']];
+    caixas.forEach(function (cx, i) {
+      var x = 40 + (i % 2) * ((W - 100) / 2 + 20), y = 760 + Math.floor(i / 2) * 170, w = (W - 100) / 2;
+      c.fillStyle = '#fff'; rr(c, x, y, w, 150, 22); c.fill();
+      c.fillStyle = '#5d6b7d'; c.font = fonte(800, 22); c.fillText(cx[0], x + 30, y + 52);
+      c.fillStyle = (i === 1 && it.sit === 'NÃO UTILIZAR') ? '#b42318' : '#0b2540'; caber(c, cx[1], 800, 48, w - 60, 24); c.fillText(cx[1], x + 30, y + 116);
+    });
+    // rodapé
+    c.fillStyle = '#d3dbe5'; c.fillRect(40, 1118, W - 80, 2);
+    c.fillStyle = '#172334'; c.font = fonte(400, 30); c.fillText('Imagem atualizada em ', 60, 1170);
+    var lw = c.measureText('Imagem atualizada em ').width; c.font = fonte(800, 30); c.fillText(fmt(hoje()), 60 + lw, 1170);
+    var aviso = it.sit === 'NÃO UTILIZAR' ? 'Não use este equipamento até a nova calibração.' : 'Se a data de validade já passou, não use o equipamento.';
+    c.fillStyle = it.sit === 'NÃO UTILIZAR' ? '#b42318' : '#5d6b7d'; c.font = fonte(700, 28);
+    quebrar(c, aviso, W - 120).forEach(function (l, i) { c.fillText(l, 60, 1218 + i * 36); });
+    c.fillStyle = '#5d6b7d'; c.font = fonte(400, 26); caber(c, ($('contato').value || '') + (it.local ? '  ·  ' + it.local : ''), 400, 26, W - 120, 18);
+    c.fillText(($('contato').value || '') + (it.local ? '  ·  ' + it.local : ''), 60, 1300);
+  }
+
+  /* ---------- download e .zip (sem internet: gravador de zip próprio, sem compressão) ---------- */
+  function baixar(blob, nome) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome;
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  }
+  function pngDe(it) { return new Promise(function (ok) { var cv = document.createElement('canvas'); desenhar(cv, it); cv.toBlob(ok, 'image/png'); }); }
+  var CRC = (function () { var t = new Uint32Array(256); for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(b) { var c = 0xFFFFFFFF; for (var i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function zipar(arqs) {
+    var partes = [], central = [], off = 0, d = new Date();
+    var dt = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF;
+    var dd = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+    arqs.forEach(function (a) {
+      var nome = new TextEncoder().encode(a.nome), crc = crc32(a.dados), n = a.dados.length;
+      var h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true);
+      h.setUint16(10, dt, true); h.setUint16(12, dd, true); h.setUint32(14, crc, true); h.setUint32(18, n, true); h.setUint32(22, n, true);
+      h.setUint16(26, nome.length, true); h.setUint16(28, 0, true);
+      partes.push(new Uint8Array(h.buffer), nome, a.dados);
+      var c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, 0, true);
+      c.setUint16(12, dt, true); c.setUint16(14, dd, true); c.setUint32(16, crc, true); c.setUint32(20, n, true); c.setUint32(24, n, true);
+      c.setUint16(28, nome.length, true); c.setUint32(42, off, true);
+      central.push(new Uint8Array(c.buffer), nome);
+      off += 30 + nome.length + n;
+    });
+    var tam = central.reduce(function (s, p) { return s + p.length; }, 0);
+    var e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, arqs.length, true); e.setUint16(10, arqs.length, true); e.setUint32(12, tam, true); e.setUint32(16, off, true);
+    return new Blob(partes.concat(central, [new Uint8Array(e.buffer)]), { type: 'application/zip' });
+  }
+
+  /* ---------- tela ---------- */
+  function mensagem(t, tipo) { $('msg').textContent = t; $('msg').className = tipo || ''; }
+  function resumo() {
+    var n = {}; itens.forEach(function (it) { n[it.sit] = (n[it.sit] || 0) + 1; });
+    var cls = { 'CALIBRADO': 'c-ok', 'NÃO UTILIZAR': 'c-bad', 'A CONFIRMAR': 'c-warn', 'SEM CALIBRAÇÃO PERIÓDICA': 'c-mut' };
+    $('resumo').innerHTML = '';
+    SITUACOES.forEach(function (s) { if (n[s]) { var c = document.createElement('span'); c.className = 'chip ' + cls[s]; c.textContent = n[s] + ' · ' + s; $('resumo').appendChild(c); } });
+  }
+  function gerar() {
+    salvar();
+    var r = ler(); itens = r.itens;
+    var g = $('grade'); g.innerHTML = '';
+    itens.forEach(function (it, i) {
+      var box = document.createElement('div'); box.className = 'item';
+      var cv = document.createElement('canvas'); desenhar(cv, it); cv.setAttribute('aria-label', 'Imagem de ' + it.tag);
+      box.appendChild(cv);
+      it.avisos.forEach(function (a) { var d = document.createElement('div'); d.className = 'av'; d.textContent = a; box.appendChild(d); });
+      var ac = document.createElement('div'); ac.className = 'ac';
+      var sel = document.createElement('select'); sel.setAttribute('aria-label', 'Situação de ' + it.tag);
+      SITUACOES.forEach(function (s) { var o = document.createElement('option'); o.textContent = s; o.selected = s === it.sit; sel.appendChild(o); });
+      sel.addEventListener('change', function () { it.sit = sel.value; desenhar(cv, it); resumo(); });
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Baixar ' + it.tag + '.png';
+      b.addEventListener('click', function () { pngDe(it).then(function (blob) { baixar(blob, it.tag + '.png'); }); });
+      ac.appendChild(sel); ac.appendChild(b); box.appendChild(ac);
+      g.appendChild(box);
+    });
+    $('zip').disabled = !itens.length;
+    resumo();
+    var pasta = $('pasta').value.trim().replace(/\/Forms\/.*$/i, '').replace(/[?#].*$/, '').replace(/\/+$/, '');
+    $('abrirPasta').hidden = !/^https?:\/\//i.test(pasta); if (!$('abrirPasta').hidden) $('abrirPasta').href = pasta;
+    if (!itens.length) { mensagem(r.problemas.length ? r.problemas.join(' ') : 'Cole ao menos uma linha.', 'erro'); return; }
+    mensagem(itens.length + ' imagem(ns) pronta(s).' + (r.problemas.length ? ' ' + r.problemas.join(' ') : ''), r.problemas.length ? 'erro' : 'ok');
+  }
+  $('gerar').addEventListener('click', gerar);
+  $('hoje').addEventListener('change', function () { if (itens.length) gerar(); });
+  $('zip').addEventListener('click', function () {
+    $('zip').disabled = true; mensagem('Montando o .zip…');
+    Promise.all(itens.map(function (it) { return pngDe(it).then(function (b) { return b.arrayBuffer(); }).then(function (ab) { return { nome: it.tag + '.png', dados: new Uint8Array(ab) }; }); }))
+      .then(function (arqs) { baixar(zipar(arqs), 'imagens-consulta-' + $('hoje').value + '.zip'); mensagem(arqs.length + ' imagens no .zip. Extraia e carregue todas na biblioteca ConsultaQR.', 'ok'); })
+      .catch(function () { mensagem('Não foi possível montar o .zip. Baixe as imagens uma a uma.', 'erro'); })
+      .then(function () { $('zip').disabled = false; });
+  });
+  if ($('lista').value.trim()) gerar();
+})();
+</script>
+</body>
+</html>

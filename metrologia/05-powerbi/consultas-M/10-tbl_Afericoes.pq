@@ -5,7 +5,7 @@ let
     Colunas = Table.SelectColumns(Lista, {
         "Ensaio", "TipoRegistro", "DataEnsaio", "Equipamento", "TAG", "Parametro", "Unidade", "Valor", "Referencia",
         "Diferenca", "LimInferior", "LimSuperior", "Tolerancia", "Resultado", "Responsavel", "ResponsavelEmail", "Letra",
-        "Observacao", "Causa", "ItensNaoOK", "Title", "Turno", "RegistradoEm", "TurnoRegistro", "ForaDoTurno", "Origem"
+        "Observacao", "Causa", "ItensNaoOK", "Title", "Turno", "RegistradoEm", "TurnoRegistro", "ForaDoTurno", "Origem", "ModoLeitura"
     }, MissingField.UseNull),
     Datas = Table.TransformColumns(Colunas, {{"DataEnsaio", fnData, type date}}),
     Tipos = Table.TransformColumnTypes(Datas, {
@@ -19,7 +19,7 @@ let
         {"Diferenca", "Diferença"}, {"LimInferior", "Lim. Inferior"}, {"LimSuperior", "Lim. Superior"},
         {"Tolerancia", "Tolerância"}, {"Responsavel", "Responsável"}, {"Observacao", "Observação"},
         {"Title", "Lançamento"}, {"RegistradoEm", "Registrado em"}, {"TurnoRegistro", "Turno do registro"},
-        {"ForaDoTurno", "Fora do turno"}, {"Origem", "Fonte"}
+        {"ForaDoTurno", "Fora do turno"}, {"Origem", "Fonte"}, {"ModoLeitura", "Modo de leitura"}
     }),
     // Coluna "Origem" no formato da planilha (código do lançamento | turno)
     ComOrigem = Table.AddColumn(Renomeada, "Origem", each [Lançamento] & " | " & ([Turno] ?? ""), type text)

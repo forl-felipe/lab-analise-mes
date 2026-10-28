@@ -1,0 +1,23 @@
+<!-- Corpo do e-mail do fluxo F3 · Calibração registrada (cole no modo código </> da ação "Enviar um email (V2)") -->
+<div style="font-family:Segoe UI,Arial,sans-serif;color:#172334;max-width:680px">
+  <div style="background:@{if(outputs('Aprovada'), '#1e7f4f', '#b42318')};color:#ffffff;padding:16px 20px;border-radius:8px 8px 0 0">
+    <div style="font-size:12px;letter-spacing:.08em;opacity:.85">METROLOGIA · CALIBRAÇÃO REGISTRADA</div>
+    <div style="font-size:20px;font-weight:700;margin-top:4px">@{triggerOutputs()?['body/Title']} · @{outputs('Equip')?['Descricao']}</div>
+  </div>
+  <div style="border:1px solid #e1e7ee;border-top:0;padding:18px 20px;border-radius:0 0 8px 8px">
+    <table style="font-size:14px;border-collapse:collapse;margin-bottom:14px">
+      <tr><td style="color:#5d6b7d;padding:3px 16px 3px 0">Resultado</td><td><b style="color:@{if(outputs('Aprovada'), '#1e7f4f', '#b42318')}">@{triggerOutputs()?['body/Resultado']}</b>@{if(equals(triggerOutputs()?['body/ManutencaoSolicitada'], true), ' · enviado para manutenção', '')}</td></tr>
+      <tr><td style="color:#5d6b7d;padding:3px 16px 3px 0">Data da calibração</td><td>@{formatDateTime(triggerOutputs()?['body/DataCalibracao'], 'dd/MM/yyyy')}</td></tr>
+      <tr><td style="color:#5d6b7d;padding:3px 16px 3px 0">Válida até</td><td><b>@{formatDateTime(triggerOutputs()?['body/ProximaCalibracao'], 'dd/MM/yyyy')}</b></td></tr>
+      <tr><td style="color:#5d6b7d;padding:3px 16px 3px 0">Certificado</td><td>@{coalesce(triggerOutputs()?['body/Certificado'], '—')}</td></tr>
+      <tr><td style="color:#5d6b7d;padding:3px 16px 3px 0">Técnico</td><td>@{triggerOutputs()?['body/Responsavel']} (@{coalesce(triggerOutputs()?['body/ModoLeitura'], 'App')})</td></tr>
+      <tr><td style="color:#5d6b7d;padding:3px 16px 3px 0;vertical-align:top">Observação</td><td>@{coalesce(triggerOutputs()?['body/Observacoes'], triggerOutputs()?['body/MotivoRecusa'], '—')}</td></tr>
+    </table>
+    @{if(outputs('Aprovada'), concat('<div style="font-size:14px;font-weight:700;margin:6px 0">Atualize a imagem de consulta</div><ol style="font-size:13px;color:#172334;margin:0 0 10px;padding-left:20px"><li>Copie a linha abaixo.</li><li>Abra o <b>gerador de imagens de consulta</b>, cole e clique em Gerar imagens.</li><li>Baixe <b>', triggerOutputs()?['body/Title'], '.png</b> e carregue na biblioteca ConsultaQR com <b>Substituir</b>.</li></ol><div style="font-family:Consolas,monospace;font-size:13px;background:#f2f5f8;border:1px dashed #9fb2c6;border-radius:6px;padding:10px 12px">', outputs('Linha'), '</div>'), '<div style="background:#fdeceb;border:1px solid #b42318;border-radius:6px;padding:10px 12px;font-size:13px;color:#7a1a12"><b>Calibração recusada:</b> não gere imagem nova. A imagem de consulta só muda com uma calibração aprovada (ou quando a calibração vence). No app, o equipamento já aparece como NÃO UTILIZAR para a equipe.</div>')}
+    <p style="margin-top:16px">
+      <a href="@{first(body('CfgPasta'))?['Valor']}" style="display:inline-block;background:#0b2540;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600;margin-right:6px">Abrir a biblioteca ConsultaQR</a>
+      <a href="@{first(body('CfgLink'))?['Valor']}&equip=@{triggerOutputs()?['body/Title']}" style="display:inline-block;background:#0e6ba8;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600">Abrir no app</a>
+    </p>
+    <p style="font-size:11px;color:#8a96a6;margin-top:18px">Mensagem automática do sistema Metrologia · fluxo F3</p>
+  </div>
+</div>

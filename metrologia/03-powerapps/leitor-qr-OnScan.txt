@@ -1,0 +1,87 @@
+LEITOR DE QR CODE DA TELA INÍCIO (scrInicio) · gerado por ferramentas/gerar_telas.py
+Guia do Power Apps, seção 2.5.
+
+1. Selecione a tela scrInicio. Menu Inserir > Mídia > Leitor de código de barras
+   (em inglês: Insert > Media > Barcode reader).
+2. Renomeie o controle para:  bcrIniScanner
+3. Propriedades (o controle fica transparente, por cima do cartão azul "Ler QR Code"):
+   Se alguma propriedade de cor não existir na sua versão, deixe como está:
+   o botão continua funcionando.
+
+   --- Studio em português ---
+  X                20
+  Y                If(gblPerfil = "Laboratorista"; 206; 176)
+  Width            Parent.Width - 40
+  Height           104
+  Visible          gblPerfil <> "Colaborador"
+  Text             ""
+  Fill             RGBA(0; 0; 0; 0)
+  HoverFill        RGBA(255; 255; 255; 0,08)
+  PressedFill      RGBA(255; 255; 255; 0,16)
+  BorderThickness  0
+
+   --- Studio em inglês ---
+  X                20
+  Y                If(gblPerfil = "Laboratorista", 206, 176)
+  Width            Parent.Width - 40
+  Height           104
+  Visible          gblPerfil <> "Colaborador"
+  Text             ""
+  Fill             RGBA(0, 0, 0, 0)
+  HoverFill        RGBA(255, 255, 255, 0.08)
+  PressedFill      RGBA(255, 255, 255, 0.16)
+  BorderThickness  0
+
+4. Propriedade OnScan: cole a fórmula abaixo (escolha o idioma do seu Studio).
+
+=== OnScan · Studio em PORTUGUÊS (o mais comum) ===
+With(
+    {wLido: Trim(First(bcrIniScanner.Barcodes).Value)};
+    With(
+        {wArq: Last(Split(First(Split(wLido; "?")).Value; "/")).Value};
+        With(
+            {
+                wTag: Upper(
+                    If(
+                        "equip=" in Lower(wLido); First(Split(Last(Split(wLido; "equip=")).Value; "&")).Value;
+                        EndsWith(Lower(wArq); ".png"); Substitute(Left(wArq; Len(wArq) - 4); "%20"; " ");
+                        wLido
+                    )
+                )
+            };
+            If(
+                IsBlank(LookUp(Equipamentos; Title = wTag && Ativo = true));
+                    Notify("Este QR Code não é de um equipamento cadastrado (" & wTag & ")."; NotificationType.Error);
+                Set(gblTag; wTag);;
+                Set(gblModoLeitura; "QR");;
+                Navigate(scrEquipamento; ScreenTransition.Cover)
+            )
+        )
+    )
+)
+
+=== OnScan · Studio em INGLÊS ===
+With(
+    {wLido: Trim(First(bcrIniScanner.Barcodes).Value)},
+    With(
+        {wArq: Last(Split(First(Split(wLido, "?")).Value, "/")).Value},
+        With(
+            {
+                wTag: Upper(
+                    If(
+                        "equip=" in Lower(wLido), First(Split(Last(Split(wLido, "equip=")).Value, "&")).Value,
+                        EndsWith(Lower(wArq), ".png"), Substitute(Left(wArq, Len(wArq) - 4), "%20", " "),
+                        wLido
+                    )
+                )
+            },
+            If(
+                IsBlank(LookUp(Equipamentos, Title = wTag && Ativo = true)),
+                    Notify("Este QR Code não é de um equipamento cadastrado (" & wTag & ").", NotificationType.Error),
+                Set(gblTag, wTag);
+                Set(gblModoLeitura, "QR");
+                Navigate(scrEquipamento, ScreenTransition.Cover)
+            )
+        )
+    )
+)

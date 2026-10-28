@@ -1,7 +1,7 @@
 // Nova consulta: Lancamentos (um registro por envio)
 let
     Lista = fnLista("Lancamentos"),
-    Colunas = Table.SelectColumns(Lista, {"Title", "Ensaio", "DataEnsaio", "Turno", "Letra", "Responsavel", "QtdResultados", "QtdNaoConformes", "TAGsNaoConformes", "Causa", "Observacao", "RegistradoEm", "ForaDoTurno", "Situacao", "Origem"}, MissingField.UseNull),
+    Colunas = Table.SelectColumns(Lista, {"Title", "Ensaio", "DataEnsaio", "Turno", "Letra", "Responsavel", "QtdResultados", "QtdNaoConformes", "TAGsNaoConformes", "Causa", "Observacao", "RegistradoEm", "ForaDoTurno", "Situacao", "Origem", "ModoLeitura"}, MissingField.UseNull),
     Datas = Table.TransformColumns(Colunas, {{"DataEnsaio", fnData, type date}}),
     Ativos = Table.SelectRows(Datas, each [Situacao] <> "Desfeito"),
     Tipos = Table.TransformColumnTypes(Ativos, {{"QtdResultados", Int64.Type}, {"QtdNaoConformes", Int64.Type}}),

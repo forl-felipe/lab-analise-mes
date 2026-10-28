@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from modelo import GRUPOS, LISTAS  # noqa: E402
+from modelo import BIBLIOTECA_IMAGENS, GRUPOS, LISTAS  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parents[1]
 
@@ -59,7 +59,7 @@ def guia_sharepoint() -> str:
     s = []
     s.append("""# Etapa 1 · SharePoint (a base de dados)
 
-> **Resumo:** são **9 listas** no mesmo site. Duas já existem desde a versão 1 (**Equipamentos** e **Calibracoes**):
+> **Resumo:** são **9 listas** e **1 biblioteca de imagens** (ConsultaQR) no mesmo site. Duas já existem desde a versão 1 (**Equipamentos** e **Calibracoes**):
 > nelas você só **acrescenta colunas**. As outras sete são novas.
 > A lista **Calibradores** da versão 1 é substituída pela **Acessos**. Mantenha a antiga até o app novo entrar no ar e depois apague.
 
@@ -160,18 +160,33 @@ O arquivo **carga-inicial.xlsx** tem uma aba por lista, com as colunas na mesma 
 - **Equipamentos > coluna Status > Formatar esta coluna > Modo avançado**: cole `formatacao/equipamentos-status.json`.
 - **Afericoes > coluna Resultado**: cole `formatacao/afericoes-resultado.json`.
 
-## 1.9 Conferência final
+## 1.9 Biblioteca ConsultaQR (imagens que a câmera abre)
 
-- [ ] As 9 listas estão no mesmo site, com os nomes exatos
+O QR Code de cada etiqueta aponta para uma imagem nesta biblioteca (`TAG.png`). Quem lê com a câmera do celular vê a imagem; o scanner do app lê o mesmo endereço e abre a ficha.
+
+1. No site: **+ Novo > Biblioteca de documentos** > nome **`{b}`** (exato, sem espaço).
+2. Configurações da biblioteca > **Configurações de controle de versão**: deixe **Criar versões principais** ligado. Cada imagem substituída fica guardada (é o histórico das imagens).
+3. **Não quebre a herança de permissões:** todos leem (Visitantes); só os Proprietários do site carregam e substituem imagens.
+4. Copie o endereço da biblioteca (abra a biblioteca e copie da barra do navegador até `{b}`, sem `/Forms/AllItems.aspx`). Cole no item **`PastaImagensQR`** da lista Configuracoes.
+
+**Exibição "{v}" na lista Equipamentos** (o script já cria): + Adicionar exibição > Lista > nome **{v}** > colunas nesta ordem: {campos}. Filtro: Ativo = Sim. Ordenar por Título. É dela que você copia as linhas para o gerador de imagens.
+
+> **Regra de ouro das imagens:** para atualizar, **Carregar** o arquivo novo **com o mesmo nome** > **Substituir**. Nunca apague nem renomeie: o QR Code da etiqueta aponta para esse nome.
+
+## 1.10 Conferência final
+
+- [ ] As 9 listas e a biblioteca {b} estão no mesmo site, com os nomes exatos
 - [ ] Índices criados (Equipamentos.Title, Afericoes.Title/DataEnsaio/TAG/Ensaio, Lancamentos.Title/DataEnsaio/Ensaio, PontosAfericao.Ensaio, Calibracoes.EquipamentoID)
 - [ ] Grupos criados e permissões aplicadas
-- [ ] Configuracoes: `EmailsRelatorioDiario` e `LinkApp` preenchidos
+- [ ] Configuracoes: `EmailsRelatorioDiario`, `EmailsAvisoImagem`, `PastaImagensQR` e `LinkApp` preenchidos
 - [ ] Limites: 13 critérios conferidos com o gestor
 - [ ] Equipamentos: TAGs repetidas e datas de calibração conferidas com a instrumentação (veja `ObservacaoCadastro`)
 - [ ] Equipamentos da versão 1 (os que já estavam na lista): `ControlaCalibracao` = Sim e `Ativo` = Sim
 - [ ] Acessos: laboratoristas e instrumentação cadastrados pelo seletor
 """)
-    return "\n".join(s)
+    nomes = {"LinkTitle": "Título"}
+    return "\n".join(s).replace("{b}", BIBLIOTECA_IMAGENS["nome"]).replace("{v}", BIBLIOTECA_IMAGENS["exibicao"]).replace(
+        "{campos}", ", ".join(f"`{nomes.get(c, c)}`" for c in BIBLIOTECA_IMAGENS["campos_exibicao"]))
 
 
 def dicionario() -> str:

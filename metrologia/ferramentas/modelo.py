@@ -72,7 +72,7 @@ LISTAS: list[Lista] = [
     Lista(
         nome="Equipamentos",
         existente=True,
-        titulo_significa="TAG do equipamento (única; é o que vai no QR Code)",
+        titulo_significa="TAG do equipamento (única; é o nome da imagem do QR Code: TAG.png)",
         descricao="Cadastro único de equipamentos: calibração (instrumentação) e situação da última aferição (laboratório).",
         quem_edita="Instrumentação (calibração) e gestor (cadastro). A situação da aferição é atualizada pelo fluxo F1.",
         titulo_unico=True, titulo_indexado=True,
@@ -91,6 +91,7 @@ LISTAS: list[Lista] = [
             Col("ProximaCalibracao", "Date"),
             Col("UltimoResultado", "Text", "Aprovada ou Recusada"),
             Col("UltimoResponsavel", "Text"),
+            Col("UltimoCertificado", "Text", "Número do certificado da última calibração (gravado pelo app). Vai na imagem de consulta"),
             Col("MotivoRecusa", "Note"),
             Col("ManutencaoSolicitada", "Boolean", padrao="0"),
             Col("UltimaAfericao", "Date", "Gravada pelo fluxo F1"),
@@ -190,6 +191,7 @@ LISTAS: list[Lista] = [
             Col("TurnoRegistro", "Text"),
             Col("ForaDoTurno", "Text", "Sim quando lançado depois do turno do ensaio"),
             Col("Origem", "Text", "App ou Planilha (importado)"),
+            Col("ModoLeitura", "Text", "Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail)"),
         ],
     ),
     Lista(
@@ -214,6 +216,7 @@ LISTAS: list[Lista] = [
             Col("ForaDoTurno", "Text"),
             Col("Situacao", "Text", "Ativo ou Desfeito", padrao="Ativo"),
             Col("Origem", "Text"),
+            Col("ModoLeitura", "Text", "Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail)"),
         ],
     ),
     Lista(
@@ -232,7 +235,8 @@ LISTAS: list[Lista] = [
             Col("ManutencaoSolicitada", "Boolean", padrao="0"),
             Col("ProximaCalibracao", "Date"),
             Col("Certificado", "Text"),
-            Col("Observacoes", "Note"),
+            Col("Observacoes", "Note", "Observação do técnico. As 3 últimas aparecem para a instrumentação na ficha do equipamento"),
+            Col("ModoLeitura", "Text", "Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail)"),
         ],
     ),
     Lista(
@@ -247,6 +251,19 @@ LISTAS: list[Lista] = [
         ],
     ),
 ]
+
+
+# Biblioteca de documentos com uma imagem por equipamento (TAG.png). O QR Code da
+# etiqueta aponta para essa imagem: a câmera do celular abre a imagem; o scanner do
+# app lê o mesmo endereço e tira a TAG do nome do arquivo.
+BIBLIOTECA_IMAGENS = {
+    "nome": "ConsultaQR",
+    # Exibição da lista Equipamentos na mesma ordem das colunas do gerador de imagens:
+    # copiar as linhas no modo de grade e colar no gerador.
+    "exibicao": "Imagens de consulta",
+    "campos_exibicao": ["LinkTitle", "Descricao", "Local", "Status", "UltimaCalibracao", "ProximaCalibracao", "UltimoCertificado", "PeriodicidadeMeses"],
+    "descricao": "Uma imagem por equipamento (TAG.png), aberta pela câmera do celular ao ler o QR Code. Para atualizar: Carregar o arquivo com o mesmo nome > Substituir.",
+}
 
 
 def lista(nome: str) -> Lista:

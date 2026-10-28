@@ -7,7 +7,9 @@
     2. Cria índices (necessários para a lista passar de 5.000 itens sem travar o app).
     3. Cria os grupos 'Metrologia - Laboratoristas' e 'Metrologia - Instrumentação' e
        aplica as permissões de cada lista.
-    4. (Opcional, -ImportarDados) importa a carga inicial dos CSVs gerados por gerar_carga.py.
+    4. Cria a biblioteca ConsultaQR (uma imagem por equipamento, aberta pela câmera do celular)
+       e a exibição 'Imagens de consulta' na lista Equipamentos.
+    5. (Opcional, -ImportarDados) importa a carga inicial dos CSVs gerados por gerar_carga.py.
 
   Pré-requisitos: PowerShell 7+, módulo PnP.PowerShell e um App Registration do Entra ID
   (Register-PnPEntraIDAppForInteractiveLogin). Peça à TI se não tiver.
@@ -70,6 +72,7 @@ Garantir-Coluna 'Equipamentos' 'UltimaCalibracao' '<Field Type=''DateTime'' Form
 Garantir-Coluna 'Equipamentos' 'ProximaCalibracao' '<Field Type=''DateTime'' Format=''DateOnly'' Name=''ProximaCalibracao'' StaticName=''ProximaCalibracao'' DisplayName=''ProximaCalibracao'' />'
 Garantir-Coluna 'Equipamentos' 'UltimoResultado' '<Field Type=''Text'' Name=''UltimoResultado'' StaticName=''UltimoResultado'' DisplayName=''UltimoResultado'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Equipamentos' 'UltimoResponsavel' '<Field Type=''Text'' Name=''UltimoResponsavel'' StaticName=''UltimoResponsavel'' DisplayName=''UltimoResponsavel'' MaxLength=''255''></Field>'
+Garantir-Coluna 'Equipamentos' 'UltimoCertificado' '<Field Type=''Text'' Name=''UltimoCertificado'' StaticName=''UltimoCertificado'' DisplayName=''UltimoCertificado'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Equipamentos' 'MotivoRecusa' '<Field Type=''Note'' Name=''MotivoRecusa'' StaticName=''MotivoRecusa'' DisplayName=''MotivoRecusa'' NumLines=''6'' RichText=''FALSE'' />'
 Garantir-Coluna 'Equipamentos' 'ManutencaoSolicitada' '<Field Type=''Boolean'' Name=''ManutencaoSolicitada'' StaticName=''ManutencaoSolicitada'' DisplayName=''ManutencaoSolicitada''><Default>0</Default></Field>'
 Garantir-Coluna 'Equipamentos' 'UltimaAfericao' '<Field Type=''DateTime'' Format=''DateOnly'' Name=''UltimaAfericao'' StaticName=''UltimaAfericao'' DisplayName=''UltimaAfericao'' />'
@@ -173,6 +176,7 @@ Garantir-Coluna 'Afericoes' 'RegistradoEm' '<Field Type=''DateTime'' Format=''Da
 Garantir-Coluna 'Afericoes' 'TurnoRegistro' '<Field Type=''Text'' Name=''TurnoRegistro'' StaticName=''TurnoRegistro'' DisplayName=''TurnoRegistro'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Afericoes' 'ForaDoTurno' '<Field Type=''Text'' Name=''ForaDoTurno'' StaticName=''ForaDoTurno'' DisplayName=''ForaDoTurno'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Afericoes' 'Origem' '<Field Type=''Text'' Name=''Origem'' StaticName=''Origem'' DisplayName=''Origem'' MaxLength=''255''></Field>'
+Garantir-Coluna 'Afericoes' 'ModoLeitura' '<Field Type=''Text'' Name=''ModoLeitura'' StaticName=''ModoLeitura'' DisplayName=''ModoLeitura'' MaxLength=''255''></Field>'
 Indexar 'Afericoes' 'Title'
 Indexar 'Afericoes' 'Ensaio'
 Indexar 'Afericoes' 'DataEnsaio'
@@ -197,6 +201,7 @@ Garantir-Coluna 'Lancamentos' 'RegistradoEm' '<Field Type=''DateTime'' Format=''
 Garantir-Coluna 'Lancamentos' 'ForaDoTurno' '<Field Type=''Text'' Name=''ForaDoTurno'' StaticName=''ForaDoTurno'' DisplayName=''ForaDoTurno'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Lancamentos' 'Situacao' '<Field Type=''Text'' Name=''Situacao'' StaticName=''Situacao'' DisplayName=''Situacao'' MaxLength=''255''><Default>Ativo</Default></Field>'
 Garantir-Coluna 'Lancamentos' 'Origem' '<Field Type=''Text'' Name=''Origem'' StaticName=''Origem'' DisplayName=''Origem'' MaxLength=''255''></Field>'
+Garantir-Coluna 'Lancamentos' 'ModoLeitura' '<Field Type=''Text'' Name=''ModoLeitura'' StaticName=''ModoLeitura'' DisplayName=''ModoLeitura'' MaxLength=''255''></Field>'
 Set-PnPField -List 'Lancamentos' -Identity 'Title' -Values @{ Indexed = $true; EnforceUniqueValues = $true } | Out-Null
 Indexar 'Lancamentos' 'Ensaio'
 Indexar 'Lancamentos' 'DataEnsaio'
@@ -215,9 +220,10 @@ Garantir-Coluna 'Calibracoes' 'ManutencaoSolicitada' '<Field Type=''Boolean'' Na
 Garantir-Coluna 'Calibracoes' 'ProximaCalibracao' '<Field Type=''DateTime'' Format=''DateOnly'' Name=''ProximaCalibracao'' StaticName=''ProximaCalibracao'' DisplayName=''ProximaCalibracao'' />'
 Garantir-Coluna 'Calibracoes' 'Certificado' '<Field Type=''Text'' Name=''Certificado'' StaticName=''Certificado'' DisplayName=''Certificado'' MaxLength=''255''></Field>'
 Garantir-Coluna 'Calibracoes' 'Observacoes' '<Field Type=''Note'' Name=''Observacoes'' StaticName=''Observacoes'' DisplayName=''Observacoes'' NumLines=''6'' RichText=''FALSE'' />'
+Garantir-Coluna 'Calibracoes' 'ModoLeitura' '<Field Type=''Text'' Name=''ModoLeitura'' StaticName=''ModoLeitura'' DisplayName=''ModoLeitura'' MaxLength=''255''></Field>'
 Indexar 'Calibracoes' 'EquipamentoID'
 $v = Get-PnPView -List 'Calibracoes' | Where-Object { $_.DefaultView }
-Set-PnPView -List 'Calibracoes' -Identity $v.Id -Fields @('LinkTitle', 'EquipamentoID', 'DataCalibracao', 'Responsavel', 'Local', 'Resultado', 'MotivoRecusa', 'ManutencaoSolicitada', 'ProximaCalibracao', 'Certificado', 'Observacoes') | Out-Null
+Set-PnPView -List 'Calibracoes' -Identity $v.Id -Fields @('LinkTitle', 'EquipamentoID', 'DataCalibracao', 'Responsavel', 'Local', 'Resultado', 'MotivoRecusa', 'ManutencaoSolicitada', 'ProximaCalibracao', 'Certificado', 'Observacoes', 'ModoLeitura') | Out-Null
 
 # ---------------------------------------------------------------- Configuracoes
 Garantir-Lista 'Configuracoes' 'Parâmetros gerais: escala das letras, horário dos turnos, massas de ensaio, e-mails dos relatórios.'
@@ -226,6 +232,18 @@ Garantir-Coluna 'Configuracoes' 'Descricao' '<Field Type=''Note'' Name=''Descric
 Set-PnPField -List 'Configuracoes' -Identity 'Title' -Values @{ Indexed = $true; EnforceUniqueValues = $true } | Out-Null
 $v = Get-PnPView -List 'Configuracoes' | Where-Object { $_.DefaultView }
 Set-PnPView -List 'Configuracoes' -Identity $v.Id -Fields @('LinkTitle', 'Valor', 'Descricao') | Out-Null
+
+# ---------------------------------------------------------------- Biblioteca ConsultaQR (imagens do QR Code)
+if (-not (Get-PnPList -Identity 'ConsultaQR' -ErrorAction SilentlyContinue)) {
+    New-PnPList -Title 'ConsultaQR' -Template DocumentLibrary -OnQuickLaunch | Out-Null
+    Write-Host 'Biblioteca criada: ConsultaQR' -ForegroundColor Green
+}
+Set-PnPList -Identity 'ConsultaQR' -Description 'Uma imagem por equipamento (TAG.png), aberta pela câmera do celular ao ler o QR Code. Para atualizar: Carregar o arquivo com o mesmo nome > Substituir.' -EnableVersioning $true -MajorVersions 50 | Out-Null
+# Herda as permissões do site: todos leem; só os proprietários substituem as imagens.
+if (-not (Get-PnPView -List 'Equipamentos' -Identity 'Imagens de consulta' -ErrorAction SilentlyContinue)) {
+    Add-PnPView -List 'Equipamentos' -Title 'Imagens de consulta' -Fields @('LinkTitle', 'Descricao', 'Local', 'Status', 'UltimaCalibracao', 'ProximaCalibracao', 'UltimoCertificado', 'PeriodicidadeMeses') -Query "<OrderBy><FieldRef Name='Title' /></OrderBy><Where><Eq><FieldRef Name='Ativo' /><Value Type='Boolean'>1</Value></Eq></Where>" -RowLimit 500 | Out-Null
+    Write-Host 'Exibição criada: Equipamentos > Imagens de consulta' -ForegroundColor Green
+}
 
 # ---------------------------------------------------------------- Formatação de cores (Status / Resultado)
 $fmt = Join-Path $PSScriptRoot 'formatacao'

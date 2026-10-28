@@ -27,7 +27,7 @@ A ideia é **aproveitar o relatório que você já tem**: só a fonte de dados m
 
 Se o seu relatório usa outros nomes de consulta, use os seus nomes. O importante é manter o nome que os gráficos usam.
 
-> **Colunas novas** que passam a existir em tbl_Afericoes: `TAG` (liga com Equipamentos), `Causa`, `ItensNaoOK`, `Lançamento`, `Fonte` (App ou Planilha) e `ResponsavelEmail`.
+> **Colunas novas** que passam a existir em tbl_Afericoes: `TAG` (liga com Equipamentos), `Causa`, `ItensNaoOK`, `Lançamento`, `Fonte` (App ou Planilha), `ResponsavelEmail` e `Modo de leitura` (QR, Digitado ou Link: mostra o que foi lançado sem a leitura da etiqueta).
 
 ## 4.4 Consultas novas
 

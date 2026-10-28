@@ -1,3 +1,9 @@
-=UpdateContext({locResultado: "", locSalvando: false});
+=== Studio em PORTUGUÊS ===
+UpdateContext({locResultado: ""; locSalvando: false});;
+Reset(dtpCaData);; Reset(txtCaResp);; Reset(txtCaLocal);; Reset(drpCaMotivo);; Reset(txtCaMotivoOutro);;
+Reset(chkCaManut);; Reset(txtCaCert);; Reset(txtCaObs)
+
+=== Studio em INGLÊS ===
+UpdateContext({locResultado: "", locSalvando: false});
 Reset(dtpCaData); Reset(txtCaResp); Reset(txtCaLocal); Reset(drpCaMotivo); Reset(txtCaMotivoOutro);
 Reset(chkCaManut); Reset(txtCaCert); Reset(txtCaObs)

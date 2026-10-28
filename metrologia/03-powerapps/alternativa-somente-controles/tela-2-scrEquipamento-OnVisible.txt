@@ -1,4 +1,174 @@
-=        If(
+=== Studio em PORTUGUÊS ===
+        If(
+    !gblIniciado;
+    Concurrent(
+        ClearCollect(colConfig; Configuracoes);
+        ClearCollect(colAcessos; Filter(Acessos; Ativo = true));
+        ClearCollect(colEnsaios; Sort(Filter(Ensaios; Ativo = true); Ordem));
+        ClearCollect(
+            colPontos;
+            AddColumns(Filter(PontosAfericao; Ativo = true); EntradaTxt; Entrada.Value; TipoTxt; TipoRegistro.Value)
+        );
+        ClearCollect(colLimites; Limites)
+    );;
+    // Perfil: quem não está na lista Acessos (ou está inativo) é Colaborador
+    Set(gblEu; LookUp(colAcessos; Lower(Pessoa.Email) = Lower(User().Email)));;
+    Set(gblPerfil; If(IsBlank(gblEu); "Colaborador"; gblEu.Perfil.Value));;
+    Set(gblNome; User().FullName);;
+    Set(
+        gblIniciais;
+        Upper(Left(First(Split(User().FullName; " ")).Value; 1) & Left(Last(Split(User().FullName; " ")).Value; 1))
+    );;
+    // Turno e letra da escala (lista Configuracoes)
+    Set(gblHoraIni; Coalesce(Value(LookUp(colConfig; Title = "TurnoDiaInicio").Valor); 7));;
+    Set(gblHoraFim; Coalesce(Value(LookUp(colConfig; Title = "TurnoDiaFim").Valor); 19));;
+    Set(gblDiasAviso; Coalesce(Value(LookUp(colConfig; Title = "DiasAvisoCalibracao").Valor); 30));;
+    Set(gblAgora; Now());;
+    Set(gblTurnoAtual; If(Hour(gblAgora) >= gblHoraIni && Hour(gblAgora) < gblHoraFim; "07x19"; "19x07"));;
+    Set(gblDataTurnoAtual; If(Hour(gblAgora) < gblHoraIni; DateAdd(Today(); -1; TimeUnit.Days); Today()));;
+    Set(
+        gblLetraTurno;
+        With(
+            {
+                wRef: DateValue(LookUp(colConfig; Title = "EscalaDataReferencia").Valor);
+                w07: Split(LookUp(colConfig; Title = "EscalaLetras07x19").Valor; ",");
+                w19: Split(LookUp(colConfig; Title = "EscalaLetras19x07").Valor; ",")
+            };
+            Index(
+                If(gblTurnoAtual = "07x19"; w07; w19);
+                Mod(DateDiff(wRef; gblDataTurnoAtual; TimeUnit.Days); CountRows(w07)) + 1
+            ).Value
+        )
+    );;
+    Set(gblMinhaLetra; Coalesce(gblEu.Letra.Value; gblLetraTurno));;
+    Set(gblIniciado; true)
+);;
+        // Aberto por um link (botão de e-mail) com ?equip=TAG
+        If(IsBlank(gblTag); Set(gblTag; Upper(Param("equip")));; Set(gblModoLeitura; "Link"));;
+        If(CountRows(colEquip) = 0; ClearCollect(
+        colEquip;
+        AddColumns(
+            Filter(Equipamentos; Ativo = true);
+            StatusCalc;
+            If(
+                ControlaCalibracao && UltimoResultado = "Recusada"; "Bloqueado · Calibração recusada";
+                ControlaCalibracao && ManutencaoSolicitada; "Bloqueado · Em manutenção";
+                ControlaCalibracao && !IsBlank(ProximaCalibracao) && ProximaCalibracao < Today(); "Bloqueado · Calibração vencida";
+                UltimaAfericaoResultado = "Não conforme" &&
+                    !(UltimoResultado = "Aprovada" && !IsBlank(UltimaCalibracao) && UltimaCalibracao >= UltimaAfericao);
+                    "Bloqueado · Aferição não conforme";
+                ControlaCalibracao && IsBlank(ProximaCalibracao); "Liberado · Sem data de calibração";
+                ControlaCalibracao && ProximaCalibracao <= DateAdd(Today(); gblDiasAviso; TimeUnit.Days); "Liberado · Calibração vence em breve";
+                "Liberado"
+            )
+        )
+    ));;
+        Set(gblEquip; LookUp(Equipamentos; Title = gblTag));;
+        ClearCollect(colHist; FirstN(Sort(Filter(Afericoes; TAG = gblTag); DataEnsaio; SortOrder.Descending); 40));;
+        // Instrumentação: as 3 últimas calibrações; com as observações do técnico
+        ClearCollect(colCalHist; FirstN(Sort(Filter(Calibracoes; Title = gblTag); DataCalibracao; SortOrder.Descending); 3));;
+        Set(gblUltAfData; First(colHist).DataEnsaio);;
+        Set(gblUltAfNC; CountRows(Filter(colHist; DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);;
+        // Peneirador = conjunto com etiqueta própria;; Peneira = item calibrado pela instrumentação
+        Set(gblEhPeneirador; gblEquip.TipoEquipamento = "Peneirador" && !IsBlank(LookUp(colPontos; Ensaio = "PEN" && Conjunto = gblEquip.Title)));;
+        Set(gblEhPeneira; gblEquip.TipoEquipamento = "Peneira");;
+        Set(gblConjuntoRef; If(gblEhPeneirador; gblEquip.Title; gblEhPeneira; gblEquip.Conjunto; ""));;
+        // Ensaios lançados a partir deste QR: os da coluna EnsaioAfericao;; peneira instalada = verificação do peneirador dela
+        Set(
+            gblCodigos;
+            Filter(
+                Split(If(gblEhPeneira; If(IsBlank(gblEquip.Conjunto); ""; "PEN"); Coalesce(gblEquip.EnsaioAfericao; "")); ";");
+                !IsBlank(Trim(Value))
+            )
+        );;
+        ClearCollect(
+            colPeneirasConj;
+            AddColumns(
+                Sort(Filter(colPontos; Ensaio = "PEN" && Conjunto = gblEquip.Title); Ordem);
+                StatusPen; Coalesce(LookUp(colEquip; Title = TAG).StatusCalc; "Posição vazia")
+            )
+        );;
+        Set(gblStatus; With(
+            {e: gblEquip};
+            If(
+                IsBlank(e); "";
+                e.ControlaCalibracao && e.UltimoResultado = "Recusada"; "Bloqueado · Calibração recusada";
+                e.ControlaCalibracao && e.ManutencaoSolicitada; "Bloqueado · Em manutenção";
+                e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today(); "Bloqueado · Calibração vencida";
+                gblUltAfNC && !(e.UltimoResultado = "Aprovada" && !IsBlank(e.UltimaCalibracao) && e.UltimaCalibracao >= gblUltAfData);
+                    "Bloqueado · Aferição não conforme";
+                e.ControlaCalibracao && IsBlank(e.ProximaCalibracao); "Liberado · Sem data de calibração";
+                e.ControlaCalibracao && e.ProximaCalibracao <= DateAdd(Today(); gblDiasAviso; TimeUnit.Days); "Liberado · Calibração vence em breve";
+                "Liberado"
+            )
+        ));;
+        If(
+            gblPerfil = "Laboratorista";
+            ClearCollect(colLancTurno; Filter(Lancamentos; DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual && Situacao = "Ativo"));;
+            ClearCollect(colAfTurno; Filter(Afericoes; DataEnsaio = gblDataTurnoAtual && Turno = gblTurnoAtual));;
+            Clear(colAgendaUn);;
+            ForAll(
+                Filter(colEnsaios As en; With(
+                    {wd: Weekday(gblDataTurnoAtual; StartOfWeek.Monday); wDia: gblTurnoAtual = "07x19"};
+                    Switch(
+                        wd;
+                        1; If(wDia; en.SegD; en.SegN); 2; If(wDia; en.TerD; en.TerN); 3; If(wDia; en.QuaD; en.QuaN);
+                        4; If(wDia; en.QuiD; en.QuiN); 5; If(wDia; en.SexD; en.SexN); 6; If(wDia; en.SabD; en.SabN);
+                        If(wDia; en.DomD; en.DomN)
+                    )
+                )) As en;
+                Collect(
+                    colAgendaUn;
+                    If(
+                        en.Title = "PEN";
+                        ForAll(
+                            Distinct(Filter(colPontos; Ensaio = "PEN" && !IsBlank(Conjunto) && !IsBlank(TAG)); Conjunto) As u;
+                            {
+                                Ensaio: en.Title;
+                                Un: u.Value;
+                                Feito: CountRows(
+                                    Filter(colPontos; Ensaio = "PEN" && Conjunto = u.Value && TAG in Filter(colAfTurno; Ensaio = en.NomeBD).TAG)
+                                ) > 0
+                            }
+                        );
+                        ForAll(
+                            Distinct(Filter(colPontos; Ensaio = en.Title && !IsBlank(TAG)); TAG) As u;
+                            {Ensaio: en.Title; Un: u.Value; Feito: !IsBlank(LookUp(colAfTurno; Ensaio = en.NomeBD && TAG = u.Value))}
+                        )
+                    )
+                )
+            );;
+            ClearCollect(
+                colAgenda;
+                ForAll(
+                    Filter(colEnsaios As en; With(
+                    {wd: Weekday(gblDataTurnoAtual; StartOfWeek.Monday); wDia: gblTurnoAtual = "07x19"};
+                    Switch(
+                        wd;
+                        1; If(wDia; en.SegD; en.SegN); 2; If(wDia; en.TerD; en.TerN); 3; If(wDia; en.QuaD; en.QuaN);
+                        4; If(wDia; en.QuiD; en.QuiN); 5; If(wDia; en.SexD; en.SexN); 6; If(wDia; en.SabD; en.SabN);
+                        If(wDia; en.DomD; en.DomN)
+                    )
+                )) As en;
+                    With(
+                        {w: Filter(colAgendaUn; Ensaio = en.Title); wEnv: !IsBlank(LookUp(colLancTurno; Ensaio = en.NomeBD))};
+                        {
+                            Title: en.Title;
+                            Nome: en.Nome;
+                            Ordem: en.Ordem;
+                            Total: CountRows(w);
+                            Feitos: CountIf(w; Feito);
+                            Lista: Concat(w; Un & If(Feito; " ✓"; ""); "   ·   ");
+                            Completo: If(CountRows(w) = 0; wEnv; CountIf(w; Feito) = CountRows(w))
+                        }
+                    )
+                )
+            )
+        );;
+        UpdateContext({locInstalar: false})
+
+=== Studio em INGLÊS ===
+        If(
     !gblIniciado,
     Concurrent(
         ClearCollect(colConfig, Configuracoes),
@@ -42,7 +212,8 @@
     Set(gblMinhaLetra, Coalesce(gblEu.Letra.Value, gblLetraTurno));
     Set(gblIniciado, true)
 );
-        If(IsBlank(gblTag), Set(gblTag, Param("equip")));
+        // Aberto por um link (botão de e-mail) com ?equip=TAG
+        If(IsBlank(gblTag), Set(gblTag, Upper(Param("equip"))); Set(gblModoLeitura, "Link"));
         If(CountRows(colEquip) = 0, ClearCollect(
         colEquip,
         AddColumns(
@@ -63,6 +234,8 @@
     ));
         Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
         ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
+        // Instrumentação: as 3 últimas calibrações, com as observações do técnico
+        ClearCollect(colCalHist, FirstN(Sort(Filter(Calibracoes, Title = gblTag), DataCalibracao, SortOrder.Descending), 3));
         Set(gblUltAfData, First(colHist).DataEnsaio);
         Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
         // Peneirador = conjunto com etiqueta própria; Peneira = item calibrado pela instrumentação

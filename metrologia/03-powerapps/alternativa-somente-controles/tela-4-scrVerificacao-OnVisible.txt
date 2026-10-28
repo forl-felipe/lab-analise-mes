@@ -1,4 +1,46 @@
-=    UpdateContext({
+=== Studio em PORTUGUÊS ===
+    UpdateContext({
+        locRevisar: false; locSalvando: false; locSoNC: false;
+        locGrupo: "Todos";
+        locConjunto: gblConjuntoFiltro
+    });;
+    Reset(dtpVeData);; Reset(drpVeTurno);; Reset(drpVeCausa);; Reset(txtVeJust);; Reset(txtVeObs);;
+    If(CountRows(colEquip) = 0; ClearCollect(
+    colEquip;
+    AddColumns(
+        Filter(Equipamentos; Ativo = true);
+        StatusCalc;
+        If(
+            ControlaCalibracao && UltimoResultado = "Recusada"; "Bloqueado · Calibração recusada";
+            ControlaCalibracao && ManutencaoSolicitada; "Bloqueado · Em manutenção";
+            ControlaCalibracao && !IsBlank(ProximaCalibracao) && ProximaCalibracao < Today(); "Bloqueado · Calibração vencida";
+            UltimaAfericaoResultado = "Não conforme" &&
+                !(UltimoResultado = "Aprovada" && !IsBlank(UltimaCalibracao) && UltimaCalibracao >= UltimaAfericao);
+                "Bloqueado · Aferição não conforme";
+            ControlaCalibracao && IsBlank(ProximaCalibracao); "Liberado · Sem data de calibração";
+            ControlaCalibracao && ProximaCalibracao <= DateAdd(Today(); gblDiasAviso; TimeUnit.Days); "Liberado · Calibração vence em breve";
+            "Liberado"
+        )
+    )
+));;
+    // Todas as peneiras começam OK;; a calibração já vem NÃO OK quando a peneira está vencida no cadastro
+    ClearCollect(
+        colFormVe;
+        AddColumns(
+            Sort(Filter(colPontos; Ensaio = gblEnsaio.Title && !IsBlank(TAG) && (IsBlank(gblConjuntoFiltro) || Conjunto = gblConjuntoFiltro)); Ordem);
+            Vencida;
+            With(
+                {e: LookUp(colEquip; Title = TAG)};
+                !IsBlank(e) && e.ControlaCalibracao && !IsBlank(e.ProximaCalibracao) && e.ProximaCalibracao < Today()
+            );
+            I1; "OK"; I2; "OK"; I3; "OK"; I4; "OK"; I5; "OK"
+        )
+    );;
+    UpdateIf(colFormVe; Vencida; {I5: "NÃO OK"});;
+    Set(gblConjuntoFiltro; "")
+
+=== Studio em INGLÊS ===
+    UpdateContext({
         locRevisar: false, locSalvando: false, locSoNC: false,
         locGrupo: "Todos",
         locConjunto: gblConjuntoFiltro

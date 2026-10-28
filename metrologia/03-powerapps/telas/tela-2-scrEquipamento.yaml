@@ -47,7 +47,8 @@ Screens:
             Set(gblMinhaLetra, Coalesce(gblEu.Letra.Value, gblLetraTurno));
             Set(gblIniciado, true)
         );
-                If(IsBlank(gblTag), Set(gblTag, Param("equip")));
+                // Aberto por um link (botão de e-mail) com ?equip=TAG
+                If(IsBlank(gblTag), Set(gblTag, Upper(Param("equip"))); Set(gblModoLeitura, "Link"));
                 If(CountRows(colEquip) = 0, ClearCollect(
                 colEquip,
                 AddColumns(
@@ -68,6 +69,8 @@ Screens:
             ));
                 Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
                 ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
+                // Instrumentação: as 3 últimas calibrações, com as observações do técnico
+                ClearCollect(colCalHist, FirstN(Sort(Filter(Calibracoes, Title = gblTag), DataCalibracao, SortOrder.Descending), 3));
                 Set(gblUltAfData, First(colHist).DataEnsaio);
                 Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
                 // Peneirador = conjunto com etiqueta própria; Peneira = item calibrado pela instrumentação
@@ -482,7 +485,7 @@ Screens:
       - lblEqHistRot:
           Control: Label@2.5.1
           Properties:
-            Text: =If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR", "HISTÓRICO DE AFERIÇÕES")
+            Text: =If(gblEhPeneirador, "POSIÇÕES DESTE PENEIRADOR", gblPerfil = "Instrumentação", "ÚLTIMAS CALIBRAÇÕES E OBSERVAÇÕES", "HISTÓRICO DE AFERIÇÕES")
             X: =20
             Y: =If(gblUltAfNC && !gblEhPeneirador, 600, 494)
             Width: =Parent.Width - 40
@@ -503,7 +506,7 @@ Screens:
             TemplateSize: =80
             TemplatePadding: =0
             TemplateFill: =RGBA(0, 0, 0, 0)
-            Visible: =!IsBlank(gblEquip) && !gblEhPeneirador
+            Visible: =!IsBlank(gblEquip) && !gblEhPeneirador && gblPerfil <> "Instrumentação"
           Children:
             - recHiCard:
                 Control: Rectangle@2.3.0
@@ -559,6 +562,95 @@ Screens:
                   Color: =If(ThisItem.Resultado = "Conforme", RGBA(30, 127, 79, 1), ThisItem.Resultado = "Não conforme", RGBA(180, 35, 24, 1), RGBA(85, 98, 116, 1))
                   Align: =Align.Center
                   Fill: =If(ThisItem.Resultado = "Conforme", RGBA(226, 243, 234, 1), ThisItem.Resultado = "Não conforme", RGBA(253, 236, 235, 1), RGBA(236, 239, 243, 1))
+      - galEqCal:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =colCalHist
+            X: =20
+            Y: =If(gblUltAfNC, 632, 526)
+            Width: =Parent.Width - 40
+            Height: =Parent.Height - If(gblUltAfNC, 632, 526) - 112
+            TemplateSize: =128
+            TemplatePadding: =0
+            TemplateFill: =RGBA(0, 0, 0, 0)
+            Visible: =!IsBlank(gblEquip) && !gblEhPeneirador && gblPerfil = "Instrumentação"
+          Children:
+            - recCaCard:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth
+                  Height: =Parent.TemplateHeight - 8
+            - recCaFaixa:
+                Control: Rectangle@2.3.0
+                Properties:
+                  Fill: =If(ThisItem.Resultado = "Recusada", RGBA(180, 35, 24, 1), RGBA(107, 47, 191, 1))
+                  X: =0
+                  Y: =0
+                  Width: =6
+                  Height: =Parent.TemplateHeight - 8
+            - lblCaLinha1:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =Text(ThisItem.DataCalibracao, "dd/mm/yyyy") & " · " & ThisItem.Responsavel
+                  X: =20
+                  Y: =6
+                  Width: =Parent.TemplateWidth - 200
+                  Height: =30
+                  Size: =13
+                  FontWeight: =FontWeight.Bold
+                  Color: =RGBA(11, 37, 64, 1)
+            - lblCaRes:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =Upper(ThisItem.Resultado) & If(ThisItem.ManutencaoSolicitada, " · MANUTENÇÃO", "")
+                  X: =Parent.TemplateWidth - 186
+                  Y: =8
+                  Width: =172
+                  Height: =28
+                  Size: =9
+                  FontWeight: =FontWeight.Bold
+                  Color: =If(ThisItem.Resultado = "Recusada", RGBA(180, 35, 24, 1), RGBA(30, 127, 79, 1))
+                  Align: =Align.Center
+                  Fill: =If(ThisItem.Resultado = "Recusada", RGBA(253, 236, 235, 1), RGBA(226, 243, 234, 1))
+            - lblCaCert:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =If(IsBlank(ThisItem.Certificado), "Sem nº de certificado", "Certificado " & ThisItem.Certificado) & If(IsBlank(ThisItem.MotivoRecusa), "", " · Recusa: " & ThisItem.MotivoRecusa)
+                  X: =20
+                  Y: =36
+                  Width: =Parent.TemplateWidth - 34
+                  Height: =26
+                  Size: =11
+                  Color: =RGBA(93, 107, 125, 1)
+            - lblCaObs:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =Coalesce(ThisItem.Observacoes, "Sem observação.")
+                  X: =20
+                  Y: =62
+                  Width: =Parent.TemplateWidth - 34
+                  Height: =54
+                  Size: =12
+                  Color: =If(IsBlank(ThisItem.Observacoes), RGBA(93, 107, 125, 1), RGBA(23, 35, 52, 1))
+                  VerticalAlign: =VerticalAlign.Top
+                  Italic: =IsBlank(ThisItem.Observacoes)
+      - lblEqCalVazio:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Nenhuma calibração registrada no app ainda. A primeira que você registrar aparece aqui para o próximo técnico."
+            X: =20
+            Y: =If(gblUltAfNC, 646, 540)
+            Width: =Parent.Width - 40
+            Height: =70
+            Size: =12
+            Color: =RGBA(93, 107, 125, 1)
+            Align: =Align.Center
+            Visible: =!IsBlank(gblEquip) && CountRows(colCalHist) = 0 && !gblEhPeneirador && gblPerfil = "Instrumentação"
       - galEqPeneiras:
           Control: Gallery@2.15.0
           Variant: Vertical
@@ -663,7 +755,7 @@ Screens:
             Size: =12
             Color: =RGBA(93, 107, 125, 1)
             Align: =Align.Center
-            Visible: =!IsBlank(gblEquip) && CountRows(colHist) = 0 && !gblEhPeneirador
+            Visible: =!IsBlank(gblEquip) && CountRows(colHist) = 0 && !gblEhPeneirador && gblPerfil <> "Instrumentação"
       - recEqRodape:
           Control: Rectangle@2.3.0
           Properties:
@@ -956,6 +1048,8 @@ Screens:
                           );
                           Set(gblEquip, LookUp(Equipamentos, Title = gblTag));
                           ClearCollect(colHist, FirstN(Sort(Filter(Afericoes, TAG = gblTag), DataEnsaio, SortOrder.Descending), 40));
+                          // Instrumentação: as 3 últimas calibrações, com as observações do técnico
+                          ClearCollect(colCalHist, FirstN(Sort(Filter(Calibracoes, Title = gblTag), DataCalibracao, SortOrder.Descending), 3));
                           Set(gblUltAfData, First(colHist).DataEnsaio);
                           Set(gblUltAfNC, CountRows(Filter(colHist, DataEnsaio = gblUltAfData && Resultado = "Não conforme")) > 0);
                           // Peneirador = conjunto com etiqueta própria; Peneira = item calibrado pela instrumentação

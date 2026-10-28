@@ -1,6 +1,6 @@
 # Etapa 1 · SharePoint (a base de dados)
 
-> **Resumo:** são **9 listas** no mesmo site. Duas já existem desde a versão 1 (**Equipamentos** e **Calibracoes**):
+> **Resumo:** são **9 listas** e **1 biblioteca de imagens** (ConsultaQR) no mesmo site. Duas já existem desde a versão 1 (**Equipamentos** e **Calibracoes**):
 > nelas você só **acrescenta colunas**. As outras sete são novas.
 > A lista **Calibradores** da versão 1 é substituída pela **Acessos**. Mantenha a antiga até o app novo entrar no ar e depois apague.
 
@@ -33,7 +33,7 @@ Cadastro único de equipamentos: calibração (instrumentação) e situação da
 
 Crie **somente as colunas que ainda não existem**. As da versão 1 continuam iguais.
 
-**Título (Title):** TAG do equipamento (única; é o que vai no QR Code) · **Impor valores exclusivos: Sim** (e indexar)
+**Título (Title):** TAG do equipamento (única; é o nome da imagem do QR Code: TAG.png) · **Impor valores exclusivos: Sim** (e indexar)
 
 | Nome exato da coluna | Tipo no SharePoint | Configuração | Para que serve |
 |---|---|---|---|
@@ -51,6 +51,7 @@ Crie **somente as colunas que ainda não existem**. As da versão 1 continuam ig
 | `ProximaCalibracao` | Data e hora · **Incluir hora: Não** |  |  |
 | `UltimoResultado` | Linha única de texto |  | Aprovada ou Recusada |
 | `UltimoResponsavel` | Linha única de texto |  |  |
+| `UltimoCertificado` | Linha única de texto |  | Número do certificado da última calibração (gravado pelo app). Vai na imagem de consulta |
 | `MotivoRecusa` | Várias linhas de texto (texto sem formatação) |  |  |
 | `ManutencaoSolicitada` | Sim/Não | Padrão: Não |  |
 | `UltimaAfericao` | Data e hora · **Incluir hora: Não** |  | Gravada pelo fluxo F1 |
@@ -79,7 +80,8 @@ Crie **somente as colunas que ainda não existem**. As da versão 1 continuam ig
 | `ManutencaoSolicitada` | Sim/Não | Padrão: Não |  |
 | `ProximaCalibracao` | Data e hora · **Incluir hora: Não** |  |  |
 | `Certificado` | Linha única de texto |  |  |
-| `Observacoes` | Várias linhas de texto (texto sem formatação) |  |  |
+| `Observacoes` | Várias linhas de texto (texto sem formatação) |  | Observação do técnico. As 3 últimas aparecem para a instrumentação na ficha do equipamento |
+| `ModoLeitura` | Linha única de texto |  | Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail) |
 
 ## 1.3 Listas novas
 
@@ -197,6 +199,7 @@ Um resultado por linha. Mesmo conteúdo da aba BD_Afericoes (o Power BI lê esta
 | `TurnoRegistro` | Linha única de texto |  |  |
 | `ForaDoTurno` | Linha única de texto |  | Sim quando lançado depois do turno do ensaio |
 | `Origem` | Linha única de texto |  | App ou Planilha (importado) |
+| `ModoLeitura` | Linha única de texto |  | Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail) |
 
 ### `Lancamentos`
 
@@ -223,6 +226,7 @@ Um resumo por envio (substitui a aba Historico). Dispara o fluxo F1.
 | `ForaDoTurno` | Linha única de texto |  |  |
 | `Situacao` | Linha única de texto | Padrão: `Ativo` | Ativo ou Desfeito |
 | `Origem` | Linha única de texto |  |  |
+| `ModoLeitura` | Linha única de texto |  | Como o equipamento foi aberto no app: QR (scanner do app), Digitado (TAG digitada, ex.: no computador) ou Link (botão de um e-mail) |
 
 ### `Configuracoes`
 
@@ -320,12 +324,25 @@ O arquivo **carga-inicial.xlsx** tem uma aba por lista, com as colunas na mesma 
 - **Equipamentos > coluna Status > Formatar esta coluna > Modo avançado**: cole `formatacao/equipamentos-status.json`.
 - **Afericoes > coluna Resultado**: cole `formatacao/afericoes-resultado.json`.
 
-## 1.9 Conferência final
+## 1.9 Biblioteca ConsultaQR (imagens que a câmera abre)
 
-- [ ] As 9 listas estão no mesmo site, com os nomes exatos
+O QR Code de cada etiqueta aponta para uma imagem nesta biblioteca (`TAG.png`). Quem lê com a câmera do celular vê a imagem; o scanner do app lê o mesmo endereço e abre a ficha.
+
+1. No site: **+ Novo > Biblioteca de documentos** > nome **`ConsultaQR`** (exato, sem espaço).
+2. Configurações da biblioteca > **Configurações de controle de versão**: deixe **Criar versões principais** ligado. Cada imagem substituída fica guardada (é o histórico das imagens).
+3. **Não quebre a herança de permissões:** todos leem (Visitantes); só os Proprietários do site carregam e substituem imagens.
+4. Copie o endereço da biblioteca (abra a biblioteca e copie da barra do navegador até `ConsultaQR`, sem `/Forms/AllItems.aspx`). Cole no item **`PastaImagensQR`** da lista Configuracoes.
+
+**Exibição "Imagens de consulta" na lista Equipamentos** (o script já cria): + Adicionar exibição > Lista > nome **Imagens de consulta** > colunas nesta ordem: `Título`, `Descricao`, `Local`, `Status`, `UltimaCalibracao`, `ProximaCalibracao`, `UltimoCertificado`, `PeriodicidadeMeses`. Filtro: Ativo = Sim. Ordenar por Título. É dela que você copia as linhas para o gerador de imagens.
+
+> **Regra de ouro das imagens:** para atualizar, **Carregar** o arquivo novo **com o mesmo nome** > **Substituir**. Nunca apague nem renomeie: o QR Code da etiqueta aponta para esse nome.
+
+## 1.10 Conferência final
+
+- [ ] As 9 listas e a biblioteca ConsultaQR estão no mesmo site, com os nomes exatos
 - [ ] Índices criados (Equipamentos.Title, Afericoes.Title/DataEnsaio/TAG/Ensaio, Lancamentos.Title/DataEnsaio/Ensaio, PontosAfericao.Ensaio, Calibracoes.EquipamentoID)
 - [ ] Grupos criados e permissões aplicadas
-- [ ] Configuracoes: `EmailsRelatorioDiario` e `LinkApp` preenchidos
+- [ ] Configuracoes: `EmailsRelatorioDiario`, `EmailsAvisoImagem`, `PastaImagensQR` e `LinkApp` preenchidos
 - [ ] Limites: 13 critérios conferidos com o gestor
 - [ ] Equipamentos: TAGs repetidas e datas de calibração conferidas com a instrumentação (veja `ObservacaoCadastro`)
 - [ ] Equipamentos da versão 1 (os que já estavam na lista): `ControlaCalibracao` = Sim e `Ativo` = Sim
