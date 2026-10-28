@@ -7,7 +7,7 @@ Situação de cada item: **Confirmado** (informado pelo LCE), **Adotado** (valor
 | H1 | Plataforma do PIMS | O PIMS da UBU usado nesta tela é AspenTech (aspenONE, Aspen Process Graphics Editor V14.2, histórico InfoPlus.21). A especificação original citava PI Vision e PI AF; os entregáveis foram adaptados ao Aspen. | Confirmado pela captura de tela |
 | H2 | Nome das tags no PIMS | O nome usado no PIMS é o da coluna "Tag" do chamado RITM0273793 (307-GI-001, 307-GI-002, 307-QI-001, 307-QI-002, 307-QI-003). | Confirmado pelo LCE |
 | H3 | Campos do InfoPlus.21 | Valor em IP_INPUT_VALUE, data e hora em IP_INPUT_TIME e qualidade em IP_INPUT_QUALITY, que são os campos padrão dos registros IP_AnalogDef e IP_DiscreteDef. | Adotado, conferir no Tag Browser |
-| H4 | Unidade de engenharia | daN/pelota para carga média e desvio padrão. | Adotado |
+| H4 | Unidade de engenharia | kgf/pelota para a média e o desvio padrão da prensa e para o laboratório. | Confirmado pelo LCE |
 | H5 | Escala de exibição | Carga média de 0 a 500 daN/pelota; desvio padrão de 0 a 150 daN/pelota. | Adotado |
 | H6 | Significado dos "discretos" 307-QI-001/002/003 | Quantidade de pelotas do ensaio abaixo de 100, 150 e 200 daN (valores lidos no PIMS: 0, 4 e 5, cumulativos). | Adotado a partir do PIMS; confirmar com a automação |
 | H7 | Severidade das faixas | Menor que 200: Atenção (amarelo, símbolo ▲). Menor que 150: Alerta (laranja, símbolo ◆). Menor que 100: Crítico (vermelho, símbolo ■). | Proposta, aguarda aprovação do LCE |
@@ -24,7 +24,7 @@ Situação de cada item: **Confirmado** (informado pelo LCE), **Adotado** (valor
 | H18 | Modo da amostragem | Modo dos cortadores em `U04-07CR001` e `U04-07CR002` pelo mapa IP_PIDMAP03 (Automático ou Manual). Comparação válida só com os dois em automático e sem falha durante toda a janela. | Adotado |
 | H19 | Usina operando | Alimentação `406-FX-001` acima de 300 t/h. | Adotado, valor a confirmar |
 | H20 | Pelotas por ensaio | 60 no laboratório e 20 no módulo, usadas só para estimar a diferença esperada pelo acaso. | Pendente |
-| H22 | Composto da prensa | Tags calculadas 307-GI-001-C2H, 307-GI-001-DIF2H e 307-GI-001-CORTE1 a 4, a criar no Aspen Calc. A tela já vem ligada a esses nomes. | Pendente (administrador do PIMS) |
+| H22 | Composto da prensa | Média dos cortes com resultado na janela de 2 h (1 a 4), ignorando zeros e qualidade ruim. Tags calculadas 307-GI-001-C2H, -N2H, -DIF2H e -CORTE1 a 4, a criar no Aspen Calc; a tela já vem ligada a esses nomes. | Pendente (administrador do PIMS) |
 | H23 | Modo dos cortadores | Valor 32 = Automático e 16 = Manual no mapa IP_PIDMAP03, deduzido dos indicadores da tela PQ US04. | Adotado, conferir em campo |
 | H21 | Vínculo de campos no Aspen | Campos de dados usam tag, mapa e atributo VAL, como na tela PQ US04. Os campos de hora e de qualidade vêm com VAL e precisam ter o atributo trocado no editor. Mapa de discretos: IP_DISCRETEMAP, a confirmar. | Adotado |
 

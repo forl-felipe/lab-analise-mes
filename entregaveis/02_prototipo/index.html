@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Compressão de pelotas</title>
 <!--
-  Protótipo da tela de monitoramento do ensaio de compressão de pelotas (versão 5, padrão visual Samarco).
+  Protótipo da tela de monitoramento do ensaio de compressão de pelotas (versão 7, padrão visual Samarco).
   Dados simulados. Tudo o que aparece aqui vira objeto nativo do Aspen (polígonos, textos, campos de dados,
   tendências e lâmpadas animadas), gerado por ferramentas/gerar_atgraphic.py.
   Parâmetros na URL:
@@ -76,6 +76,8 @@
   .kpi .rodape { display: flex; gap: 22px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--card-line); align-items: center; }
   .kpi .rodape div { display: flex; gap: 8px; align-items: center; }
 
+  .ncortes { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .ncortes .rot { font-size: 12px; white-space: nowrap; }
   .comp .dois { display: flex; justify-content: space-between; margin-top: 14px; }
   .comp .rot { display: flex; align-items: center; gap: 8px; }
   .v-comp { font-size: 60px; font-weight: 700; line-height: 70px; height: 70px; letter-spacing: -1px; }
@@ -104,7 +106,7 @@
   .faixas .linha { display: flex; align-items: center; height: 44px; border-top: 1px solid var(--card-line); }
   .faixas .cabec { height: 34px; border-top: 0; margin-top: 10px; font-size: 13px; color: var(--muted); }
   .faixas .nome { font-size: 16px; font-weight: 700; margin-left: 14px; flex: 1; }
-  .faixas .slot { font-size: 24px; font-weight: 700; line-height: 30px; height: 30px; width: 64px; text-align: right; }
+  .faixas .slot { font-size: 24px; font-weight: 700; line-height: 30px; height: 30px; width: 64px; text-align: right; margin-right: 6px; }
   .faixas .un { font-size: 14px; color: var(--muted); margin-left: 8px; width: 52px; }
 
   .lampada { width: 18px; height: 18px; border-radius: 50%; display: inline-block; background: var(--apagada); flex: none; }
@@ -140,7 +142,7 @@
     <h2><span class="acento"></span>Média prensa automática</h2>
     <div class="corpo">
       <div>
-        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi1" data-slot="2">--</span><span class="unid">daN/pelota</span></div>
+        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi1" data-slot="2">--</span><span class="unid">kgf/pelota</span></div>
         <div class="rot" style="margin-top:6px">Média das pelotas do último ensaio</div>
       </div>
       <div class="slot" style="width:140px; height:90px" data-slot="3"><svg id="sp1" width="140" height="90"></svg></div>
@@ -156,7 +158,7 @@
     <h2><span class="acento"></span>Desvio padrão</h2>
     <div class="corpo">
       <div>
-        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi2" data-slot="6">--</span><span class="unid">daN/pelota</span></div>
+        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi2" data-slot="6">--</span><span class="unid">kgf/pelota</span></div>
         <div class="rot" style="margin-top:6px">Dispersão entre as pelotas do ensaio</div>
       </div>
       <div class="slot" style="width:140px; height:90px" data-slot="7"><svg id="sp2" width="140" height="90"></svg></div>
@@ -178,9 +180,9 @@
     </div>
     <div class="kpi"><div class="rodape" style="margin-top:12px; gap:14px">
       <div><span class="rot" style="white-space:nowrap">Fim da janela</span><span class="slot v-peq" style="width:126px" id="c-jan" data-slot="12">--</span></div>
-      <div><span class="rot">Diferença</span><span class="slot v-peq" style="width:56px; font-weight:700; text-align:right" id="c-dif" data-slot="13">--</span><span class="rot">daN/pelota</span></div>
+      <div><span class="rot">Diferença</span><span class="slot v-peq" style="width:56px; font-weight:700; text-align:right" id="c-dif" data-slot="13">--</span><span class="rot">kgf/pelota</span></div>
     </div></div>
-    <div class="nota" style="margin-top:8px">Média dos 4 cortes da prensa na mesma janela do composto do laboratório.</div>
+    <div class="ncortes"><span class="rot">Cortes com resultado na janela</span><span class="slot v-peq" style="width:24px; font-weight:700; text-align:right" id="c-n" data-slot="26">--</span><span class="rot">de 4 (média só dos cortes com resultado)</span></div>
   </section>
 
   <!-- Tendência -->
@@ -206,19 +208,19 @@
     <h2><span class="acento"></span>Cortes do composto atual</h2>
     <div class="rot" style="margin-top:4px">Ensaios da prensa que formam o composto</div>
     <div class="linha cabec"><span style="width:110px">Corte</span><span style="flex:1; text-align:right">Média prensa</span></div>
-    <div class="linha"><span class="slot hora" id="e1h" data-slot="15">--</span><span class="slot val" id="e1v" data-slot="19">--</span><span class="un">daN/pelota</span></div>
-    <div class="linha"><span class="slot hora" id="e2h" data-slot="16">--</span><span class="slot val" id="e2v" data-slot="20">--</span><span class="un">daN/pelota</span></div>
-    <div class="linha"><span class="slot hora" id="e3h" data-slot="17">--</span><span class="slot val" id="e3v" data-slot="21">--</span><span class="un">daN/pelota</span></div>
-    <div class="linha"><span class="slot hora" id="e4h" data-slot="18">--</span><span class="slot val" id="e4v" data-slot="22">--</span><span class="un">daN/pelota</span></div>
+    <div class="linha"><span class="slot hora" id="e1h" data-slot="15">--</span><span class="slot val" id="e1v" data-slot="19">--</span><span class="un">kgf/pelota</span></div>
+    <div class="linha"><span class="slot hora" id="e2h" data-slot="16">--</span><span class="slot val" id="e2v" data-slot="20">--</span><span class="un">kgf/pelota</span></div>
+    <div class="linha"><span class="slot hora" id="e3h" data-slot="17">--</span><span class="slot val" id="e3v" data-slot="21">--</span><span class="un">kgf/pelota</span></div>
+    <div class="linha"><span class="slot hora" id="e4h" data-slot="18">--</span><span class="slot val" id="e4v" data-slot="22">--</span><span class="un">kgf/pelota</span></div>
   </section>
 
-  <!-- Pelotas abaixo dos limites -->
+  <!-- Faixas de compressão -->
   <section class="card faixas" style="left:1182px; top:707px; width:386px; height:215px;">
-    <h2><span class="acento"></span>Pelotas abaixo do limite</h2>
+    <h2><span class="acento"></span>Faixas de compressão</h2>
     <div class="rot" style="margin-top:4px; margin-bottom:6px">Último ensaio da prensa automática</div>
-    <div class="linha"><span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200"></span><span class="nome">Abaixo de 200 daN</span><span class="slot" id="s-qi3" data-slot="23">--</span><span class="un">pelotas</span></div>
-    <div class="linha"><span class="lampada" id="lq2" data-tag="307-QI-002" data-lo="0.5" data-hi="100000" data-ativa="--lim-150"></span><span class="nome">Abaixo de 150 daN</span><span class="slot" id="s-qi2" data-slot="24">--</span><span class="un">pelotas</span></div>
-    <div class="linha"><span class="lampada" id="lq1" data-tag="307-QI-001" data-lo="0.5" data-hi="100000" data-ativa="--lim-100"></span><span class="nome">Abaixo de 100 daN</span><span class="slot" id="s-qi1" data-slot="25">--</span><span class="un">pelotas</span></div>
+    <div class="linha"><span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200"></span><span class="nome">Abaixo de 200 kgf/pelota</span><span class="slot" id="s-qi3" data-slot="23">--</span></div>
+    <div class="linha"><span class="lampada" id="lq2" data-tag="307-QI-002" data-lo="0.5" data-hi="100000" data-ativa="--lim-150"></span><span class="nome">Abaixo de 150 kgf/pelota</span><span class="slot" id="s-qi2" data-slot="24">--</span></div>
+    <div class="linha"><span class="lampada" id="lq1" data-tag="307-QI-001" data-lo="0.5" data-hi="100000" data-ativa="--lim-100"></span><span class="nome">Abaixo de 100 kgf/pelota</span><span class="slot" id="s-qi1" data-slot="25">--</span></div>
   </section>
 
   <!-- Cortadores -->
@@ -237,7 +239,7 @@
   <label>Tema<select id="tema"><option value="escuro">Azul Samarco</option><option value="claro">Claro</option></select></label>
   <label>Cenário<select id="cen">
     <option value="normal">Normal</option>
-    <option value="f200">Pelotas abaixo de 200 e 150</option>
+    <option value="f200">Faixas abaixo de 200 e 150</option>
     <option value="bad">Qualidade Bad</option>
     <option value="manual">Cortador em manual</option>
   </select></label>
@@ -345,7 +347,7 @@
     set('s-gi1', num(u.m)); set('s-gi1-ts', dh(ts)); set('s-gi1-q', q, q === 'Good' ? '' : 'var(--sam-laranja)');
     set('s-gi2', num(u.s)); set('s-gi2-ts', dh(ts)); set('s-gi2-q', 'Good');
     set('c-prensa', num(c.prensa), 'var(--linha-prensa)'); set('c-lab', String(c.lab));
-    set('c-jan', dh(new Date(c.fim)));
+    set('c-jan', dh(new Date(c.fim))); set('c-n', String(c.jan.length));
     const dif = c.prensa - c.lab; set('c-dif', (dif > 0 ? '+' : '') + num(dif));
     c.jan.forEach((p, i) => { set(`e${i + 1}h`, hm(new Date(p.corte))); set(`e${i + 1}v`, num(p.m)); });
     set('s-qi1', String(cont[0])); set('s-qi2', String(cont[1])); set('s-qi3', String(cont[2]));

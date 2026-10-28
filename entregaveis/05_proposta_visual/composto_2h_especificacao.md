@@ -21,15 +21,17 @@ Nomes provisórios; podem seguir o padrão da área.
 
 | Tag | Cálculo | Quando calcula | Horário gravado |
 |---|---|---|---|
-| `307-GI-001-C2H` | Média de `307-GI-001` dos 4 cortes da janela de 2 h | Quando entra o 4º ensaio da janela | Fim da janela (horário do último corte + 30 min) |
+| `307-GI-001-C2H` | Média de `307-GI-001` **dos cortes com resultado** na janela de 2 h (1 a 4 cortes) | A cada novo ensaio da janela (o valor vai se completando) e no fim da janela | Fim da janela (horário do último corte + 30 min) |
+| `307-GI-001-N2H` | Quantidade de cortes com resultado na janela (0 a 4) | Junto com `307-GI-001-C2H` | Fim da janela |
 | `307-GI-001-DIF2H` | `307-GI-001-C2H` menos o resultado do MES (`M4710050020-0031-HHLFU`) da mesma janela | Quando entra o resultado do MES | Fim da janela |
-| `307-GI-001-CORTE1` a `CORTE4` | Resultado de `307-GI-001` de cada corte da janela atual | A cada novo ensaio | Horário do corte |
+| `307-GI-001-CORTE1` a `CORTE4` | Resultado de `307-GI-001` de cada corte da janela atual; sem valor (ou qualidade Bad) quando o corte não teve resultado | A cada novo ensaio | Horário do corte |
 
 Pontos que o cálculo precisa respeitar:
 
 1. **Defasagem do PIMS:** o ensaio do corte das 15:00 entra no PIMS às 15:20 (20 min depois). A janela deve ser montada pelo **horário do corte**, não pelo horário de entrada no PIMS. Se a tag guardar o horário de entrada, o cálculo subtrai os 20 min.
-2. **Janela incompleta:** se faltar algum dos 4 ensaios (prensa parada, qualidade Bad), o composto não é calculado ou é marcado como não confiável.
+2. **Janela incompleta:** se a prensa falhar e a janela tiver só 1, 2 ou 3 ensaios, o composto é a **média dos ensaios que existem**, e `307-GI-001-N2H` informa quantos foram. Com 0 ensaios, o composto fica sem valor.
 3. **Amostragem em manual:** se 07CR001 ou 07CR002 estiverem em Manual na janela, a comparação não é válida (mesma regra da planilha de comparação).
+4. **Valores zero:** a tag `307-GI-001` volta a 0 entre os ensaios (aparece na tendência). Valores 0 e ensaios com qualidade diferente de Good não entram na média.
 
 ## Antes de pedir as tags: teste rápido no editor
 

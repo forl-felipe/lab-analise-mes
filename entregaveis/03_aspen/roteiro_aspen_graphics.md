@@ -1,4 +1,4 @@
-# Passo a passo: tela de compressão de pelotas no Aspen (versão 6)
+# Passo a passo: tela de compressão de pelotas no Aspen (versão 7)
 
 **Tela:** Monitoramento do ensaio de compressão de pelotas, padrão visual Samarco, comparação composto com composto (2 h)
 
@@ -15,10 +15,10 @@ O arquivo `LCE_Compressao_Pelotas_Prensa01.atgraphic` segue o mesmo formato da v
 | Conteúdo | Quantidade |
 |---|---|
 | Painéis, linhas, limites tracejados e logotipo oficial em polígonos | 178 |
-| Textos fixos | 57 |
-| Campos de dados ligados às tags | 22 |
+| Textos fixos | 55 |
+| Campos de dados ligados às tags | 23 |
 | Tendências com penas e escala definidas | 3 |
-| Lâmpadas animadas (cortadores e pelotas abaixo do limite) | 7 |
+| Lâmpadas animadas (cortadores e faixas de compressão) | 7 |
 
 ## Parte A. Abrir
 
@@ -44,7 +44,7 @@ Dica: depois de achar o atributo certo no objeto 1, me diga o nome. Na próxima 
 
 **B2. Atributo de qualidade** nos objetos 5 e 9 (qualidade da média e do desvio padrão), com a regra de cor: `Good` em branco e qualquer outro texto em laranja (RGB 243, 112, 33).
 
-**B3. Mapa dos discretos.** Os objetos 23, 24 e 25 (pelotas abaixo do limite) e as três lâmpadas ao lado deles usam o mapa `IP_DISCRETEMAP`, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.
+**B3. Mapa dos discretos.** Os objetos 23, 24 e 25 (faixas de compressão) e as três lâmpadas ao lado deles usam o mapa `IP_DISCRETEMAP`, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.
 
 ## Parte C. Tendências
 
@@ -66,7 +66,7 @@ Dica: depois de achar o atributo certo no objeto 1, me diga o nome. Na próxima 
 |---|---|---|
 | 07CR001 e 07CR002, Automático | `U04-07CR001`, `U04-07CR002` (mapa `IP_PIDMAP03`) | valor 32, em verde |
 | 07CR001 e 07CR002, Manual | mesmas tags | valor 16, em laranja |
-| Abaixo de 200, 150 e 100 daN | `307-QI-003`, `307-QI-002`, `307-QI-001` | pelo menos 1 pelota, na cor do limite |
+| Faixas abaixo de 200, 150 e 100 kgf/pelota | `307-QI-003`, `307-QI-002`, `307-QI-001` | valor maior que zero, na cor da faixa |
 
 Os valores 32 e 16 foram tirados dos indicadores Manual/Automático da tela PQ US04. Confira com o cortador em manual: a lâmpada laranja deve acender.
 
@@ -76,13 +76,14 @@ Os valores 32 e 16 foram tirados dos indicadores Manual/Automático da tela PQ U
 
 ## Parte F. Tags calculadas (pedir ao administrador do PIMS)
 
-Os campos do composto da prensa (10), da diferença (13) e dos cortes (15 a 22) e a linha azul clara da tendência já estão ligados às tags abaixo. **Assim que o administrador criar as tags com estes nomes, a tela passa a mostrar os valores sozinha**, sem nenhuma edição. Até lá, esses campos ficam vazios ou indicam tag inexistente.
+Os campos do composto da prensa (10), da diferença (13), da quantidade de cortes (26) e dos cortes (15 a 22) e a linha azul clara da tendência já estão ligados às tags abaixo. **Assim que o administrador criar as tags com estes nomes, a tela passa a mostrar os valores sozinha**, sem nenhuma edição. Até lá, o Aspen mostra `***` nesses campos, que é a indicação de tag inexistente.
 
 | Tag | Cálculo |
 |---|---|
-| `307-GI-001-C2H` | Média de `307-GI-001` dos 4 cortes da janela de 2 h do composto do laboratório, gravada no fim da janela |
+| `307-GI-001-C2H` | Média de `307-GI-001` **dos cortes com resultado** na janela de 2 h do composto do laboratório (1 a 4 cortes), gravada no fim da janela |
+| `307-GI-001-N2H` | Quantidade de cortes com resultado na janela (0 a 4) |
 | `307-GI-001-DIF2H` | `307-GI-001-C2H` menos `M4710050020-0031-HHLFU` da mesma janela |
-| `307-GI-001-CORTE1` a `307-GI-001-CORTE4` | Resultado de `307-GI-001` de cada um dos 4 cortes da janela atual, gravado no horário do corte |
+| `307-GI-001-CORTE1` a `307-GI-001-CORTE4` | Resultado de `307-GI-001` de cada um dos 4 cortes da janela atual, gravado no horário do corte; sem valor quando o corte não teve resultado |
 
 Detalhes (janela pelo horário do corte, defasagem de 20 min até a entrada no PIMS, janelas incompletas e cortadores em manual) em `../05_proposta_visual/composto_2h_especificacao.md`. Se o administrador preferir outros nomes, me informe que eu regero o arquivo.
 
@@ -92,7 +93,7 @@ Detalhes (janela pelo horário do corte, defasagem de 20 min até a entrada no P
 |---|---|
 | Erro ao abrir | Tente `teste_minimo.atgraphic` e envie a captura (Parte A) |
 | Hora mostra um número | Parte B1 |
-| Campos do composto vazios ou com erro | Normal até as tags calculadas existirem (Parte F) |
+| Campos do composto com `***` | Normal até as tags calculadas existirem (Parte F) |
 | Lâmpada de modo não muda | Confira se o valor de Manual é 16 e de Automático é 32 na tela PQ US04 |
 | Escala da tendência diferente | Volte para 50 a 450 (Parte C) |
 
@@ -255,7 +256,7 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Cor de fundo | RGB 0, 51, 90 (ou transparente), sem borda |
 | Formato | 1 casa decimal (0,0) |
 | Regra de cor | Nenhuma |
-| Observação | Média dos 4 cortes da janela. Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor. |
+| Observação | Média dos cortes com resultado na janela (1 a 4). Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor. |
 
 ### Objeto 11: Composto 2 h: laboratório (MES)
 
@@ -464,12 +465,12 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Regra de cor | Nenhuma |
 | Observação | Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor. |
 
-### Objeto 23: Pelotas abaixo de 200 daN
+### Objeto 23: Faixa abaixo de 200 kgf/pelota
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 44,34 ; 24,52 |
+| Posição em unidades (X ; Y) | 46,03 ; 24,52 |
 | Tamanho em unidades (largura ; altura) | 2,00 ; 0,94 |
 | Tag | `307-QI-003` |
 | Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |
@@ -480,14 +481,14 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Cor de fundo | RGB 0, 51, 90 (ou transparente), sem borda |
 | Formato | Sem casas decimais (0) |
 | Regra de cor | Nenhuma |
-| Observação | A lâmpada ao lado acende na cor do limite quando há pelota abaixo dele (já vem pronta no arquivo). |
+| Observação | A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo). |
 
-### Objeto 24: Pelotas abaixo de 150 daN
+### Objeto 24: Faixa abaixo de 150 kgf/pelota
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 44,34 ; 25,89 |
+| Posição em unidades (X ; Y) | 46,03 ; 25,89 |
 | Tamanho em unidades (largura ; altura) | 2,00 ; 0,94 |
 | Tag | `307-QI-002` |
 | Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |
@@ -498,14 +499,14 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Cor de fundo | RGB 0, 51, 90 (ou transparente), sem borda |
 | Formato | Sem casas decimais (0) |
 | Regra de cor | Nenhuma |
-| Observação | A lâmpada ao lado acende na cor do limite quando há pelota abaixo dele (já vem pronta no arquivo). |
+| Observação | A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo). |
 
-### Objeto 25: Pelotas abaixo de 100 daN
+### Objeto 25: Faixa abaixo de 100 kgf/pelota
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 44,34 ; 27,27 |
+| Posição em unidades (X ; Y) | 46,03 ; 27,27 |
 | Tamanho em unidades (largura ; altura) | 2,00 ; 0,94 |
 | Tag | `307-QI-001` |
 | Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |
@@ -516,5 +517,23 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Cor de fundo | RGB 0, 51, 90 (ou transparente), sem borda |
 | Formato | Sem casas decimais (0) |
 | Regra de cor | Nenhuma |
-| Observação | A lâmpada ao lado acende na cor do limite quando há pelota abaixo dele (já vem pronta no arquivo). |
+| Observação | A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo). |
+
+### Objeto 26: Composto 2 h: cortes com resultado na janela
+
+| Propriedade | Valor |
+|---|---|
+| Ferramenta | Campo de dados |
+| Posição em unidades (X ; Y) | 40,10 ; 10,00 |
+| Tamanho em unidades (largura ; altura) | 0,75 ; 0,69 |
+| Tag | `307-GI-001-N2H` |
+| Mapa | `IP_ANALOGMAP` |
+| Atributo | `VAL` |
+| Fonte | Arial negrito, já definida no arquivo |
+| Alinhamento | Direita |
+| Cor do texto | RGB 255, 255, 255 |
+| Cor de fundo | RGB 0, 51, 90 (ou transparente), sem borda |
+| Formato | Sem casas decimais (0) |
+| Regra de cor | Nenhuma |
+| Observação | Quantidade de cortes (1 a 4) usados na média. Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor. |
 

@@ -12,7 +12,7 @@ code { background: #eef1f5; padding: 1px 4px; border-radius: 3px; font-size: 13p
 img { max-width: 100%; border: 1px solid #c5ccd6; }
 blockquote { border-left: 4px solid #f2994a; margin: 10px 0; padding: 4px 12px; background: #fff7ef; }
 hr { border: 0; border-top: 1px solid #c5ccd6; }
-</style></head><body><h1>Passo a passo: tela de compressão de pelotas no Aspen (versão 6)</h1>
+</style></head><body><h1>Passo a passo: tela de compressão de pelotas no Aspen (versão 7)</h1>
 <p><strong>Tela:</strong> Monitoramento do ensaio de compressão de pelotas, padrão visual Samarco, comparação composto com composto (2 h)</p>
 <p><strong>Resultado esperado:</strong> igual a <code>tela_exemplo_normal.png</code></p>
 <p><strong>Tempo estimado:</strong> 30 minutos</p>
@@ -33,18 +33,18 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Textos fixos</td>
-<td>57</td>
+<td>55</td>
 </tr>
 <tr>
 <td>Campos de dados ligados às tags</td>
-<td>22</td>
+<td>23</td>
 </tr>
 <tr>
 <td>Tendências com penas e escala definidas</td>
 <td>3</td>
 </tr>
 <tr>
-<td>Lâmpadas animadas (cortadores e pelotas abaixo do limite)</td>
+<td>Lâmpadas animadas (cortadores e faixas de compressão)</td>
 <td>7</td>
 </tr>
 </tbody>
@@ -87,7 +87,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </table>
 <p>Dica: depois de achar o atributo certo no objeto 1, me diga o nome. Na próxima versão ele já vem configurado em todos.</p>
 <p><strong>B2. Atributo de qualidade</strong> nos objetos 5 e 9 (qualidade da média e do desvio padrão), com a regra de cor: <code>Good</code> em branco e qualquer outro texto em laranja (RGB 243, 112, 33).</p>
-<p><strong>B3. Mapa dos discretos.</strong> Os objetos 23, 24 e 25 (pelotas abaixo do limite) e as três lâmpadas ao lado deles usam o mapa <code>IP_DISCRETEMAP</code>, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.</p>
+<p><strong>B3. Mapa dos discretos.</strong> Os objetos 23, 24 e 25 (faixas de compressão) e as três lâmpadas ao lado deles usam o mapa <code>IP_DISCRETEMAP</code>, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.</p>
 <h2>Parte C. Tendências</h2>
 <table>
 <thead>
@@ -139,9 +139,9 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>valor 16, em laranja</td>
 </tr>
 <tr>
-<td>Abaixo de 200, 150 e 100 daN</td>
+<td>Faixas abaixo de 200, 150 e 100 kgf/pelota</td>
 <td><code>307-QI-003</code>, <code>307-QI-002</code>, <code>307-QI-001</code></td>
-<td>pelo menos 1 pelota, na cor do limite</td>
+<td>valor maior que zero, na cor da faixa</td>
 </tr>
 </tbody>
 </table>
@@ -149,7 +149,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <h2>Parte E. Salvar</h2>
 <p><strong>E1.</strong> <strong>Arquivo &gt; Salvar</strong>. Abra no Process Explorer e maximize para conferir.</p>
 <h2>Parte F. Tags calculadas (pedir ao administrador do PIMS)</h2>
-<p>Os campos do composto da prensa (10), da diferença (13) e dos cortes (15 a 22) e a linha azul clara da tendência já estão ligados às tags abaixo. <strong>Assim que o administrador criar as tags com estes nomes, a tela passa a mostrar os valores sozinha</strong>, sem nenhuma edição. Até lá, esses campos ficam vazios ou indicam tag inexistente.</p>
+<p>Os campos do composto da prensa (10), da diferença (13), da quantidade de cortes (26) e dos cortes (15 a 22) e a linha azul clara da tendência já estão ligados às tags abaixo. <strong>Assim que o administrador criar as tags com estes nomes, a tela passa a mostrar os valores sozinha</strong>, sem nenhuma edição. Até lá, o Aspen mostra <code>***</code> nesses campos, que é a indicação de tag inexistente.</p>
 <table>
 <thead>
 <tr>
@@ -160,7 +160,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <tbody>
 <tr>
 <td><code>307-GI-001-C2H</code></td>
-<td>Média de <code>307-GI-001</code> dos 4 cortes da janela de 2 h do composto do laboratório, gravada no fim da janela</td>
+<td>Média de <code>307-GI-001</code> <strong>dos cortes com resultado</strong> na janela de 2 h do composto do laboratório (1 a 4 cortes), gravada no fim da janela</td>
+</tr>
+<tr>
+<td><code>307-GI-001-N2H</code></td>
+<td>Quantidade de cortes com resultado na janela (0 a 4)</td>
 </tr>
 <tr>
 <td><code>307-GI-001-DIF2H</code></td>
@@ -168,7 +172,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td><code>307-GI-001-CORTE1</code> a <code>307-GI-001-CORTE4</code></td>
-<td>Resultado de <code>307-GI-001</code> de cada um dos 4 cortes da janela atual, gravado no horário do corte</td>
+<td>Resultado de <code>307-GI-001</code> de cada um dos 4 cortes da janela atual, gravado no horário do corte; sem valor quando o corte não teve resultado</td>
 </tr>
 </tbody>
 </table>
@@ -191,7 +195,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Parte B1</td>
 </tr>
 <tr>
-<td>Campos do composto vazios ou com erro</td>
+<td>Campos do composto com <code>***</code></td>
 <td>Normal até as tags calculadas existirem (Parte F)</td>
 </tr>
 <tr>
@@ -733,7 +737,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>Média dos 4 cortes da janela. Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
+<td>Média dos cortes com resultado na janela (1 a 4). Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
 </tr>
 </tbody>
 </table>
@@ -1457,7 +1461,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 23: Pelotas abaixo de 200 daN</h3>
+<h3>Objeto 23: Faixa abaixo de 200 kgf/pelota</h3>
 <table>
 <thead>
 <tr>
@@ -1472,7 +1476,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>44,34 ; 24,52</td>
+<td>46,03 ; 24,52</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1516,11 +1520,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>A lâmpada ao lado acende na cor do limite quando há pelota abaixo dele (já vem pronta no arquivo).</td>
+<td>A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo).</td>
 </tr>
 </tbody>
 </table>
-<h3>Objeto 24: Pelotas abaixo de 150 daN</h3>
+<h3>Objeto 24: Faixa abaixo de 150 kgf/pelota</h3>
 <table>
 <thead>
 <tr>
@@ -1535,7 +1539,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>44,34 ; 25,89</td>
+<td>46,03 ; 25,89</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1579,11 +1583,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>A lâmpada ao lado acende na cor do limite quando há pelota abaixo dele (já vem pronta no arquivo).</td>
+<td>A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo).</td>
 </tr>
 </tbody>
 </table>
-<h3>Objeto 25: Pelotas abaixo de 100 daN</h3>
+<h3>Objeto 25: Faixa abaixo de 100 kgf/pelota</h3>
 <table>
 <thead>
 <tr>
@@ -1598,7 +1602,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>44,34 ; 27,27</td>
+<td>46,03 ; 27,27</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1642,7 +1646,70 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>A lâmpada ao lado acende na cor do limite quando há pelota abaixo dele (já vem pronta no arquivo).</td>
+<td>A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 26: Composto 2 h: cortes com resultado na janela</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>40,10 ; 10,00</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>0,75 ; 0,69</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>307-GI-001-N2H</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Quantidade de cortes (1 a 4) usados na média. Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
 </tr>
 </tbody>
 </table></body></html>

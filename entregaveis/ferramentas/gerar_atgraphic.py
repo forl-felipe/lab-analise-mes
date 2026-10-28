@@ -164,7 +164,11 @@ def logotipo(lg):
     esc = min(lg["w"] / w, lg["h"] / h)
     objs = []
     for pts, c in polis:
-        p = [(u(lg["x"] + x * esc), u(lg["y"] + y * esc)) for x, y in pts]
+        p = []
+        for x, y in pts:   # pontos repetidos após o arredondamento deixam o contorno serrilhado
+            q = (u(lg["x"] + x * esc), u(lg["y"] + y * esc))
+            if not p or q != p[-1]:
+                p.append(q)
         objs.append(poligono(p + [p[0]], c, c, c))
     return objs
 

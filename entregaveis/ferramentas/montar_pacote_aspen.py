@@ -59,7 +59,7 @@ SPEC = {
     8: campo("Desvio padrão: atualizado às", "307-GI-002", A, HORA, 11, False, "Esquerda", PAINEL, DH),
     9: campo("Desvio padrão: qualidade", "307-GI-002", A, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
     10: campo("Composto 2 h: prensa automática", "307-GI-001-C2H", A, "VAL", 45, True, "Esquerda", PAINEL, "1 casa decimal (0,0)",
-              obs="Média dos 4 cortes da janela." + CALC, cor=AZUL_CLARO),
+              obs="Média dos cortes com resultado na janela (1 a 4)." + CALC, cor=AZUL_CLARO),
     11: campo("Composto 2 h: laboratório (MES)", MES, "IP_MESVALOR", "VAL", 45, True, "Esquerda", PAINEL, "Sem casas decimais (0)",
               obs="Mesmo vínculo do campo Compressão da tela PQ US04."),
     12: campo("Composto 2 h: fim da janela", "307-GI-001-C2H", A, HORA, 11, False, "Esquerda", PAINEL, "dd/mm/aaaa hh:mm", obs=CALC.strip()),
@@ -74,8 +74,10 @@ for k in range(4):
     SPEC[19 + k] = campo(f"Cortes do composto: resultado do corte {k + 1}", f"307-GI-001-CORTE{k + 1}", A, "VAL", 15, True, "Direita",
                          PAINEL, "1 casa decimal (0,0)", obs=CALC.strip())
 for n, tag, lim in ((23, "307-QI-003", 200), (24, "307-QI-002", 150), (25, "307-QI-001", 100)):
-    SPEC[n] = campo(f"Pelotas abaixo de {lim} daN", tag, DISC, "VAL", 18, True, "Direita", PAINEL, "Sem casas decimais (0)",
-                    obs="A lâmpada ao lado acende na cor do limite quando há pelota abaixo dele (já vem pronta no arquivo).")
+    SPEC[n] = campo(f"Faixa abaixo de {lim} kgf/pelota", tag, DISC, "VAL", 18, True, "Direita", PAINEL, "Sem casas decimais (0)",
+                    obs="A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo).")
+SPEC[26] = campo("Composto 2 h: cortes com resultado na janela", "307-GI-001-N2H", A, "VAL", 11, True, "Direita", PAINEL,
+                 "Sem casas decimais (0)", obs="Quantidade de cortes (1 a 4) usados na média." + CALC)
 
 
 def un(v):

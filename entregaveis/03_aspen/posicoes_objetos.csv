@@ -22,6 +22,7 @@ Tela;Tela inteira (referência);-;;;;0,00;0,00;50,00;35,00
 20;Cortes do composto: resultado do corte 2;Campo de dados;307-GI-001-CORTE2;IP_ANALOGMAP;VAL;42,09;17,02;3,75;0,81
 21;Cortes do composto: resultado do corte 3;Campo de dados;307-GI-001-CORTE3;IP_ANALOGMAP;VAL;42,09;18,27;3,75;0,81
 22;Cortes do composto: resultado do corte 4;Campo de dados;307-GI-001-CORTE4;IP_ANALOGMAP;VAL;42,09;19,52;3,75;0,81
-23;Pelotas abaixo de 200 daN;Campo de dados;307-QI-003;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;44,34;24,52;2,00;0,94
-24;Pelotas abaixo de 150 daN;Campo de dados;307-QI-002;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;44,34;25,89;2,00;0,94
-25;Pelotas abaixo de 100 daN;Campo de dados;307-QI-001;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;44,34;27,27;2,00;0,94
+23;Faixa abaixo de 200 kgf/pelota;Campo de dados;307-QI-003;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;24,52;2,00;0,94
+24;Faixa abaixo de 150 kgf/pelota;Campo de dados;307-QI-002;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;25,89;2,00;0,94
+25;Faixa abaixo de 100 kgf/pelota;Campo de dados;307-QI-001;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;27,27;2,00;0,94
+26;Composto 2 h: cortes com resultado na janela;Campo de dados;307-GI-001-N2H;IP_ANALOGMAP;VAL;40,10;10,00;0,75;0,69

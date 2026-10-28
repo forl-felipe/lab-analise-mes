@@ -11,7 +11,7 @@ def _numeros(txt):
     return [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", txt)]
 
 
-def contornos(d, passos=4):
+def contornos(d, passos=6):
     """Lista de contornos (listas de pontos) de um atributo d com comandos absolutos M, L, C e Z."""
     saida, atual, pos = [], [], (0.0, 0.0)
     for cmd, args in re.findall(r"([MLCZ])([^MLCZ]*)", d):
