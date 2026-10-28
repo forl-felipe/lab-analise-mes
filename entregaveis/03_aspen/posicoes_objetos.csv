@@ -1,45 +1,20 @@
-﻿n;objeto;tag;atributo;descricao;x;y;largura;altura
-1;Imagem;;;Logotipo oficial da Samarco (arquivo fornecido pela comunicação);32;16;200;56
-2;Campo de dados;307-GI-001;IP_INPUT_TIME;Data e hora do último ensaio;1688;46;200;21
-3;Campo de dados;307-GI-001;IP_INPUT_VALUE;Valor da carga média;57;171;220;76
-4;Texto condicional;307-QI-003;IP_INPUT_VALUE;Aviso de faixa (aparece quando alguma faixa está ativa);57;255;330;30
-5;Tendência;307-GI-001;IP_TREND_VALUE;Minitendência da carga média, 8 h;397;181;210;100
-6;Campo de dados;307-GI-001;IP_INPUT_TIME;Timestamp da carga média;159;311;190;17
-7;Campo de dados;307-GI-001;IP_INPUT_QUALITY;Qualidade da carga média;452;310;100;19
-8;Campo de dados;307-GI-002;IP_INPUT_VALUE;Valor do desvio padrão;677;171;220;76
-9;Tendência;307-GI-002;IP_TREND_VALUE;Minitendência do desvio padrão, 8 h;1017;181;210;100
-10;Campo de dados;307-GI-002;IP_INPUT_TIME;Timestamp do desvio padrão;779;311;190;17
-11;Campo de dados;307-GI-002;IP_INPUT_QUALITY;Qualidade do desvio padrão;1072;310;100;19
-12;Campo de dados;(tag de cálculo a criar);IP_INPUT_VALUE;Quantidade de tags com qualidade Good (opcional, Aspen Calc);1297;167;56;48
-13;Campo de dados;307-GI-001;IP_INPUT_QUALITY;Qualidade 307-GI-001;1308;253;85;19
-14;Campo de dados;307-GI-002;IP_INPUT_QUALITY;Qualidade 307-GI-002;1423;253;85;19
-15;Campo de dados;307-QI-001;IP_INPUT_QUALITY;Qualidade 307-QI-001;1538;253;85;19
-16;Campo de dados;307-QI-002;IP_INPUT_QUALITY;Qualidade 307-QI-002;1652;253;85;19
-17;Campo de dados;307-QI-003;IP_INPUT_QUALITY;Qualidade 307-QI-003;1767;253;85;19
-18;Campo de dados;(tag de cálculo a criar);IP_INPUT_VALUE;Tempo desde o último ensaio, em horas (opcional, Aspen Calc);1398;308;330;19
-19;Tendência;307-GI-001 + M4710050020-0031-HHLFU (+ banda e referências);IP_TREND_VALUE;Tendência principal, janela de 8 h, escala 0 a 500;57;466;1290;266
-20;Campo de dados;307-QI-003;IP_INPUT_VALUE;Estado da faixa menor que 200;1686;470;160;28
-21;Campo de dados;307-QI-002;IP_INPUT_VALUE;Estado da faixa menor que 150;1686;560;160;28
-22;Campo de dados;307-QI-001;IP_INPUT_VALUE;Estado da faixa menor que 100;1686;650;160;28
-23;Campo de dados;307-GI-001;IP_INPUT_VALUE;Tabela: valor;327;860;140;34
-24;Campo de dados;307-GI-001;IP_INPUT_TIME;Tabela: timestamp;467;860;200;34
-25;Campo de dados;307-GI-001;IP_INPUT_QUALITY;Tabela: qualidade;667;860;110;34
-26;Campo de dados;307-GI-002;IP_INPUT_VALUE;Tabela: valor;327;895;140;34
-27;Campo de dados;307-GI-002;IP_INPUT_TIME;Tabela: timestamp;467;895;200;34
-28;Campo de dados;307-GI-002;IP_INPUT_QUALITY;Tabela: qualidade;667;895;110;34
-29;Campo de dados;307-QI-001;IP_INPUT_VALUE;Tabela: valor;327;930;140;34
-30;Campo de dados;307-QI-001;IP_INPUT_TIME;Tabela: timestamp;467;930;200;34
-31;Campo de dados;307-QI-001;IP_INPUT_QUALITY;Tabela: qualidade;667;930;110;34
-32;Campo de dados;307-QI-002;IP_INPUT_VALUE;Tabela: valor;327;965;140;34
-33;Campo de dados;307-QI-002;IP_INPUT_TIME;Tabela: timestamp;467;965;200;34
-34;Campo de dados;307-QI-002;IP_INPUT_QUALITY;Tabela: qualidade;667;965;110;34
-35;Campo de dados;307-QI-003;IP_INPUT_VALUE;Tabela: valor;327;1000;140;34
-36;Campo de dados;307-QI-003;IP_INPUT_TIME;Tabela: timestamp;467;1000;200;34
-37;Campo de dados;307-QI-003;IP_INPUT_QUALITY;Tabela: qualidade;667;1000;110;34
-38;Campo de dados;M4710050020-0031-HHLFU;VAL (mapa IP_MESVALOR);Compressão do laboratório, último resultado MES;1477;826;90;28
-39;Campo de dados;M4710050020-0031-HHLFU;IP_INPUT_TIME;Horário do resultado MES;1667;834;170;17
-40;Campo de dados;(tag de cálculo a criar);IP_INPUT_VALUE;Média dos ensaios do módulo na janela do resultado MES (opcional, Aspen Calc);1477;864;90;28
-41;Campo de dados;(tag de cálculo a criar);IP_INPUT_VALUE;Diferença módulo menos MES (opcional, Aspen Calc);1477;902;90;28
-42;Campo de dados;U04-07CR001;VAL (mapa IP_PIDMAP03);Modo do cortador primário: Automático ou Manual;1425;957;140;19
-43;Campo de dados;U04-07CR002;VAL (mapa IP_PIDMAP03);Modo do cortador secundário: Automático ou Manual;1650;957;140;19
-44;Campo de dados;(tag de cálculo a criar);IP_INPUT_VALUE;Situação da comparação: válida ou não comparável (opcional, Aspen Calc);1257;987;600;19
+﻿n;objeto;ferramenta;tag;mapa;atributo;x_px;y_px;largura_px;altura_px
+Fundo;Imagem de fundo ou mapa;Imagem;;;;0;0;1920;1080
+1;Logotipo oficial;Imagem;;;;32;16;200;56
+2;Última atualização (cabeçalho);Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);1688;43;200;26
+3;Carga média: valor;Campo de dados;307-GI-001;IP_ANALOGMAP;VAL;57;169;230;84
+4;Carga média: minitendência;Tendência (plot);307-GI-001;;;407;176;200;100
+5;Carga média: atualizado em;Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);159;307;180;22
+6;Carga média: qualidade;Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE QUALIDADE (anotado em B3);442;307;90;22
+7;Desvio padrão: valor;Campo de dados;307-GI-002;IP_ANALOGMAP;VAL;677;169;230;84
+8;Desvio padrão: minitendência;Tendência (plot);307-GI-002;;;1027;176;200;100
+9;Desvio padrão: atualizado em;Campo de dados;307-GI-002;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);779;307;180;22
+10;Desvio padrão: qualidade;Campo de dados;307-GI-002;IP_ANALOGMAP;ATRIBUTO DE QUALIDADE (anotado em B3);1062;307;90;22
+11;Compressão MES: último resultado;Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;VAL;1297;188;170;84
+12;Compressão MES: horário do resultado;Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;ATRIBUTO DE HORA (anotado em B3);1398;303;150;22
+13;Modo do cortador 07CR001;Campo de dados;U04-07CR001;IP_PIDMAP03;VAL;1753;200;110;26
+14;Modo do cortador 07CR002;Campo de dados;U04-07CR002;IP_PIDMAP03;VAL;1753;240;110;26
+15;Tendência principal da carga média;Tendência (plot);307-GI-001 e M4710050020-0031-HHLFU (ver Parte F);;;57;468;1290;560
+16;Faixa menor que 200 (Atenção);Campo de dados;307-QI-003;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;1710;512;130;32
+17;Faixa menor que 150 (Alerta);Campo de dados;307-QI-002;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;1710;686;130;32
+18;Faixa menor que 100 (Crítico);Campo de dados;307-QI-001;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;1710;860;130;32

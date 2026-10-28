@@ -1,10 +1,10 @@
-// Gera, a partir do protótipo, as imagens usadas na montagem da tela no Aspen Process Graphics Editor.
-// Uso: node gerar_imagens.js   (requer Playwright com Chromium)
+// Gera, a partir do protótipo, as imagens e as posições usadas na montagem da tela no Aspen Process Graphics Editor.
+// Uso: node gerar_imagens.js   (requer Playwright com Chromium). Depois rode montar_pacote_aspen.py.
 // Saídas em ../03_aspen/:
-//   fundo_1920x1080.png       imagem de fundo (somente a parte estática)
-//   mapa_posicionamento.png   fundo com a posição numerada de cada objeto dinâmico
-//   tela_exemplo_*.png        tela completa com dados simulados, por cenário
-//   posicoes_objetos.csv      posição e tamanho de cada objeto dinâmico, em pixels
+//   fundo_1920x1080.png        imagem de fundo (somente a parte fixa)
+//   mapa_posicionamento.png    fundo com a posição numerada de cada objeto dinâmico
+//   tela_exemplo_*.png         tela completa com dados simulados, por cenário
+//   posicoes_px.json           posição e tamanho de cada objeto dinâmico, em pixels
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
@@ -25,15 +25,12 @@ fs.mkdirSync(saida, { recursive: true });
   await page.screenshot({ path: path.join(saida, 'mapa_posicionamento.png') });
   const slots = await page.$$eval('[data-slot]', els => els.map(e => {
     const r = e.getBoundingClientRect();
-    return { n: +e.dataset.slot, obj: e.dataset.obj, tag: e.dataset.tag, attr: e.dataset.attr, desc: e.dataset.desc,
-             x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
+    return { n: +e.dataset.slot, x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) };
   }));
   slots.sort((a, b) => a.n - b.n);
-  const linhas = ['n;objeto;tag;atributo;descricao;x;y;largura;altura']
-    .concat(slots.map(s => [s.n, s.obj, s.tag, s.attr, s.desc, s.x, s.y, s.w, s.h].join(';')));
-  fs.writeFileSync(path.join(saida, 'posicoes_objetos.csv'), '﻿' + linhas.join('\r\n') + '\r\n');
+  fs.writeFileSync(path.join(saida, 'posicoes_px.json'), JSON.stringify(slots, null, 1));
 
-  for (const c of ['normal', 'f200', 'bad', 'defasado', 'manual']) {
+  for (const c of ['normal', 'f200', 'bad', 'manual']) {
     await abrir(`modo=demo&cenario=${c}`);
     await page.screenshot({ path: path.join(saida, `tela_exemplo_${c}.png`) });
   }

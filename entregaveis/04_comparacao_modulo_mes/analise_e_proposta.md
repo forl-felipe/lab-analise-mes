@@ -57,7 +57,7 @@ Em manual, a amostra que vai para o laboratório e a que vai para o módulo pode
 | Onde | O que mostra | Depende de |
 |---|---|---|
 | **Tela principal do módulo** (destaque) | Carga média, desvio padrão, faixas, qualidade e tendência. Na tendência, os resultados do MES aparecem como quadrados cinza, discretos | Tags do módulo e tag do MES, já existentes |
-| **Painel "Referência do laboratório"** (complementar, canto inferior direito) | Último resultado MES, média do módulo na mesma janela, diferença, modo dos cortadores 07CR001 e 07CR002 e situação da comparação | Tag do MES e modos, já existentes. Média, diferença e situação dependem de tags calculadas |
+| **Painel "Referência do laboratório"** (canto superior direito, no lugar do antigo painel de qualidade dos dados) | Último resultado de compressão do MES em destaque, horário do resultado e modo dos cortadores 07CR001 e 07CR002 | Tag do MES e modos, já existentes |
 | **Planilha `comparacao_modulo_mes.xlsx`** | Análise do período: janelas válidas, viés, teste t, limites de concordância e gráficos | Exportação do PIMS para o Excel |
 
 ### Tags calculadas sugeridas (Aspen Calc, opcionais)
@@ -70,7 +70,7 @@ Nomes provisórios, a combinar com o administrador do PIMS. Cálculo disparado a
 | `307-CMP-DIF` | `307-CMP-MOD-JAN` menos `M4710050020-0031-HHLFU`, somente se a janela for válida |
 | `307-CMP-SITUACAO` | 1 = válida; 2 = amostragem em manual ou em falha; 3 = poucos ensaios do módulo; 4 = usina parada |
 
-Sem essas tags, o painel mostra o resultado do MES e o modo dos cortadores, e a comparação numérica fica na planilha. **Recomendação:** começar assim e criar as tags calculadas depois de validar o método com algumas semanas de dados.
+Essas tags não fazem parte da tela atual. A comparação numérica fica na planilha; se as tags forem criadas no futuro, podem ganhar um espaço na tela. **Recomendação:** começar assim e criar as tags calculadas depois de validar o método com algumas semanas de dados.
 
 ## 5. Planilha de comparação
 
