@@ -5,8 +5,8 @@ Uso (na pasta ferramentas):
     python montar_pacote_aspen.py
 
 Saídas em ../03_aspen/:
-    fundo_1920x1080.bmp, mapa_posicionamento.bmp   cópias em BMP 24 bits das imagens PNG
-    posicoes_objetos.xlsx                          posições com fator de conversão para as unidades do editor
+    fundo_1400x980.bmp, mapa_posicionamento.bmp    cópias em BMP 24 bits das imagens PNG
+    posicoes_objetos.xlsx                          posições em unidades do Aspen (tela de 50 x 35 unidades)
     posicoes_objetos.csv                           mesmas informações em texto
     roteiro_aspen_graphics.md / .html / .pdf       passo a passo completo, com uma ficha por objeto
 
@@ -81,17 +81,27 @@ SPEC = {
 }
 
 
+def un(v):
+    """Unidades do Aspen com 2 casas e vírgula decimal."""
+    return f"{v:.2f}".replace(".", ",")
+
+
+def pt(v):
+    """Tamanhos de fonte foram definidos para 1920 px de largura; a tela de 50 unidades aparece com cerca de 1400 px."""
+    return max(8, round(v * 0.84))
+
+
 def ficha(n, s, pos):
     linhas = [f"### Objeto {n}: {s['nome']}", "",
               "| Propriedade | Valor |", "|---|---|",
               f"| Ferramenta | {s['ferramenta']} |",
-              f"| Posição em pixels (X, Y) | {pos['x']}, {pos['y']} |",
-              f"| Tamanho em pixels (largura x altura) | {pos['w']} x {pos['h']} |"]
+              f"| Posição em unidades (X ; Y) | {un(pos['x'])} ; {un(pos['y'])} |",
+              f"| Tamanho em unidades (largura ; altura) | {un(pos['w'])} ; {un(pos['h'])} |"]
     if s["ferramenta"] == "Campo de dados":
         linhas += [f"| Tag | `{s['tag']}` |",
                    f"| Mapa | {s['mapa'] if s['mapa'].startswith('mapa') else '`' + s['mapa'] + '`'} |",
                    f"| Atributo | {s['atrib'] if s['atrib'].startswith('**') else '`' + s['atrib'] + '`'} |",
-                   f"| Fonte | Arial {s['pt']} pt{', negrito' if s['negrito'] else ''} |",
+                   f"| Fonte | Arial {pt(s['pt'])} pt{', negrito' if s['negrito'] else ''} (calibrar no objeto 3) |",
                    f"| Alinhamento | {s['alin']} |",
                    f"| Cor do texto | RGB {s['cor']} |",
                    f"| Cor de fundo | RGB {s['fundo']} (ou transparente), sem borda |",
@@ -110,19 +120,19 @@ def planilha(posicoes, caminho):
     amarelo = PatternFill("solid", fgColor="FFF2CC")
     cab = PatternFill("solid", fgColor="1F2630")
     borda = Border(*(Side(style="thin", color="BFBFBF"),) * 4)
-    ws["A1"] = "Largura total no editor (passo D4). Deixe 1920 se o editor trabalha em pixels."
+    ws["A1"] = "Largura da tela no editor, em unidades (passo C2). O padrão do Aspen é 50."
     ws["A1"].font = Font(name=f, bold=True)
-    ws["F1"] = 1920
+    ws["F1"] = 50
     ws["F1"].fill = amarelo
     ws["F1"].border = borda
     ws["F1"].font = Font(name=f, bold=True, color="0000FF")
     ws["A2"] = "Fator de conversão (calculado)"
     ws["A2"].font = Font(name=f)
-    ws["F2"] = "=F1/1920"
+    ws["F2"] = "=F1/50"
     ws["F2"].number_format = "0.0000"
     ws["F2"].font = Font(name=f)
-    titulos = ["Nº", "Objeto", "Ferramenta", "Tag", "Mapa", "Atributo", "X px", "Y px", "Largura px", "Altura px",
-               "X editor", "Y editor", "Largura editor", "Altura editor"]
+    titulos = ["Nº", "Objeto", "Ferramenta", "Tag", "Mapa", "Atributo", "X (tela 50)", "Y (tela 50)", "Largura (tela 50)", "Altura (tela 50)",
+               "X no editor", "Y no editor", "Largura no editor", "Altura no editor"]
     larg = [5, 38, 18, 26, 22, 30, 8, 8, 10, 10, 10, 10, 12, 12]
     for c, (t, w) in enumerate(zip(titulos, larg), 1):
         cel = ws.cell(row=4, column=c, value=t)
@@ -130,7 +140,7 @@ def planilha(posicoes, caminho):
         cel.fill = cab
         cel.alignment = Alignment(wrap_text=True, vertical="center")
         ws.column_dimensions[cel.column_letter].width = w
-    linhas = [dict(n="Fundo", nome="Imagem de fundo ou mapa", ferramenta="Imagem", tag="", mapa="", atrib="", x=0, y=0, w=1920, h=1080)]
+    linhas = [dict(n="Fundo", nome="Imagem de fundo ou mapa", ferramenta="Imagem", tag="", mapa="", atrib="", x=0, y=0, w=50, h=35)]
     for p in posicoes:
         s = SPEC[p["n"]]
         linhas.append(dict(n=p["n"], nome=s["nome"], ferramenta=s["ferramenta"], tag=s.get("tag", ""),
@@ -139,9 +149,13 @@ def planilha(posicoes, caminho):
     for r, l in enumerate(linhas, 5):
         vals = [l["n"], l["nome"], l["ferramenta"], l["tag"], l["mapa"], l["atrib"], l["x"], l["y"], l["w"], l["h"]]
         for c, v in enumerate(vals, 1):
-            ws.cell(row=r, column=c, value=v).font = Font(name=f)
+            cel = ws.cell(row=r, column=c, value=v)
+            cel.font = Font(name=f)
+            if c >= 7:
+                cel.number_format = "0.00"
         for c, src in zip(range(11, 15), "GHIJ"):
-            cel = ws.cell(row=r, column=c, value=f"=ROUND({src}{r}*$F$2,0)")
+            cel = ws.cell(row=r, column=c, value=f"=ROUND({src}{r}*$F$2,2)")
+            cel.number_format = "0.00"
             cel.font = Font(name=f, bold=True)
             cel.fill = PatternFill("solid", fgColor="F2F2F2")
     ws.freeze_panes = "A5"
@@ -150,19 +164,19 @@ def planilha(posicoes, caminho):
 
 
 def main():
-    with open(os.path.join(SAIDA, "posicoes_px.json"), encoding="utf-8") as fh:
+    with open(os.path.join(SAIDA, "posicoes.json"), encoding="utf-8") as fh:
         posicoes = json.load(fh)
     assert {p["n"] for p in posicoes} == set(SPEC), "Objetos do protótipo e da especificação não conferem"
 
-    for nome in ("fundo_1920x1080", "mapa_posicionamento"):
+    for nome in ("fundo_1400x980", "mapa_posicionamento"):
         Image.open(os.path.join(SAIDA, nome + ".png")).convert("RGB").save(os.path.join(SAIDA, nome + ".bmp"))
 
     linhas = planilha(posicoes, os.path.join(SAIDA, "posicoes_objetos.xlsx"))
     with open(os.path.join(SAIDA, "posicoes_objetos.csv"), "w", newline="", encoding="utf-8-sig") as fh:
         w = csv.writer(fh, delimiter=";")
-        w.writerow(["n", "objeto", "ferramenta", "tag", "mapa", "atributo", "x_px", "y_px", "largura_px", "altura_px"])
+        w.writerow(["n", "objeto", "ferramenta", "tag", "mapa", "atributo", "x_unid", "y_unid", "largura_unid", "altura_unid"])
         for l in linhas:
-            w.writerow([l["n"], l["nome"], l["ferramenta"], l["tag"], l["mapa"], l["atrib"], l["x"], l["y"], l["w"], l["h"]])
+            w.writerow([l["n"], l["nome"], l["ferramenta"], l["tag"], l["mapa"], l["atrib"], un(l["x"]), un(l["y"]), un(l["w"]), un(l["h"])])
 
     with open(os.path.join(AQUI, "roteiro_modelo.md"), encoding="utf-8") as fh:
         modelo = fh.read()

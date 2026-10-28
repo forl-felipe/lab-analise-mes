@@ -12,8 +12,10 @@
 
 A tela tem duas camadas:
 
-1. **Imagem de fundo** (`fundo_1920x1080.bmp` ou `.png`). Contém tudo o que não muda: cabeçalho, painéis, títulos, rótulos, unidades e símbolos de severidade. Você não desenha nenhum texto fixo no editor.
+1. **Imagem de fundo** (`fundo_1400x980.bmp` ou `.png`). Contém tudo o que não muda: cabeçalho, painéis, títulos, rótulos, unidades e símbolos de severidade. Você não desenha nenhum texto fixo no editor.
 2. **18 objetos dinâmicos** do Aspen colocados por cima da imagem: 14 campos de dados, 3 tendências e 1 imagem para o logotipo. Cada um tem uma ficha na Parte E com tag, mapa, atributo, posição, tamanho, fonte e cores.
+
+**Tamanho da tela.** O editor mede a tela em **unidades**, não em pixels. O tamanho padrão é **50 x 35 unidades** (proporção 10:7), o mesmo da tela PQ US04. Toda a tela foi desenhada nessa proporção e todas as posições deste roteiro estão em unidades. A imagem tem 1400 x 980 pixels, também 10:7, perto do tamanho em que a tela aparece no monitor, para o Aspen não precisar esticar nem encolher muito a imagem.
 
 Para não errar a posição, você monta primeiro com a imagem `mapa_posicionamento.bmp`, que mostra um retângulo rosa numerado onde vai cada objeto. No fim, troca o mapa pelo fundo definitivo.
 
@@ -23,9 +25,9 @@ Para não errar a posição, você monta primeiro com a imagem `mapa_posicioname
 
 | Arquivo | Para que serve |
 |---|---|
-| `fundo_1920x1080.bmp` e `.png` | Imagem de fundo definitiva (mesmo conteúdo; use BMP se o editor não aceitar PNG) |
+| `fundo_1400x980.bmp` e `.png` | Imagem de fundo definitiva (mesmo conteúdo; use BMP se o editor não aceitar PNG) |
 | `mapa_posicionamento.bmp` e `.png` | Guia de montagem com os retângulos numerados |
-| `posicoes_objetos.xlsx` | Posição e tamanho de cada objeto, com conversão automática para as unidades do editor |
+| `posicoes_objetos.xlsx` | Posição e tamanho de cada objeto, em unidades do editor |
 | `posicoes_objetos.csv` | Mesmas informações em texto |
 | `tela_exemplo_normal.png` | Como a tela deve ficar em operação normal |
 | `tela_exemplo_f200.png` | Carga abaixo de 200: faixa de Atenção ativa |
@@ -93,9 +95,11 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 
 **C1.** Menu **Arquivo > Novo**.
 
-**C2.** Abra as propriedades da tela (duplo clique numa área vazia do fundo cinza). Defina:
-- Largura **1920** e altura **1080**
+**C2.** Abra as propriedades da tela (duplo clique numa área vazia do fundo cinza) e confira:
+- Largura **50 unidades** e altura **35 unidades**. É o padrão: **não altere**.
 - Cor de fundo **RGB 22, 27, 34**
+
+> Se a sua tela abrir com outro tamanho, volte para 50 x 35. Se não for possível, digite a largura que aparece na célula amarela da planilha `posicoes_objetos.xlsx` e use as colunas "no editor".
 
 **C3.** Salve na pasta da etapa A1 com o nome `LCE_Compressao_Pelotas_Prensa01`.
 
@@ -105,11 +109,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 
 **D2.** Escolha `mapa_posicionamento.bmp` (ou `.png`).
 
-**D3.** Nas propriedades da imagem, defina **X = 0, Y = 0, largura = 1920, altura = 1080**. Não redimensione arrastando com o mouse.
+**D3.** Nas propriedades da imagem, defina **X = 0, Y = 0, largura = 50, altura = 35** (unidades). Não redimensione arrastando com o mouse.
 
-**D4. Calibração, o passo mais importante.** Veja como a imagem ficou:
-- **Se a imagem cobre exatamente a tela, sem sobra e sem corte:** o editor trabalha em pixels. O fator é **1**. Siga para D5.
-- **Se a imagem ficou menor ou maior que a tela:** o editor usa outra unidade. Ajuste a largura da imagem até ela cobrir exatamente a tela, e anote a largura que o editor mostra nesse momento. Na planilha `posicoes_objetos.xlsx`, digite esse número na célula amarela **"Largura total no editor"**. A planilha recalcula todas as posições nas unidades do editor. Corrija também a altura da imagem com o valor da coluna **A editor** da linha "Fundo".
+**D4. Conferência, o passo mais importante.** A imagem deve cobrir a tela inteira, sem sobra e sem corte, e os textos devem aparecer na proporção certa, sem letras achatadas ou esticadas. Compare com `tela_exemplo_normal.png`:
+- **Imagem correta:** siga para D5.
+- **Letras esticadas na vertical ou na horizontal:** a imagem não está em 50 x 35. Refaça D3.
+- **Imagem nítida no monitor, mas um pouco serrilhada no editor:** é normal. O editor mostra a tela reduzida e não suaviza a imagem. Confira no modo de execução (Process Explorer), em tela cheia.
 
 **D5.** Envie a imagem para trás (**Editar > Enviar para trás**, ou o botão de ordem na paleta) e, se houver a opção, **bloqueie** o objeto para não arrastá-lo por engano.
 
@@ -120,11 +125,11 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 1. Selecione a ferramenta indicada na ficha.
 2. Desenhe um retângulo aproximado sobre o retângulo rosa com o mesmo número.
 3. Na janela de propriedades, preencha tag, mapa e atributo.
-4. Digite X, Y, largura e altura **exatamente** como na planilha (colunas "editor" se o fator for diferente de 1).
+4. Digite X, Y, largura e altura **exatamente** como na ficha, em unidades e com as duas casas decimais. Se o editor não aceitar decimais, posicione arrastando até o objeto cobrir o retângulo rosa.
 5. Ajuste fonte, cores, alinhamento e formato.
 6. Se houver **regra de cor**, configure na aba de cores condicionais (a mesma que você viu no passo B2).
 
-**Comece pelo objeto 3** (carga média). Ele serve para calibrar a fonte: o número deve ocupar quase toda a altura do retângulo rosa, encostado à direita. Se o texto em 57 pt ficar maior ou menor que o retângulo, ajuste o tamanho até encaixar e aplique **a mesma proporção** em todos os outros objetos. Exemplo: se 57 pt precisou virar 48 pt, multiplique todos os tamanhos de fonte por 0,84.
+**Comece pelo objeto 3** (carga média). Ele serve para calibrar a fonte: o número deve ocupar quase toda a altura do retângulo rosa, encostado à direita. Se o texto em 48 pt ficar maior ou menor que o retângulo, ajuste o tamanho até encaixar e aplique **a mesma proporção** em todos os outros objetos. Exemplo: se 48 pt precisou virar 40 pt, multiplique todos os tamanhos de fonte por 0,83.
 
 **Dica para ganhar tempo:** depois de configurar um objeto, copie e cole para os outros do mesmo tipo e troque só a tag, a posição e o que mudar. Por exemplo, o objeto 3 copiado gera os objetos 7 e 11, e o objeto 16 copiado gera os objetos 17 e 18.
 
@@ -135,8 +140,8 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Imagem |
-| Posição em pixels (X, Y) | 32, 16 |
-| Tamanho em pixels (largura x altura) | 200 x 56 |
+| Posição em unidades (X ; Y) | 1,00 ; 0,48 |
+| Tamanho em unidades (largura ; altura) | 6,25 ; 1,75 |
 | Observação | Arquivo oficial fornecido pela Comunicação. Manter a proporção dentro do retângulo. Ver Parte H. |
 
 ### Objeto 2: Última atualização (cabeçalho)
@@ -144,12 +149,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1688, 43 |
-| Tamanho em pixels (largura x altura) | 200 x 26 |
+| Posição em unidades (X ; Y) | 42,75 ; 1,34 |
+| Tamanho em unidades (largura ; altura) | 6,25 ; 0,81 |
 | Tag | `307-GI-001` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | **ATRIBUTO DE HORA** (anotado em B3) |
-| Fonte | Arial 14 pt, negrito |
+| Fonte | Arial 12 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 17, 22, 29 (ou transparente), sem borda |
@@ -162,12 +167,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 57, 169 |
-| Tamanho em pixels (largura x altura) | 230 x 84 |
+| Posição em unidades (X ; Y) | 1,78 ; 5,28 |
+| Tamanho em unidades (largura ; altura) | 6,41 ; 2,63 |
 | Tag | `307-GI-001` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | `VAL` |
-| Fonte | Arial 57 pt, negrito |
+| Fonte | Arial 48 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -180,8 +185,8 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em pixels (X, Y) | 407, 176 |
-| Tamanho em pixels (largura x altura) | 200 x 100 |
+| Posição em unidades (X ; Y) | 11,78 ; 5,50 |
+| Tamanho em unidades (largura ; altura) | 4,69 ; 3,13 |
 | Observação | Ver Parte G. |
 
 ### Objeto 5: Carga média: atualizado em
@@ -189,12 +194,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 159, 307 |
-| Tamanho em pixels (largura x altura) | 180 x 22 |
+| Posição em unidades (X ; Y) | 4,96 ; 9,59 |
+| Tamanho em unidades (largura ; altura) | 5,16 ; 0,69 |
 | Tag | `307-GI-001` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | **ATRIBUTO DE HORA** (anotado em B3) |
-| Fonte | Arial 11 pt |
+| Fonte | Arial 9 pt (calibrar no objeto 3) |
 | Alinhamento | Esquerda |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -206,12 +211,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 442, 307 |
-| Tamanho em pixels (largura x altura) | 90 x 22 |
+| Posição em unidades (X ; Y) | 13,08 ; 9,59 |
+| Tamanho em unidades (largura ; altura) | 2,81 ; 0,69 |
 | Tag | `307-GI-001` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | **ATRIBUTO DE QUALIDADE** (anotado em B3) |
-| Fonte | Arial 11 pt, negrito |
+| Fonte | Arial 9 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Esquerda |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -223,12 +228,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 677, 169 |
-| Tamanho em pixels (largura x altura) | 230 x 84 |
+| Posição em unidades (X ; Y) | 18,66 ; 5,28 |
+| Tamanho em unidades (largura ; altura) | 6,41 ; 2,63 |
 | Tag | `307-GI-002` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | `VAL` |
-| Fonte | Arial 57 pt, negrito |
+| Fonte | Arial 48 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -241,8 +246,8 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em pixels (X, Y) | 1027, 176 |
-| Tamanho em pixels (largura x altura) | 200 x 100 |
+| Posição em unidades (X ; Y) | 28,66 ; 5,50 |
+| Tamanho em unidades (largura ; altura) | 4,69 ; 3,13 |
 | Observação | Ver Parte G. |
 
 ### Objeto 9: Desvio padrão: atualizado em
@@ -250,12 +255,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 779, 307 |
-| Tamanho em pixels (largura x altura) | 180 x 22 |
+| Posição em unidades (X ; Y) | 21,84 ; 9,59 |
+| Tamanho em unidades (largura ; altura) | 5,16 ; 0,69 |
 | Tag | `307-GI-002` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | **ATRIBUTO DE HORA** (anotado em B3) |
-| Fonte | Arial 11 pt |
+| Fonte | Arial 9 pt (calibrar no objeto 3) |
 | Alinhamento | Esquerda |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -268,12 +273,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1062, 307 |
-| Tamanho em pixels (largura x altura) | 90 x 22 |
+| Posição em unidades (X ; Y) | 29,96 ; 9,59 |
+| Tamanho em unidades (largura ; altura) | 2,81 ; 0,69 |
 | Tag | `307-GI-002` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | **ATRIBUTO DE QUALIDADE** (anotado em B3) |
-| Fonte | Arial 11 pt, negrito |
+| Fonte | Arial 9 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Esquerda |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -286,12 +291,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1297, 188 |
-| Tamanho em pixels (largura x altura) | 170 x 84 |
+| Posição em unidades (X ; Y) | 35,53 ; 5,88 |
+| Tamanho em unidades (largura ; altura) | 5,31 ; 2,63 |
 | Tag | `M4710050020-0031-HHLFU` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | `VAL` |
-| Fonte | Arial 57 pt, negrito |
+| Fonte | Arial 48 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -304,12 +309,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1398, 303 |
-| Tamanho em pixels (largura x altura) | 150 x 22 |
+| Posição em unidades (X ; Y) | 43,53 ; 8,75 |
+| Tamanho em unidades (largura ; altura) | 4,69 ; 0,69 |
 | Tag | `M4710050020-0031-HHLFU` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | **ATRIBUTO DE HORA** (anotado em B3) |
-| Fonte | Arial 11 pt |
+| Fonte | Arial 9 pt (calibrar no objeto 3) |
 | Alinhamento | Esquerda |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -322,12 +327,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1753, 200 |
-| Tamanho em pixels (largura x altura) | 110 x 26 |
+| Posição em unidades (X ; Y) | 44,78 ; 11,31 |
+| Tamanho em unidades (largura ; altura) | 3,44 ; 0,81 |
 | Tag | `U04-07CR001` |
 | Mapa | `IP_PIDMAP03` |
 | Atributo | `VAL` |
-| Fonte | Arial 14 pt, negrito |
+| Fonte | Arial 12 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -340,12 +345,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1753, 240 |
-| Tamanho em pixels (largura x altura) | 110 x 26 |
+| Posição em unidades (X ; Y) | 44,78 ; 12,56 |
+| Tamanho em unidades (largura ; altura) | 3,44 ; 0,81 |
 | Tag | `U04-07CR002` |
 | Mapa | `IP_PIDMAP03` |
 | Atributo | `VAL` |
-| Fonte | Arial 14 pt, negrito |
+| Fonte | Arial 12 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -358,8 +363,8 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em pixels (X, Y) | 57, 468 |
-| Tamanho em pixels (largura x altura) | 1290 x 560 |
+| Posição em unidades (X ; Y) | 1,78 ; 14,63 |
+| Tamanho em unidades (largura ; altura) | 31,63 ; 18,63 |
 | Observação | Penas, escala, período e aparência na Parte F. |
 
 ### Objeto 16: Faixa menor que 200 (Atenção)
@@ -367,12 +372,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1710, 512 |
-| Tamanho em pixels (largura x altura) | 130 x 32 |
+| Posição em unidades (X ; Y) | 44,31 ; 19,94 |
+| Tamanho em unidades (largura ; altura) | 3,25 ; 1,00 |
 | Tag | `307-QI-003` |
 | Mapa | mapa de discreto anotado em B4 (provavelmente `IP_DISCRETEMAP`) |
 | Atributo | `VAL` |
-| Fonte | Arial 18 pt, negrito |
+| Fonte | Arial 15 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -384,12 +389,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1710, 686 |
-| Tamanho em pixels (largura x altura) | 130 x 32 |
+| Posição em unidades (X ; Y) | 44,31 ; 24,56 |
+| Tamanho em unidades (largura ; altura) | 3,25 ; 1,00 |
 | Tag | `307-QI-002` |
 | Mapa | mapa de discreto anotado em B4 (provavelmente `IP_DISCRETEMAP`) |
 | Atributo | `VAL` |
-| Fonte | Arial 18 pt, negrito |
+| Fonte | Arial 15 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -402,12 +407,12 @@ Nas fichas da Parte E, onde estiver **ATRIBUTO DE HORA** ou **ATRIBUTO DE QUALID
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em pixels (X, Y) | 1710, 860 |
-| Tamanho em pixels (largura x altura) | 130 x 32 |
+| Posição em unidades (X ; Y) | 44,31 ; 29,19 |
+| Tamanho em unidades (largura ; altura) | 3,25 ; 1,00 |
 | Tag | `307-QI-001` |
 | Mapa | mapa de discreto anotado em B4 (provavelmente `IP_DISCRETEMAP`) |
 | Atributo | `VAL` |
-| Fonte | Arial 18 pt, negrito |
+| Fonte | Arial 15 pt, negrito (calibrar no objeto 3) |
 | Alinhamento | Direita |
 | Cor do texto | RGB 230, 234, 240 |
 | Cor de fundo | RGB 31, 38, 48 (ou transparente), sem borda |
@@ -469,7 +474,7 @@ Com a ferramenta **Imagem**, insira o arquivo **oficial** do logotipo fornecido 
 
 **I1.** Desbloqueie e selecione a imagem do mapa.
 
-**I2.** Troque o arquivo para `fundo_1920x1080.bmp` (ou `.png`), mantendo X, Y, largura e altura. Se o editor não permitir trocar o arquivo, apague a imagem e repita D1 a D5 com o fundo definitivo.
+**I2.** Troque o arquivo para `fundo_1400x980.bmp` (ou `.png`), mantendo X, Y, largura e altura. Se o editor não permitir trocar o arquivo, apague a imagem e repita D1 a D5 com o fundo definitivo.
 
 **I3.** Envie para trás, bloqueie e **salve**.
 
@@ -514,8 +519,9 @@ Enquanto isso não for feito, a tela funciona assim: a tendência mostra só o m
 
 | Problema | Causa provável | Solução |
 |---|---|---|
-| A imagem de fundo aparece borrada ou com textos esticados | Imagem redimensionada | Refaça D3 com os valores exatos e confira o fator de D4 |
-| Os campos ficam desalinhados em relação ao fundo | Fator de unidade errado | Refaça D4 e use as colunas "editor" da planilha |
+| Letras achatadas ou esticadas | Imagem fora de 50 x 35 unidades, ou tela com outro tamanho | Confira C2 (50 x 35) e refaça D3 |
+| Letras um pouco serrilhadas só no editor | O editor mostra a tela reduzida, sem suavizar | Normal. Confira no modo de execução |
+| Os campos ficam desalinhados em relação ao fundo | Posição digitada sem as casas decimais, ou tela com tamanho diferente de 50 x 35 | Digite com duas casas ou ajuste arrastando sobre o retângulo rosa |
 | O campo aparece com caixa branca | Fundo do campo no padrão do editor | Defina o fundo na cor da ficha ou transparente, e remova a borda |
 | Número com ponto em vez de vírgula | Configuração regional da estação | Verifique em Ferramentas > Opções; se não houver ajuste, peça à TI |
 | A tendência sobe e desce a escala sozinha | Pena em autoescala | Defina escala fixa em todas as penas (F1) |

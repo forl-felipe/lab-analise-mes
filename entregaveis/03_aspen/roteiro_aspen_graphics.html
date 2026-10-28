@@ -20,9 +20,10 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <h2>Como esta tela é montada</h2>
 <p>A tela tem duas camadas:</p>
 <ol>
-<li><strong>Imagem de fundo</strong> (<code>fundo_1920x1080.bmp</code> ou <code>.png</code>). Contém tudo o que não muda: cabeçalho, painéis, títulos, rótulos, unidades e símbolos de severidade. Você não desenha nenhum texto fixo no editor.</li>
+<li><strong>Imagem de fundo</strong> (<code>fundo_1400x980.bmp</code> ou <code>.png</code>). Contém tudo o que não muda: cabeçalho, painéis, títulos, rótulos, unidades e símbolos de severidade. Você não desenha nenhum texto fixo no editor.</li>
 <li><strong>18 objetos dinâmicos</strong> do Aspen colocados por cima da imagem: 14 campos de dados, 3 tendências e 1 imagem para o logotipo. Cada um tem uma ficha na Parte E com tag, mapa, atributo, posição, tamanho, fonte e cores.</li>
 </ol>
+<p><strong>Tamanho da tela.</strong> O editor mede a tela em <strong>unidades</strong>, não em pixels. O tamanho padrão é <strong>50 x 35 unidades</strong> (proporção 10:7), o mesmo da tela PQ US04. Toda a tela foi desenhada nessa proporção e todas as posições deste roteiro estão em unidades. A imagem tem 1400 x 980 pixels, também 10:7, perto do tamanho em que a tela aparece no monitor, para o Aspen não precisar esticar nem encolher muito a imagem.</p>
 <p>Para não errar a posição, você monta primeiro com a imagem <code>mapa_posicionamento.bmp</code>, que mostra um retângulo rosa numerado onde vai cada objeto. No fim, troca o mapa pelo fundo definitivo.</p>
 <p><img alt="Mapa de posicionamento" src="mapa_posicionamento.png" /></p>
 <h3>Arquivos do pacote</h3>
@@ -35,7 +36,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </thead>
 <tbody>
 <tr>
-<td><code>fundo_1920x1080.bmp</code> e <code>.png</code></td>
+<td><code>fundo_1400x980.bmp</code> e <code>.png</code></td>
 <td>Imagem de fundo definitiva (mesmo conteúdo; use BMP se o editor não aceitar PNG)</td>
 </tr>
 <tr>
@@ -44,7 +45,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td><code>posicoes_objetos.xlsx</code></td>
-<td>Posição e tamanho de cada objeto, com conversão automática para as unidades do editor</td>
+<td>Posição e tamanho de cada objeto, em unidades do editor</td>
 </tr>
 <tr>
 <td><code>posicoes_objetos.csv</code></td>
@@ -185,20 +186,24 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <p><strong>B6.</strong> Feche a tela PQ US04 <strong>sem salvar</strong>.</p>
 <h2>Parte C. Criar a tela nova</h2>
 <p><strong>C1.</strong> Menu <strong>Arquivo &gt; Novo</strong>.</p>
-<p><strong>C2.</strong> Abra as propriedades da tela (duplo clique numa área vazia do fundo cinza). Defina:</p>
+<p><strong>C2.</strong> Abra as propriedades da tela (duplo clique numa área vazia do fundo cinza) e confira:</p>
 <ul>
-<li>Largura <strong>1920</strong> e altura <strong>1080</strong></li>
+<li>Largura <strong>50 unidades</strong> e altura <strong>35 unidades</strong>. É o padrão: <strong>não altere</strong>.</li>
 <li>Cor de fundo <strong>RGB 22, 27, 34</strong></li>
 </ul>
+<blockquote>
+<p>Se a sua tela abrir com outro tamanho, volte para 50 x 35. Se não for possível, digite a largura que aparece na célula amarela da planilha <code>posicoes_objetos.xlsx</code> e use as colunas "no editor".</p>
+</blockquote>
 <p><strong>C3.</strong> Salve na pasta da etapa A1 com o nome <code>LCE_Compressao_Pelotas_Prensa01</code>.</p>
 <h2>Parte D. Colocar o mapa e calibrar as unidades</h2>
 <p><strong>D1.</strong> Selecione a ferramenta <strong>Imagem</strong> na paleta da esquerda (ícone de figura) e clique no canto superior esquerdo da tela.</p>
 <p><strong>D2.</strong> Escolha <code>mapa_posicionamento.bmp</code> (ou <code>.png</code>).</p>
-<p><strong>D3.</strong> Nas propriedades da imagem, defina <strong>X = 0, Y = 0, largura = 1920, altura = 1080</strong>. Não redimensione arrastando com o mouse.</p>
-<p><strong>D4. Calibração, o passo mais importante.</strong> Veja como a imagem ficou:</p>
+<p><strong>D3.</strong> Nas propriedades da imagem, defina <strong>X = 0, Y = 0, largura = 50, altura = 35</strong> (unidades). Não redimensione arrastando com o mouse.</p>
+<p><strong>D4. Conferência, o passo mais importante.</strong> A imagem deve cobrir a tela inteira, sem sobra e sem corte, e os textos devem aparecer na proporção certa, sem letras achatadas ou esticadas. Compare com <code>tela_exemplo_normal.png</code>:</p>
 <ul>
-<li><strong>Se a imagem cobre exatamente a tela, sem sobra e sem corte:</strong> o editor trabalha em pixels. O fator é <strong>1</strong>. Siga para D5.</li>
-<li><strong>Se a imagem ficou menor ou maior que a tela:</strong> o editor usa outra unidade. Ajuste a largura da imagem até ela cobrir exatamente a tela, e anote a largura que o editor mostra nesse momento. Na planilha <code>posicoes_objetos.xlsx</code>, digite esse número na célula amarela <strong>"Largura total no editor"</strong>. A planilha recalcula todas as posições nas unidades do editor. Corrija também a altura da imagem com o valor da coluna <strong>A editor</strong> da linha "Fundo".</li>
+<li><strong>Imagem correta:</strong> siga para D5.</li>
+<li><strong>Letras esticadas na vertical ou na horizontal:</strong> a imagem não está em 50 x 35. Refaça D3.</li>
+<li><strong>Imagem nítida no monitor, mas um pouco serrilhada no editor:</strong> é normal. O editor mostra a tela reduzida e não suaviza a imagem. Confira no modo de execução (Process Explorer), em tela cheia.</li>
 </ul>
 <p><strong>D5.</strong> Envie a imagem para trás (<strong>Editar &gt; Enviar para trás</strong>, ou o botão de ordem na paleta) e, se houver a opção, <strong>bloqueie</strong> o objeto para não arrastá-lo por engano.</p>
 <h2>Parte E. Objetos, um a um</h2>
@@ -207,11 +212,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <li>Selecione a ferramenta indicada na ficha.</li>
 <li>Desenhe um retângulo aproximado sobre o retângulo rosa com o mesmo número.</li>
 <li>Na janela de propriedades, preencha tag, mapa e atributo.</li>
-<li>Digite X, Y, largura e altura <strong>exatamente</strong> como na planilha (colunas "editor" se o fator for diferente de 1).</li>
+<li>Digite X, Y, largura e altura <strong>exatamente</strong> como na ficha, em unidades e com as duas casas decimais. Se o editor não aceitar decimais, posicione arrastando até o objeto cobrir o retângulo rosa.</li>
 <li>Ajuste fonte, cores, alinhamento e formato.</li>
 <li>Se houver <strong>regra de cor</strong>, configure na aba de cores condicionais (a mesma que você viu no passo B2).</li>
 </ol>
-<p><strong>Comece pelo objeto 3</strong> (carga média). Ele serve para calibrar a fonte: o número deve ocupar quase toda a altura do retângulo rosa, encostado à direita. Se o texto em 57 pt ficar maior ou menor que o retângulo, ajuste o tamanho até encaixar e aplique <strong>a mesma proporção</strong> em todos os outros objetos. Exemplo: se 57 pt precisou virar 48 pt, multiplique todos os tamanhos de fonte por 0,84.</p>
+<p><strong>Comece pelo objeto 3</strong> (carga média). Ele serve para calibrar a fonte: o número deve ocupar quase toda a altura do retângulo rosa, encostado à direita. Se o texto em 48 pt ficar maior ou menor que o retângulo, ajuste o tamanho até encaixar e aplique <strong>a mesma proporção</strong> em todos os outros objetos. Exemplo: se 48 pt precisou virar 40 pt, multiplique todos os tamanhos de fonte por 0,83.</p>
 <p><strong>Dica para ganhar tempo:</strong> depois de configurar um objeto, copie e cole para os outros do mesmo tipo e troque só a tag, a posição e o que mudar. Por exemplo, o objeto 3 copiado gera os objetos 7 e 11, e o objeto 16 copiado gera os objetos 17 e 18.</p>
 <p><strong>Fundo dos campos de dados:</strong> use a cor do painel onde o campo fica (indicada em cada ficha) ou "transparente", se o editor oferecer. Nunca deixe o fundo branco nem com borda.</p>
 <h3>Objeto 1: Logotipo oficial</h3>
@@ -228,12 +233,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Imagem</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>32, 16</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>1,00 ; 0,48</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>200 x 56</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,25 ; 1,75</td>
 </tr>
 <tr>
 <td>Observação</td>
@@ -255,12 +260,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1688, 43</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>42,75 ; 1,34</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>200 x 26</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,25 ; 0,81</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -276,7 +281,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 14 pt, negrito</td>
+<td>Arial 12 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -318,12 +323,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>57, 169</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>1,78 ; 5,28</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>230 x 84</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,41 ; 2,63</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -339,7 +344,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 57 pt, negrito</td>
+<td>Arial 48 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -381,12 +386,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Tendência (plot)</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>407, 176</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>11,78 ; 5,50</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>200 x 100</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 3,13</td>
 </tr>
 <tr>
 <td>Observação</td>
@@ -408,12 +413,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>159, 307</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>4,96 ; 9,59</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>180 x 22</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>5,16 ; 0,69</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -429,7 +434,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 11 pt</td>
+<td>Arial 9 pt (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -467,12 +472,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>442, 307</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>13,08 ; 9,59</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>90 x 22</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,69</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -488,7 +493,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 11 pt, negrito</td>
+<td>Arial 9 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -526,12 +531,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>677, 169</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>18,66 ; 5,28</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>230 x 84</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,41 ; 2,63</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -547,7 +552,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 57 pt, negrito</td>
+<td>Arial 48 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -589,12 +594,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Tendência (plot)</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1027, 176</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>28,66 ; 5,50</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>200 x 100</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 3,13</td>
 </tr>
 <tr>
 <td>Observação</td>
@@ -616,12 +621,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>779, 307</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>21,84 ; 9,59</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>180 x 22</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>5,16 ; 0,69</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -637,7 +642,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 11 pt</td>
+<td>Arial 9 pt (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -679,12 +684,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1062, 307</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>29,96 ; 9,59</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>90 x 22</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,69</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -700,7 +705,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 11 pt, negrito</td>
+<td>Arial 9 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -742,12 +747,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1297, 188</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>35,53 ; 5,88</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>170 x 84</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>5,31 ; 2,63</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -763,7 +768,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 57 pt, negrito</td>
+<td>Arial 48 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -805,12 +810,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1398, 303</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>43,53 ; 8,75</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>150 x 22</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 0,69</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -826,7 +831,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 11 pt</td>
+<td>Arial 9 pt (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -868,12 +873,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1753, 200</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>44,78 ; 11,31</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>110 x 26</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>3,44 ; 0,81</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -889,7 +894,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 14 pt, negrito</td>
+<td>Arial 12 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -931,12 +936,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1753, 240</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>44,78 ; 12,56</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>110 x 26</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>3,44 ; 0,81</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -952,7 +957,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 14 pt, negrito</td>
+<td>Arial 12 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -994,12 +999,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Tendência (plot)</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>57, 468</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>1,78 ; 14,63</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>1290 x 560</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>31,63 ; 18,63</td>
 </tr>
 <tr>
 <td>Observação</td>
@@ -1021,12 +1026,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1710, 512</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>44,31 ; 19,94</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>130 x 32</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>3,25 ; 1,00</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -1042,7 +1047,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 18 pt, negrito</td>
+<td>Arial 15 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -1080,12 +1085,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1710, 686</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>44,31 ; 24,56</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>130 x 32</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>3,25 ; 1,00</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -1101,7 +1106,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 18 pt, negrito</td>
+<td>Arial 15 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -1143,12 +1148,12 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Campo de dados</td>
 </tr>
 <tr>
-<td>Posição em pixels (X, Y)</td>
-<td>1710, 860</td>
+<td>Posição em unidades (X ; Y)</td>
+<td>44,31 ; 29,19</td>
 </tr>
 <tr>
-<td>Tamanho em pixels (largura x altura)</td>
-<td>130 x 32</td>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>3,25 ; 1,00</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -1164,7 +1169,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Fonte</td>
-<td>Arial 18 pt, negrito</td>
+<td>Arial 15 pt, negrito (calibrar no objeto 3)</td>
 </tr>
 <tr>
 <td>Alinhamento</td>
@@ -1355,7 +1360,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <p>Com a ferramenta <strong>Imagem</strong>, insira o arquivo <strong>oficial</strong> do logotipo fornecido pela Comunicação, dentro do retângulo 1, mantendo a proporção. Não redesenhe a marca. Se ainda não tiver o arquivo, pule esta etapa: o espaço fica vazio no fundo.</p>
 <h2>Parte I. Trocar o mapa pelo fundo definitivo</h2>
 <p><strong>I1.</strong> Desbloqueie e selecione a imagem do mapa.</p>
-<p><strong>I2.</strong> Troque o arquivo para <code>fundo_1920x1080.bmp</code> (ou <code>.png</code>), mantendo X, Y, largura e altura. Se o editor não permitir trocar o arquivo, apague a imagem e repita D1 a D5 com o fundo definitivo.</p>
+<p><strong>I2.</strong> Troque o arquivo para <code>fundo_1400x980.bmp</code> (ou <code>.png</code>), mantendo X, Y, largura e altura. Se o editor não permitir trocar o arquivo, apague a imagem e repita D1 a D5 com o fundo definitivo.</p>
 <p><strong>I3.</strong> Envie para trás, bloqueie e <strong>salve</strong>.</p>
 <h2>Parte J. Conferência final</h2>
 <p>Abra a tela em modo de execução (Process Explorer) e compare com as imagens de exemplo.</p>
@@ -1448,14 +1453,19 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </thead>
 <tbody>
 <tr>
-<td>A imagem de fundo aparece borrada ou com textos esticados</td>
-<td>Imagem redimensionada</td>
-<td>Refaça D3 com os valores exatos e confira o fator de D4</td>
+<td>Letras achatadas ou esticadas</td>
+<td>Imagem fora de 50 x 35 unidades, ou tela com outro tamanho</td>
+<td>Confira C2 (50 x 35) e refaça D3</td>
+</tr>
+<tr>
+<td>Letras um pouco serrilhadas só no editor</td>
+<td>O editor mostra a tela reduzida, sem suavizar</td>
+<td>Normal. Confira no modo de execução</td>
 </tr>
 <tr>
 <td>Os campos ficam desalinhados em relação ao fundo</td>
-<td>Fator de unidade errado</td>
-<td>Refaça D4 e use as colunas "editor" da planilha</td>
+<td>Posição digitada sem as casas decimais, ou tela com tamanho diferente de 50 x 35</td>
+<td>Digite com duas casas ou ajuste arrastando sobre o retângulo rosa</td>
 </tr>
 <tr>
 <td>O campo aparece com caixa branca</td>

@@ -1,20 +1,20 @@
-﻿n;objeto;ferramenta;tag;mapa;atributo;x_px;y_px;largura_px;altura_px
-Fundo;Imagem de fundo ou mapa;Imagem;;;;0;0;1920;1080
-1;Logotipo oficial;Imagem;;;;32;16;200;56
-2;Última atualização (cabeçalho);Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);1688;43;200;26
-3;Carga média: valor;Campo de dados;307-GI-001;IP_ANALOGMAP;VAL;57;169;230;84
-4;Carga média: minitendência;Tendência (plot);307-GI-001;;;407;176;200;100
-5;Carga média: atualizado em;Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);159;307;180;22
-6;Carga média: qualidade;Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE QUALIDADE (anotado em B3);442;307;90;22
-7;Desvio padrão: valor;Campo de dados;307-GI-002;IP_ANALOGMAP;VAL;677;169;230;84
-8;Desvio padrão: minitendência;Tendência (plot);307-GI-002;;;1027;176;200;100
-9;Desvio padrão: atualizado em;Campo de dados;307-GI-002;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);779;307;180;22
-10;Desvio padrão: qualidade;Campo de dados;307-GI-002;IP_ANALOGMAP;ATRIBUTO DE QUALIDADE (anotado em B3);1062;307;90;22
-11;Compressão MES: último resultado;Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;VAL;1297;188;170;84
-12;Compressão MES: horário do resultado;Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;ATRIBUTO DE HORA (anotado em B3);1398;303;150;22
-13;Modo do cortador 07CR001;Campo de dados;U04-07CR001;IP_PIDMAP03;VAL;1753;200;110;26
-14;Modo do cortador 07CR002;Campo de dados;U04-07CR002;IP_PIDMAP03;VAL;1753;240;110;26
-15;Tendência principal da carga média;Tendência (plot);307-GI-001 e M4710050020-0031-HHLFU (ver Parte F);;;57;468;1290;560
-16;Faixa menor que 200 (Atenção);Campo de dados;307-QI-003;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;1710;512;130;32
-17;Faixa menor que 150 (Alerta);Campo de dados;307-QI-002;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;1710;686;130;32
-18;Faixa menor que 100 (Crítico);Campo de dados;307-QI-001;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;1710;860;130;32
+﻿n;objeto;ferramenta;tag;mapa;atributo;x_unid;y_unid;largura_unid;altura_unid
+Fundo;Imagem de fundo ou mapa;Imagem;;;;0,00;0,00;50,00;35,00
+1;Logotipo oficial;Imagem;;;;1,00;0,48;6,25;1,75
+2;Última atualização (cabeçalho);Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);42,75;1,34;6,25;0,81
+3;Carga média: valor;Campo de dados;307-GI-001;IP_ANALOGMAP;VAL;1,78;5,28;6,41;2,63
+4;Carga média: minitendência;Tendência (plot);307-GI-001;;;11,78;5,50;4,69;3,13
+5;Carga média: atualizado em;Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);4,96;9,59;5,16;0,69
+6;Carga média: qualidade;Campo de dados;307-GI-001;IP_ANALOGMAP;ATRIBUTO DE QUALIDADE (anotado em B3);13,08;9,59;2,81;0,69
+7;Desvio padrão: valor;Campo de dados;307-GI-002;IP_ANALOGMAP;VAL;18,66;5,28;6,41;2,63
+8;Desvio padrão: minitendência;Tendência (plot);307-GI-002;;;28,66;5,50;4,69;3,13
+9;Desvio padrão: atualizado em;Campo de dados;307-GI-002;IP_ANALOGMAP;ATRIBUTO DE HORA (anotado em B3);21,84;9,59;5,16;0,69
+10;Desvio padrão: qualidade;Campo de dados;307-GI-002;IP_ANALOGMAP;ATRIBUTO DE QUALIDADE (anotado em B3);29,96;9,59;2,81;0,69
+11;Compressão MES: último resultado;Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;VAL;35,53;5,88;5,31;2,63
+12;Compressão MES: horário do resultado;Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;ATRIBUTO DE HORA (anotado em B3);43,53;8,75;4,69;0,69
+13;Modo do cortador 07CR001;Campo de dados;U04-07CR001;IP_PIDMAP03;VAL;44,78;11,31;3,44;0,81
+14;Modo do cortador 07CR002;Campo de dados;U04-07CR002;IP_PIDMAP03;VAL;44,78;12,56;3,44;0,81
+15;Tendência principal da carga média;Tendência (plot);307-GI-001 e M4710050020-0031-HHLFU (ver Parte F);;;1,78;14,63;31,63;18,63
+16;Faixa menor que 200 (Atenção);Campo de dados;307-QI-003;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;44,31;19,94;3,25;1,00
+17;Faixa menor que 150 (Alerta);Campo de dados;307-QI-002;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;44,31;24,56;3,25;1,00
+18;Faixa menor que 100 (Crítico);Campo de dados;307-QI-001;mapa de discreto anotado em B4 (provavelmente IP_DISCRETEMAP);VAL;44,31;29,19;3,25;1,00

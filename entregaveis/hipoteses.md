@@ -14,7 +14,7 @@ Situação de cada item: **Confirmado** (informado pelo LCE), **Adotado** (valor
 | H8 | Especificação e alarmes | Sem meta oficial informada. Nenhum alarme sonoro ou notificação, apenas sinalização visual na tela. | Pendente |
 | H9 | Periodicidade | Atualização por ensaio (por evento), não contínua. | Adotado |
 | H10 | Defasagem | Comunicação considerada perdida quando o último ensaio tem mais de 4 h. | Adotado, ajustar ao intervalo real entre ensaios |
-| H11 | Resolução da tela | Monitor do laboratório em 1920 x 1080. Para outra resolução, as imagens podem ser regeradas. | Adotado |
+| H11 | Tamanho da tela | Tela do Aspen no tamanho padrão de 50 x 35 unidades (proporção 10:7, igual à tela PQ US04), com imagem de fundo de 1400 x 980 pixels. A versão anterior em 1920 x 1080 distorcia a imagem no editor. | Confirmado pelo LCE (50 x 35) |
 | H12 | Logotipo | Usar somente o arquivo oficial fornecido pelo LCE ou pela comunicação. O protótipo reserva o espaço e não reproduz a marca. | Pendente (arquivo não recebido) |
 | H13 | Valores atuais iguais a zero | A leitura de 30/09/2026 com todas as tags em 0 e qualidade Good indica integração criada e ainda sem ensaios reais. Valor 0 na carga média não deve ser tratado como pelota fraca até haver ensaio real. | Adotado |
 | H14 | Tags de cálculo (opcionais) | Quantidade de tags Good, tempo desde o último ensaio, banda de mais ou menos um desvio padrão e linhas de referência dependem de tags calculadas no Aspen Calc, a criar pelo administrador do PIMS. Os nomes sugeridos no roteiro são provisórios. | Pendente |
