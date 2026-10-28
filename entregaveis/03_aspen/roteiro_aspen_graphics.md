@@ -10,7 +10,7 @@ Tags: 307-GI-001, 307-GI-002, 307-QI-001, 307-QI-002, 307-QI-003 (coluna "Tag" d
 As ferramentas nativas do editor (texto, retângulo, campo de dados, barra e tendência) desenham uma tela funcional, mas com aparência antiga. Para chegar a um visual atual, a tela é montada em duas camadas:
 
 1. **Camada de fundo (imagem):** tudo o que não muda: cabeçalho, painéis com cantos arredondados, títulos, rótulos, nomes das tags e a coluna de endereços OPC. Arquivo pronto: `fundo_1920x1080.png`.
-2. **Camada dinâmica (objetos do Aspen):** somente o que vem do histórico: valores, horários, qualidades, estados das faixas e tendências. São 37 objetos, cada um com posição e tamanho definidos em `posicoes_objetos.csv` e numerados na imagem `mapa_posicionamento.png`.
+2. **Camada dinâmica (objetos do Aspen):** somente o que vem do histórico: valores, horários, qualidades, estados das faixas e tendências. São 44 objetos (37 do módulo e 7 do painel complementar do laboratório), cada um com posição e tamanho definidos em `posicoes_objetos.csv` e numerados na imagem `mapa_posicionamento.png`.
 
 Vantagem: a parte bonita fica pronta numa única imagem, e você só configura os campos de dados. Para outra prensa, basta trocar as tags.
 
@@ -27,8 +27,9 @@ Vantagem: a parte bonita fica pronta numa única imagem, e você só configura o
 
 1. Abra o Aspen Process Explorer (ou o Tag Browser) e pesquise `307-GI-001`. Confirme que a tag existe e anote o tipo de registro (definição), que deve ser algo como `IP_AnalogDef`. Repita para `307-QI-001`, que deve ser `IP_DiscreteDef`.
 2. Ainda no Tag Browser, abra os campos da tag e confirme a existência de `IP_INPUT_VALUE` (valor), `IP_INPUT_TIME` (data e hora) e `IP_INPUT_QUALITY` (qualidade). Se os nomes forem outros, anote e me informe.
-3. Nos discretos, veja como o valor aparece: `0` e `1`, ou textos como `OFF` e `ON`. Isso define o passo 7.
-4. Copie os arquivos desta pasta para uma pasta de rede acessível pela estação onde a tela vai rodar.
+3. **Padrão de vínculo usado na UBU.** Na tela PIMS PQ US04, os campos de dados apontam para **tag + mapa + atributo `VAL`** (exemplo: `406-FX-001`, mapa `IP_ANALOGMAP`, atributo `VAL`). Siga o mesmo padrão: para `307-GI-001` e `307-GI-002`, use provavelmente o mapa `IP_ANALOGMAP`; para os discretos, o mapa de discretos disponível na lista. Para data e hora e para qualidade, escolha na lista de atributos do mapa os equivalentes a `IP_INPUT_TIME` e `IP_INPUT_QUALITY`. Neste roteiro e no CSV, os nomes `IP_INPUT_*` indicam o conteúdo esperado.
+4. Nos discretos, veja como o valor aparece: `0` e `1`, ou textos como `OFF` e `ON`. Isso define o passo 7.
+5. Copie os arquivos desta pasta para uma pasta de rede acessível pela estação onde a tela vai rodar.
 
 ## 3. Criar o gráfico e definir o tamanho
 
@@ -134,7 +135,8 @@ Ferramenta: **tendência/plot** (ícone de gráfico, última posição da quarta
 4. **Janela de tempo:** 8 horas. Na captura que você enviou, a barra inferior do editor mostra `2:00:00`; troque para `8:00:00`.
 5. **Linha:** cor `#5CC8F0`, espessura 2 ou 3, com marcadores nos pontos (cada ponto é um ensaio).
 6. **Fundo do gráfico:** `#1F2630`. **Grade:** `#2E3744`. **Textos dos eixos:** `#8B96A5`.
-7. Se a tendência permitir uma segunda tag, inclua `307-GI-002` em eixo secundário, com linha fina cinza, para acompanhar a dispersão.
+7. Inclua a compressão do laboratório `M4710050020-0031-HHLFU` (mapa `IP_MESVALOR`) na **mesma escala de 0 a 500**, só com marcadores quadrados cinza (`#AAB3BF`) e sem linha, ou com linha em degrau fina. É informação complementar: deve aparecer menos que a linha do módulo.
+8. Opcional: `307-GI-002` em eixo secundário, com linha fina cinza, para acompanhar a dispersão.
 
 ### 8.2 Referências em 100, 150 e 200 e banda de mais ou menos um desvio padrão
 
@@ -152,24 +154,42 @@ O plot do Aspen não desenha faixas sombreadas nem linhas fixas sem uma tag por 
 
 Mesmo procedimento, com tamanho 210 x 100, escala fixa (0 a 500 para a carga média e 0 a 150 para o desvio padrão), janela de 8 horas, sem legenda, sem eixos visíveis (se houver a opção) e linha `#5CC8F0`.
 
-## 9. Indicadores que dependem de cálculo (opcionais)
+## 9. Painel complementar "Referência do laboratório" (objetos 38 a 44)
+
+Fica no canto inferior direito, com letras menores que as do módulo, para não competir com o destaque da tela.
+
+| Objeto | Conteúdo | Tag e mapa | Observação |
+|---|---|---|---|
+| 38 | Compressão do último resultado MES | `M4710050020-0031-HHLFU`, `IP_MESVALOR`, `VAL` | Arial negrito 18 pt, sem casas decimais |
+| 39 | Horário do resultado MES | `M4710050020-0031-HHLFU`, atributo de data e hora | Arial 11 pt |
+| 40 | Média do módulo na mesma janela | `307-CMP-MOD-JAN` (tag calculada, opcional) | Deixe de fora até a tag existir |
+| 41 | Diferença módulo menos MES | `307-CMP-DIF` (tag calculada, opcional) | Deixe de fora até a tag existir |
+| 42 | Modo do 07CR001 | `U04-07CR001`, `IP_PIDMAP03`, `VAL` | Mesmo vínculo da tela PQ US04. Manual em laranja com símbolo ◆ |
+| 43 | Modo do 07CR002 | `U04-07CR002`, `IP_PIDMAP03`, `VAL` | Idem |
+| 44 | Situação da comparação | `307-CMP-SITUACAO` (tag calculada, opcional) | Sem a tag, a leitura é feita pelos modos 42 e 43 |
+
+Dica: abra a tela PQ US04 no editor, copie os indicadores de modo do 07CR001 e do 07CR002 e cole nesta tela. Assim o vínculo com `IP_PIDMAP03` vem pronto; depois ajuste só a aparência.
+
+O método completo da comparação está em `../04_comparacao_modulo_mes/analise_e_proposta.md`.
+
+## 10. Indicadores que dependem de cálculo (opcionais)
 
 | Objeto | Indicador | Tag calculada sugerida (Aspen Calc) | Sem a tag calculada |
 |---|---|---|---|
 | 12 | Quantidade de tags com qualidade Good | `307-LCE-QTD-GOOD`: soma de 1 para cada tag com qualidade Good | Não escreva um número fixo. Deixe o objeto de fora e mantenha só as cinco qualidades individuais (13 a 17) |
 | 18 | Tempo desde o último ensaio | `307-LCE-DEFASAGEM-H`: horas entre agora e o `IP_INPUT_TIME` de 307-GI-001; cor laranja acima de 4 | Use o campo de data e hora (objeto 2) e oriente a equipe a conferir visualmente |
 
-## 10. Logotipo (objeto 1)
+## 11. Logotipo (objeto 1)
 
 Com a ferramenta de imagem, insira o arquivo oficial do logotipo em **X = 32, Y = 16**, mantendo a proporção dentro de 200 x 56 pixels. Não redesenhe a marca.
 
-## 11. Trocar o mapa pelo fundo definitivo
+## 12. Trocar o mapa pelo fundo definitivo
 
 1. Selecione a imagem de fundo e, nas propriedades, troque o arquivo para `fundo_1920x1080.png` (ou apague e insira de novo com X = 0, Y = 0, 1920 x 1080).
 2. Envie para trás novamente.
 3. Salve.
 
-## 12. Teste rápido de aceitação
+## 13. Teste rápido de aceitação
 
 | Verificação | Esperado |
 |---|---|
@@ -180,13 +200,13 @@ Com a ferramenta de imagem, insira o arquivo oficial do logotipo em **X = 32, Y 
 | Tendência | Janela de 8 h, escala 0 a 500 |
 | Leitura a distância | Valores principais legíveis a 3 metros do monitor |
 
-## 13. Limitações conhecidas desta versão
+## 14. Limitações conhecidas desta versão
 
 - O tratamento "Sem dado confiável" (valor em cinza no lugar do número quando a qualidade não é Good) só é completo com cor condicional baseada na qualidade, se o editor permitir, ou com tag calculada. Sem isso, a qualidade fica visível ao lado de cada valor.
 - A severidade das faixas está **proposta** e precisa da aprovação do LCE.
 - Com as tags ainda em 0 (leitura de 30/09/2026), a faixa "menor que 100" pode parecer ativa se o PLC passar a calcular a partir de 0. Validar com o primeiro ensaio real.
 
-## 14. O que me enviar para a próxima rodada
+## 15. O que me enviar para a próxima rodada
 
 1. Captura da janela de propriedades de um **campo de dados** e de uma **tendência** no seu editor.
 2. Resultado do passo 2 (tipo de registro e nomes dos campos).

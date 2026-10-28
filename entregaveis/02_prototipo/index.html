@@ -97,6 +97,13 @@
   body.mapa .slot > * { visibility: hidden !important; }
   body.mapa .slot::after { content: attr(data-slot); position: absolute; left: 4px; top: 2px; font: 700 14px/1 Arial, sans-serif; color: #fff; background: #c2189e; padding: 2px 5px; border-radius: 3px; visibility: visible; }
 
+  .ref-grade { display: grid; grid-template-columns: 220px 190px 1fr; white-space: nowrap; row-gap: 10px; align-items: baseline; margin-top: 14px; }
+  .v-ref { display: inline-block; width: 90px; text-align: right; font-size: 24px; font-weight: 700; }
+  .ref-grade .slot.v-peq { display: inline-block; width: 170px; }
+  .ref-amostra { display: flex; gap: 12px; align-items: baseline; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--card-line); }
+  .ref-amostra .slot { display: inline-block; width: 140px; }
+  .ref-sit { margin-top: 10px; }
+  .ref-sit .slot { display: inline-block; width: 600px; }
   #cenarios { position: fixed; right: 12px; bottom: 12px; background: #11161d; border: 1px solid var(--card-line); border-radius: 8px; padding: 8px 10px; font-size: 13px; color: var(--muted); z-index: 9; }
   #cenarios select { margin-left: 6px; font: inherit; background: var(--card); color: var(--text); border: 1px solid var(--card-line); border-radius: 4px; padding: 2px 4px; }
   body.fundo #cenarios, body.mapa #cenarios, body.captura #cenarios { display: none; }
@@ -166,8 +173,8 @@
   <!-- Tendência -->
   <section class="card" style="left:32px; top:388px; width:1340px; height:360px;">
     <h2>Tendência da carga média <span class="chip">307-GI-001</span> <span class="chip">307-GI-002</span></h2>
-    <div class="sub">Janela de 8 h &nbsp;|&nbsp; banda de mais ou menos um desvio padrão &nbsp;|&nbsp; referências em 100, 150 e 200 daN/pelota</div>
-    <div class="graf slot box" data-slot="19" data-obj="Tendência" data-tag="307-GI-001 (+ banda e referências)" data-attr="IP_TREND_VALUE" data-desc="Tendência principal, janela de 8 h, escala 0 a 500"><svg id="tend" width="1290" height="266"></svg></div>
+    <div class="sub">Janela de 8 h &nbsp;|&nbsp; banda de mais ou menos um desvio padrão &nbsp;|&nbsp; referências em 100, 150 e 200 daN/pelota &nbsp;|&nbsp; <span style="color:var(--trend)">●</span> módulo, a cada 30 min &nbsp; <span style="color:#aab3bf">■</span> laboratório (MES), a cada 2 h</div>
+    <div class="graf slot box" data-slot="19" data-obj="Tendência" data-tag="307-GI-001 + M4710050020-0031-HHLFU (+ banda e referências)" data-attr="IP_TREND_VALUE" data-desc="Tendência principal, janela de 8 h, escala 0 a 500"><svg id="tend" width="1290" height="266"></svg></div>
   </section>
 
   <!-- Faixas -->
@@ -180,13 +187,37 @@
   </section>
 
   <!-- Tabela -->
-  <section class="card" style="left:32px; top:768px; width:1856px; height:284px;">
+  <section class="card" style="left:32px; top:768px; width:1180px; height:284px;">
     <h2>Tags do ensaio</h2>
     <table>
-      <colgroup><col style="width:170px"><col style="width:230px"><col style="width:140px"><col style="width:190px"><col style="width:270px"><col style="width:170px"><col></colgroup>
-      <thead><tr><th>Tag</th><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Timestamp</th><th>Qualidade</th><th>Endereço OPC</th></tr></thead>
+      <colgroup><col style="width:120px"><col style="width:150px"><col style="width:140px"><col style="width:200px"><col style="width:110px"><col></colgroup>
+      <thead><tr><th>Tag</th><th>Descrição</th><th>Valor</th><th>Timestamp</th><th>Qualidade</th><th>Endereço OPC</th></tr></thead>
       <tbody id="tb"></tbody>
     </table>
+  </section>
+
+  <!-- Referência do laboratório (complementar) -->
+  <section class="card ref" style="left:1232px; top:768px; width:656px; height:284px;">
+    <h2 style="font-size:18px">Referência do laboratório <span class="chip">MES, a cada 2 h</span> <span class="chip">Amostragem PQ US04</span></h2>
+    <div class="ref-grade">
+      <span class="rot">Compressão MES</span>
+      <span><span class="slot v-ref" id="r-mes" data-slot="38" data-obj="Campo de dados" data-tag="M4710050020-0031-HHLFU" data-attr="VAL (mapa IP_MESVALOR)" data-desc="Compressão do laboratório, último resultado MES">--</span> <span class="rot">daN/pelota</span></span>
+      <span class="slot v-peq" id="r-mes-ts" data-slot="39" data-obj="Campo de dados" data-tag="M4710050020-0031-HHLFU" data-attr="IP_INPUT_TIME" data-desc="Horário do resultado MES">--</span>
+
+      <span class="rot">Módulo na mesma janela</span>
+      <span><span class="slot v-ref" id="r-mod" data-slot="40" data-obj="Campo de dados" data-tag="(tag de cálculo a criar)" data-attr="IP_INPUT_VALUE" data-desc="Média dos ensaios do módulo na janela do resultado MES (opcional, Aspen Calc)">--</span> <span class="rot">daN/pelota</span></span>
+      <span class="rot" id="r-janela">--</span>
+
+      <span class="rot">Diferença módulo menos MES</span>
+      <span><span class="slot v-ref" id="r-dif" data-slot="41" data-obj="Campo de dados" data-tag="(tag de cálculo a criar)" data-attr="IP_INPUT_VALUE" data-desc="Diferença módulo menos MES (opcional, Aspen Calc)">--</span> <span class="rot">daN/pelota</span></span>
+      <span class="rot">limites a definir</span>
+    </div>
+    <div class="ref-amostra">
+      <span class="rot">Amostragem</span>
+      <span class="rot">07CR001</span><span class="slot v-peq" id="r-cr1" data-slot="42" data-obj="Campo de dados" data-tag="U04-07CR001" data-attr="VAL (mapa IP_PIDMAP03)" data-desc="Modo do cortador primário: Automático ou Manual">--</span>
+      <span class="rot">07CR002</span><span class="slot v-peq" id="r-cr2" data-slot="43" data-obj="Campo de dados" data-tag="U04-07CR002" data-attr="VAL (mapa IP_PIDMAP03)" data-desc="Modo do cortador secundário: Automático ou Manual">--</span>
+    </div>
+    <div class="ref-sit"><span class="slot v-peq" id="r-sit" data-slot="44" data-obj="Campo de dados" data-tag="(tag de cálculo a criar)" data-attr="IP_INPUT_VALUE" data-desc="Situação da comparação: válida ou não comparável (opcional, Aspen Calc)">--</span></div>
   </section>
 </div>
 
@@ -197,6 +228,7 @@
     <option value="f100">Carga abaixo de 100</option>
     <option value="bad">Qualidade Bad na carga média</option>
     <option value="defasado">Comunicação perdida</option>
+    <option value="manual">Amostragem em manual</option>
   </select>
 </div>
 
@@ -232,11 +264,11 @@
   let n = 23;
   TAGS.forEach(t => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="mono">${t.tag}</td><td>${t.desc}</td><td>${t.tipo}</td>
+    tr.innerHTML = `<td class="mono">${t.tag}</td><td>${t.desc}</td>
       <td class="dyn"><span class="slot" id="t-${t.id}-v" data-slot="${n}" data-obj="Campo de dados" data-tag="${t.tag}" data-attr="IP_INPUT_VALUE" data-desc="Tabela: valor">--</span></td>
       <td class="dyn"><span class="slot" id="t-${t.id}-ts" data-slot="${n + 1}" data-obj="Campo de dados" data-tag="${t.tag}" data-attr="IP_INPUT_TIME" data-desc="Tabela: timestamp">--</span></td>
       <td class="dyn"><span class="slot" id="t-${t.id}-q" data-slot="${n + 2}" data-obj="Campo de dados" data-tag="${t.tag}" data-attr="IP_INPUT_QUALITY" data-desc="Tabela: qualidade">--</span></td>
-      <td class="mono" style="color:var(--muted)">${t.opc}</td>`;
+      <td class="mono" style="color:var(--muted); font-size:13px">${t.opc}</td>`;
     tb.appendChild(tr);
     n += 3;
   });
@@ -258,7 +290,7 @@
       const t = agora - atraso - i * 30 * 60e3;
       let m = 292 + 18 * Math.sin(i / 2.4) + (rnd() - .5) * 26;
       const s = 48 + (rnd() - .5) * 16;
-      pts.push({ t, m, s });
+      pts.push({ t, m, s, mes: i % 4 === 0 ? Math.round(m - 7 + (rnd() - .5) * 14) : null });
     }
     const u = pts[pts.length - 1];
     if (cen === 'f200') { u.m = 186.4; pts[pts.length - 2].m = 231.0; }
@@ -305,6 +337,7 @@
     const sup = pts.map(p => `${x(p.t)},${y(p.m + p.s)}`), inf = pts.map(p => `${x(p.t)},${y(p.m - p.s)}`).reverse();
     svg.appendChild(svgEl('polygon', { points: sup.concat(inf).join(' '), fill: cinza ? 'rgba(107,116,128,.15)' : 'var(--band)' }));
     svg.appendChild(svgEl('polyline', { points: pts.map(p => `${x(p.t)},${y(p.m)}`).join(' '), fill: 'none', stroke: cinza ? 'var(--dim)' : 'var(--trend)', 'stroke-width': 3, 'stroke-linejoin': 'round' }));
+    pts.filter(p => p.mes !== null).forEach(p => svg.appendChild(svgEl('rect', { x: x(p.t) - 6, y: y(p.mes) - 6, width: 12, height: 12, fill: '#aab3bf', opacity: .9 })));
     pts.forEach(p => svg.appendChild(svgEl('circle', { cx: x(p.t), cy: y(p.m), r: 3.5, fill: '#1f2630', stroke: cinza ? 'var(--dim)' : 'var(--trend)', 'stroke-width': 2 })));
   }
 
@@ -384,6 +417,29 @@
       set(`t-${k}-ts`, dh(ts)).style.color = defasado ? 'var(--alert)' : '';
       set(`t-${k}-q`, q[k] === 'Good' ? '✓ Good' : '✕ ' + q[k]).style.color = q[k] === 'Good' ? '' : 'var(--alert)';
     });
+
+    // Referência do laboratório (complementar)
+    const ultMes = pts.filter(p => p.mes !== null).pop();
+    const jan = pts.filter(p => p.t >= ultMes.t - 2 * 3600e3 && p.t < ultMes.t);
+    const mediaMod = jan.reduce((a, p) => a + p.m, 0) / jan.length;
+    const dMes = new Date(ultMes.t), dIni = new Date(ultMes.t - 2 * 3600e3);
+    const hm = d => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
+    const cr2 = cen === 'manual' ? 'Manual' : 'Automático';
+    set('r-mes', num(ultMes.mes, 0));
+    set('r-mes-ts', 'resultado das ' + hm(dMes));
+    document.getElementById('r-janela').textContent = `${jan.length} ensaios, ${hm(dIni)} a ${hm(dMes)}`;
+    set('r-cr1', '✓ Automático');
+    set('r-cr2', cr2 === 'Manual' ? '◆ Manual' : '✓ Automático').style.color = cr2 === 'Manual' ? 'var(--alert)' : '';
+    if (cr2 === 'Manual' || !confiavel('gi1')) {
+      set('r-mod', num(mediaMod), cr2 === 'Manual');
+      set('r-dif', '--', true);
+      set('r-sit', cr2 === 'Manual' ? '◆ Não comparável: amostragem em manual (07CR002) na janela' : 'Não comparável: dado do módulo não confiável').style.color = cr2 === 'Manual' ? 'var(--alert)' : 'var(--dim)';
+    } else {
+      set('r-mod', num(mediaMod));
+      const dif = mediaMod - ultMes.mes;
+      set('r-dif', (dif > 0 ? '+' : '') + num(dif));
+      set('r-sit', '✓ Comparação válida: amostragem em automático e sem falha na janela').style.color = 'var(--muted)';
+    }
 
     spark(document.getElementById('sp1'), pts, 'm', 500, !confiavel('gi1'));
     spark(document.getElementById('sp2'), pts, 's', 150, !confiavel('gi2'));

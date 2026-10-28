@@ -33,7 +33,7 @@ fs.mkdirSync(saida, { recursive: true });
     .concat(slots.map(s => [s.n, s.obj, s.tag, s.attr, s.desc, s.x, s.y, s.w, s.h].join(';')));
   fs.writeFileSync(path.join(saida, 'posicoes_objetos.csv'), '﻿' + linhas.join('\r\n') + '\r\n');
 
-  for (const c of ['normal', 'f200', 'bad', 'defasado']) {
+  for (const c of ['normal', 'f200', 'bad', 'defasado', 'manual']) {
     await abrir(`modo=demo&cenario=${c}`);
     await page.screenshot({ path: path.join(saida, `tela_exemplo_${c}.png`) });
   }

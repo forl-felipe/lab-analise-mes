@@ -18,6 +18,13 @@ Situação de cada item: **Confirmado** (informado pelo LCE), **Adotado** (valor
 | H12 | Logotipo | Usar somente o arquivo oficial fornecido pelo LCE ou pela comunicação. O protótipo reserva o espaço e não reproduz a marca. | Pendente (arquivo não recebido) |
 | H13 | Valores atuais iguais a zero | A leitura de 30/09/2026 com todas as tags em 0 e qualidade Good indica integração criada e ainda sem ensaios reais. Valor 0 na carga média não deve ser tratado como pelota fraca até haver ensaio real. | Adotado |
 | H14 | Tags de cálculo (opcionais) | Quantidade de tags Good, tempo desde o último ensaio, banda de mais ou menos um desvio padrão e linhas de referência dependem de tags calculadas no Aspen Calc, a criar pelo administrador do PIMS. Os nomes sugeridos no roteiro são provisórios. | Pendente |
+| H15 | Foco da tela | O módulo de compressão é o destaque. A comparação com o MES e o estado da amostragem são complementares, num painel discreto e numa planilha à parte. | Confirmado pelo LCE |
+| H16 | Tag do laboratório | Compressão do MES em `M4710050020-0031-HHLFU` (mapa IP_MESVALOR), associada ao rótulo "Compressão" na tela PQ US04 pela posição. | Adotado, conferir no editor |
+| H17 | Janela do MES | Um resultado a cada 2 h; o resultado no horário T representa a amostra de T menos 2 h até T. | Confirmado (2 h); referência do horário pendente |
+| H18 | Modo da amostragem | Modo dos cortadores em `U04-07CR001` e `U04-07CR002` pelo mapa IP_PIDMAP03 (Automático ou Manual). Comparação válida só com os dois em automático e sem falha durante toda a janela. | Adotado |
+| H19 | Usina operando | Alimentação `406-FX-001` acima de 300 t/h. | Adotado, valor a confirmar |
+| H20 | Pelotas por ensaio | 60 no laboratório e 20 no módulo, usadas só para estimar a diferença esperada pelo acaso. | Pendente |
+| H21 | Vínculo de campos no Aspen | Campos de dados usam tag, mapa e atributo VAL, como na tela PQ US04. | Adotado |
 
 ## O que não pôde ser validado
 
