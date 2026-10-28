@@ -32,6 +32,7 @@
     --acento: var(--sam-amarelo);
     --linha-prensa: var(--sam-azul-claro);
     --linha-lab: #FFFFFF;
+    --linha-ensaio: #2F7FAE;
     --lim-200: var(--sam-amarelo);
     --lim-150: var(--sam-laranja);
     --lim-100: #E53935;
@@ -75,6 +76,15 @@
   .kpi .rodape { display: flex; gap: 22px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--card-line); align-items: center; }
   .kpi .rodape div { display: flex; gap: 8px; align-items: center; }
 
+  .comp .dois { display: flex; justify-content: space-between; margin-top: 14px; }
+  .comp .rot { display: flex; align-items: center; gap: 8px; }
+  .v-comp { font-size: 60px; font-weight: 700; line-height: 70px; height: 70px; letter-spacing: -1px; }
+  .traco.fino { height: 2px; }
+  .cortes .linha { display: flex; align-items: center; height: 40px; border-top: 1px solid var(--card-line); }
+  .cortes .cabec { height: 28px; border-top: 0; margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .cortes .hora { font-size: 18px; font-weight: 700; line-height: 24px; height: 24px; width: 80px; }
+  .cortes .val { font-size: 20px; font-weight: 700; line-height: 26px; height: 26px; width: 120px; text-align: right; margin-left: auto; }
+  .cortes .un { font-size: 13px; color: var(--muted); margin-left: 8px; width: 68px; }
   .lab .corpo { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px; }
   .lab .hora { text-align: right; }
 
@@ -91,14 +101,14 @@
   .gl { position: absolute; left: 44px; width: 990px; height: 1px; background: var(--grade); }
   .dash { position: absolute; height: 2px; width: 14px; }
 
-  .faixas .linha { display: flex; align-items: center; height: 70px; border-top: 1px solid var(--card-line); }
+  .faixas .linha { display: flex; align-items: center; height: 44px; border-top: 1px solid var(--card-line); }
   .faixas .cabec { height: 34px; border-top: 0; margin-top: 10px; font-size: 13px; color: var(--muted); }
-  .faixas .nome { font-size: 17px; font-weight: 700; margin-left: 14px; flex: 1; }
-  .faixas .slot { font-size: 30px; font-weight: 700; line-height: 36px; height: 36px; width: 64px; text-align: right; }
+  .faixas .nome { font-size: 16px; font-weight: 700; margin-left: 14px; flex: 1; }
+  .faixas .slot { font-size: 24px; font-weight: 700; line-height: 30px; height: 30px; width: 64px; text-align: right; }
   .faixas .un { font-size: 14px; color: var(--muted); margin-left: 8px; width: 52px; }
 
   .lampada { width: 18px; height: 18px; border-radius: 50%; display: inline-block; background: var(--apagada); flex: none; }
-  .cort .linha { display: flex; align-items: center; height: 62px; border-top: 1px solid var(--card-line); gap: 10px; }
+  .cort .linha { display: flex; align-items: center; height: 38px; border-top: 1px solid var(--card-line); gap: 10px; }
   .cort .eq { font-size: 18px; font-weight: 700; width: 92px; }
   .cort .estado { font-size: 15px; color: var(--muted); width: 92px; }
 
@@ -157,33 +167,33 @@
     </div>
   </section>
 
-  <!-- Referência do laboratório -->
-  <section class="card lab" style="left:1084px; top:117px; width:484px; height:260px;">
-    <h2><span class="acento"></span>Referência do laboratório</h2>
-    <div class="corpo">
-      <div>
-        <div class="rot">Compressão MES</div>
-        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:160px" id="r-mes" data-slot="10">--</span><span class="unid">daN/pelota</span></div>
-      </div>
-      <div class="hora">
-        <div class="rot">Resultado das</div>
-        <span class="slot v-med" style="width:150px; text-align:right" id="r-mes-ts" data-slot="11">--</span>
-      </div>
+  <!-- Composto 2 h: prensa x laboratório -->
+  <section class="card comp" style="left:1084px; top:117px; width:484px; height:260px;">
+    <h2><span class="acento"></span>Composto de 2 h: prensa x laboratório</h2>
+    <div class="dois">
+      <div><div class="rot"><span class="traco" style="background:var(--linha-prensa)"></span> Prensa automática</div>
+        <span class="slot v-comp" style="width:180px; color:var(--linha-prensa)" id="c-prensa" data-slot="10">--</span></div>
+      <div><div class="rot"><span class="traco" style="background:var(--linha-lab)"></span> Laboratório (MES)</div>
+        <span class="slot v-comp" style="width:130px" id="c-lab" data-slot="11">--</span></div>
     </div>
-    <div class="kpi"><div class="rodape" style="margin-top:28px"><span class="rot">Resultado do laboratório (MES), um a cada 2 h</span></div></div>
+    <div class="kpi"><div class="rodape" style="margin-top:12px; gap:14px">
+      <div><span class="rot" style="white-space:nowrap">Fim da janela</span><span class="slot v-peq" style="width:126px" id="c-jan" data-slot="12">--</span></div>
+      <div><span class="rot">Diferença</span><span class="slot v-peq" style="width:56px; font-weight:700; text-align:right" id="c-dif" data-slot="13">--</span><span class="rot">daN/pelota</span></div>
+    </div></div>
+    <div class="nota" style="margin-top:8px">Média dos 4 cortes da prensa na mesma janela do composto do laboratório.</div>
   </section>
 
   <!-- Tendência -->
   <section class="card" style="left:32px; top:397px; width:1130px; height:691px;">
-    <h2><span class="acento"></span>Prensa automática x laboratório</h2>
+    <h2><span class="acento"></span>Tendência: composto da prensa x composto do laboratório</h2>
     <div class="legenda">
-      <span class="traco" style="background:var(--linha-prensa)"></span><span>Prensa automática</span>
-      <span class="slot" style="width:78px; color:var(--linha-prensa)" id="l-gi1" data-slot="12">--</span><span>daN/pelota</span>
+      <span class="traco fino" style="background:var(--linha-ensaio)"></span><span>Prensa, cada ensaio (30 min)</span>
       <span class="gap"></span>
-      <span class="traco" style="background:var(--linha-lab)"></span><span>Laboratório (MES)</span>
-      <span class="slot" style="width:52px" id="l-mes" data-slot="13">--</span><span>daN/pelota</span>
+      <span class="traco" style="background:var(--linha-prensa)"></span><span>Prensa, composto 2 h</span>
       <span class="gap"></span>
-      <span class="tracejado"><i></i><i></i><i></i></span><span>Limites de 200, 150 e 100 daN/pelota</span>
+      <span class="traco" style="background:var(--linha-lab)"></span><span>Laboratório, composto 2 h</span>
+      <span class="gap"></span>
+      <span class="tracejado"><i></i><i></i><i></i></span><span>Limites 200, 150 e 100</span>
     </div>
     <div class="graf-area" id="graf-area">
       <div class="plot-bg"></div>
@@ -191,27 +201,35 @@
     </div>
   </section>
 
+  <!-- Cortes do composto atual -->
+  <section class="card cortes" style="left:1182px; top:397px; width:386px; height:290px;">
+    <h2><span class="acento"></span>Cortes do composto atual</h2>
+    <div class="rot" style="margin-top:4px">Ensaios da prensa que formam o composto</div>
+    <div class="linha cabec"><span style="width:110px">Corte</span><span style="flex:1; text-align:right">Média prensa</span></div>
+    <div class="linha"><span class="slot hora" id="e1h" data-slot="15">--</span><span class="slot val" id="e1v" data-slot="19">--</span><span class="un">daN/pelota</span></div>
+    <div class="linha"><span class="slot hora" id="e2h" data-slot="16">--</span><span class="slot val" id="e2v" data-slot="20">--</span><span class="un">daN/pelota</span></div>
+    <div class="linha"><span class="slot hora" id="e3h" data-slot="17">--</span><span class="slot val" id="e3v" data-slot="21">--</span><span class="un">daN/pelota</span></div>
+    <div class="linha"><span class="slot hora" id="e4h" data-slot="18">--</span><span class="slot val" id="e4v" data-slot="22">--</span><span class="un">daN/pelota</span></div>
+  </section>
+
   <!-- Pelotas abaixo dos limites -->
-  <section class="card faixas" style="left:1182px; top:397px; width:386px; height:340px;">
+  <section class="card faixas" style="left:1182px; top:707px; width:386px; height:215px;">
     <h2><span class="acento"></span>Pelotas abaixo do limite</h2>
-    <div class="rot" style="margin-top:4px">Último ensaio da prensa automática</div>
-    <div class="linha cabec"><span style="flex:1; margin-left:32px">Limite</span><span style="width:124px; text-align:right">Pelotas</span></div>
-    <div class="linha"><span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200"></span><span class="nome">Abaixo de 200 daN</span><span class="slot" id="s-qi3" data-slot="15">--</span><span class="un">pelotas</span></div>
-    <div class="linha"><span class="lampada" id="lq2" data-tag="307-QI-002" data-lo="0.5" data-hi="100000" data-ativa="--lim-150"></span><span class="nome">Abaixo de 150 daN</span><span class="slot" id="s-qi2" data-slot="16">--</span><span class="un">pelotas</span></div>
-    <div class="linha"><span class="lampada" id="lq1" data-tag="307-QI-001" data-lo="0.5" data-hi="100000" data-ativa="--lim-100"></span><span class="nome">Abaixo de 100 daN</span><span class="slot" id="s-qi1" data-slot="17">--</span><span class="un">pelotas</span></div>
+    <div class="rot" style="margin-top:4px; margin-bottom:6px">Último ensaio da prensa automática</div>
+    <div class="linha"><span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200"></span><span class="nome">Abaixo de 200 daN</span><span class="slot" id="s-qi3" data-slot="23">--</span><span class="un">pelotas</span></div>
+    <div class="linha"><span class="lampada" id="lq2" data-tag="307-QI-002" data-lo="0.5" data-hi="100000" data-ativa="--lim-150"></span><span class="nome">Abaixo de 150 daN</span><span class="slot" id="s-qi2" data-slot="24">--</span><span class="un">pelotas</span></div>
+    <div class="linha"><span class="lampada" id="lq1" data-tag="307-QI-001" data-lo="0.5" data-hi="100000" data-ativa="--lim-100"></span><span class="nome">Abaixo de 100 daN</span><span class="slot" id="s-qi1" data-slot="25">--</span><span class="un">pelotas</span></div>
   </section>
 
   <!-- Cortadores -->
-  <section class="card cort" style="left:1182px; top:757px; width:386px; height:331px;">
+  <section class="card cort" style="left:1182px; top:942px; width:386px; height:146px;">
     <h2><span class="acento"></span>Cortadores da amostragem</h2>
-    <div class="rot" style="margin-top:4px; margin-bottom:14px">Sistema de amostragem PQ US04</div>
-    <div class="linha"><span class="eq">07CR001</span>
+    <div class="linha" style="margin-top:8px"><span class="eq">07CR001</span>
       <span class="lampada" id="c1a" data-tag="U04-07CR001" data-lo="32" data-hi="32" data-ativa="--ok"></span><span class="estado">Automático</span>
       <span class="lampada" id="c1m" data-tag="U04-07CR001" data-lo="16" data-hi="16" data-ativa="--manual"></span><span class="estado">Manual</span></div>
     <div class="linha"><span class="eq">07CR002</span>
       <span class="lampada" id="c2a" data-tag="U04-07CR002" data-lo="32" data-hi="32" data-ativa="--ok"></span><span class="estado">Automático</span>
       <span class="lampada" id="c2m" data-tag="U04-07CR002" data-lo="16" data-hi="16" data-ativa="--manual"></span><span class="estado">Manual</span></div>
-    <div class="nota" style="margin-top:16px; line-height:1.5">Comparar prensa e laboratório só com os<br>dois cortadores em Automático.</div>
   </section>
 </div>
 
@@ -271,13 +289,14 @@
   let semente = 7;
   const rnd = () => (semente = (semente * 16807) % 2147483647) / 2147483647;
   function serie(cen) {
-    const agora = Date.now(), pts = [];
+    // Corte a cada 30 min (hora cheia e meia hora); o resultado entra no PIMS 20 min depois do corte.
+    const MEIA = 30 * 60e3, ultCorte = Math.floor((Date.now() - 20 * 60e3) / MEIA) * MEIA, pts = [];
     semente = 7;
     for (let i = 16; i >= 0; i--) {
-      const t = agora - 12 * 60e3 - i * 30 * 60e3;
+      const corte = ultCorte - i * MEIA, t = corte + 20 * 60e3;
       const m = 292 + 18 * Math.sin(i / 2.4) + (rnd() - .5) * 26;
       const s = 48 + (rnd() - .5) * 16;
-      pts.push({ t, m, s, mes: i % 4 === 0 ? Math.round(m - 7 + (rnd() - .5) * 14) : null });
+      pts.push({ t, corte, m, s });
     }
     const u = pts[pts.length - 1];
     if (cen === 'f200') { u.m = 214.6; u.s = 96.3; pts[pts.length - 2].m = 251.0; }
@@ -290,15 +309,15 @@
     const W = 140, Hs = 90, x = i => 4 + i * (W - 8) / (pts.length - 1), y = v => Hs - 6 - v / ymax * (Hs - 12);
     svg.appendChild(el('polyline', { points: pts.map((p, i) => `${x(i)},${y(p[key])}`).join(' '), fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }));
   }
-  function tendencia(pts) {
+  function tendencia(pts, comp) {
     const svg = document.getElementById('tend');
     svg.innerHTML = '';
     const t0 = pts[0].t, t1 = pts[pts.length - 1].t, x = t => 6 + (t - t0) / (t1 - t0) * (PW - 12);
-    // O Aspen desenha as penas em degrau: o valor se mantém até o próximo ensaio.
+    // O Aspen desenha as penas em degrau: o valor se mantém até o próximo resultado.
     const degrau = arr => arr.map((p, i) => (i ? `${x(p.t)},${yv(arr[i - 1].v)} ` : '') + `${x(p.t)},${yv(p.v)}`).join(' ') + ` ${PW - 2},${yv(arr[arr.length - 1].v)}`;
-    const mes = pts.filter(p => p.mes !== null).map(p => ({ t: p.t, v: p.mes }));
-    svg.appendChild(el('polyline', { points: degrau(mes), fill: 'none', stroke: 'var(--linha-lab)', 'stroke-width': 3 }));
-    svg.appendChild(el('polyline', { points: degrau(pts.map(p => ({ t: p.t, v: p.m }))), fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 3 }));
+    svg.appendChild(el('polyline', { points: degrau(pts.map(p => ({ t: p.t, v: p.m }))), fill: 'none', stroke: 'var(--linha-ensaio)', 'stroke-width': 1.5 }));
+    svg.appendChild(el('polyline', { points: degrau(comp.map(c => ({ t: c.t, v: c.lab }))), fill: 'none', stroke: 'var(--linha-lab)', 'stroke-width': 3.5 }));
+    svg.appendChild(el('polyline', { points: degrau(comp.map(c => ({ t: c.t, v: c.prensa }))), fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 3.5 }));
   }
   function set(id, texto, cor) { const e = document.getElementById(id); e.textContent = texto; e.style.color = cor || ''; return e; }
   function lampada(id, valor) {
@@ -311,12 +330,24 @@
     const pts = serie(cen), u = pts[pts.length - 1], ts = new Date(u.t);
     const q = cen === 'bad' ? 'Bad' : 'Good';
     const cont = cen === 'f200' ? [0, 4, 7] : [0, 0, 1];   // abaixo de 100, 150 e 200
+    // Compostos de 2 h: média dos 4 ensaios da janela; o laboratório fica próximo do composto da prensa.
+    // Janelas de 2 h começando nas horas pares; só entram janelas completas (4 cortes).
+    const comp = [], DUAS = 2 * 3600e3;
+    const janelas = {};
+    pts.forEach(p => { const k = Math.floor(p.corte / DUAS) * DUAS; (janelas[k] = janelas[k] || []).push(p); });
+    Object.keys(janelas).sort().forEach(k => {
+      const jan = janelas[k]; if (jan.length < 4) return;
+      const prensa = jan.reduce((a, p) => a + p.m, 0) / 4;
+      comp.push({ t: +k + DUAS + 20 * 60e3, fim: +k + DUAS, prensa, lab: Math.round(prensa - 6 + (rnd() - .5) * 10), jan });
+    });
+    const c = comp[comp.length - 1], hm = d => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
     set('s-atual', dh(ts));
     set('s-gi1', num(u.m)); set('s-gi1-ts', dh(ts)); set('s-gi1-q', q, q === 'Good' ? '' : 'var(--sam-laranja)');
     set('s-gi2', num(u.s)); set('s-gi2-ts', dh(ts)); set('s-gi2-q', 'Good');
-    const ult = pts.filter(p => p.mes !== null).pop();
-    set('r-mes', String(ult.mes)); set('r-mes-ts', dh(new Date(ult.t)));
-    set('l-gi1', num(u.m), 'var(--linha-prensa)'); set('l-mes', String(ult.mes));
+    set('c-prensa', num(c.prensa), 'var(--linha-prensa)'); set('c-lab', String(c.lab));
+    set('c-jan', dh(new Date(c.fim)));
+    const dif = c.prensa - c.lab; set('c-dif', (dif > 0 ? '+' : '') + num(dif));
+    c.jan.forEach((p, i) => { set(`e${i + 1}h`, hm(new Date(p.corte))); set(`e${i + 1}v`, num(p.m)); });
     set('s-qi1', String(cont[0])); set('s-qi2', String(cont[1])); set('s-qi3', String(cont[2]));
     lampada('lq1', cont[0]); lampada('lq2', cont[1]); lampada('lq3', cont[2]);
     lampada('c1a', 32); lampada('c1m', 32);
@@ -324,7 +355,7 @@
     lampada('c2a', m2); lampada('c2m', m2);
     spark(document.getElementById('sp1'), pts, 'm', 500);
     spark(document.getElementById('sp2'), pts, 's', 150);
-    tendencia(pts);
+    tendencia(pts, comp);
   }
 
   const sel = document.getElementById('cen'), tema = document.getElementById('tema');
