@@ -86,8 +86,9 @@ wpr = wb.add_worksheet("Prensa")
 wm = wb.add_worksheet("MES")
 wc = wb.add_worksheet("Correlacao")
 wd = wb.add_worksheet("Dados_PIMS")
+wlog = wb.add_worksheet("Log")
 CODENOMES = {wp: "shPainel", wl: "shLeiame", wcfg: "shConfig", wpr: "shPrensa", wm: "shMES", wc: "shCorrelacao",
-             wd: "shDados"}
+             wd: "shDados", wlog: "shLog"}
 
 
 def nome(n, ws, cel):
@@ -106,7 +107,7 @@ linhas_cfg = [
     ("Servidor do PIMS", "UBU", "cfgServidor", "Mesmo servidor do Relatório Físico.", None),
     ("Formato da data para o Aspen", "Texto dd/mm/aaaa", "cfgFormatoData",
      "Padrão do Relatório Físico. Opções: Texto dd/mm/aaaa, Texto mm/dd/aaaa ou Data do Excel.", "lista"),
-    ("Espera máxima pela resposta do PIMS (s)", 120, "cfgTimeout", "Tempo máximo de cada consulta.", None),
+    ("Espera máxima pela resposta do PIMS (s)", 300, "cfgTimeout", "Tempo máximo de cada consulta (o Relatório Físico leva cerca de 2 min).", None),
     ("Início da fórmula do suplemento", "=GetCalculationValues(", "cfgPrefixo",
      "Como o Excel mostra a função do Aspen. Se o Excel não reconhecer, a macro tenta o nome completo do suplemento.",
      "texto"),
@@ -182,6 +183,17 @@ wd.write("E6", "Consulta: laboratório (MES)", f_rotulo)
 wd.write("E7", "Sem consulta")
 wd.write_row("E8", ["Data/hora", "Valor"], f_cab)
 wd.hide()
+
+# ======================================================================= Log
+wlog.set_column("A:A", 19)
+wlog.set_column("B:B", 22)
+wlog.set_column("C:C", 160)
+wlog.write("A1", "Registro da última busca ou do último teste de conexão (preenchido pela macro). "
+           "Se algo não funcionar, envie esta aba.", f_rotulo)
+wlog.write_row("A2", ["Data e hora", "Etapa", "Detalhe"], f_cab)
+for r in range(2, 1000):
+    wlog.set_row(r, None, fmt(num_format="dd/mm/yyyy hh:mm:ss"))
+wlog.freeze_panes(2, 0)
 
 # ======================================================================= Prensa
 cab_pr = ["Data e hora no PIMS", "Média prensa 307-GI-001 (kgf/pelota)", "Hora do corte", "Índice de meia hora", "Janela",
@@ -296,7 +308,8 @@ wp.set_row(4, 24)
 wp.set_row(5, 24)
 botoes = [("E5", 0, "AtualizarPeriodo", "Atualizar período"),
           ("E5", 160, "AtualizarDesdeInicio", "Desde o início da prensa"),
-          ("H5", 40, "LimparDados", "Limpar dados")]
+          ("H5", 0, "TestarConexao", "Testar conexão"),
+          ("H5", 160, "LimparDados", "Limpar dados")]
 for cel, dx, macro, rotulo in botoes:
     wp.insert_button(cel, {"macro": macro, "caption": rotulo, "width": 150, "height": 44, "x_offset": dx, "y_offset": 2})
 wp.merge_range("B8:I8", "Sem dados. Use um dos botões de atualização.", f_status)
@@ -454,6 +467,8 @@ textos = [
      None),
     ("6. Tags, servidor, formato da data e tempo de espera ficam na aba Configurações. Se o PIMS recusar uma tag, a macro avisa "
      "qual foi.", None),
+    ("7. O botão Testar conexão faz uma consulta curta das duas tags e mostra quantas leituras voltaram. Cada busca e cada teste "
+     "registram as etapas na aba Log (fórmula enviada, resposta do Aspen, linhas lidas). Se algo não funcionar, envie a aba Log.", None),
     ("", None),
     ("Regra de comparação (aba Configurações)", f_sec),
     ("1. O resultado da prensa entra no PIMS 20 min depois do corte. A planilha desconta essa defasagem: 13:20 vira corte das 13:00, "
@@ -472,6 +487,9 @@ textos = [
     ("Dados_PIMS (oculta): área de trabalho das consultas ao Aspen. Para ver, use a macro MostrarDadosPIMS (Alt+F8).", None),
     ("", None),
     ("Se a busca não funcionar", f_sec),
+    ("0. Se nada acontece ao clicar nos botões: feche o arquivo, clique com o botão direito nele > Propriedades > marque Desbloquear > OK, "
+     "e abra de novo clicando em Habilitar Conteúdo. Se ainda assim o Excel disser que a macro não está disponível, abra o editor "
+     "(Alt+F11), use Arquivo > Importar arquivo > ModPIMS.bas e salve.", None),
     ("1. Abra o Relatório Físico na mesma máquina e confirme que a atualização do MES funciona (suplemento ativo).", None),
     ("2. Confira na aba Configurações o servidor (UBU), as tags e o formato da data. Use o mesmo formato configurado no Relatório Físico.",
      None),
@@ -488,7 +506,8 @@ if COM_VBA:
     modulo = open(os.path.join(AQUI, "vba", "ModPIMS.bas"), encoding="utf-8").read().replace("\r\n", "\n").replace("\n", "\r\n")
     if os.environ.get("VBA_TESTE"):    # rotina extra só para a conferência automática da macro
         modulo += open(os.environ["VBA_TESTE"], encoding="utf-8").read().replace("\n", "\r\n")
-    docs = {"ThisWorkbook": "Option Explicit\r\n\r\nPrivate Sub Workbook_Open()\r\n    shPainel.Activate\r\nEnd Sub\r\n"}
+    docs = {"ThisWorkbook": "Option Explicit\r\n\r\nPrivate Sub Workbook_Open()\r\n    On Error Resume Next\r\n"
+                            "    Me.Worksheets(\"Painel\").Activate\r\nEnd Sub\r\n"}
     docs.update({cn: "" for cn in CODENOMES.values()})
     binario = os.path.join(AQUI, "vbaProject.bin")
     open(binario, "wb").write(vba_project_bin({"ModPIMS": modulo}, docs))

@@ -10,6 +10,8 @@ Option Explicit
 '    AtualizarPeriodo       período das células Início e Fim do Painel
 '    AtualizarDesdeInicio   desde o início de operação da prensa (aba Configuracoes)
 '    LimparDados            apaga os dados das abas Prensa e MES
+'    TestarConexao          consulta curta das duas tags, com o resultado de cada etapa na aba Log
+'  Cada busca registra as etapas na aba Log (fórmula enviada, resposta do Aspen, linhas lidas).
 ' ============================================================================
 
 ' Segundos sem mudança nos resultados para considerar a consulta concluída
@@ -58,14 +60,14 @@ End Sub
 
 Public Sub LimparDados()
     If Aviso("Apagar os dados das abas Prensa e MES?", vbQuestion + vbYesNo) <> vbYes Then Exit Sub
-    shPrensa.Range("A2:B" & MAX_PRENSA + 1).ClearContents
-    shMES.Range("A2:B" & MAX_MES + 1).ClearContents
+    Aba("Prensa").Range("A2:B" & MAX_PRENSA + 1).ClearContents
+    Aba("MES").Range("A2:B" & MAX_MES + 1).ClearContents
     Nm("pnlStatus").Value = "Sem dados. Use um dos botões de atualização."
 End Sub
 
 Public Sub MostrarDadosPIMS()
-    shDados.Visible = xlSheetVisible
-    shDados.Activate
+    Aba("Dados_PIMS").Visible = xlSheetVisible
+    Aba("Dados_PIMS").Activate
 End Sub
 
 ' ---------------------------------------------------------------- busca completa
@@ -89,6 +91,9 @@ Private Sub Atualizar(ByVal ini As Date, ByVal fim As Date)
     tIni = Timer
     On Error GoTo Falha
     Ampulheta True
+    LimparLog
+    Registrar "Início", "Período " & Format$(ini, "dd\/mm\/yyyy hh:mm") & " a " & Format$(fim, "dd\/mm\/yyyy hh:mm") & _
+              " | Excel " & Application.Version & " | cálculo " & IIf(Application.Calculation = xlCalculationAutomatic, "automático", "manual")
 
     ' As janelas de 2 h começam nas horas pares (ou conforme o deslocamento configurado).
     ' A prensa é buscada desde 1 h antes, para completar a primeira janela.
@@ -101,6 +106,7 @@ Private Sub Atualizar(ByVal ini As Date, ByVal fim As Date)
     Application.ScreenUpdating = False
     nCortes = GravarPrensa(tP, vP, nP)
     nRes = GravarMES(tL, vL, nL)
+    Registrar "Gravação", nCortes & " resultados da prensa (" & nP & " leituras) e " & nRes & " do laboratório (" & nL & " leituras)"
     Application.Calculate
     Application.ScreenUpdating = True
 
@@ -108,7 +114,7 @@ Private Sub Atualizar(ByVal ini As Date, ByVal fim As Date)
         "  |  período de " & Format$(ini, "dd\/mm\/yyyy hh:mm") & " a " & Format$(fim, "dd\/mm\/yyyy hh:mm") & _
         "  |  " & nCortes & " resultados da prensa e " & nRes & " do laboratório  |  " & _
         Format$(SegundosDesde(tIni), "0") & " s"
-    shPainel.Activate
+    Aba("Painel").Activate
 
     msg = "Busca concluída." & vbCrLf & vbCrLf & _
           "Prensa automática: " & nCortes & " resultados" & vbCrLf & _
@@ -128,8 +134,67 @@ Falha:
     Application.StatusBar = False
     Ampulheta False
     mOcupado = False
-    Aviso "Erro na busca: " & Err.Description, vbExclamation
+    Registrar "Erro", Err.Number & ": " & Err.Description
+    Aviso "Erro na busca: " & Err.Description & vbCrLf & vbCrLf & "Detalhes na aba Log.", vbExclamation
 End Sub
+
+' Consulta curta das duas tags (laboratório nas últimas 24 h, prensa nas últimas 2 h), para conferir a ligação com o PIMS
+Public Sub TestarConexao()
+    Dim tt() As Date, vv() As Variant, nP As Long, nL As Long, okP As Boolean, okL As Boolean, msg As String
+    Dim lista As String
+    If mOcupado Then Exit Sub
+    mOcupado = True
+    On Error GoTo Falha
+    Ampulheta True
+    LimparLog
+    Registrar "Teste", "Excel " & Application.Version & " | cálculo " & _
+              IIf(Application.Calculation = xlCalculationAutomatic, "automático", "manual")
+    lista = ListarSuplementos()
+    Registrar "Suplementos ativos", IIf(lista = "", "nenhum encontrado", lista)
+    okL = BuscarSerie(BLOCO_LAB, CDate(Int(CDbl(Now) * 48) / 48 - 1), Now, tt, vv, nL)
+    If okL Then Registrar "Laboratório", nL & " leituras; " & ResumoSerie(tt, vv, nL)
+    okP = BuscarSerie(BLOCO_PRENSA, CDate(Int(CDbl(Now) * 1440) / 1440 - 2 / 24), Now, tt, vv, nP)
+    If okP Then Registrar "Prensa", nP & " leituras; " & ResumoSerie(tt, vv, nP)
+    DesligarConsultas
+    msg = "Teste de conexão com o PIMS" & vbCrLf & vbCrLf & _
+          "Laboratório (últimas 24 h): " & IIf(okL, nL & " leituras", "falhou") & vbCrLf & _
+          "Prensa (últimas 2 h): " & IIf(okP, nP & " leituras", "falhou") & vbCrLf & vbCrLf & _
+          "O detalhe de cada etapa está na aba Log."
+    Ampulheta False
+    mOcupado = False
+    Aviso msg, IIf(okL And okP And nL > 0 And nP > 0, vbInformation, vbExclamation)
+    Exit Sub
+Falha:
+    Ampulheta False
+    mOcupado = False
+    Registrar "Erro", Err.Number & ": " & Err.Description
+    Aviso "Erro no teste: " & Err.Description & vbCrLf & vbCrLf & "Detalhes na aba Log.", vbExclamation
+End Sub
+
+' Suplementos ativos no Excel (para conferir se o Aspen Process Data está carregado)
+Private Function ListarSuplementos() As String
+    Dim a As Object, r As String
+    On Error GoTo Fim
+    For Each a In Application.COMAddIns
+        If a.Connect Then r = r & a.Description & "; "
+    Next a
+    For Each a In Application.AddIns
+        If a.Installed Then r = r & a.Name & "; "
+    Next a
+Fim:
+    ListarSuplementos = r
+End Function
+
+Private Function ResumoSerie(ByRef tt() As Date, ByRef vv() As Variant, ByVal n As Long) As String
+    Dim i As Long, nNum As Long, r As String
+    For i = 1 To n
+        If ENumero(vv(i)) Then
+            nNum = nNum + 1
+            If nNum <= 3 Then r = r & Format$(tt(i), "dd\/mm hh:mm") & " = " & CStr(vv(i)) & "; "
+        End If
+    Next i
+    ResumoSerie = nNum & " com valor numérico" & IIf(r = "", "", " (" & r & "...)")
+End Function
 
 ' Busca uma tag de ini a fim, dividindo em consultas de até LINHAS_CONSULTA pontos.
 Private Function BuscarSerie(ByVal bloco As Long, ByVal ini As Date, ByVal fim As Date, _
@@ -189,17 +254,24 @@ Private Function ConsultarBloco(ByVal bloco As Long, ByVal ini As Date, ByVal fi
     Dim assin As String, assinAnt As String, pronto As Boolean, semDados As Boolean, txt As String
     Dim passo As Double, r As Long, saida As Range, d() As Variant, v As Variant, t As Date
 
-    Set anc = shDados.Range(Cfg(bloco, "ancora"))
-    Set saida = shDados.Range(Cfg(bloco, "saida"))
+    Set anc = Aba("Dados_PIMS").Range(Cfg(bloco, "ancora"))
+    Set saida = Aba("Dados_PIMS").Range(Cfg(bloco, "saida"))
     passo = PassoDias(Cfg(bloco, "periodo"))
-    limite = 120
+    limite = 300
     If ENumero(Nm("cfgTimeout").Value) Then limite = CDbl(Nm("cfgTimeout").Value)
 
     ' O suplemento cria a matriz de resultados sozinho; sobras de uma consulta anterior
     ' com outro tamanho fazem o Excel recusar ("Não é possível alterar parte de uma matriz").
-    LimparSaida bloco
+    ' A consulta anterior vira texto antes de mudar o período: as duas usam Dados_PIMS!B3:B4 e,
+    ' se continuasse como fórmula, o Aspen a refaria junto com a nova.
+    DesligarConsultas
     GravarPeriodo ini, fim
-    If Not EscreverFormula(bloco) Then Exit Function
+    If Not EscreverFormula(bloco) Then
+        Registrar NomeBloco(bloco), "Fórmula recusada pelo Excel: " & Left$(anc.Formula, 200)
+        Exit Function
+    End If
+    Registrar NomeBloco(bloco), "Consulta " & Format$(ini, "dd\/mm\/yyyy hh:mm") & " a " & Format$(fim, "dd\/mm\/yyyy hh:mm") & _
+              " | fórmula: " & anc.Formula
     If Application.Calculation <> xlCalculationAutomatic Then anc.Calculate
 
     t0 = Timer
@@ -208,12 +280,13 @@ Private Function ConsultarBloco(ByVal bloco As Long, ByVal ini As Date, ByVal fi
         DoEvents
         txt = TextoResposta(bloco)
         If InStr(1, txt, " is invalid", vbTextCompare) > 0 Then
+            Registrar NomeBloco(bloco), "Tag recusada: " & Left$(txt, 200)
             Aviso "O PIMS não reconheceu a tag de " & NomeBloco(bloco) & ": " & Cfg(bloco, "tag") & vbCrLf & vbCrLf & _
                   "Resposta: " & Left$(txt, 200) & vbCrLf & vbCrLf & _
                   "Corrigir a tag ou o tipo (mapa) na aba Configuracoes.", vbExclamation
             Exit Function
         End If
-        pronto = PrimeiraLinhaOk(saida, ini, passo)
+        pronto = TemData(saida)
         semDados = False
         If Not pronto And SegundosDesde(t0) >= SEM_DADOS_SEG Then
             semDados = (LCase$(Left$(Trim$(anc.Text), 7)) = "success") And Vazio(saida.Cells(1, 1).Value)
@@ -225,6 +298,8 @@ Private Function ConsultarBloco(ByVal bloco As Long, ByVal ini As Date, ByVal fi
         End If
         If (pronto Or semDados) And SegundosDesde(tEst) >= ESTAVEL_SEG Then Exit Do
         If SegundosDesde(t0) > limite Then
+            Registrar NomeBloco(bloco), "Sem resposta em " & Format$(limite, "0") & " s | âncora: " & Left$(anc.Text, 150) & _
+                      " | saída: " & Left$(saida.Cells(1, 1).Text & " " & saida.Cells(1, 2).Text, 100)
             If Aviso("O PIMS não respondeu à consulta de " & NomeBloco(bloco) & " (" & _
                      Format$(ini, "dd\/mm\/yyyy hh:mm") & " a " & Format$(fim, "dd\/mm\/yyyy hh:mm") & ")." & vbCrLf & vbCrLf & _
                      "Resposta: " & Left$(txt, 200) & vbCrLf & vbCrLf & _
@@ -234,26 +309,29 @@ Private Function ConsultarBloco(ByVal bloco As Long, ByVal ini As Date, ByVal fi
         End If
     Loop
 
+    ' Lê todas as linhas com data e hora (linhas de cabeçalho ou mensagem ficam de fora)
     nLin = 0
     If pronto Then
-        r = 1
-        Do While Not Vazio(saida.Cells(r, 1).Value) And r <= LINHAS_CONSULTA + 10
-            r = r + 1
-        Loop
-        If r > 1 Then
-            ReDim d(1 To r - 1, 1 To 2)
-            For r = 1 To UBound(d, 1)
-                If LerData(saida.Cells(r, 1).Value, t) Then
-                    v = saida.Cells(r, 2).Value
-                    If IsError(v) Then v = Empty
-                    nLin = nLin + 1
-                    d(nLin, 1) = t
-                    d(nLin, 2) = v
-                End If
-            Next r
-            dados = d
-        End If
+        Dim arr As Variant
+        arr = saida.Resize(LINHAS_CONSULTA + 20, 2).Value
+        ReDim d(1 To UBound(arr, 1), 1 To 2)
+        For r = 1 To UBound(arr, 1)
+            If LerData(arr(r, 1), t) Then
+                v = arr(r, 2)
+                If IsError(v) Then v = Empty
+                nLin = nLin + 1
+                d(nLin, 1) = t
+                d(nLin, 2) = v
+            End If
+        Next r
+        OrdenarPorData d, nLin
+        dados = d
     End If
+    txt = IIf(pronto, nLin & " linhas lidas", "Respondeu sem dados") & " em " & _
+          Format$(SegundosDesde(t0), "0") & " s | âncora: " & Left$(anc.Text, 120)
+    If nLin > 0 Then txt = txt & " | primeira: " & Format$(d(1, 1), "dd\/mm hh:mm") & " = " & CStr(d(1, 2)) & _
+                           " | última: " & Format$(d(nLin, 1), "dd\/mm hh:mm") & " = " & CStr(d(nLin, 2))
+    Registrar NomeBloco(bloco), txt
     ConsultarBloco = True
 End Function
 
@@ -272,7 +350,7 @@ End Function
 ' reconhecer, o nome completo do suplemento.
 Private Function EscreverFormula(ByVal bloco As Long) As Boolean
     Dim anc As Range, prefixo As String, k As Long, v As Variant
-    Set anc = shDados.Range(Cfg(bloco, "ancora"))
+    Set anc = Aba("Dados_PIMS").Range(Cfg(bloco, "ancora"))
     prefixo = Trim$(CStr(Nm("cfgPrefixo").Value))
     If prefixo = "" Then prefixo = "=GetCalculationValues("
     For k = 1 To 2
@@ -306,7 +384,7 @@ Private Sub DesligarConsultas()
     Dim bloco As Long, c As Range
     On Error Resume Next
     For bloco = BLOCO_PRENSA To BLOCO_LAB
-        Set c = shDados.Range(Cfg(bloco, "ancora"))
+        Set c = Aba("Dados_PIMS").Range(Cfg(bloco, "ancora"))
         If c.HasFormula Then c.Value = "'Consulta concluída em " & Format$(Now, "dd\/mm\/yyyy hh:mm:ss")
         LimparSaida bloco
     Next bloco
@@ -316,7 +394,7 @@ End Sub
 Private Sub LimparSaida(ByVal bloco As Long)
     Dim zona As Range, c As Range
     On Error Resume Next
-    Set zona = shDados.Range(Cfg(bloco, "saida")).Resize(LINHAS_CONSULTA + 20, 2)
+    Set zona = Aba("Dados_PIMS").Range(Cfg(bloco, "saida")).Resize(LINHAS_CONSULTA + 20, 2)
     For Each c In zona.Cells
         If c.HasArray Then c.CurrentArray.ClearContents
     Next c
@@ -327,8 +405,8 @@ End Sub
 ' Início e fim do período nas células usadas pelas fórmulas (Dados_PIMS!B3:B4)
 Private Sub GravarPeriodo(ByVal ini As Date, ByVal fim As Date)
     Dim modo As String, c3 As Range, c4 As Range
-    Set c3 = shDados.Range("B3")
-    Set c4 = shDados.Range("B4")
+    Set c3 = Aba("Dados_PIMS").Range("B3")
+    Set c4 = Aba("Dados_PIMS").Range("B4")
     modo = UCase$(CStr(Nm("cfgFormatoData").Value))
     If InStr(modo, "MM/DD") > 0 Then
         EscreverTexto c3, Format$(ini, "mm\/dd\/yyyy hh:mm:ss")
@@ -353,18 +431,49 @@ End Sub
 Private Function TextoResposta(ByVal bloco As Long) As String
     Dim v As Variant
     On Error Resume Next
-    v = shDados.Range(Cfg(bloco, "ancora")).Value
+    v = Aba("Dados_PIMS").Range(Cfg(bloco, "ancora")).Value
     If Not IsError(v) Then TextoResposta = CStr(v)
-    v = shDados.Range(Cfg(bloco, "saida")).Value
+    v = Aba("Dados_PIMS").Range(Cfg(bloco, "saida")).Value
     If Not IsError(v) Then TextoResposta = TextoResposta & " " & CStr(v)
 End Function
 
-' A primeira linha da saída é o primeiro intervalo do período consultado
-Private Function PrimeiraLinhaOk(ByVal saida As Range, ByVal ini As Date, ByVal passo As Double) As Boolean
-    Dim t As Date
-    If Not LerData(saida.Cells(1, 1).Value, t) Then Exit Function
-    PrimeiraLinhaOk = (Abs(CDbl(t) - CDbl(ini)) <= passo + 1 / 1440)
+' A saída já tem data e hora em alguma das primeiras linhas (o Aspen começou a devolver resultados)
+Private Function TemData(ByVal saida As Range) As Boolean
+    Dim r As Long, t As Date
+    For r = 1 To 3
+        If LerData(saida.Cells(r, 1).Value, t) Then
+            TemData = True
+            Exit Function
+        End If
+    Next r
 End Function
+
+' Ordena as linhas 1..n de d por data e hora (o Aspen pode devolver do mais novo para o mais antigo)
+Private Sub OrdenarPorData(ByRef d() As Variant, ByVal n As Long)
+    Dim i As Long, j As Long, t As Variant, v As Variant, crescente As Boolean
+    If n < 2 Then Exit Sub
+    crescente = True
+    For i = 2 To n
+        If CDbl(d(i, 1)) < CDbl(d(i - 1, 1)) Then
+            crescente = False
+            Exit For
+        End If
+    Next i
+    If crescente Then Exit Sub
+    For i = 2 To n
+        t = d(i, 1)
+        v = d(i, 2)
+        j = i - 1
+        Do While j >= 1
+            If CDbl(d(j, 1)) <= CDbl(t) Then Exit Do
+            d(j + 1, 1) = d(j, 1)
+            d(j + 1, 2) = d(j, 2)
+            j = j - 1
+        Loop
+        d(j + 1, 1) = t
+        d(j + 1, 2) = v
+    Next i
+End Sub
 
 ' Resumo do conteúdo atual da saída (quantidade e soma dos números), para saber quando parou de mudar
 Private Function Assinatura(ByVal saida As Range) As String
@@ -388,7 +497,7 @@ End Function
 ' só a primeira leitura de cada resultado é gravada.
 Private Function GravarPrensa(ByRef tt() As Date, ByRef vv() As Variant, ByVal n As Long) As Long
     Dim d() As Variant, i As Long, k As Long, x As Double, ant As Double
-    shPrensa.Range("A2:B" & MAX_PRENSA + 1).ClearContents
+    Aba("Prensa").Range("A2:B" & MAX_PRENSA + 1).ClearContents
     If n = 0 Then Exit Function
     ReDim d(1 To MAX_PRENSA, 1 To 2)
     ant = 0
@@ -412,7 +521,7 @@ Private Function GravarPrensa(ByRef tt() As Date, ByRef vv() As Variant, ByVal n
             End If
         End If
     Next i
-    If k > 0 Then shPrensa.Range("A2").Resize(k, 2).Value = d
+    If k > 0 Then Aba("Prensa").Range("A2").Resize(k, 2).Value = d
     GravarPrensa = k
 End Function
 
@@ -420,7 +529,7 @@ End Function
 ' resultado pode aparecer em intervalos seguidos: fica só o primeiro.
 Private Function GravarMES(ByRef tt() As Date, ByRef vv() As Variant, ByVal n As Long) As Long
     Dim d() As Variant, i As Long, k As Long, x As Double, temAnt As Boolean, ant As Double
-    shMES.Range("A2:B" & MAX_MES + 1).ClearContents
+    Aba("MES").Range("A2:B" & MAX_MES + 1).ClearContents
     If n = 0 Then Exit Function
     ReDim d(1 To MAX_MES, 1 To 2)
     For i = 1 To n
@@ -442,7 +551,7 @@ Private Function GravarMES(ByRef tt() As Date, ByRef vv() As Variant, ByVal n As
             temAnt = False
         End If
     Next i
-    If k > 0 Then shMES.Range("A2").Resize(k, 2).Value = d
+    If k > 0 Then Aba("MES").Range("A2").Resize(k, 2).Value = d
     GravarMES = k
 End Function
 
@@ -493,6 +602,29 @@ Private Function AlinharJanela(ByVal t As Date) As Date
 End Function
 
 ' ---------------------------------------------------------------- utilitários
+Private Function Aba(ByVal nome As String) As Worksheet
+    Set Aba = ThisWorkbook.Worksheets(nome)
+End Function
+
+Private Sub LimparLog()
+    On Error Resume Next
+    Aba("Log").Range("A3:C1000").ClearContents
+End Sub
+
+' Registra uma etapa na aba Log (data e hora, etapa, detalhe)
+Private Sub Registrar(ByVal etapa As String, ByVal detalhe As String)
+    Dim ws As Worksheet, r As Long
+    On Error Resume Next
+    Set ws = Aba("Log")
+    r = 3
+    Do While Not IsEmpty(ws.Cells(r, 2).Value) And r < 1000
+        r = r + 1
+    Loop
+    ws.Cells(r, 1).Value = Now
+    ws.Cells(r, 2).Value = etapa
+    ws.Cells(r, 3).Value = "'" & Left$(detalhe, 1000)
+End Sub
+
 Private Function Nm(ByVal nome As String) As Range
     Set Nm = ThisWorkbook.Names(nome).RefersToRange
 End Function
