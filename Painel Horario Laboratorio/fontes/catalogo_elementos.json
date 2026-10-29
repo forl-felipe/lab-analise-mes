@@ -1,0 +1,3119 @@
+{
+ "filtros": {
+  "U03_Qualidade": [
+   "2-PF U3 - P - HH - LQU",
+   "2-PF U3 - PPC - HH - LQU",
+   "2-PF U3 - SiO2 - HH - LQU",
+   "2-PF U4 - P - HH - LQU",
+   "2-PF U4 - SiO2 - HH - LQU",
+   "2-PF-U4 - PPC - HH - LQU",
+   "3-Al.RP - SE - HH - LFU",
+   "3-Sa.RP - -325# - HH - LFU",
+   "3-Sa.RP - H2O - HH - LFU",
+   "3-Sa.RP - SE - HH - LFU",
+   "Comp. PQ 03 - -200C16 - HH - LFU",
+   "Comp. PQ 03 - C12,5 Kgf/pel - HH - LFU",
+   "Comp. PQ 03 - C16,0 Kgf/pel - HH - LFU",
+   "Gran. PQ 03 - -16,0+8,0mm - HH - LFU",
+   "Gran. PQ 03 - -6,3mm - HH - LFU",
+   "Gran. PQ 03 - Relação - HH - LFU",
+   "Magn. PQ 03 - Magnetização - HH - LFU",
+   "PQ US 03  B2-HH-LQU",
+   "PQ US 03  CaO-HH-LQU",
+   "PQ US 03  Fe-HH-LQU (Média Per. Formula)",
+   "PQ US 03  P-HH-LQU",
+   "PQ US 03  SiO2-HH-LQU",
+   "PQ US 03  C-HH-LQU",
+   "SE Saida - SE Entrada U03",
+   "Tamb. PQ 03 - TB +6,3 - HH - LFU"
+  ],
+  "U04_Qualidade": [
+   "2-PF U4 - P - HH - LQU",
+   "2-PF U4 - SiO2 - HH - LQU",
+   "2-PF-U4 - PPC - HH - LQU",
+   "4-Al.RP - SE - HH - LFU",
+   "4-Sa.RP - AG -325# - HH - LFU",
+   "4-Sa.RP - SE - HH - LFU",
+   "4-Sa.RP - Umidade - HH - LFU (Média Per. Formula)",
+   "Comp. PQ 04 - -200C16 - HH - LFU",
+   "Comp. PQ 04 - C12,5 Kgf/pel - HH - LFU",
+   "Comp. PQ 04 - C16,0 Kgf/pel - HH - LFU",
+   "Gran. PQ 04 - - 16,0+8,0mm - HH - LFU",
+   "Gran. PQ 04 - Relação - HH - LFU",
+   "Gran. PQ04 - -6,3mm - HH - LFU",
+   "Magn. PQ 04 - Magnetização - HH - LFU",
+   "PQ US 04  C-HH-LQU",
+   "PQ US 04  B2-HH-LQU",
+   "PQ US 04  CaO-HH-LQU",
+   "PQ US 04  Fe-HH-LQU",
+   "PQ US 04  P-HH-LQU",
+   "PQ US 04  SiO2-HH-LQU",
+   "SE Saida - SE Entrada U04",
+   "Tamb. PQ 04 - TB +6,3 - HH - LFU"
+  ],
+  "U03_Produção": [
+   "3-Grelh",
+   "3-Ritmo",
+   "3-Ritmo 06TP001",
+   "Patio",
+   "U03-07TP002"
+  ],
+  "U04_Produção": [
+   "4-Grelh",
+   "4-Ritmo",
+   "4-Ritmo 06TP001",
+   "Patio",
+   "U04-07TP015"
+  ]
+ },
+ "fases": [
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "2-PF U3 - P - HH - LQU",
+   "n": 22,
+   "indicador": [
+    "P (Pellet Feed)"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRMX-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.057,
+   "max": 0.067,
+   "media": 0.06418181818181817,
+   "ultimo": 0.058,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "2-PF U3 - PPC - HH - LQU",
+   "n": 18,
+   "indicador": [
+    "PPC"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/STD"
+   ],
+   "min": 3.25,
+   "max": 3.94,
+   "media": 3.586666666666667,
+   "ultimo": 3.28,
+   "ultimo_em": "27/10/2026 07:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "2-PF U3 - SiO2 - HH - LQU",
+   "n": 22,
+   "indicador": [
+    "SiO2 (Pellet Feed)"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRMX-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1.28,
+   "max": 1.86,
+   "media": 1.6163636363636362,
+   "ultimo": 1.31,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "2-PF U4 - P - HH - LQU",
+   "n": 22,
+   "indicador": [
+    "P (Pellet Feed)"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.057,
+   "max": 0.067,
+   "media": 0.06418181818181817,
+   "ultimo": 0.058,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "2-PF U4 - SiO2 - HH - LQU",
+   "n": 22,
+   "indicador": [
+    "SiO2 (Pellet Feed)"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1.28,
+   "max": 1.86,
+   "media": 1.6163636363636362,
+   "ultimo": 1.31,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "2-PF-U4 - PPC - HH - LQU",
+   "n": 17,
+   "indicador": [
+    "PPC"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/STD"
+   ],
+   "min": 3.25,
+   "max": 3.94,
+   "media": 3.5688235294117647,
+   "ultimo": 3.28,
+   "ultimo_em": "27/10/2026 07:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "3-Al.RP - SE - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "SE Entrada"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRMX-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1735.0,
+   "max": 1989.0,
+   "media": 1857.0625,
+   "ultimo": 1735.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "3-Sa.RP - -325# - HH - LFU",
+   "n": 5,
+   "indicador": [
+    "-325#"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/STD"
+   ],
+   "min": 85.1,
+   "max": 88.6,
+   "media": 86.16,
+   "ultimo": 88.6,
+   "ultimo_em": "27/10/2026 07:30",
+   "horas": [
+    "01:30",
+    "07:30",
+    "13:30",
+    "19:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "3-Sa.RP - H2O - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "H2O"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRMX-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 11.3,
+   "max": 11.99,
+   "media": 11.55125,
+   "ultimo": 11.3,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "3-Sa.RP - SE - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "SE Saída"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRMX-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1831.0,
+   "max": 2098.0,
+   "media": 1971.3125,
+   "ultimo": 1854.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "Comp. PQ 03 - -200C16 - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "-200c16"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-HH",
+    "23-PEL3-PDRMX-LFU-HH",
+    "23-PEL3-PDRSTD-LFU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 10.0,
+   "max": 36.0,
+   "media": 20.75,
+   "ultimo": 10.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "Comp. PQ 03 - C12,5 Kgf/pel - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "C 12,5"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-HH",
+    "23-PEL3-PDRMX-LFU-HH",
+    "23-PEL3-PDRSTD-LFU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 230.0,
+   "max": 279.0,
+   "media": 253.625,
+   "ultimo": 262.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "Comp. PQ 03 - C16,0 Kgf/pel - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "C 16,0"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-HH",
+    "23-PEL3-PDRMX-LFU-HH",
+    "23-PEL3-PDRSTD-LFU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 260.0,
+   "max": 308.0,
+   "media": 282.625,
+   "ultimo": 295.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "Gran. PQ 03 - -16,0+8,0mm - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "-16+8"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRMX-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 90.7,
+   "max": 96.4,
+   "media": 95.10625,
+   "ultimo": 96.4,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "Gran. PQ 03 - -6,3mm - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "-6,3mm"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRMX-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1.2,
+   "max": 1.6,
+   "media": 1.41875,
+   "ultimo": 1.4,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "Gran. PQ 03 - Relação - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "Relação"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRMX-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.69,
+   "max": 1.22,
+   "media": 0.8937499999999999,
+   "ultimo": 1.22,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "Magn. PQ 03 - Magnetização - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "Magnetização"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRMX-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.01,
+   "max": 1.77,
+   "media": 0.526875,
+   "ultimo": 0.2,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "PQ US 03  B2-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "B2"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRMX-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.57,
+   "max": 1.2,
+   "media": 0.8770588235294118,
+   "ultimo": 0.59,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "PQ US 03  CaO-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "CaO"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRMX-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.87,
+   "max": 2.38,
+   "media": 1.5852941176470587,
+   "ultimo": 0.87,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "PQ US 03  Fe-HH-LQU (Média Per. Formula)",
+   "n": 17,
+   "indicador": [
+    "Fe"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRMX-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 66.12,
+   "max": 67.67,
+   "media": 66.9064705882353,
+   "ultimo": 67.66,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "PQ US 03  P-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "P"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRMX-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.06,
+   "max": 0.069,
+   "media": 0.06523529411764706,
+   "ultimo": 0.061,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "PQ US 03  SiO2-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "SiO2"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRMX-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1.47,
+   "max": 2.05,
+   "media": 1.7535294117647056,
+   "ultimo": 1.48,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "PQ US 03  C-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "Carbono Fixo"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LQU-HH",
+    "23-PEL3-PDRMX-LQU-HH",
+    "23-PEL3-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.089,
+   "max": 1.126,
+   "media": 1.0299411764705884,
+   "ultimo": 0.987,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "SE Saida - SE Entrada U03",
+   "n": 16,
+   "indicador": [
+    "Ganho de SE"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    NaN
+   ],
+   "campanhas": [
+    "/"
+   ],
+   "min": 92.0,
+   "max": 161.0,
+   "media": 114.25,
+   "ultimo": 119.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Qualidade",
+   "fase": "Tamb. PQ 03 - TB +6,3 - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "Tamb. +6,3"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "23-PEL3-PBFHB-LFU-CC-HH",
+    "23-PEL3-PDRMX-LFU-CC-HH",
+    "23-PEL3-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 92.6,
+   "max": 94.3,
+   "media": 93.73125,
+   "ultimo": 94.1,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "2-PF U4 - P - HH - LQU",
+   "n": 22,
+   "indicador": [
+    "P (Pellet Feed)"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.057,
+   "max": 0.067,
+   "media": 0.06418181818181817,
+   "ultimo": 0.058,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "2-PF U4 - SiO2 - HH - LQU",
+   "n": 22,
+   "indicador": [
+    "SiO2 (Pellet Feed)"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1.28,
+   "max": 1.86,
+   "media": 1.6163636363636362,
+   "ultimo": 1.31,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "2-PF-U4 - PPC - HH - LQU",
+   "n": 17,
+   "indicador": [
+    "PPC"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/STD"
+   ],
+   "min": 3.25,
+   "max": 3.94,
+   "media": 3.5688235294117643,
+   "ultimo": 3.28,
+   "ultimo_em": "27/10/2026 07:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "4-Al.RP - SE - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "SE Entrada"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRMX-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1735.0,
+   "max": 1989.0,
+   "media": 1857.0625,
+   "ultimo": 1735.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "4-Sa.RP - AG -325# - HH - LFU",
+   "n": 5,
+   "indicador": [
+    "-325#"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/STD"
+   ],
+   "min": 85.0,
+   "max": 88.7,
+   "media": 86.22,
+   "ultimo": 88.7,
+   "ultimo_em": "27/10/2026 07:30",
+   "horas": [
+    "01:30",
+    "07:30",
+    "13:30",
+    "19:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "4-Sa.RP - SE - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "SE Saída"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRMX-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1868.0,
+   "max": 2109.0,
+   "media": 1988.75,
+   "ultimo": 1916.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "4-Sa.RP - Umidade - HH - LFU (Média Per. Formula)",
+   "n": 16,
+   "indicador": [
+    "H2O"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRMX-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 11.3,
+   "max": 12.02,
+   "media": 11.534374999999999,
+   "ultimo": 11.35,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "Comp. PQ 04 - -200C16 - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "-200c16"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-HH",
+    "24-PEL4-PDRMX-LFU-HH",
+    "24-PEL4-PDRSTD-LFU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 12.0,
+   "max": 42.0,
+   "media": 24.0,
+   "ultimo": 12.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "Comp. PQ 04 - C12,5 Kgf/pel - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "C 12,5"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-HH",
+    "24-PEL4-PDRMX-LFU-HH",
+    "24-PEL4-PDRSTD-LFU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 228.0,
+   "max": 271.0,
+   "media": 248.75,
+   "ultimo": 268.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "Comp. PQ 04 - C16,0 Kgf/pel - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "C 16,0"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-HH",
+    "24-PEL4-PDRMX-LFU-HH",
+    "24-PEL4-PDRSTD-LFU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 252.0,
+   "max": 308.0,
+   "media": 280.375,
+   "ultimo": 308.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "Gran. PQ 04 - - 16,0+8,0mm - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "-16+8"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRMX-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 88.7,
+   "max": 97.0,
+   "media": 95.25,
+   "ultimo": 96.1,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "Gran. PQ 04 - Relação - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "Relação"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRMX-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.61,
+   "max": 1.17,
+   "media": 0.8925000000000001,
+   "ultimo": 1.09,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "Gran. PQ04 - -6,3mm - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "-6,3mm"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRMX-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1.3,
+   "max": 1.7,
+   "media": 1.4437499999999999,
+   "ultimo": 1.7,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "Magn. PQ 04 - Magnetização - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "Magnetização"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRMX-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.0,
+   "max": 0.76,
+   "media": 0.32125000000000004,
+   "ultimo": 0.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "PQ US 04  C-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "Carbono Fixo"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.998,
+   "max": 1.13,
+   "media": 1.062470588235294,
+   "ultimo": 1.119,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "PQ US 04  B2-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "B2"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.54,
+   "max": 1.21,
+   "media": 0.8741176470588234,
+   "ultimo": 0.64,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "PQ US 04  CaO-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "CaO"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.84,
+   "max": 2.39,
+   "media": 1.5899999999999999,
+   "ultimo": 0.95,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "PQ US 04  Fe-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "Fe"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 66.14,
+   "max": 67.68,
+   "media": 66.88823529411765,
+   "ultimo": 67.61,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "PQ US 04  P-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "P"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 0.061,
+   "max": 0.069,
+   "media": 0.06570588235294117,
+   "ultimo": 0.062,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "PQ US 04  SiO2-HH-LQU",
+   "n": 17,
+   "indicador": [
+    "SiO2"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LQU-HH",
+    "24-PEL4-PDRMX-LQU-HH",
+    "24-PEL4-PDRSTD-LQU-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 1.47,
+   "max": 2.07,
+   "media": 1.7647058823529411,
+   "ultimo": 1.48,
+   "ultimo_em": "27/10/2026 11:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "SE Saida - SE Entrada U04",
+   "n": 16,
+   "indicador": [
+    "Ganho de SE U04"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    NaN
+   ],
+   "campanhas": [
+    "/"
+   ],
+   "min": 101.0,
+   "max": 181.0,
+   "media": 131.6875,
+   "ultimo": 181.0,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U04_Qualidade",
+   "fase": "Tamb. PQ 04 - TB +6,3 - HH - LFU",
+   "n": 16,
+   "indicador": [
+    "Tamb. +6,3"
+   ],
+   "cd_fase": [],
+   "recipe": [
+    "24-PEL4-PBFHB-LFU-CC-HH",
+    "24-PEL4-PDRMX-LFU-CC-HH",
+    "24-PEL4-PDRSTD-LFU-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 92.8,
+   "max": 94.3,
+   "media": 93.76249999999999,
+   "ultimo": 94.3,
+   "ultimo_em": "27/10/2026 09:30",
+   "horas": [
+    "01:30",
+    "03:30",
+    "05:30",
+    "07:30",
+    "09:30",
+    "11:30",
+    "13:30",
+    "15:30",
+    "17:30",
+    "19:30",
+    "21:30",
+    "23:30"
+   ]
+  },
+  {
+   "tabela": "U03_Produção",
+   "fase": "3-Grelh",
+   "n": 16,
+   "indicador": [
+    "Alimentação"
+   ],
+   "cd_fase": [
+    "710010000"
+   ],
+   "recipe": [
+    "23-PEL3-PBFHB-CC-HH",
+    "23-PEL3-PDRMX-CC-HH",
+    "23-PEL3-PDRSTD-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 789.885,
+   "max": 1119.705,
+   "media": 1009.4165624999999,
+   "ultimo": 789.885,
+   "ultimo_em": "27/10/2026 10:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U03_Produção",
+   "fase": "3-Ritmo",
+   "n": 16,
+   "indicador": [
+    "Ritmo U03-07TP002"
+   ],
+   "cd_fase": [
+    "710050031"
+   ],
+   "recipe": [
+    "23-PEL3-PBFHB-CC-HH",
+    "23-PEL3-PDRMX-CC-HH",
+    "23-PEL3-PDRSTD-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 18718.0,
+   "max": 22832.0,
+   "media": 20800.9375,
+   "ultimo": 18718.0,
+   "ultimo_em": "27/10/2026 10:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U03_Produção",
+   "fase": "3-Ritmo 06TP001",
+   "n": 16,
+   "indicador": [
+    "Ritmo Forno Calculado"
+   ],
+   "cd_fase": [
+    "710050032"
+   ],
+   "recipe": [
+    "23-PEL3-PBFHB-CC-HH",
+    "23-PEL3-PDRMX-CC-HH",
+    "23-PEL3-PDRSTD-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 18706.5144,
+   "max": 21039.912,
+   "media": 19984.595851244594,
+   "ultimo": 18706.5144,
+   "ultimo_em": "27/10/2026 10:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U03_Produção",
+   "fase": "Patio",
+   "n": 15,
+   "indicador": [
+    "PF Pátio TMS"
+   ],
+   "cd_fase": [
+    "100020010"
+   ],
+   "recipe": [
+    "30-PAT-PFN-CC-HH"
+   ],
+   "campanhas": [],
+   "min": 0.0,
+   "max": 1841.09,
+   "media": 706.5865333333333,
+   "ultimo": 1179.322,
+   "ultimo_em": "27/10/2026 08:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U03_Produção",
+   "fase": "U03-07TP002",
+   "n": 16,
+   "indicador": [
+    "U03-07TP002-Calculado"
+   ],
+   "cd_fase": [
+    "710050020"
+   ],
+   "recipe": [
+    "23-PEL3-PBFHB-CC-HH",
+    "23-PEL3-PDRMX-CC-HH",
+    "23-PEL3-PDRSTD-CC-HH"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 980.105,
+   "max": 1902.692,
+   "media": 1681.3736250000002,
+   "ultimo": 980.105,
+   "ultimo_em": "27/10/2026 10:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U04_Produção",
+   "fase": "4-Grelh",
+   "n": 16,
+   "indicador": [
+    "Alimentação"
+   ],
+   "cd_fase": [
+    "4710010000"
+   ],
+   "recipe": [
+    "24-PEL4-PBFHB-CC-HH_A",
+    "24-PEL4-PDRMX-CC-HH_A",
+    "24-PEL4-PDRSTD-CC-HH_A"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 861.305,
+   "max": 1276.48,
+   "media": 1095.285625,
+   "ultimo": 861.305,
+   "ultimo_em": "27/10/2026 10:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U04_Produção",
+   "fase": "4-Ritmo",
+   "n": 19,
+   "indicador": [
+    "Ritmo U04-07TP015"
+   ],
+   "cd_fase": [
+    "4710050031"
+   ],
+   "recipe": [
+    "24-PEL4-PBFHB-CC-HH_A",
+    "24-PEL4-PDRMX-CC-HH_A",
+    "24-PEL4-PDRSTD-CC-HH_A"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 19570.0,
+   "max": 23697.0,
+   "media": 22069.894736842107,
+   "ultimo": 19570.0,
+   "ultimo_em": "27/10/2026 10:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U04_Produção",
+   "fase": "4-Ritmo 06TP001",
+   "n": 16,
+   "indicador": [
+    "Ritmo Forno Calculado"
+   ],
+   "cd_fase": [
+    "4710050032"
+   ],
+   "recipe": [
+    "24-PEL4-PBFHB-CC-HH_A",
+    "24-PEL4-PDRMX-CC-HH_A",
+    "24-PEL4-PDRSTD-CC-HH_A"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 19379.7168,
+   "max": 22180.972,
+   "media": 21190.391253463204,
+   "ultimo": 19379.7168,
+   "ultimo_em": "27/10/2026 10:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U04_Produção",
+   "fase": "Patio",
+   "n": 15,
+   "indicador": [
+    "PF Pátio TMS"
+   ],
+   "cd_fase": [
+    "100020010"
+   ],
+   "recipe": [
+    "30-PAT-PFN-CC-HH"
+   ],
+   "campanhas": [],
+   "min": 0.0,
+   "max": 1841.09,
+   "media": 706.5865333333333,
+   "ultimo": 1179.322,
+   "ultimo_em": "27/10/2026 08:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  },
+  {
+   "tabela": "U04_Produção",
+   "fase": "U04-07TP015",
+   "n": 19,
+   "indicador": [
+    "U04-07TP015-Calculado"
+   ],
+   "cd_fase": [
+    "4710050020"
+   ],
+   "recipe": [
+    "24-PEL4-PBFHB-CC-HH_A",
+    "24-PEL4-PDRMX-CC-HH_A",
+    "24-PEL4-PDRSTD-CC-HH_A"
+   ],
+   "campanhas": [
+    "PBF/HB",
+    "PDR/MX",
+    "PDR/STD"
+   ],
+   "min": 974.208,
+   "max": 2515.91,
+   "media": 1842.4867894736844,
+   "ultimo": 974.208,
+   "ultimo_em": "27/10/2026 10:00",
+   "horas": [
+    "02:00",
+    "04:00",
+    "06:00",
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+    "20:00",
+    "22:00",
+    "23:59"
+   ]
+  }
+ ],
+ "limites": {
+  "Limites U03": [
+   [
+    "PDR/STD",
+    "Fe",
+    67.42,
+    67.19
+   ],
+   [
+    "PDR/STD",
+    "SiO2",
+    1.8,
+    2.05
+   ],
+   [
+    "PDR/STD",
+    "B2",
+    null,
+    null
+   ],
+   [
+    "PDR/STD",
+    "P",
+    0.065,
+    0.07
+   ],
+   [
+    "PDR/STD",
+    "-6,3mm",
+    1.35,
+    1.8
+   ],
+   [
+    "PDR/STD",
+    "Tamb. +6,3",
+    93.5,
+    93.0
+   ],
+   [
+    "PDR/STD",
+    "C 16,0",
+    290.0,
+    275.0
+   ],
+   [
+    "PDR/STD",
+    "C 12,5",
+    270.0,
+    245.0
+   ],
+   [
+    "PDR/MX",
+    "Fe",
+    67.64,
+    67.39
+   ],
+   [
+    "PDR/MX",
+    "SiO2",
+    1.36,
+    1.54
+   ],
+   [
+    "PDR/MX",
+    "B2",
+    null,
+    null
+   ],
+   [
+    "PDR/MX",
+    "P",
+    0.048,
+    0.05
+   ],
+   [
+    "PDR/MX",
+    "-6,3mm",
+    1.6,
+    1.8
+   ],
+   [
+    "PDR/MX",
+    "Tamb. +6,3",
+    93.5,
+    93.0
+   ],
+   [
+    "PDR/MX",
+    "C 16,0",
+    290.0,
+    275.0
+   ],
+   [
+    "PDR/MX",
+    "C 12,5",
+    270.0,
+    245.0
+   ],
+   [
+    "PBF/STD",
+    "Fe",
+    66.2,
+    65.1
+   ],
+   [
+    "PBF/STD",
+    "SiO2",
+    2.3,
+    3.2
+   ],
+   [
+    "PBF/STD",
+    "B2",
+    0.8,
+    0.75
+   ],
+   [
+    "PBF/STD",
+    "P",
+    0.065,
+    0.074
+   ],
+   [
+    "PBF/STD",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/STD",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/STD",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/STD",
+    "C 12,5",
+    260.0,
+    240.0
+   ],
+   [
+    "PBF/HB",
+    "Fe",
+    66.3,
+    65.3
+   ],
+   [
+    "PBF/HB",
+    "SiO2",
+    2.0,
+    2.8
+   ],
+   [
+    "PBF/HB",
+    "B2",
+    1.0,
+    0.95
+   ],
+   [
+    "PBF/HB",
+    "P",
+    0.065,
+    0.074
+   ],
+   [
+    "PBF/HB",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/HB",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/HB",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/HB",
+    "C 12,5",
+    260.0,
+    240.0
+   ],
+   [
+    "PBF/MB45",
+    "Fe",
+    66.3,
+    65.3
+   ],
+   [
+    "PBF/MB45",
+    "SiO2",
+    2.6,
+    3.45
+   ],
+   [
+    "PBF/MB45",
+    "B2",
+    0.45,
+    0.55
+   ],
+   [
+    "PBF/MB45",
+    "P",
+    0.065,
+    0.074
+   ],
+   [
+    "PBF/MB45",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/MB45",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/MB45",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/MB45",
+    "C 12,5",
+    260.0,
+    240.0
+   ],
+   [
+    "PBF/SF",
+    "Fe",
+    66.0,
+    65.0
+   ],
+   [
+    "PBF/SF",
+    "SiO2",
+    2.0,
+    3.0
+   ],
+   [
+    "PBF/SF",
+    "B2",
+    1.25,
+    1.15
+   ],
+   [
+    "PBF/SF",
+    "P",
+    0.065,
+    0.072
+   ],
+   [
+    "PBF/SF",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/SF",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/SF",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/SF",
+    "C 12,5",
+    260.0,
+    240.0
+   ],
+   [
+    "PBF/SA",
+    "Fe",
+    64.0,
+    63.3
+   ],
+   [
+    "PBF/SA",
+    "SiO2",
+    4.6,
+    5.3
+   ],
+   [
+    "PBF/SA",
+    "B2",
+    0.5,
+    0.6
+   ],
+   [
+    "PBF/SA",
+    "P",
+    0.075,
+    0.1
+   ],
+   [
+    "PBF/SA",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/SA",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/SA",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/SA",
+    "C 12,5",
+    260.0,
+    240.0
+   ]
+  ],
+  "Limites U04": [
+   [
+    "PDR/STD",
+    "Fe",
+    67.42,
+    67.19
+   ],
+   [
+    "PDR/STD",
+    "SiO2",
+    1.8,
+    2.05
+   ],
+   [
+    "PDR/STD",
+    "B2",
+    null,
+    null
+   ],
+   [
+    "PDR/STD",
+    "P",
+    0.065,
+    0.07
+   ],
+   [
+    "PDR/STD",
+    "-6,3mm",
+    1.35,
+    1.8
+   ],
+   [
+    "PDR/STD",
+    "Tamb. +6,3",
+    93.5,
+    93.0
+   ],
+   [
+    "PDR/STD",
+    "C 16,0",
+    290.0,
+    275.0
+   ],
+   [
+    "PDR/STD",
+    "C 12,5",
+    270.0,
+    245.0
+   ],
+   [
+    "PDR/MX",
+    "Fe",
+    67.64,
+    67.39
+   ],
+   [
+    "PDR/MX",
+    "SiO2",
+    1.36,
+    1.54
+   ],
+   [
+    "PDR/MX",
+    "B2",
+    null,
+    null
+   ],
+   [
+    "PDR/MX",
+    "P",
+    0.048,
+    0.05
+   ],
+   [
+    "PDR/MX",
+    "-6,3mm",
+    1.6,
+    1.8
+   ],
+   [
+    "PDR/MX",
+    "Tamb. +6,3",
+    93.5,
+    93.0
+   ],
+   [
+    "PDR/MX",
+    "C 16,0",
+    290.0,
+    275.0
+   ],
+   [
+    "PDR/MX",
+    "C 12,5",
+    270.0,
+    245.0
+   ],
+   [
+    "PBF/STD",
+    "Fe",
+    66.2,
+    65.1
+   ],
+   [
+    "PBF/STD",
+    "SiO2",
+    2.3,
+    3.2
+   ],
+   [
+    "PBF/STD",
+    "B2",
+    0.8,
+    0.75
+   ],
+   [
+    "PBF/STD",
+    "P",
+    0.065,
+    0.074
+   ],
+   [
+    "PBF/STD",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/STD",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/STD",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/STD",
+    "C 12,5",
+    260.0,
+    240.0
+   ],
+   [
+    "PBF/HB",
+    "Fe",
+    66.3,
+    65.3
+   ],
+   [
+    "PBF/HB",
+    "SiO2",
+    2.0,
+    2.8
+   ],
+   [
+    "PBF/HB",
+    "B2",
+    1.0,
+    0.95
+   ],
+   [
+    "PBF/HB",
+    "P",
+    0.065,
+    0.074
+   ],
+   [
+    "PBF/HB",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/HB",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/HB",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/HB",
+    "C 12,5",
+    260.0,
+    240.0
+   ],
+   [
+    "PBF/MB45",
+    "Fe",
+    66.3,
+    65.3
+   ],
+   [
+    "PBF/MB45",
+    "SiO2",
+    2.6,
+    3.45
+   ],
+   [
+    "PBF/MB45",
+    "B2",
+    0.45,
+    0.55
+   ],
+   [
+    "PBF/MB45",
+    "P",
+    0.065,
+    0.074
+   ],
+   [
+    "PBF/MB45",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/MB45",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/MB45",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/MB45",
+    "C 12,5",
+    260.0,
+    240.0
+   ],
+   [
+    "PBF/SF",
+    "Fe",
+    66.0,
+    65.0
+   ],
+   [
+    "PBF/SF",
+    "SiO2",
+    2.0,
+    3.0
+   ],
+   [
+    "PBF/SF",
+    "B2",
+    1.25,
+    1.15
+   ],
+   [
+    "PBF/SF",
+    "P",
+    0.065,
+    0.072
+   ],
+   [
+    "PBF/SF",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/SF",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/SF",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/SF",
+    "C 12,5",
+    260.0,
+    240.0
+   ],
+   [
+    "PBF/SA",
+    "Fe",
+    64.0,
+    63.3
+   ],
+   [
+    "PBF/SA",
+    "SiO2",
+    4.6,
+    5.3
+   ],
+   [
+    "PBF/SA",
+    "B2",
+    0.5,
+    0.6
+   ],
+   [
+    "PBF/SA",
+    "P",
+    0.075,
+    0.1
+   ],
+   [
+    "PBF/SA",
+    "-6,3mm",
+    1.35,
+    2.1
+   ],
+   [
+    "PBF/SA",
+    "Tamb. +6,3",
+    93.4,
+    92.8
+   ],
+   [
+    "PBF/SA",
+    "C 16,0",
+    280.0,
+    260.0
+   ],
+   [
+    "PBF/SA",
+    "C 12,5",
+    260.0,
+    240.0
+   ]
+  ]
+ },
+ "ordem": {
+  "OrdemIndicadores U03": [
+   [
+    "Fe",
+    1
+   ],
+   [
+    "SiO2",
+    2
+   ],
+   [
+    "B2",
+    3
+   ],
+   [
+    "CaO",
+    4
+   ],
+   [
+    "P",
+    5
+   ],
+   [
+    "-6,3mm",
+    6
+   ],
+   [
+    "Tamb. +6,3",
+    7
+   ],
+   [
+    "C 16,0",
+    8
+   ],
+   [
+    "C 12,5",
+    9
+   ],
+   [
+    "-200c16",
+    10
+   ],
+   [
+    "H2O",
+    11
+   ],
+   [
+    "PPC",
+    12
+   ],
+   [
+    "SE Entrada",
+    13
+   ],
+   [
+    "SE Saída",
+    14
+   ],
+   [
+    "Ganho de SE",
+    15
+   ],
+   [
+    "-325#",
+    16
+   ],
+   [
+    "-16+8",
+    17
+   ],
+   [
+    "Relação",
+    18
+   ],
+   [
+    "Carbono Fixo",
+    19
+   ],
+   [
+    "Magnetização",
+    20
+   ],
+   [
+    "SiO2 (Pellet Feed)",
+    21
+   ],
+   [
+    "P (Pellet Feed)",
+    22
+   ],
+   [
+    "PH Filtragem",
+    23
+   ],
+   [
+    "Alimentação",
+    24
+   ],
+   [
+    "Ritmo U03-07TP002",
+    25
+   ],
+   [
+    "Ritmo Forno Calculado",
+    26
+   ],
+   [
+    "U03-07TP002-Calculado",
+    27
+   ],
+   [
+    "PF Pátio TMS",
+    28
+   ]
+  ],
+  "OrdemIndicadores U04": [
+   [
+    "Fe",
+    1
+   ],
+   [
+    "SiO2",
+    2
+   ],
+   [
+    "B2",
+    3
+   ],
+   [
+    "CaO",
+    4
+   ],
+   [
+    "P",
+    5
+   ],
+   [
+    "-6,3mm",
+    6
+   ],
+   [
+    "Tamb. +6,3",
+    7
+   ],
+   [
+    "C 16,0",
+    8
+   ],
+   [
+    "C 12,5",
+    9
+   ],
+   [
+    "-200c16",
+    10
+   ],
+   [
+    "H2O",
+    11
+   ],
+   [
+    "PPC",
+    12
+   ],
+   [
+    "SE Entrada",
+    13
+   ],
+   [
+    "SE Saída",
+    14
+   ],
+   [
+    "Ganho de SE U04",
+    15
+   ],
+   [
+    "-325#",
+    16
+   ],
+   [
+    "-16+8",
+    17
+   ],
+   [
+    "Relação",
+    18
+   ],
+   [
+    "Carbono Fixo",
+    19
+   ],
+   [
+    "Magnetização",
+    20
+   ],
+   [
+    "SiO2 (Pellet Feed)",
+    21
+   ],
+   [
+    "P (Pellet Feed)",
+    22
+   ],
+   [
+    "PH Filtragem",
+    23
+   ],
+   [
+    "Alimentação",
+    24
+   ],
+   [
+    "Ritmo U04-07TP015",
+    25
+   ],
+   [
+    "Ritmo Forno Calculado",
+    26
+   ],
+   [
+    "U04-07TP015-Calculado",
+    27
+   ],
+   [
+    "PF Pátio TMS",
+    28
+   ]
+  ]
+ }
+}
