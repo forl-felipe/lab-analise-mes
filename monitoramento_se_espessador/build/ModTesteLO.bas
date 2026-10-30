@@ -83,10 +83,15 @@ Public Sub TesteLO()
     ' --- leitura da saida do MES (janela E) e tags
     Ok TesteLeitura() = "1000|23|2011|12", "leitura da janela E: produção média 1000 (23 h), S.E. média 2011 (12 resultados): " & TesteLeitura()
     Ok VarianteTag("M0239010000-0596-HHCC") = "M0239010000-596-HHCC", "variante de tag -0596- -> -596-"
-    s = TesteTagsInvalidas("Erro: Tag Name M0239010000-0596-HHCC is invalid")
-    Ok s = "|M0239010000-596-HHCC", "tag recusada: a consulta passa a usar a variante (" & s & ")"
-    Ok TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_AnalogMap is invalid") = "1|IP_MESVALOR|IP_AnalogMap", _
-       "mapa recusado: troca só a tag recusada (" & TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_AnalogMap is invalid") & ")"
+    Ok TesteFormas("M0238010000-0017-HHLQ") = "M0238010000-0017-HHLQ|M0238010000-17-HHLQ|M238010000-0017-HHLQ|M238010000-17-HHLQ", _
+       "formas testadas no diagnóstico: " & TesteFormas("M0238010000-0017-HHLQ")
+    Ok TesteFormas("M4238010000-1445-DDDVR") = "M4238010000-1445-DDDVR", "tag sem outra forma: " & TesteFormas("M4238010000-1445-DDDVR")
+    Ok TesteFormas("M250010000-17-ABLQ") = "M250010000-17-ABLQ|M250010000-0017-ABLQ|M0250010000-17-ABLQ|M0250010000-0017-ABLQ", _
+       "formas do EB4: " & TesteFormas("M250010000-17-ABLQ")
+    s = TesteTagsInvalidas("Erro: Tag Name M0239010000-596-HHCC is invalid")
+    Ok s = "|M0239010000-0596-HHCC", "tag recusada: a consulta passa a usar a variante (" & s & ")"
+    Ok TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_MESVALOR is invalid") = "1|IP_AnalogMap|IP_MESVALOR", _
+       "mapa recusado: troca só a tag recusada (" & TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_MESVALOR is invalid") & ")"
     Ok ComoData("12/10/2026 15:00:00", tj) And Abs(CDbl(tj) - CDbl(DateSerial(2026, 10, 12) + TimeSerial(15, 0, 0))) < 0.0001, _
        "data do Aspen em texto"
     Ok ComoNumero("2052.0", xx) And Abs(xx - 2052) < 0.0001, "número em texto 2052.0"

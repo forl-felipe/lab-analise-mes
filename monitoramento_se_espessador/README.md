@@ -18,9 +18,10 @@ OK/NOK, comentários automáticos e gráficos com barras por dia + barra escura 
 Dias atrasados: na aba Dia, **Buscar um período** (De/Até, no máximo até ontem) busca e salva cada dia, mantendo
 Fator, Observação e valores lançados à mão em itens que o MES não trouxe.
 
-Item sem resultado: aba **Diagnóstico** → dia já fechado → **Rodar diagnóstico**. Cada tag é consultada sozinha de
-D−1 12:00 a D+1 12:00 e a aba mostra se o MES aceitou a tag e o mapa, quantos horários têm valor, o 1º e o último
-horário e o valor que a janela do item daria.
+Item sem resultado: aba **Diagnóstico** → dia já fechado → **Rodar diagnóstico**. Para cada tag sem valor ele testa,
+em rodadas (todas as tags pendentes numa consulta só), as formas do código (`-0596-` ↔ `-596-`, `M0…` ↔ `M…`) com
+`IP_MESVALOR` e `IP_AnalogMap`, de D−1 12:00 a D+1 12:00. A combinação que traz valor fica gravada em Configurações e
+a aba mostra horários, valores e o valor que a janela do item daria. Leva de 1 a 5 minutos.
 
 ## Abas
 
@@ -56,15 +57,15 @@ Conferidas pelo laboratório no MES em 26/10/2026 (exceto a S.E. do espessador C
 
 | Item | Tag | Mapa | Janela · agregação |
 |---|---|---|---|
-| Produção C3 | `M4239010000-596-HHCC` (Ritmo Produção Concentrador III) | IP_AnalogMap | E · Média |
-| Produção C2 | `M0239010000-0596-HHCC` (Ritmo Produção Concentrador II) | IP_AnalogMap | E · Média |
-| S.E. espessador C2 | `M0238010000-0017-HHLQ` | IP_AnalogMap | E · Média |
-| S.E. espessador C3 | `M4238010000-2888-HHLQ` (**não está na conferência — confirmar**) | IP_AnalogMap | E · Média |
+| Produção C3 | `M4239010000-596-HHCC` (Ritmo Produção Concentrador III) | IP_MESVALOR | E · Média |
+| Produção C2 | `M0239010000-596-HHCC` (Ritmo Produção Concentrador II) | IP_MESVALOR | E · Média |
+| S.E. espessador C2 | `M0238010000-0017-HHLQ` | IP_MESVALOR | E · Média |
+| S.E. espessador C3 | `M4238010000-2888-HHLQ` (**não está na conferência — confirmar**) | IP_MESVALOR | E · Média |
 | S.E. batch EB4 / EB6 | `M250010000-17-ABLQ` / `M4250010000-17-ABLQ` | IP_MESVALOR | D · Média |
 | TK 01 / TK 02 | `M0239040000-0017-TBLQ` / `M0239050000-0017-TBLQ` (Tk1 / Tk2 U2 - SE) | IP_MESVALOR | D · Média |
-| Lama incorporada C3 / C2 | `M4239000000-0781-DDDVR` / `M0239000000-0781-DDDVR` | IP_AnalogMap | D · Último |
-| Concentrado C3 | `M4238010000-1445-DDDVR` (Beneficiamento - Concentrado C3) | IP_AnalogMap | D · Último |
-| Concentrado C2 | `M0238010000-1445-DDDVR` (Esp. Conc DVR (tms)) | IP_AnalogMap | D · Último |
+| Lama incorporada C3 / C2 | `M4239000000-0781-DDDVR` / `M0239000000-0781-DDDVR` | IP_MESVALOR | D · Último |
+| Concentrado C3 | `M4238010000-1445-DDDVR` (Beneficiamento - Concentrado C3) | IP_MESVALOR | D · Último |
+| Concentrado C2 | `M0238010000-1445-DDDVR` (Esp. Conc DVR (tms)) | IP_MESVALOR | D · Último |
 
 Levantamento completo (planilha antiga × caderno × Word × lista de tags): [`dicionario_campos.csv`](dicionario_campos.csv).
 
@@ -80,6 +81,10 @@ Levantamento completo (planilha antiga × caderno × Word × lista de tags): [`d
 - **26/10/2026 (conferência manual das tags)**: produção C3 passou para o ritmo do Concentrador III
   (`M4239010000-596-HHCC`, janela do espessador) e concentrado C3 para `M4238010000-1445-DDDVR`; produção C2 e C3 pela
   **média** (a planilha antiga usa a média: 18/08 = 26 983 / 18 006 t).
+- **30/10/2026 (diagnóstico do dia 15/10)**: com `IP_MESVALOR` vieram produção C3 (15 877, igual ao histórico) e batch
+  EB4/EB6 (EB6 2 210, igual ao histórico). Com `IP_AnalogMap` o MES respondia "Sucesso" sem nenhum dado — a troca
+  automática do dia 26/10 tinha levado as tags para esse mapa. Padrão voltou para `IP_MESVALOR` e o Diagnóstico passou a
+  descobrir a forma da tag e o mapa sozinho.
 - **Fator**: só é guardado (não entra em nenhuma conta nem gráfico). Confirmar o que representa.
 
 ## Gerar de novo
