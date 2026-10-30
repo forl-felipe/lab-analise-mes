@@ -88,10 +88,10 @@ Public Sub TesteLO()
     Ok TesteFormas("M4238010000-1445-DDDVR") = "M4238010000-1445-DDDVR", "tag sem outra forma: " & TesteFormas("M4238010000-1445-DDDVR")
     Ok TesteFormas("M250010000-17-ABLQ") = "M250010000-17-ABLQ|M250010000-0017-ABLQ|M0250010000-17-ABLQ|M0250010000-0017-ABLQ", _
        "formas do EB4: " & TesteFormas("M250010000-17-ABLQ")
-    s = TesteTagsInvalidas("Erro: Tag Name M0239010000-596-HHCC is invalid")
-    Ok s = "|M0239010000-0596-HHCC", "tag recusada: a consulta passa a usar a variante (" & s & ")"
-    Ok TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_MESVALOR is invalid") = "1|IP_AnalogMap|IP_MESVALOR", _
-       "mapa recusado: troca só a tag recusada (" & TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_MESVALOR is invalid") & ")"
+    s = TesteTagsInvalidas("Erro: Tag Name M0239010000-0596-HHCC is invalid")
+    Ok s = "|M0239010000-596-HHCC", "tag recusada: a consulta passa a usar a variante (" & s & ")"
+    Ok TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_AnalogMap is invalid") = "1|IP_MESVALOR|IP_AnalogMap", _
+       "mapa recusado: troca só a tag recusada (" & TesteMapas("Erro:(M4239000000-0781-DDDVR) Map Name IP_AnalogMap is invalid") & ")"
     Ok ComoData("12/10/2026 15:00:00", tj) And Abs(CDbl(tj) - CDbl(DateSerial(2026, 10, 12) + TimeSerial(15, 0, 0))) < 0.0001, _
        "data do Aspen em texto"
     Ok ComoNumero("2052.0", xx) And Abs(xx - 2052) < 0.0001, "número em texto 2052.0"

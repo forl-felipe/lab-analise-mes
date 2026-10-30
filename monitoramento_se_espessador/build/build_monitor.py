@@ -65,34 +65,34 @@ SENHA_CFG = 'Samarco@Lab'
 # Itens buscados no MES (ordem da aba Dia e da aba Configuracoes)
 #   chave, rotulo, tag, mapa, janela, agregacao, faixa valida, decimais, de onde vem no MES
 #   janela E = espessador D-1 23:00 a D 21:00 · D = dia 00:00 a 23:59
-#   mapas: IP_MESVALOR (diagnostico de 15/10: com IP_AnalogMap o MES responde Sucesso sem dados); o Diagnostico
-#   do MES testa as outras formas da tag e o IP_AnalogMap e grava em Configuracoes o que trouxer valor
+#   tag e mapa: os que o Diagnostico do MES achou com valor em 29/10/2026 (12 de 12); se o MES mudar, o Diagnostico
+#   testa as outras formas da tag e os dois mapas e grava em Configuracoes o que trouxer valor
 #   tags e horarios conferidos pelo laboratorio no MES (relatorio_alessandra.xlsx, 26/10/2026)
 # ----------------------------------------------------------------------------
 ITENS = [
     ('prodC3', 'Produção C3 (t)', 'M4239010000-596-HHCC', 'IP_MESVALOR', 'E', 'Média', 0, 200000, 0,
      '15-G2-HH INDICES PRODUCAO - Ritmo Produção Concentrador III (conferência 26/10)'),
-    ('prodC2', 'Produção C2 (t)', 'M0239010000-596-HHCC', 'IP_MESVALOR', 'E', 'Média', 0, 200000, 0,
+    ('prodC2', 'Produção C2 (t)', 'M0239010000-0596-HHCC', 'IP_AnalogMap', 'E', 'Média', 0, 200000, 0,
      '15-G2-HH INDICES PRODUCAO - Ritmo Produção Concentrador II'),
-    ('espC3', 'S.E. alimentação espessador C3', 'M4238010000-2888-HHLQ', 'IP_MESVALOR', 'E', 'Média', 300, 8000,
+    ('espC3', 'S.E. alimentação espessador C3', 'M4238010000-2888-HHLQ', 'IP_AnalogMap', 'E', 'Média', 300, 8000,
      0, '40-G3-HH ALIMENTACAO ESPESSADO - SE'),
-    ('espC2', 'S.E. alimentação espessador C2', 'M0238010000-0017-HHLQ', 'IP_MESVALOR', 'E', 'Média', 300, 8000,
+    ('espC2', 'S.E. alimentação espessador C2', 'M0238010000-0017-HHLQ', 'IP_AnalogMap', 'E', 'Média', 300, 8000,
      0, '40-G2-HH ALIMENTACAO ESPESSADO - SE'),
     ('eb4', 'S.E. batch EB4', 'M250010000-17-ABLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
      '50-G2-HH AMOSTRAGEM BATCH - SE'),
     ('eb6', 'S.E. batch EB6', 'M4250010000-17-ABLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
      '50-G3-HH AMOSTRAGEM BATCH - SE'),
-    ('tk01', 'S.E. TK 01 - EB6', 'M0239040000-0017-TBLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
+    ('tk01', 'S.E. TK 01 - EB6', 'M239040000-17-TBLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
      'Tk1 U2 - SE (239040000-17-TB-LQ, cm²/g)'),
-    ('tk02', 'S.E. TK 02 - EB6', 'M0239050000-0017-TBLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
+    ('tk02', 'S.E. TK 02 - EB6', 'M239050000-17-TBLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
      'Tk2 U2 - SE (239050000-17-TB-LQ, cm²/g)'),
-    ('lamaC3', 'Lama incorporada C3 (tms)', 'M4239000000-0781-DDDVR', 'IP_MESVALOR', 'D', 'Último', 0, 20000, 0,
+    ('lamaC3', 'Lama incorporada C3 (tms)', 'M4239000000-0781-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 20000, 0,
      'BOLETIM DVR - Lama incorporada no concentrado'),
-    ('lamaC2', 'Lama incorporada C2 (tms)', 'M0239000000-0781-DDDVR', 'IP_MESVALOR', 'D', 'Último', 0, 20000, 0,
+    ('lamaC2', 'Lama incorporada C2 (tms)', 'M0239000000-0781-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 20000, 0,
      '00-G2-DD BALANCO DVR - Lama incorporada (soma com a do C3)'),
-    ('concC3', 'Concentrado C3 (tms)', 'M4238010000-1445-DDDVR', 'IP_MESVALOR', 'D', 'Último', 0, 200000, 0,
+    ('concC3', 'Concentrado C3 (tms)', 'M4238010000-1445-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 200000, 0,
      'BOLETIM DVR - Beneficiamento - Concentrado C3 (tms) (conferência 26/10)'),
-    ('concC2', 'Concentrado C2 (tms)', 'M0238010000-1445-DDDVR', 'IP_MESVALOR', 'D', 'Último', 0, 200000, 0,
+    ('concC2', 'Concentrado C2 (tms)', 'M0238010000-1445-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 200000, 0,
      'BOLETIM DVR - Esp. Conc DVR (tms)'),
 ]
 NI = len(ITENS)

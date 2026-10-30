@@ -58,14 +58,13 @@ Conferidas pelo laboratório no MES em 26/10/2026 (exceto a S.E. do espessador C
 | Item | Tag | Mapa | Janela · agregação |
 |---|---|---|---|
 | Produção C3 | `M4239010000-596-HHCC` (Ritmo Produção Concentrador III) | IP_MESVALOR | E · Média |
-| Produção C2 | `M0239010000-596-HHCC` (Ritmo Produção Concentrador II) | IP_MESVALOR | E · Média |
-| S.E. espessador C2 | `M0238010000-0017-HHLQ` | IP_MESVALOR | E · Média |
-| S.E. espessador C3 | `M4238010000-2888-HHLQ` (**não está na conferência — confirmar**) | IP_MESVALOR | E · Média |
+| Produção C2 | `M0239010000-0596-HHCC` (Ritmo Produção Concentrador II) | IP_AnalogMap | E · Média |
+| S.E. espessador C3 / C2 | `M4238010000-2888-HHLQ` / `M0238010000-0017-HHLQ` | IP_AnalogMap | E · Média |
 | S.E. batch EB4 / EB6 | `M250010000-17-ABLQ` / `M4250010000-17-ABLQ` | IP_MESVALOR | D · Média |
-| TK 01 / TK 02 | `M0239040000-0017-TBLQ` / `M0239050000-0017-TBLQ` (Tk1 / Tk2 U2 - SE) | IP_MESVALOR | D · Média |
-| Lama incorporada C3 / C2 | `M4239000000-0781-DDDVR` / `M0239000000-0781-DDDVR` | IP_MESVALOR | D · Último |
-| Concentrado C3 | `M4238010000-1445-DDDVR` (Beneficiamento - Concentrado C3) | IP_MESVALOR | D · Último |
-| Concentrado C2 | `M0238010000-1445-DDDVR` (Esp. Conc DVR (tms)) | IP_MESVALOR | D · Último |
+| TK 01 / TK 02 | `M239040000-17-TBLQ` / `M239050000-17-TBLQ` (Tk1 / Tk2 U2 - SE) | IP_MESVALOR | D · Média |
+| Lama incorporada C3 / C2 | `M4239000000-0781-DDDVR` / `M0239000000-0781-DDDVR` | IP_AnalogMap | D · Último |
+| Concentrado C3 | `M4238010000-1445-DDDVR` (Beneficiamento - Concentrado C3) | IP_AnalogMap | D · Último |
+| Concentrado C2 | `M0238010000-1445-DDDVR` (Esp. Conc DVR (tms)) | IP_AnalogMap | D · Último |
 
 Levantamento completo (planilha antiga × caderno × Word × lista de tags): [`dicionario_campos.csv`](dicionario_campos.csv).
 
