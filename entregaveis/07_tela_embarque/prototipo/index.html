@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qualidade do Embarque</title>
+<!--
+  Protótipo da tela de acompanhamento do embarque (versão 1, padrão visual Samarco). Dados simulados.
+  Mesmas convenções da tela Compressão Online Usina 4: o que aparece aqui vira objeto nativo do Aspen
+  (polígonos, textos, campos de dados e tendências). Os elementos com data-slot são os objetos dinâmicos.
+  Parâmetros na URL: ?modo=demo | fundo | mapa
+-->
+<style>
+  :root {
+    --sam-azul: #00335A; --sam-profundo: #002643; --sam-amarelo: #FFC000; --sam-azul-claro: #59C6F2;
+    --sam-laranja: #F37021; --sam-cinza: #B5BEC4;
+    --bg: var(--sam-profundo); --head: var(--sam-azul); --card: var(--sam-azul); --card-line: #0B4F82;
+    --tile: #013E6B; --plot: #01294A; --grade: #164D78; --text: #FFFFFF; --muted: var(--sam-cinza);
+    --acento: var(--sam-amarelo); --pena1: var(--sam-azul-claro); --pena2: #FFFFFF;
+    --ui: Arial, "Liberation Sans", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0d1117; color: var(--text); font-family: var(--ui); overflow: hidden; height: 100%; }
+  #palco { position: absolute; left: 0; top: 0; width: 1600px; height: 1120px; background: var(--bg); transform-origin: 0 0; overflow: hidden; }
+
+  .cab { position: absolute; left: 0; top: 0; width: 1600px; height: 92px; background: var(--head); display: flex; align-items: center; padding: 0 32px; }
+  .filete { position: absolute; left: 0; top: 92px; width: 1600px; height: 5px; background: var(--sam-amarelo); }
+  .logo { width: 220px; height: 48px; }
+  .logo img { width: 220px; height: 48px; display: block; }
+  .sep { width: 1px; height: 44px; background: #2C5C85; margin: 0 28px; }
+  .cab h1 { font-size: 27px; font-weight: 700; color: #FFFFFF; }
+  .cab .dir { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .cab .dir .rot { color: var(--sam-cinza); font-size: 15px; }
+
+  .card { position: absolute; background: var(--card); border: 1px solid var(--card-line); border-radius: 10px; padding: 18px 24px; }
+  .card h2 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .card .topo { display: flex; align-items: center; }
+  .card .topo .quando { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .acento { width: 5px; height: 22px; background: var(--acento); border-radius: 2px; }
+  .rot { font-size: 14px; color: var(--muted); }
+
+  .slot { font-family: var(--ui); color: var(--text); display: inline-block; white-space: nowrap; overflow: hidden; }
+  .v-med { font-size: 18px; font-weight: 700; line-height: 26px; height: 26px; }
+  .v-peq { font-size: 15px; line-height: 22px; height: 22px; }
+
+  .grade { display: flex; gap: 16px; margin-top: 16px; }
+  .tile { background: var(--tile); border: 1px solid var(--card-line); border-radius: 8px; padding: 14px 16px; height: 162px; }
+  .tile .nome { font-size: 16px; font-weight: 700; line-height: 20px; height: 20px; white-space: nowrap; }
+  .tile .un { font-size: 14px; color: var(--muted); line-height: 18px; height: 18px; margin-top: 4px; }
+  .tile .valor { display: block; text-align: right; font-weight: 700; margin-top: 18px; }
+  .fis .tile { width: 234px; }
+  .fis .valor { font-size: 58px; line-height: 66px; height: 66px; width: 200px; }
+  .qui .grade { gap: 12px; }
+  .qui .tile { width: 154px; padding: 14px 12px; }
+  .qui .valor { font-size: 40px; line-height: 48px; height: 48px; width: 128px; margin-top: 30px; }
+  .destaque { border-color: var(--sam-amarelo) !important; }
+
+  .legenda { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 15px; color: var(--muted); }
+  .legenda .gap { width: 22px; }
+  .traco { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
+  .graf-area { position: relative; margin-top: 12px; height: 320px; }
+  .plot-bg { position: absolute; left: 48px; top: 0; width: 610px; height: 320px; background: var(--plot); }
+  .ylab { position: absolute; left: 0; width: 40px; text-align: right; font-size: 13px; color: var(--muted); line-height: 16px; }
+  .ylab2 { position: absolute; left: 664px; width: 40px; text-align: left; font-size: 13px; line-height: 16px; }
+  .gl { position: absolute; left: 48px; width: 610px; height: 1px; background: var(--grade); }
+
+  body.fundo .slot { visibility: hidden; }
+  body.mapa .slot { visibility: visible !important; color: transparent !important; outline: 2px dashed #ff4fd8; outline-offset: -2px; position: relative; background: rgba(255,79,216,.12); }
+  body.mapa .slot > * { visibility: hidden !important; }
+  body.mapa .slot::after { content: attr(data-slot); position: absolute; left: 4px; top: 2px; font: 700 14px/1 Arial, sans-serif; color: #fff; background: #c2189e; padding: 2px 5px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="palco">
+
+  <header class="cab">
+    <div class="logo" id="logo"><img src="../../assets/samarco-logo-branca.svg" alt="Samarco"></div>
+    <div class="sep"></div>
+    <h1>Qualidade do Embarque</h1>
+    <div class="dir"><span class="rot">Última atualização</span><span class="slot v-med" style="width:200px; text-align:right" id="s-atual" data-slot="1">--</span></div>
+  </header>
+  <div class="filete"></div>
+
+  <!-- Físico -->
+  <section class="card fis" style="left:32px; top:117px; width:1536px; height:250px;">
+    <div class="topo"><h2><span class="acento"></span>Físico</h2>
+      <div class="quando"><span class="rot">Último resultado</span><span class="slot v-peq" style="width:165px" id="s-fis-ts" data-slot="2">--</span></div></div>
+    <div class="grade" id="g-fis"></div>
+  </section>
+
+  <!-- Químico -->
+  <section class="card qui" style="left:32px; top:387px; width:1536px; height:250px;">
+    <div class="topo"><h2><span class="acento"></span>Químico</h2>
+      <div class="quando"><span class="rot">Último resultado</span><span class="slot v-peq" style="width:165px" id="s-qui-ts" data-slot="9">--</span></div></div>
+    <div class="grade" id="g-qui"></div>
+  </section>
+
+  <!-- Tendências -->
+  <section class="card" style="left:32px; top:657px; width:758px; height:431px;">
+    <h2><span class="acento"></span>Tendência: compressão</h2>
+    <div class="legenda">
+      <span class="traco" style="background:var(--pena1)"></span><span>Compressão 16,0 mm</span><span class="gap"></span>
+      <span class="traco" style="background:var(--pena2)"></span><span>Compressão 12,5 mm</span><span class="gap"></span><span>kgf/pelota</span>
+    </div>
+    <div class="graf-area" id="ga1"><div class="plot-bg"></div>
+      <div class="slot" style="position:absolute; left:48px; top:0; width:610px; height:320px" data-slot="19"><svg id="t1" width="610" height="320"></svg></div></div>
+  </section>
+  <section class="card" style="left:810px; top:657px; width:758px; height:431px;">
+    <h2><span class="acento"></span>Tendência: Fe e SiO2</h2>
+    <div class="legenda">
+      <span class="traco" style="background:var(--pena1)"></span><span>Fe (%), escala à esquerda</span><span class="gap"></span>
+      <span class="traco" style="background:var(--pena2)"></span><span>SiO2 (%), escala à direita</span>
+    </div>
+    <div class="graf-area" id="ga2"><div class="plot-bg"></div>
+      <div class="slot" style="position:absolute; left:48px; top:0; width:610px; height:320px" data-slot="20"><svg id="t2" width="610" height="320"></svg></div></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const modo = params.get('modo') || 'demo';
+  if (modo === 'fundo' || modo === 'mapa') document.body.classList.add(modo);
+  const palco = document.getElementById('palco');
+  function escala() {
+    if (params.get('captura')) return;
+    const s = Math.min(innerWidth / 1600, innerHeight / 1120);
+    palco.style.transform = `scale(${s})`;
+    palco.style.left = ((innerWidth - 1600 * s) / 2) + 'px';
+    palco.style.top = ((innerHeight - 1120 * s) / 2) + 'px';
+  }
+  addEventListener('resize', escala); escala();
+
+  // Elementos: [slot, nome, unidade, tag, casas decimais, valor típico (simulação), variação]
+  const FIS = [
+    [3, 'Compressão 16,0 mm', 'kgf/pelota', 'M0620010000-0031-TNLFU', 0, 318, 14],
+    [4, 'Compressão 12,5 mm', 'kgf/pelota', 'M0620010000-0035-TNLFU', 0, 286, 14],
+    [5, 'Tamboramento +6,3 mm', '%', 'M0620010000-0029-TNLFU', 1, 94.2, 0.5],
+    [6, 'Finos -6,3 mm', '%', 'M0620010000-0026-TNLFU', 1, 1.6, 0.3],
+    [7, 'Relação granulométrica', '%', 'M0620010000-2021-TNLFU', 2, 0.78, 0.04],
+    [8, 'Umidade (H2O)', '%', 'M0620010000-0001-TNLFU', 2, 2.35, 0.15],
+  ];
+  const QUI = [
+    [10, 'Fe', '%', 'M0620010000-0002-TNLQU', 2, 65.6, 0.3],
+    [11, 'SiO2', '%', 'M0620010000-0004-TNLQU', 2, 2.15, 0.15],
+    [12, 'Al2O3', '%', 'M0620010000-0005-TNLQU', 2, 0.42, 0.04],
+    [13, 'CaO', '%', 'M0620010000-0006-TNLQU', 2, 1.02, 0.08],
+    [14, 'MgO', '%', 'M0620010000-0007-TNLQU', 2, 0.09, 0.02],
+    [15, 'B2 (CaO/SiO2)', '%', 'M0620010000-0018-TNLQU', 2, 0.47, 0.04],
+    [16, 'P', '%', 'M0620010000-0008-TNLQU', 3, 0.041, 0.004],
+    [17, 'Mn', '%', 'M0620010000-0115-TNLQU', 3, 0.058, 0.006],
+    [18, 'PPC', '%', 'M0620010000-0013-TNLQU', 2, 0.78, 0.08],
+  ];
+  function tiles(id, lista, destaque) {
+    const g = document.getElementById(id);
+    lista.forEach(([n, nome, un, tag], i) => {
+      const t = document.createElement('div');
+      t.className = 'tile' + (destaque.includes(n) ? ' destaque' : '');
+      t.innerHTML = `<div class="nome">${nome}</div><div class="un">${un}</div><span class="slot valor" id="v${n}" data-slot="${n}">--</span>`;
+      g.appendChild(t);
+    });
+  }
+  tiles('g-fis', FIS, [3, 4]);
+  tiles('g-qui', QUI, []);
+
+  // Escalas fixas das tendências: rótulos e grade são parte fixa da tela (o Aspen só traça as linhas).
+  const H = 320, PW = 610;
+  function eixos(id, min, max, passo, dec, dir) {
+    const area = document.getElementById(id);
+    const add = (cls, estilo, txt) => { const e = document.createElement('div'); e.className = cls; e.setAttribute('style', estilo); if (txt) e.textContent = txt; area.appendChild(e); };
+    const y = v => (1 - (v - min) / (max - min)) * H;
+    for (let v = min + passo; v < max - 1e-9; v += passo) {
+      add('ylab', `top:${y(v) - 8}px`, v.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec }));
+      add('gl sobre', `top:${y(v)}px`);
+    }
+    if (dir) {
+      const [m2, M2, p2, d2] = dir;
+      const y2 = v => (1 - (v - m2) / (M2 - m2)) * H;
+      for (let v = m2 + p2; v < M2 - 1e-9; v += p2)
+        add('ylab2', `top:${y2(v) - 8}px; color:var(--muted)`, v.toLocaleString('pt-BR', { minimumFractionDigits: d2, maximumFractionDigits: d2 }));
+    }
+    return y;
+  }
+  const yC = eixos('ga1', 150, 450, 50, 0);
+  const yF = eixos('ga2', 62, 68, 1, 0, [0, 6, 1, 0]);
+  const yS = v => (1 - v / 6) * H;
+
+  const num = (v, d) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const p2 = x => String(x).padStart(2, '0');
+  const dh = d => `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  let semente = 11;
+  const rnd = () => (semente = (semente * 16807) % 2147483647) / 2147483647;
+  const serie = (tip, varia, n) => Array.from({ length: n }, (_, i) => tip + varia * (Math.sin(i / 2.2) * 0.6 + (rnd() - .5)));
+
+  function el(tag, attrs) { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function degrau(svg, vals, y, cor, larg) {
+    const x = i => 4 + i * (PW - 8) / (vals.length - 1);
+    const pts = vals.map((v, i) => (i ? `${x(i)},${y(vals[i - 1])} ` : '') + `${x(i)},${y(v)}`).join(' ');
+    svg.appendChild(el('polyline', { points: pts, fill: 'none', stroke: cor, 'stroke-width': larg }));
+  }
+
+  const N = 14, agora = new Date(), res = new Date(Math.floor(agora / 72e5) * 72e5);
+  const sim = {};
+  [...FIS, ...QUI].forEach(([n, , , , dec, tip, varia]) => { sim[n] = serie(tip, varia, N); document.getElementById('v' + n).textContent = num(sim[n][N - 1], dec); });
+  document.getElementById('s-atual').textContent = dh(res);
+  document.getElementById('s-fis-ts').textContent = dh(res);
+  document.getElementById('s-qui-ts').textContent = dh(res);
+  const t1 = document.getElementById('t1'), t2 = document.getElementById('t2');
+  degrau(t1, sim[4], yC, 'var(--pena2)', 3); degrau(t1, sim[3], yC, 'var(--pena1)', 3);
+  degrau(t2, sim[11], yS, 'var(--pena2)', 3); degrau(t2, sim[10], yF, 'var(--pena1)', 3);
+})();
+</script>
+</body>
+</html>
