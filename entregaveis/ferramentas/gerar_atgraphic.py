@@ -107,7 +107,8 @@ def campo(c, spec):
     ret = (u(c["x"]), u(c["y"]), u(c["x"] + c["w"]), u(c["y"] + c["h"]))
     mapa = spec["mapa"] if spec["mapa"].startswith("IP_") else MAPA_DISCRETO
     formato = spec["formato"]
-    decimais = 1 if formato.startswith("1 casa") else 0
+    m = re.match(r"(\d) casa", formato)
+    decimais = int(m.group(1)) if m else 0
     largura = 19 if "aaaa" in formato else (7 if "casa" in formato else 12)
     altura = int(round(c["tamanho"] * 1.117 * ESCALA))
     peso = 700 if c["peso"] >= 600 else 400
@@ -151,7 +152,7 @@ def lampada(l):
     pts.append(pts[0])
     xs, ys = [p[0] for p in pts], [p[1] for p in pts]
     base, acesa = rgb(l["base"]), rgb(l["ativa"])
-    mapa = "IP_PIDMAP03" if l["tag"].startswith("U04-") else MAPA_DISCRETO
+    mapa = l.get("mapa") or ("IP_PIDMAP03" if l["tag"].startswith("U04-") else MAPA_DISCRETO)
     corpo = comum((min(xs), min(ys), max(xs), max(ys)), base, 0, base, 0, base, 1,
                   tag=l["tag"], atributo="VAL", mapa=mapa, servidor=SERVIDOR)
     corpo += bytes.fromhex("01000000010001000000") + struct.pack("<2f", l["lo"], l["hi"]) + wstr("") + wstr("") + cor(acesa) + bytes(4)

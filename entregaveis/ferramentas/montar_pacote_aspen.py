@@ -178,7 +178,13 @@ def main():
     texto = (modelo.replace("{{FICHAS}}", fichas).replace("{{N_CAMPOS}}", str(n_campos)).replace("{{N_TEND}}", str(n_tend))
              .replace("{{N_FORMAS}}", str(len(tela["formas"]) + len(tela["simbolos"]) + 13)).replace("{{N_TEXTOS}}", str(len(tela["textos"])))
              .replace("{{N_LAMPADAS}}", str(len(tela.get("lampadas", [])))))
-    md_path = os.path.join(SAIDA, "roteiro_aspen_graphics.md")
+    publicar_roteiro(texto, SAIDA)
+    print(f"Pacote montado em {os.path.abspath(SAIDA)}: {len(SPEC)} objetos")
+
+
+def publicar_roteiro(texto, saida):
+    """Grava o roteiro em .md, .html e .pdf na pasta de saída."""
+    md_path = os.path.join(saida, "roteiro_aspen_graphics.md")
     with open(md_path, "w", encoding="utf-8") as fh:
         fh.write(texto)
 
@@ -206,18 +212,17 @@ img {{ max-width: 100%; border: 1px solid #c5ccd6; }}
 blockquote {{ border-left: 4px solid #f2994a; margin: 10px 0; padding: 4px 12px; background: #fff7ef; }}
 hr {{ border: 0; border-top: 1px solid #c5ccd6; }}
 </style></head><body>{corpo}</body></html>"""
-    html_path = os.path.join(SAIDA, "roteiro_aspen_graphics.html")
+    html_path = os.path.join(saida, "roteiro_aspen_graphics.html")
     with open(html_path, "w", encoding="utf-8") as fh:
         fh.write(html)
 
-    pdf_path = os.path.join(SAIDA, "roteiro_aspen_graphics.pdf")
+    pdf_path = os.path.join(saida, "roteiro_aspen_graphics.pdf")
     js = ("const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const p=await b.newPage();"
           f"await p.goto('file://{html_path}');await p.pdf({{path:'{pdf_path}',format:'A4',margin:{{top:'15mm',bottom:'15mm',left:'12mm',right:'12mm'}},"
           "printBackground:true,displayHeaderFooter:true,headerTemplate:'<span></span>',"
           "footerTemplate:'<div style=\"font-size:8px;width:100%;text-align:center\">Página <span class=pageNumber></span> de <span class=totalPages></span></div>'});"
           "await b.close()})()")
     subprocess.run(["node", "-e", js], check=True)
-    print(f"Pacote montado em {os.path.abspath(SAIDA)}: {len(SPEC)} objetos")
 
 
 if __name__ == "__main__":

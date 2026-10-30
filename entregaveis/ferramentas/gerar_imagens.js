@@ -1,5 +1,6 @@
 // Gera, a partir do protótipo, as imagens e as posições usadas na montagem da tela no Aspen Process Graphics Editor.
-// Uso: node gerar_imagens.js   (requer Playwright com Chromium). Depois rode montar_pacote_aspen.py.
+// Uso: node gerar_imagens.js [protótipo.html] [pasta de saída] [cenários separados por vírgula]
+//      (requer Playwright com Chromium). Sem argumentos, usa a tela de compressão; depois rode montar_pacote_aspen.py.
 // A tela do Aspen mede 50 x 35 unidades (proporção 10:7, a mesma da tela PQ US04). O protótipo é desenhado
 // em 1600 x 1120 (32 px por unidade) e as imagens saem em 1400 x 980 (28 px por unidade), perto do tamanho
 // em que a tela aparece no monitor, para o Aspen quase não precisar redimensionar a imagem.
@@ -12,8 +13,9 @@ const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
-const html = 'file://' + path.resolve(__dirname, '../02_prototipo/index.html');
-const saida = path.resolve(__dirname, '../03_aspen');
+const html = 'file://' + path.resolve(process.argv[2] || path.join(__dirname, '../02_prototipo/index.html'));
+const saida = path.resolve(process.argv[3] || path.join(__dirname, '../03_aspen'));
+const cenarios = (process.argv[4] || 'normal,f200,bad,manual').split(',');
 fs.mkdirSync(saida, { recursive: true });
 
 (async () => {
@@ -37,7 +39,7 @@ fs.mkdirSync(saida, { recursive: true });
       if (fora(el)) continue;
       const cs = getComputedStyle(el), r = box(el.getBoundingClientRect());
       if (el.classList.contains('lampada')) {
-        lampadas.push({ ...r, tag: el.dataset.tag, lo: +el.dataset.lo, hi: +el.dataset.hi, base: varCor('--apagada'), ativa: varCor(el.dataset.ativa), fundo: fundoDe(el.parentElement) });
+        lampadas.push({ ...r, tag: el.dataset.tag, mapa: el.dataset.mapa || null, lo: +el.dataset.lo, hi: +el.dataset.hi, base: varCor('--apagada'), ativa: varCor(el.dataset.ativa), fundo: fundoDe(el.parentElement) });
         continue;
       }
       if (el.classList.contains('simb')) { simbolos.push({ ...r, forma: [...el.classList].find(c => c !== 'simb'), cor: cs.color, fundo: fundoDe(el.parentElement) }); continue; }
@@ -84,7 +86,7 @@ fs.mkdirSync(saida, { recursive: true });
   slots.sort((a, b) => a.n - b.n);
   fs.writeFileSync(path.join(saida, 'posicoes.json'), JSON.stringify(slots, null, 1));
 
-  for (const c of ['normal', 'f200', 'bad', 'manual']) {
+  for (const c of cenarios) {
     await abrir(`modo=demo&cenario=${c}`);
     await page.screenshot({ path: path.join(saida, `tela_exemplo_${c}.png`) });
   }

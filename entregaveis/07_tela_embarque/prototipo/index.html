@@ -9,6 +9,7 @@
   Mesmas convenções da tela Compressão Online Usina 4: o que aparece aqui vira objeto nativo do Aspen
   (polígonos, textos, campos de dados e tendências). Os elementos com data-slot são os objetos dinâmicos.
   Parâmetros na URL: ?modo=demo | fundo | mapa
+  Gerar o arquivo do Aspen: ver ../ferramentas/gerar_embarque.py
 -->
 <style>
   :root {
@@ -103,16 +104,16 @@
         <div class="tit">Ritmo de carregamento</div>
         <div class="grande"><span class="slot" style="width:190px" id="s-ritmo" data-slot="1">--</span><span class="un">t/h</span></div>
         <div class="rot" style="margin-top:2px">Balança principal (56TP04)</div>
-        <div class="sub"><span class="rot" style="width:150px">Balança redundante</span><span class="slot" id="s-ritmo2" data-slot="21">--</span><span class="rot">t/h</span></div>
+        <div class="sub"><span class="rot" style="width:150px">Balança redundante</span><span class="slot" id="s-ritmo2" data-slot="2">--</span><span class="rot">t/h</span></div>
       </div>
       <div class="bloco" style="width:650px">
         <div class="tit"><span class="lampada" id="l-oe" data-tag="309-WIT-004.TOT_NAV_OE" data-mapa="IP_ANALOGMAP" data-lo="0.5" data-hi="10000000" data-ativa="--ok"></span>Berço Oeste<span class="rot">total carregado</span></div>
-        <div class="grande"><span class="slot" style="width:190px" id="s-tot-oe" data-slot="22">--</span><span class="un">t</span></div>
+        <div class="grande"><span class="slot" style="width:190px" id="s-tot-oe" data-slot="3">--</span><span class="un">t</span></div>
         <div class="poroes" id="p-oe" style="grid-template-columns: repeat(6, 1fr)"></div>
       </div>
       <div class="bloco" style="width:476px">
         <div class="tit"><span class="lampada" id="l-le" data-tag="309-WIT-004.TOT_NAV_LE" data-mapa="IP_ANALOGMAP" data-lo="0.5" data-hi="10000000" data-ativa="--ok"></span>Berço Leste<span class="rot">total carregado</span></div>
-        <div class="grande"><span class="slot" style="width:190px" id="s-tot-le" data-slot="23">--</span><span class="un">t</span></div>
+        <div class="grande"><span class="slot" style="width:190px" id="s-tot-le" data-slot="15">--</span><span class="un">t</span></div>
         <div class="poroes" id="p-le" style="grid-template-columns: repeat(4, 1fr)"></div>
       </div>
     </div>
@@ -121,14 +122,14 @@
   <!-- Físico -->
   <section class="card fis" style="left:32px; top:433px; width:1536px; height:186px;">
     <div class="topo"><h2><span class="acento"></span>Físico</h2>
-      <div class="quando"><span class="rot">Último resultado</span><span class="slot v-peq" style="width:165px" id="s-fis-ts" data-slot="2">--</span></div></div>
+      <div class="quando"><span class="rot">Último resultado</span><span class="slot v-peq" style="width:165px" id="s-fis-ts" data-slot="23">--</span></div></div>
     <div class="grade" id="g-fis"></div>
   </section>
 
   <!-- Químico -->
   <section class="card qui" style="left:32px; top:635px; width:1536px; height:186px;">
     <div class="topo"><h2><span class="acento"></span>Químico</h2>
-      <div class="quando"><span class="rot">Último resultado</span><span class="slot v-peq" style="width:165px" id="s-qui-ts" data-slot="9">--</span></div></div>
+      <div class="quando"><span class="rot">Último resultado</span><span class="slot v-peq" style="width:165px" id="s-qui-ts" data-slot="30">--</span></div></div>
     <div class="grade" id="g-qui"></div>
   </section>
 
@@ -137,19 +138,19 @@
     <h2><span class="acento"></span>Tendência: ritmo de carregamento</h2>
     <div class="legenda"><span class="traco" style="background:var(--pena1)"></span><span>Balança principal (t/h)</span></div>
     <div class="graf-area" id="ga0"><div class="plot-bg"></div>
-      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="24"><svg id="t0" width="380" height="176"></svg></div></div>
+      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="40"><svg id="t0" width="380" height="176"></svg></div></div>
   </section>
   <section class="card" style="left:549px; top:837px; width:501px; height:259px;">
     <h2><span class="acento"></span>Tendência: compressão</h2>
     <div class="legenda"><span class="traco" style="background:var(--pena1)"></span><span>16,0 mm</span><span class="gap"></span><span class="traco" style="background:var(--pena2)"></span><span>12,5 mm</span><span class="gap"></span><span>kgf/pelota</span></div>
     <div class="graf-area" id="ga1"><div class="plot-bg"></div>
-      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="19"><svg id="t1" width="380" height="176"></svg></div></div>
+      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="41"><svg id="t1" width="380" height="176"></svg></div></div>
   </section>
   <section class="card" style="left:1067px; top:837px; width:501px; height:259px;">
     <h2><span class="acento"></span>Tendência: Fe e SiO2</h2>
     <div class="legenda"><span class="traco" style="background:var(--pena1)"></span><span>Fe, à esquerda</span><span class="gap"></span><span class="traco" style="background:var(--pena2)"></span><span>SiO2, à direita</span><span class="gap"></span><span>%</span></div>
     <div class="graf-area" id="ga2"><div class="plot-bg"></div>
-      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="20"><svg id="t2" width="380" height="176"></svg></div></div>
+      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="42"><svg id="t2" width="380" height="176"></svg></div></div>
   </section>
 </div>
 
@@ -170,23 +171,23 @@
 
   // Elementos: [slot, nome, unidade, tag, casas decimais, valor típico (simulação), variação]
   const FIS = [
-    [3, 'Compressão 16,0 mm', 'kgf/pelota', 'M0620010000-0031-TNLFU', 0, 318, 14],
-    [4, 'Compressão 12,5 mm', 'kgf/pelota', 'M0620010000-0035-TNLFU', 0, 286, 14],
-    [5, 'Tamboramento +6,3 mm', '%', 'M0620010000-0029-TNLFU', 1, 94.2, 0.5],
-    [6, 'Finos -6,3 mm', '%', 'M0620010000-0026-TNLFU', 1, 1.6, 0.3],
-    [7, 'Relação granulométrica', '%', 'M0620010000-2021-TNLFU', 2, 0.78, 0.04],
-    [8, 'Umidade (H2O)', '%', 'M0620010000-0001-TNLFU', 2, 2.35, 0.15],
+    [24, 'Compressão 16,0 mm', 'kgf/pelota', 'M0620010000-0031-TNLFU', 0, 318, 14],
+    [25, 'Compressão 12,5 mm', 'kgf/pelota', 'M0620010000-0035-TNLFU', 0, 286, 14],
+    [26, 'Tamboramento +6,3 mm', '%', 'M0620010000-0029-TNLFU', 1, 94.2, 0.5],
+    [27, 'Finos -6,3 mm', '%', 'M0620010000-0026-TNLFU', 1, 1.6, 0.3],
+    [28, 'Relação granulométrica', '%', 'M0620010000-2021-TNLFU', 2, 0.78, 0.04],
+    [29, 'Umidade (H2O)', '%', 'M0620010000-0001-TNLFU', 2, 2.35, 0.15],
   ];
   const QUI = [
-    [10, 'Fe', '%', 'M0620010000-0002-TNLQU', 2, 65.6, 0.3],
-    [11, 'SiO2', '%', 'M0620010000-0004-TNLQU', 2, 2.15, 0.15],
-    [12, 'Al2O3', '%', 'M0620010000-0005-TNLQU', 2, 0.42, 0.04],
-    [13, 'CaO', '%', 'M0620010000-0006-TNLQU', 2, 1.02, 0.08],
-    [14, 'MgO', '%', 'M0620010000-0007-TNLQU', 2, 0.09, 0.02],
-    [15, 'B2 (CaO/SiO2)', '%', 'M0620010000-0018-TNLQU', 2, 0.47, 0.04],
-    [16, 'P', '%', 'M0620010000-0008-TNLQU', 3, 0.041, 0.004],
-    [17, 'Mn', '%', 'M0620010000-0115-TNLQU', 3, 0.058, 0.006],
-    [18, 'PPC', '%', 'M0620010000-0013-TNLQU', 2, 0.78, 0.08],
+    [31, 'Fe', '%', 'M0620010000-0002-TNLQU', 2, 65.6, 0.3],
+    [32, 'SiO2', '%', 'M0620010000-0004-TNLQU', 2, 2.15, 0.15],
+    [33, 'Al2O3', '%', 'M0620010000-0005-TNLQU', 2, 0.42, 0.04],
+    [34, 'CaO', '%', 'M0620010000-0006-TNLQU', 2, 1.02, 0.08],
+    [35, 'MgO', '%', 'M0620010000-0007-TNLQU', 2, 0.09, 0.02],
+    [36, 'B2 (CaO/SiO2)', '%', 'M0620010000-0018-TNLQU', 2, 0.47, 0.04],
+    [37, 'P', '%', 'M0620010000-0008-TNLQU', 3, 0.041, 0.004],
+    [38, 'Mn', '%', 'M0620010000-0115-TNLQU', 3, 0.058, 0.006],
+    [39, 'PPC', '%', 'M0620010000-0013-TNLQU', 2, 0.78, 0.08],
   ];
   function tiles(id, lista, destaque) {
     const g = document.getElementById(id);
@@ -197,7 +198,7 @@
       g.appendChild(t);
     });
   }
-  tiles('g-fis', FIS, [3, 4]);
+  tiles('g-fis', FIS, [24, 25]);
   tiles('g-qui', QUI, []);
 
   // Escalas fixas das tendências: rótulos e grade são parte fixa da tela (o Aspen só traça as linhas).
@@ -253,8 +254,8 @@
     for (let i = 1; i <= n; i++) { const v = cargas[i - 1] || 0; tot += v; document.getElementById(pre + i).textContent = num(v, 0); }
     return tot;
   };
-  const totOE = poroes('p-oe', 'poe', 11, [7447, 0, 9003, 0, 9015, 0, 5970, 0, 4581, 0, 0], 25);
-  const totLE = poroes('p-le', 'ple', 7, [], 36);
+  const totOE = poroes('p-oe', 'poe', 11, [7447, 0, 9003, 0, 9015, 0, 5970, 0, 4581, 0, 0], 4);
+  const totLE = poroes('p-le', 'ple', 7, [], 16);
   document.getElementById('s-tot-oe').textContent = num(totOE, 0);
   document.getElementById('s-tot-le').textContent = num(totLE, 0);
   document.getElementById('l-oe').style.background = totOE > 0.5 ? 'var(--ok)' : '';
@@ -264,8 +265,8 @@
   document.getElementById('s-qui-ts').textContent = dh(res);
   const t0 = document.getElementById('t0'), t1 = document.getElementById('t1'), t2 = document.getElementById('t2');
   degrau(t0, serie(1300, 260, 40), yR, 'var(--pena1)', 2.5);
-  degrau(t1, sim[4], yC, 'var(--pena2)', 3); degrau(t1, sim[3], yC, 'var(--pena1)', 3);
-  degrau(t2, sim[11], yS, 'var(--pena2)', 3); degrau(t2, sim[10], yF, 'var(--pena1)', 3);
+  degrau(t1, sim[25], yC, 'var(--pena2)', 3); degrau(t1, sim[24], yC, 'var(--pena1)', 3);
+  degrau(t2, sim[32], yS, 'var(--pena2)', 3); degrau(t2, sim[31], yF, 'var(--pena1)', 3);
 })();
 </script>
 </body>

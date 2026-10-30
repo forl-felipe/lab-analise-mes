@@ -1,0 +1,2533 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Passo a passo Aspen</title>
+<style>
+body { font-family: Arial, sans-serif; font-size: 14px; color: #1b1f24; max-width: 1000px; margin: 24px auto; padding: 0 16px; line-height: 1.5; }
+h1 { font-size: 24px; border-bottom: 3px solid #1f2630; padding-bottom: 6px; }
+h2 { font-size: 19px; margin-top: 32px; background: #1f2630; color: #fff; padding: 6px 10px; border-radius: 4px; page-break-after: avoid; }
+h3 { font-size: 16px; margin-top: 22px; color: #0b5c80; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 14px; page-break-inside: avoid; }
+th, td { border: 1px solid #c5ccd6; padding: 5px 8px; text-align: left; vertical-align: top; }
+th { background: #e9edf2; }
+td:first-child { white-space: nowrap; }
+code { background: #eef1f5; padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+img { max-width: 100%; border: 1px solid #c5ccd6; }
+blockquote { border-left: 4px solid #f2994a; margin: 10px 0; padding: 4px 12px; background: #fff7ef; }
+hr { border: 0; border-top: 1px solid #c5ccd6; }
+</style></head><body><h1>Passo a passo: tela Qualidade de Embarque no Aspen (versão 1)</h1>
+<p><strong>Tela:</strong> Qualidade de Embarque, padrão visual Samarco: ritmo de carregamento, total carregado por berço e por porão, resultados físicos e químicos do embarque e tendências</p>
+<p><strong>Resultado esperado:</strong> igual a <code>tela_exemplo_normal.png</code> (dados simulados)</p>
+<p><strong>Tempo estimado:</strong> 20 minutos</p>
+<p><img alt="Resultado esperado" src="tela_exemplo_normal.png" /></p>
+<h2>O que vem pronto no arquivo</h2>
+<p>O arquivo <code>Qualidade_de_Embarque.atgraphic</code> foi gerado pelo mesmo processo da tela Compressão Online Usina 4, que já abriu no seu PIMS. Tudo é objeto nativo do Aspen e não perde nitidez ao maximizar. A tela não tem limites de especificação: mostra apenas os resultados.</p>
+<table>
+<thead>
+<tr>
+<th>Conteúdo</th>
+<th>Quantidade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Painéis, linhas e logotipo oficial em polígonos</td>
+<td>84</td>
+</tr>
+<tr>
+<td>Textos fixos</td>
+<td>88</td>
+</tr>
+<tr>
+<td>Campos de dados ligados às tags</td>
+<td>39</td>
+</tr>
+<tr>
+<td>Tendências com penas e escala definidas</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Lâmpadas animadas (berço com carga)</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<h2>Parte A. Abrir</h2>
+<p><strong>A1.</strong> Copie <code>Qualidade_de_Embarque.atgraphic</code> para a pasta de rede das telas do laboratório.</p>
+<p><strong>A2.</strong> Abra no <strong>Aspen Process Graphics Editor</strong>, compare com <code>tela_exemplo_normal.png</code> e maximize.</p>
+<p><strong>Se der erro ao abrir:</strong> tente <code>teste_minimo.atgraphic</code> e me envie a captura da mensagem, dizendo se o arquivo de teste abriu.</p>
+<h2>Parte B. Ajustes nos campos (no editor)</h2>
+<p><strong>B1. Atributo de data e hora.</strong> Os campos "Último resultado" do Físico (objeto 23) e do Químico (objeto 30) vêm com o atributo <code>VAL</code> e mostram um número no lugar da hora. Dê duplo clique em cada um e troque <code>VAL</code> pelo atributo de data e hora da lista. Se preferir, apague os dois campos e o texto "Último resultado".</p>
+<p><strong>B2. Mapa das tags de qualidade.</strong> Os 15 resultados físicos e químicos usam o mapa <code>IP_MESVALOR</code>, o mesmo da tag de compressão do laboratório que já funciona na outra tela. Se algum campo mostrar <code>***</code>, abra o campo e confira o mapa na lista.</p>
+<p><strong>B3. Carregamento.</strong> Ritmo, totais e porões usam o mapa <code>IP_ANALOGMAP</code>, como na tela de embarque atual. Nada a fazer.</p>
+<h2>Parte C. Tendências</h2>
+<table>
+<thead>
+<tr>
+<th>Objeto</th>
+<th>Penas</th>
+<th>Escala</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>40 (ritmo de carregamento)</td>
+<td><code>008-WI-010</code> (balança principal, azul claro)</td>
+<td>0 a 2500 t/h</td>
+</tr>
+<tr>
+<td>41 (compressão)</td>
+<td><code>M0620010000-0031-TNLFU</code> (16,0 mm, azul claro) e <code>M0620010000-0035-TNLFU</code> (12,5 mm, branca)</td>
+<td>150 a 450 nas duas</td>
+</tr>
+<tr>
+<td>42 (Fe e SiO2)</td>
+<td><code>M0620010000-0002-TNLQU</code> (Fe, azul claro) e <code>M0620010000-0004-TNLQU</code> (SiO2, branca)</td>
+<td>Fe 62 a 68; SiO2 0 a 6</td>
+</tr>
+</tbody>
+</table>
+<p><strong>C1.</strong> Na barra de tempo de cada tendência, use o período que preferir. Sugestão: <strong><code>24:00:00</code></strong> no ritmo e <strong><code>72:00:00</code></strong> na qualidade (os resultados do embarque são menos frequentes).</p>
+<p><strong>C2.</strong> Os números das escalas são parte fixa da tela. Se mudar a escala de uma pena, os números deixam de coincidir com a linha. Se os valores reais ficarem fora das escalas, me avise que eu ajusto.</p>
+<h2>Parte D. Lâmpadas (já prontas)</h2>
+<table>
+<thead>
+<tr>
+<th>Lâmpada</th>
+<th>Tag</th>
+<th>Acende quando</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Berço Oeste</td>
+<td><code>309-WIT-004.TOT_NAV_OE</code></td>
+<td>total carregado maior que zero, em verde</td>
+</tr>
+<tr>
+<td>Berço Leste</td>
+<td><code>309-WIT-004.TOT_NAV_LE</code></td>
+<td>total carregado maior que zero, em verde</td>
+</tr>
+</tbody>
+</table>
+<p>A lâmpada indica o berço com carga registrada. Se o totalizador não for zerado ao fim de cada navio, as duas podem ficar acesas; nesse caso, me passe a tag que indica o berço em operação.</p>
+<h2>Parte E. Salvar</h2>
+<p><strong>E1.</strong> <strong>Arquivo &gt; Salvar</strong>. Abra no Process Explorer e maximize para conferir.</p>
+<h2>Parte F. Problemas comuns</h2>
+<table>
+<thead>
+<tr>
+<th>Problema</th>
+<th>Solução</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Erro ao abrir</td>
+<td>Tente <code>teste_minimo.atgraphic</code> e envie a captura (Parte A)</td>
+</tr>
+<tr>
+<td>Hora mostra um número</td>
+<td>Parte B1</td>
+</tr>
+<tr>
+<td>Campo com <code>***</code></td>
+<td>Tag ou mapa não encontrado: confira na lista do campo (Parte B2)</td>
+</tr>
+<tr>
+<td>Linha fora da escala da tendência</td>
+<td>Me avise para ajustar a escala (Parte C2)</td>
+</tr>
+</tbody>
+</table>
+<h2>Anexo. Fichas dos objetos dinâmicos</h2>
+<p>Referência caso algum objeto precise ser refeito à mão. Posições em unidades da tela de 50 x 35.</p>
+<p><img alt="Mapa de posicionamento" src="mapa_posicionamento.png" /></p>
+<h3>Objeto 1: Ritmo de carregamento: balança principal (t/h)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>2,31 ; 6,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>5,94 ; 1,88</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>008-WI-010</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 2: Ritmo de carregamento: balança redundante (t/h)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>7,31 ; 10,16</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,81</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>008-WI-010_1</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 3: Berço Oeste: total carregado (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>13,11 ; 6,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>5,94 ; 1,88</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_NAV_OE</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>A lâmpada ao lado do título acende em verde quando o total é maior que zero (já vem pronta).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 4: Berço Oeste: porão P1 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>13,36 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE1</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 5: Berço Oeste: porão P2 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>16,60 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE2</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 6: Berço Oeste: porão P3 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>19,83 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE3</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 7: Berço Oeste: porão P4 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>23,07 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE4</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 8: Berço Oeste: porão P5 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>26,30 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE5</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 9: Berço Oeste: porão P6 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>29,54 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE6</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 10: Berço Oeste: porão P7 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>13,36 ; 11,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE7</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 11: Berço Oeste: porão P8 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>16,60 ; 11,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE8</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 12: Berço Oeste: porão P9 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>19,83 ; 11,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE9</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 13: Berço Oeste: porão P10 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>23,07 ; 11,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE10</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 14: Berço Oeste: porão P11 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>26,30 ; 11,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,55 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_OE11</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 15: Berço Leste: total carregado (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,90 ; 6,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>5,94 ; 1,88</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_NAV_LE</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>A lâmpada ao lado do título acende em verde quando o total é maior que zero (já vem pronta).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 16: Berço Leste: porão P1 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>34,15 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_LE01</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 17: Berço Leste: porão P2 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>37,64 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_LE02</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 18: Berço Leste: porão P3 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>41,14 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_LE03</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 19: Berço Leste: porão P4 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>44,63 ; 9,56</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_LE04</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 20: Berço Leste: porão P5 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>34,15 ; 11,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_LE05</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 21: Berço Leste: porão P6 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>37,64 ; 11,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_LE06</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 22: Berço Leste: porão P7 (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>41,14 ; 11,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>309-WIT-004.TOT_POR_LE07</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 41, 74 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 23: Físico: último resultado</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>43,06 ; 14,02</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>5,16 ; 0,69</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0031-TNLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Esquerda</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>dd/mm/aaaa hh:mm:ss</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 24: Físico: Compressão 16,0 mm (kgf/pelota)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>2,25 ; 16,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,38 ; 1,63</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0031-TNLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 25: Físico: Compressão 12,5 mm (kgf/pelota)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>10,06 ; 16,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,38 ; 1,63</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0035-TNLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 26: Físico: Tamboramento +6,3 mm (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>17,88 ; 16,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,38 ; 1,63</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0029-TNLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>1 casa decimal (0,0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 27: Físico: Finos -6,3 mm (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>25,69 ; 16,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,38 ; 1,63</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0026-TNLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>1 casa decimal (0,0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 28: Físico: Relação granulométrica (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,50 ; 16,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,38 ; 1,63</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-2021-TNLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 29: Físico: Umidade H2O (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>41,31 ; 16,75</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,38 ; 1,63</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0001-TNLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 30: Químico: último resultado</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>43,06 ; 20,33</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>5,16 ; 0,69</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0002-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Esquerda</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>dd/mm/aaaa hh:mm:ss</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 31: Químico: Fe (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>2,19 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0002-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 32: Químico: SiO2 (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>7,38 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0004-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 33: Químico: Al2O3 (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>12,56 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0005-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 34: Químico: CaO (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>17,75 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0006-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 35: Químico: MgO (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>22,94 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0007-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 36: Químico: B2 (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>28,13 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0018-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 37: Químico: P (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,31 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0008-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>3 casas decimais (0,000)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 38: Químico: Mn (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>38,50 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0115-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>3 casas decimais (0,000)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 39: Químico: PPC (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>43,69 ; 23,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,00 ; 1,31</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M0620010000-0013-TNLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 40: Tendência: ritmo de carregamento</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>3,28 ; 28,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>11,88 ; 5,50</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo, escala 0 a 2500 t/h. Ver Parte C.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 41: Tendência: compressão</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>19,44 ; 28,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>11,88 ; 5,50</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo, escala 150 a 450 kgf/pelota. Ver Parte C.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 42: Tendência: Fe e SiO2</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>35,63 ; 28,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>11,88 ; 5,50</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo, Fe de 62 a 68% e SiO2 de 0 a 6%. Ver Parte C.</td>
+</tr>
+</tbody>
+</table></body></html>
