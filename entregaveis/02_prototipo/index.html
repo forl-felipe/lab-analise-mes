@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Compressão de pelotas</title>
+<title>Compressão Online Usina 4</title>
 <!--
-  Protótipo da tela de monitoramento do ensaio de compressão de pelotas (versão 7, padrão visual Samarco).
+  Protótipo da tela Compressão Online Usina 4 (versão 8, padrão visual Samarco, sem o composto de 2 h).
   Dados simulados. Tudo o que aparece aqui vira objeto nativo do Aspen (polígonos, textos, campos de dados,
   tendências e lâmpadas animadas), gerado por ferramentas/gerar_atgraphic.py.
   Parâmetros na URL:
@@ -115,6 +115,15 @@
   .cort .estado { font-size: 15px; color: var(--muted); width: 92px; }
 
   .nota { font-size: 12px; color: var(--muted); }
+  .lab .corpo { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px; }
+  .cort2 .eqlinha { display: flex; align-items: center; gap: 12px; height: 46px; border-top: 1px solid var(--card-line); margin-top: 6px; }
+  .cort2 .eq { font-size: 22px; font-weight: 700; width: 112px; }
+  .cort2 .lampada { width: 26px; height: 26px; }
+  .cort2 .estado { font-size: 16px; color: var(--muted); width: 90px; }
+  .cort2 .mini { position: relative; height: 128px; margin-top: 6px; }
+  .cort2 .mini .plot-bg { left: 92px; top: 0; width: 246px; height: 128px; }
+  .cort2 .mini .ref { position: absolute; left: 0; width: 84px; text-align: right; font-size: 13px; font-weight: 700; line-height: 14px; }
+  .cort2 .mini .dash { width: 10px; }
 
   body.fundo .slot, body.fundo .lampada { visibility: hidden; }
   body.mapa .slot { visibility: visible !important; color: transparent !important; outline: 2px dashed #ff4fd8; outline-offset: -2px; position: relative; background: rgba(255,79,216,.12); }
@@ -132,14 +141,14 @@
   <header class="cab">
     <div class="logo" id="logo"><img id="logo-img" src="../assets/samarco-logo-branca.svg" alt="Samarco"></div>
     <div class="sep"></div>
-    <h1>Monitoramento do ensaio de compressão de pelotas</h1>
+    <h1>Compressão Online Usina 4</h1>
     <div class="dir"><span class="rot">Última atualização</span><span class="slot v-med" style="width:200px; text-align:right" id="s-atual" data-slot="1">--</span></div>
   </header>
   <div class="filete"></div>
 
   <!-- Média prensa automática -->
   <section class="card kpi" style="left:32px; top:117px; width:506px; height:260px;">
-    <h2><span class="acento"></span>Média prensa automática</h2>
+    <h2><span class="acento"></span>Média compressão online</h2>
     <div class="corpo">
       <div>
         <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi1" data-slot="2">--</span><span class="unid">kgf/pelota</span></div>
@@ -169,69 +178,64 @@
     </div>
   </section>
 
-  <!-- Composto 2 h: prensa x laboratório -->
-  <section class="card comp" style="left:1084px; top:117px; width:484px; height:260px;">
-    <h2><span class="acento"></span>Composto de 2 h: prensa x laboratório</h2>
-    <div class="dois">
-      <div><div class="rot"><span class="traco" style="background:var(--linha-prensa)"></span> Prensa automática</div>
-        <span class="slot v-comp" style="width:180px; color:var(--linha-prensa)" id="c-prensa" data-slot="10">--</span></div>
-      <div><div class="rot"><span class="traco" style="background:var(--linha-lab)"></span> Laboratório (MES)</div>
-        <span class="slot v-comp" style="width:130px" id="c-lab" data-slot="11">--</span></div>
+  <!-- Referência laboratório -->
+  <section class="card kpi lab" style="left:1084px; top:117px; width:484px; height:260px;">
+    <h2><span class="acento"></span>Referência laboratório</h2>
+    <div class="corpo">
+      <div>
+        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:180px" id="s-lab" data-slot="10">--</span><span class="unid">kgf/pelota</span></div>
+        <div class="rot" style="margin-top:6px">Resistência à compressão (MES)</div>
+      </div>
+      <div class="slot" style="width:140px; height:90px" data-slot="11"><svg id="sp3" width="140" height="90"></svg></div>
     </div>
-    <div class="kpi"><div class="rodape" style="margin-top:12px; gap:14px">
-      <div><span class="rot" style="white-space:nowrap">Fim da janela</span><span class="slot v-peq" style="width:126px" id="c-jan" data-slot="12">--</span></div>
-      <div><span class="rot">Diferença</span><span class="slot v-peq" style="width:56px; font-weight:700; text-align:right" id="c-dif" data-slot="13">--</span><span class="rot">kgf/pelota</span></div>
-    </div></div>
-    <div class="ncortes"><span class="rot">Cortes com resultado na janela</span><span class="slot v-peq" style="width:24px; font-weight:700; text-align:right" id="c-n" data-slot="26">--</span><span class="rot">de 4 (média só dos cortes com resultado)</span></div>
+    <div class="rodape">
+      <div><span class="rot">Atualizado às</span><span class="slot v-peq" style="width:165px" id="s-lab-ts" data-slot="12">--</span></div>
+    </div>
   </section>
 
   <!-- Tendência -->
   <section class="card" style="left:32px; top:397px; width:1130px; height:691px;">
-    <h2><span class="acento"></span>Tendência: composto da prensa x composto do laboratório</h2>
+    <h2><span class="acento"></span>Tendência: compressão online x referência laboratório</h2>
     <div class="legenda">
-      <span class="traco fino" style="background:var(--linha-ensaio)"></span><span>Prensa, cada ensaio (30 min)</span>
+      <span class="traco" style="background:var(--linha-prensa)"></span><span>Compressão online (cada ensaio)</span>
       <span class="gap"></span>
-      <span class="traco" style="background:var(--linha-prensa)"></span><span>Prensa, composto 2 h</span>
-      <span class="gap"></span>
-      <span class="traco" style="background:var(--linha-lab)"></span><span>Laboratório, composto 2 h</span>
+      <span class="traco" style="background:var(--linha-lab)"></span><span>Referência laboratório</span>
       <span class="gap"></span>
       <span class="tracejado"><i></i><i></i><i></i></span><span>Limites 200, 150 e 100</span>
     </div>
     <div class="graf-area" id="graf-area">
       <div class="plot-bg"></div>
-      <div class="slot" style="position:absolute; left:44px; top:0; width:990px; height:560px" data-slot="14"><svg id="tend" width="990" height="560"></svg></div>
+      <div class="slot" style="position:absolute; left:44px; top:0; width:990px; height:560px" data-slot="13"><svg id="tend" width="990" height="560"></svg></div>
     </div>
   </section>
 
-  <!-- Cortes do composto atual -->
-  <section class="card cortes" style="left:1182px; top:397px; width:386px; height:290px;">
-    <h2><span class="acento"></span>Cortes do composto atual</h2>
-    <div class="rot" style="margin-top:4px">Ensaios da prensa que formam o composto</div>
-    <div class="linha cabec"><span style="width:110px">Corte</span><span style="flex:1; text-align:right">Média prensa</span></div>
-    <div class="linha"><span class="slot hora" id="e1h" data-slot="15">--</span><span class="slot val" id="e1v" data-slot="19">--</span><span class="un">kgf/pelota</span></div>
-    <div class="linha"><span class="slot hora" id="e2h" data-slot="16">--</span><span class="slot val" id="e2v" data-slot="20">--</span><span class="un">kgf/pelota</span></div>
-    <div class="linha"><span class="slot hora" id="e3h" data-slot="17">--</span><span class="slot val" id="e3v" data-slot="21">--</span><span class="un">kgf/pelota</span></div>
-    <div class="linha"><span class="slot hora" id="e4h" data-slot="18">--</span><span class="slot val" id="e4v" data-slot="22">--</span><span class="un">kgf/pelota</span></div>
-  </section>
-
   <!-- Faixas de compressão -->
-  <section class="card faixas" style="left:1182px; top:707px; width:386px; height:215px;">
+  <section class="card faixas" style="left:1182px; top:397px; width:386px; height:215px;">
     <h2><span class="acento"></span>Faixas de compressão</h2>
     <div class="rot" style="margin-top:4px; margin-bottom:6px">Último ensaio da prensa automática</div>
-    <div class="linha"><span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200"></span><span class="nome">Abaixo de 200 kgf/pelota</span><span class="slot" id="s-qi3" data-slot="23">--</span></div>
-    <div class="linha"><span class="lampada" id="lq2" data-tag="307-QI-002" data-lo="0.5" data-hi="100000" data-ativa="--lim-150"></span><span class="nome">Abaixo de 150 kgf/pelota</span><span class="slot" id="s-qi2" data-slot="24">--</span></div>
-    <div class="linha"><span class="lampada" id="lq1" data-tag="307-QI-001" data-lo="0.5" data-hi="100000" data-ativa="--lim-100"></span><span class="nome">Abaixo de 100 kgf/pelota</span><span class="slot" id="s-qi1" data-slot="25">--</span></div>
+    <div class="linha"><span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200"></span><span class="nome">Abaixo de 200 kgf/pelota</span><span class="slot" id="s-qi3" data-slot="14">--</span></div>
+    <div class="linha"><span class="lampada" id="lq2" data-tag="307-QI-002" data-lo="0.5" data-hi="100000" data-ativa="--lim-150"></span><span class="nome">Abaixo de 150 kgf/pelota</span><span class="slot" id="s-qi2" data-slot="15">--</span></div>
+    <div class="linha"><span class="lampada" id="lq1" data-tag="307-QI-001" data-lo="0.5" data-hi="100000" data-ativa="--lim-100"></span><span class="nome">Abaixo de 100 kgf/pelota</span><span class="slot" id="s-qi1" data-slot="16">--</span></div>
   </section>
 
   <!-- Cortadores -->
-  <section class="card cort" style="left:1182px; top:942px; width:386px; height:146px;">
+  <section class="card cort2" style="left:1182px; top:632px; width:386px; height:456px;">
     <h2><span class="acento"></span>Cortadores da amostragem</h2>
-    <div class="linha" style="margin-top:8px"><span class="eq">07CR001</span>
+    <div class="rot" style="margin-top:4px">Modo de operação e tendência de cada cortador</div>
+    <div class="eqlinha"><span class="eq">07CR001</span>
       <span class="lampada" id="c1a" data-tag="U04-07CR001" data-lo="32" data-hi="32" data-ativa="--ok"></span><span class="estado">Automático</span>
       <span class="lampada" id="c1m" data-tag="U04-07CR001" data-lo="16" data-hi="16" data-ativa="--manual"></span><span class="estado">Manual</span></div>
-    <div class="linha"><span class="eq">07CR002</span>
+    <div class="mini" id="mini1">
+      <div class="plot-bg"></div>
+      <div class="slot" style="position:absolute; left:92px; top:0; width:246px; height:128px" data-slot="17"><svg id="tc1" width="246" height="128"></svg></div>
+    </div>
+    <div class="eqlinha"><span class="eq">07CR002</span>
       <span class="lampada" id="c2a" data-tag="U04-07CR002" data-lo="32" data-hi="32" data-ativa="--ok"></span><span class="estado">Automático</span>
       <span class="lampada" id="c2m" data-tag="U04-07CR002" data-lo="16" data-hi="16" data-ativa="--manual"></span><span class="estado">Manual</span></div>
+    <div class="mini" id="mini2">
+      <div class="plot-bg"></div>
+      <div class="slot" style="position:absolute; left:92px; top:0; width:246px; height:128px" data-slot="18"><svg id="tc2" width="246" height="128"></svg></div>
+    </div>
   </section>
 </div>
 
@@ -284,6 +288,17 @@
     });
   })();
 
+  const CMIN = 8, CMAX = 40, CH = 128, CW = 246, CL = 92;
+  const yc = v => (1 - (v - CMIN) / (CMAX - CMIN)) * CH;
+  [1, 2].forEach(k => {
+    const area = document.getElementById('mini' + k);
+    const add = (cls, estilo, txt) => { const e = document.createElement('div'); e.className = cls; e.setAttribute('style', estilo); if (txt) e.textContent = txt; area.appendChild(e); };
+    [[32, '--ok', 'Automático'], [16, '--manual', 'Manual']].forEach(([v, c, t]) => {
+      for (let x = 0; x + 10 <= CW; x += 18) add('dash sobre', `left:${CL + x}px; top:${yc(v) - 1}px; background:var(${c})`);
+      add('ref', `top:${yc(v) - 7}px; color:var(${c})`, t);
+    });
+  });
+
   const num = (v, d = 1) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
   const p2 = x => String(x).padStart(2, '0');
   const dh = d => `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
@@ -311,15 +326,21 @@
     const W = 140, Hs = 90, x = i => 4 + i * (W - 8) / (pts.length - 1), y = v => Hs - 6 - v / ymax * (Hs - 12);
     svg.appendChild(el('polyline', { points: pts.map((p, i) => `${x(i)},${y(p[key])}`).join(' '), fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }));
   }
-  function tendencia(pts, comp) {
+  function tendencia(pts, lab) {
     const svg = document.getElementById('tend');
     svg.innerHTML = '';
     const t0 = pts[0].t, t1 = pts[pts.length - 1].t, x = t => 6 + (t - t0) / (t1 - t0) * (PW - 12);
     // O Aspen desenha as penas em degrau: o valor se mantém até o próximo resultado.
     const degrau = arr => arr.map((p, i) => (i ? `${x(p.t)},${yv(arr[i - 1].v)} ` : '') + `${x(p.t)},${yv(p.v)}`).join(' ') + ` ${PW - 2},${yv(arr[arr.length - 1].v)}`;
-    svg.appendChild(el('polyline', { points: degrau(pts.map(p => ({ t: p.t, v: p.m }))), fill: 'none', stroke: 'var(--linha-ensaio)', 'stroke-width': 1.5 }));
-    svg.appendChild(el('polyline', { points: degrau(comp.map(c => ({ t: c.t, v: c.lab }))), fill: 'none', stroke: 'var(--linha-lab)', 'stroke-width': 3.5 }));
-    svg.appendChild(el('polyline', { points: degrau(comp.map(c => ({ t: c.t, v: c.prensa }))), fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 3.5 }));
+    svg.appendChild(el('polyline', { points: degrau(lab), fill: 'none', stroke: 'var(--linha-lab)', 'stroke-width': 3.5 }));
+    svg.appendChild(el('polyline', { points: degrau(pts.map(p => ({ t: p.t, v: p.m }))), fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 2.5 }));
+  }
+  function modoCortador(id, modos) {
+    const svg = document.getElementById(id);
+    svg.innerHTML = '';
+    const x = i => 2 + i * (CW - 4) / (modos.length - 1);
+    const pts = modos.map((v, i) => (i ? `${x(i)},${yc(modos[i - 1])} ` : '') + `${x(i)},${yc(v)}`).join(' ');
+    svg.appendChild(el('polyline', { points: pts, fill: 'none', stroke: 'var(--linha-prensa)', 'stroke-width': 3 }));
   }
   function set(id, texto, cor) { const e = document.getElementById(id); e.textContent = texto; e.style.color = cor || ''; return e; }
   function lampada(id, valor) {
@@ -332,32 +353,29 @@
     const pts = serie(cen), u = pts[pts.length - 1], ts = new Date(u.t);
     const q = cen === 'bad' ? 'Bad' : 'Good';
     const cont = cen === 'f200' ? [0, 4, 7] : [0, 0, 1];   // abaixo de 100, 150 e 200
-    // Compostos de 2 h: média dos 4 ensaios da janela; o laboratório fica próximo do composto da prensa.
-    // Janelas de 2 h começando nas horas pares; só entram janelas completas (4 cortes).
-    const comp = [], DUAS = 2 * 3600e3;
-    const janelas = {};
-    pts.forEach(p => { const k = Math.floor(p.corte / DUAS) * DUAS; (janelas[k] = janelas[k] || []).push(p); });
-    Object.keys(janelas).sort().forEach(k => {
-      const jan = janelas[k]; if (jan.length < 4) return;
-      const prensa = jan.reduce((a, p) => a + p.m, 0) / 4;
-      comp.push({ t: +k + DUAS + 20 * 60e3, fim: +k + DUAS, prensa, lab: Math.round(prensa - 6 + (rnd() - .5) * 10), jan });
-    });
-    const c = comp[comp.length - 1], hm = d => `${p2(d.getHours())}:${p2(d.getMinutes())}`;
+    // Laboratório: um resultado a cada 2 h, próximo da média da prensa no período.
+    const lab = [], DUAS = 2 * 3600e3;
+    for (let t = Math.ceil(pts[0].t / DUAS) * DUAS; t <= pts[pts.length - 1].t; t += DUAS) {
+      const viz = pts.filter(p => Math.abs(p.t - t) <= DUAS / 2);
+      lab.push({ t, v: Math.round(viz.reduce((a, p) => a + p.m, 0) / viz.length - 6 + (rnd() - .5) * 10) });
+    }
+    const ul = lab[lab.length - 1];
     set('s-atual', dh(ts));
     set('s-gi1', num(u.m)); set('s-gi1-ts', dh(ts)); set('s-gi1-q', q, q === 'Good' ? '' : 'var(--sam-laranja)');
     set('s-gi2', num(u.s)); set('s-gi2-ts', dh(ts)); set('s-gi2-q', 'Good');
-    set('c-prensa', num(c.prensa), 'var(--linha-prensa)'); set('c-lab', String(c.lab));
-    set('c-jan', dh(new Date(c.fim))); set('c-n', String(c.jan.length));
-    const dif = c.prensa - c.lab; set('c-dif', (dif > 0 ? '+' : '') + num(dif));
-    c.jan.forEach((p, i) => { set(`e${i + 1}h`, hm(new Date(p.corte))); set(`e${i + 1}v`, num(p.m)); });
+    set('s-lab', String(ul.v)); set('s-lab-ts', dh(new Date(ul.t)));
     set('s-qi1', String(cont[0])); set('s-qi2', String(cont[1])); set('s-qi3', String(cont[2]));
     lampada('lq1', cont[0]); lampada('lq2', cont[1]); lampada('lq3', cont[2]);
-    lampada('c1a', 32); lampada('c1m', 32);
     const m2 = cen === 'manual' ? 16 : 32;
+    lampada('c1a', 32); lampada('c1m', 32);
     lampada('c2a', m2); lampada('c2m', m2);
     spark(document.getElementById('sp1'), pts, 'm', 500);
     spark(document.getElementById('sp2'), pts, 's', 150);
-    tendencia(pts, comp);
+    spark(document.getElementById('sp3'), lab.map(l => ({ v: l.v })), 'v', 500);
+    tendencia(pts, lab);
+    const m1 = Array.from({ length: 24 }, (_, i) => (i >= 9 && i < 12 ? 16 : 32));
+    const m2s = Array.from({ length: 24 }, (_, i) => (cen === 'manual' && i >= 20 ? 16 : 32));
+    modoCortador('tc1', m1); modoCortador('tc2', m2s);
   }
 
   const sel = document.getElementById('cen'), tema = document.getElementById('tema');

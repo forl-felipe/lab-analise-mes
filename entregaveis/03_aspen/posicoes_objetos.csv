@@ -1,28 +1,20 @@
 ﻿n;objeto;ferramenta;tag;mapa;atributo;x_unid;y_unid;largura_unid;altura_unid
 Tela;Tela inteira (referência);-;;;;0,00;0,00;50,00;35,00
 1;Última atualização (cabeçalho);Campo de dados;307-GI-001;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);42,75;1,03;6,25;0,81
-2;Média prensa automática: valor;Campo de dados;307-GI-001;IP_ANALOGMAP;VAL;1,78;5,47;6,41;2,63
-3;Média prensa automática: minitendência;Tendência (plot);307-GI-001;;;11,66;5,97;4,38;2,81
-4;Média prensa automática: atualizado às;Campo de dados;307-GI-001;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);4,66;9,69;5,16;0,69
-5;Média prensa automática: qualidade;Campo de dados;307-GI-001;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de qualidade (Parte B);12,75;9,69;2,50;0,69
+2;Média compressão online: valor;Campo de dados;307-GI-001;IP_ANALOGMAP;VAL;1,78;5,47;6,41;2,63
+3;Média compressão online: minitendência;Tendência (plot);307-GI-001;;;11,66;5,97;4,38;2,81
+4;Média compressão online: atualizado às;Campo de dados;307-GI-001;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);4,66;9,69;5,16;0,69
+5;Média compressão online: qualidade;Campo de dados;307-GI-001;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de qualidade (Parte B);12,75;9,69;2,50;0,69
 6;Desvio padrão: valor;Campo de dados;307-GI-002;IP_ANALOGMAP;VAL;18,22;5,47;6,41;2,63
 7;Desvio padrão: minitendência;Tendência (plot);307-GI-002;;;28,09;5,97;4,38;2,81
 8;Desvio padrão: atualizado às;Campo de dados;307-GI-002;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);21,10;9,69;5,16;0,69
 9;Desvio padrão: qualidade;Campo de dados;307-GI-002;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de qualidade (Parte B);29,18;9,69;2,50;0,69
-10;Composto 2 h: prensa automática;Campo de dados;307-GI-001-C2H;IP_ANALOGMAP;VAL;34,66;5,97;5,63;2,19
-11;Composto 2 h: laboratório (MES);Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;VAL;43,71;5,97;4,06;2,19
-12;Composto 2 h: fim da janela;Campo de dados;307-GI-001-C2H;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);37,53;9,06;3,94;0,69
-13;Composto 2 h: diferença prensa menos laboratório;Campo de dados;307-GI-001-DIF2H;IP_ANALOGMAP;VAL;44,03;9,06;1,75;0,69
-14;Tendência: composto da prensa x composto do laboratório;Tendência (plot);307-GI-001, 307-GI-001-C2H e M4710050020-0031-HHLFU;;;3,16;15,06;30,94;17,50
-15;Cortes do composto: hora do corte 1;Campo de dados;307-GI-001-CORTE1;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);37,72;15,80;2,50;0,75
-16;Cortes do composto: hora do corte 2;Campo de dados;307-GI-001-CORTE2;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);37,72;17,05;2,50;0,75
-17;Cortes do composto: hora do corte 3;Campo de dados;307-GI-001-CORTE3;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);37,72;18,30;2,50;0,75
-18;Cortes do composto: hora do corte 4;Campo de dados;307-GI-001-CORTE4;IP_ANALOGMAP;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);37,72;19,55;2,50;0,75
-19;Cortes do composto: resultado do corte 1;Campo de dados;307-GI-001-CORTE1;IP_ANALOGMAP;VAL;42,09;15,77;3,75;0,81
-20;Cortes do composto: resultado do corte 2;Campo de dados;307-GI-001-CORTE2;IP_ANALOGMAP;VAL;42,09;17,02;3,75;0,81
-21;Cortes do composto: resultado do corte 3;Campo de dados;307-GI-001-CORTE3;IP_ANALOGMAP;VAL;42,09;18,27;3,75;0,81
-22;Cortes do composto: resultado do corte 4;Campo de dados;307-GI-001-CORTE4;IP_ANALOGMAP;VAL;42,09;19,52;3,75;0,81
-23;Faixa abaixo de 200 kgf/pelota;Campo de dados;307-QI-003;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;24,52;2,00;0,94
-24;Faixa abaixo de 150 kgf/pelota;Campo de dados;307-QI-002;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;25,89;2,00;0,94
-25;Faixa abaixo de 100 kgf/pelota;Campo de dados;307-QI-001;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;27,27;2,00;0,94
-26;Composto 2 h: cortes com resultado na janela;Campo de dados;307-GI-001-N2H;IP_ANALOGMAP;VAL;40,10;10,00;0,75;0,69
+10;Referência laboratório: valor;Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;VAL;34,66;5,47;5,63;2,63
+11;Referência laboratório: minitendência;Tendência (plot);M4710050020-0031-HHLFU;;;43,84;5,97;4,38;2,81
+12;Referência laboratório: atualizado às;Campo de dados;M4710050020-0031-HHLFU;IP_MESVALOR;`VAL` no arquivo: trocar pelo atributo de data e hora (Parte B);37,53;9,69;5,16;0,69
+13;Tendência: compressão online x referência laboratório;Tendência (plot);307-GI-001 e M4710050020-0031-HHLFU;;;3,16;15,06;30,94;17,50
+14;Faixa abaixo de 200 kgf/pelota;Campo de dados;307-QI-003;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;14,83;2,00;0,94
+15;Faixa abaixo de 150 kgf/pelota;Campo de dados;307-QI-002;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;16,20;2,00;0,94
+16;Faixa abaixo de 100 kgf/pelota;Campo de dados;307-QI-001;IP_DISCRETEMAP no arquivo: **conferir** (Parte B);VAL;46,03;17,58;2,00;0,94
+17;Cortador 07CR001: tendência do modo de operação;Tendência (plot);U04-07CR001;;;40,59;23,56;7,69;4,00
+18;Cortador 07CR002: tendência do modo de operação;Tendência (plot);U04-07CR002;;;40,59;29,38;7,69;4,00

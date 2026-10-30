@@ -4,10 +4,10 @@ Uso (na pasta ferramentas):
     node gerar_imagens.js            (gera ../03_aspen/objetos_tela.json a partir do protótipo)
     python gerar_atgraphic.py
 
-Saída: ../03_aspen/LCE_Compressao_Pelotas_Prensa01.atgraphic
+Saída: ../03_aspen/LCE_Compressao_Online_Usina4.atgraphic
 
 Tudo é objeto nativo do Aspen (vetorial), como na tela PIMS PQ US04: painéis e linhas viram polígonos,
-textos viram objetos de texto, os valores viram campos de dados e as três tendências já vêm ligadas às
+textos viram objetos de texto, os valores viram campos de dados e as tendências já vêm ligadas às
 tags. Assim a tela não perde qualidade ao maximizar. Só o logotipo é inserido no editor (ver roteiro).
 
 O formato foi obtido por engenharia reversa da tela PIMS_PQ_US04_atual_rev_1.atgraphic:
@@ -27,7 +27,7 @@ from montar_pacote_aspen import SPEC  # noqa: E402  (tags, mapas e formatos dos 
 from logo_poligonos import poligonos  # noqa: E402
 
 SAIDA = os.path.join(AQUI, "..", "03_aspen")
-ARQUIVO = "LCE_Compressao_Pelotas_Prensa01.atgraphic"
+ARQUIVO = "LCE_Compressao_Online_Usina4.atgraphic"
 ESCALA = 5000 / 1600
 CLSID_ASPEN = "A272B18A-DA53-11CF-A640-00A0240279F4"  # mesmo identificador da tela PQ US04
 SERVIDOR = "UBU"
@@ -122,11 +122,14 @@ def campo(c, spec):
 PENAS = {
     3: [("307-GI-001", "IP_ANALOGMAP", 0, 500, (89, 198, 242))],
     7: [("307-GI-002", "IP_ANALOGMAP", 0, 150, (89, 198, 242))],
-    14: [("307-GI-001", "IP_ANALOGMAP", 50, 450, (47, 127, 174)),                  # cada ensaio (linha fina)
-         ("M4710050020-0031-HHLFU", "IP_MESVALOR", 50, 450, (255, 255, 255)),      # composto do laboratório
-         ("307-GI-001-C2H", "IP_ANALOGMAP", 50, 450, (89, 198, 242))],             # composto da prensa (tag calculada)
+    11: [("M4710050020-0031-HHLFU", "IP_MESVALOR", 0, 500, (89, 198, 242))],
+    13: [("M4710050020-0031-HHLFU", "IP_MESVALOR", 50, 450, (255, 255, 255)),     # referência do laboratório
+         ("307-GI-001", "IP_ANALOGMAP", 50, 450, (89, 198, 242))],                # compressão online, cada ensaio
+    # Cortadores: escala 8 a 40 para Automático (32) e Manual (16) ficarem nas linhas de referência da tela
+    17: [("U04-07CR001", "IP_PIDMAP03", 8, 40, (89, 198, 242))],
+    18: [("U04-07CR002", "IP_PIDMAP03", 8, 40, (89, 198, 242))],
 }
-FUNDO_TENDENCIA = {14: (1, 41, 74)}   # fundo da área do gráfico principal
+FUNDO_TENDENCIA = {13: (1, 41, 74), 17: (1, 41, 74), 18: (1, 41, 74)}   # fundo da área dos gráficos
 
 
 def tendencia(c):
@@ -293,7 +296,7 @@ def main():
     # Arquivo mínimo para diagnóstico: um painel, um texto, um campo e uma tendência.
     minimo = dict(dados, formas=[f for f in dados["formas"] if f["preenchimento"] and f["linha"]][:1],
                   textos=dados["textos"][:1], simbolos=[], lampadas=dados.get("lampadas", [])[:1], logo=None,
-                  campos=[c for c in dados["campos"] if c["n"] in (2, 14)])
+                  campos=[c for c in dados["campos"] if c["n"] in (2, 13)])
     fluxo_min, objs_min = conteudo(minimo)
     with open(os.path.join(SAIDA, "teste_minimo.atgraphic"), "wb") as fh:
         fh.write(cfb(fluxo_min))

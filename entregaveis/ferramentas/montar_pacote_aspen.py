@@ -50,34 +50,27 @@ A = "IP_ANALOGMAP"
 MES = "M4710050020-0031-HHLFU"
 SPEC = {
     1: campo("Última atualização (cabeçalho)", "307-GI-001", A, HORA, 14, True, "Direita", CABEC, DH),
-    2: campo("Média prensa automática: valor", "307-GI-001", A, "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)"),
-    3: tendencia("Média prensa automática: minitendência", "Já vem pronta no arquivo, escala 0 a 500. Ver Parte C.", "307-GI-001"),
-    4: campo("Média prensa automática: atualizado às", "307-GI-001", A, HORA, 11, False, "Esquerda", PAINEL, DH),
-    5: campo("Média prensa automática: qualidade", "307-GI-001", A, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
+    2: campo("Média compressão online: valor", "307-GI-001", A, "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)"),
+    3: tendencia("Média compressão online: minitendência", "Já vem pronta no arquivo, escala 0 a 500. Ver Parte C.", "307-GI-001"),
+    4: campo("Média compressão online: atualizado às", "307-GI-001", A, HORA, 11, False, "Esquerda", PAINEL, DH),
+    5: campo("Média compressão online: qualidade", "307-GI-001", A, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
     6: campo("Desvio padrão: valor", "307-GI-002", A, "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)"),
     7: tendencia("Desvio padrão: minitendência", "Já vem pronta no arquivo, escala 0 a 150. Ver Parte C.", "307-GI-002"),
     8: campo("Desvio padrão: atualizado às", "307-GI-002", A, HORA, 11, False, "Esquerda", PAINEL, DH),
     9: campo("Desvio padrão: qualidade", "307-GI-002", A, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
-    10: campo("Composto 2 h: prensa automática", "307-GI-001-C2H", A, "VAL", 45, True, "Esquerda", PAINEL, "1 casa decimal (0,0)",
-              obs="Média dos cortes com resultado na janela (1 a 4)." + CALC, cor=AZUL_CLARO),
-    11: campo("Composto 2 h: laboratório (MES)", MES, "IP_MESVALOR", "VAL", 45, True, "Esquerda", PAINEL, "Sem casas decimais (0)",
+    10: campo("Referência laboratório: valor", MES, "IP_MESVALOR", "VAL", 57, True, "Direita", PAINEL, "Sem casas decimais (0)",
               obs="Mesmo vínculo do campo Compressão da tela PQ US04."),
-    12: campo("Composto 2 h: fim da janela", "307-GI-001-C2H", A, HORA, 11, False, "Esquerda", PAINEL, "dd/mm/aaaa hh:mm", obs=CALC.strip()),
-    13: campo("Composto 2 h: diferença prensa menos laboratório", "307-GI-001-DIF2H", A, "VAL", 11, True, "Direita", PAINEL,
-              "1 casa decimal (0,0)", obs=CALC.strip()),
-    14: tendencia("Tendência: composto da prensa x composto do laboratório", "Já vem pronta no arquivo, com as 3 penas e escala 50 a 450. Ver Parte C.",
-                  "307-GI-001, 307-GI-001-C2H e " + MES),
+    11: tendencia("Referência laboratório: minitendência", "Já vem pronta no arquivo, escala 0 a 500. Ver Parte C.", MES),
+    12: campo("Referência laboratório: atualizado às", MES, "IP_MESVALOR", HORA, 11, False, "Esquerda", PAINEL, DH),
+    13: tendencia("Tendência: compressão online x referência laboratório", "Já vem pronta no arquivo, com as 2 penas e escala 50 a 450. Ver Parte C.",
+                  "307-GI-001 e " + MES),
 }
-for k in range(4):
-    SPEC[15 + k] = campo(f"Cortes do composto: hora do corte {k + 1}", f"307-GI-001-CORTE{k + 1}", A, HORA, 14, True, "Esquerda", PAINEL,
-                         "hh:mm", obs=CALC.strip())
-    SPEC[19 + k] = campo(f"Cortes do composto: resultado do corte {k + 1}", f"307-GI-001-CORTE{k + 1}", A, "VAL", 15, True, "Direita",
-                         PAINEL, "1 casa decimal (0,0)", obs=CALC.strip())
-for n, tag, lim in ((23, "307-QI-003", 200), (24, "307-QI-002", 150), (25, "307-QI-001", 100)):
+for n, tag, lim in ((14, "307-QI-003", 200), (15, "307-QI-002", 150), (16, "307-QI-001", 100)):
     SPEC[n] = campo(f"Faixa abaixo de {lim} kgf/pelota", tag, DISC, "VAL", 18, True, "Direita", PAINEL, "Sem casas decimais (0)",
                     obs="A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo).")
-SPEC[26] = campo("Composto 2 h: cortes com resultado na janela", "307-GI-001-N2H", A, "VAL", 11, True, "Direita", PAINEL,
-                 "Sem casas decimais (0)", obs="Quantidade de cortes (1 a 4) usados na média." + CALC)
+for n, eq in ((17, "07CR001"), (18, "07CR002")):
+    SPEC[n] = tendencia(f"Cortador {eq}: tendência do modo de operação",
+                        "Já vem pronta no arquivo, escala 8 a 40 (Automático = 32, Manual = 16). Ver Parte C.", f"U04-{eq}")
 
 
 def un(v):

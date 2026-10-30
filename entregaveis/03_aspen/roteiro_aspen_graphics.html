@@ -12,13 +12,13 @@ code { background: #eef1f5; padding: 1px 4px; border-radius: 3px; font-size: 13p
 img { max-width: 100%; border: 1px solid #c5ccd6; }
 blockquote { border-left: 4px solid #f2994a; margin: 10px 0; padding: 4px 12px; background: #fff7ef; }
 hr { border: 0; border-top: 1px solid #c5ccd6; }
-</style></head><body><h1>Passo a passo: tela de compressão de pelotas no Aspen (versão 7)</h1>
-<p><strong>Tela:</strong> Monitoramento do ensaio de compressão de pelotas, padrão visual Samarco, comparação composto com composto (2 h)</p>
+</style></head><body><h1>Passo a passo: tela Compressão Online Usina 4 no Aspen (versão 8)</h1>
+<p><strong>Tela:</strong> Compressão Online Usina 4, padrão visual Samarco: média e desvio padrão da prensa automática, referência do laboratório, faixas de compressão e cortadores da amostragem com tendência</p>
 <p><strong>Resultado esperado:</strong> igual a <code>tela_exemplo_normal.png</code></p>
-<p><strong>Tempo estimado:</strong> 30 minutos</p>
+<p><strong>Tempo estimado:</strong> 20 minutos</p>
 <p><img alt="Resultado esperado" src="tela_exemplo_normal.png" /></p>
 <h2>O que vem pronto no arquivo</h2>
-<p>O arquivo <code>LCE_Compressao_Pelotas_Prensa01.atgraphic</code> segue o mesmo formato da versão que já abriu no seu PIMS. Tudo é objeto nativo do Aspen e não perde nitidez ao maximizar:</p>
+<p>O arquivo <code>LCE_Compressao_Online_Usina4.atgraphic</code> segue o mesmo formato da versão que já abriu no seu PIMS. Tudo é objeto nativo do Aspen e não perde nitidez ao maximizar. Não há mais tags calculadas: a tela usa só as tags que já existem.</p>
 <table>
 <thead>
 <tr>
@@ -29,19 +29,19 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <tbody>
 <tr>
 <td>Painéis, linhas, limites tracejados e logotipo oficial em polígonos</td>
-<td>178</td>
+<td>227</td>
 </tr>
 <tr>
 <td>Textos fixos</td>
-<td>55</td>
+<td>47</td>
 </tr>
 <tr>
 <td>Campos de dados ligados às tags</td>
-<td>23</td>
+<td>12</td>
 </tr>
 <tr>
 <td>Tendências com penas e escala definidas</td>
-<td>3</td>
+<td>6</td>
 </tr>
 <tr>
 <td>Lâmpadas animadas (cortadores e faixas de compressão)</td>
@@ -50,7 +50,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tbody>
 </table>
 <h2>Parte A. Abrir</h2>
-<p><strong>A1.</strong> Copie <code>LCE_Compressao_Pelotas_Prensa01.atgraphic</code> para a pasta de rede das telas do laboratório. Se a versão anterior estiver aberta, feche-a antes de substituir.</p>
+<p><strong>A1.</strong> Copie <code>LCE_Compressao_Online_Usina4.atgraphic</code> para a pasta de rede das telas do laboratório. A versão anterior (<code>LCE_Compressao_Pelotas_Prensa01</code>) pode ser apagada depois que esta estiver conferida.</p>
 <p><strong>A2.</strong> Abra no <strong>Aspen Process Graphics Editor</strong>, compare com <code>tela_exemplo_normal.png</code> e maximize.</p>
 <p><strong>Se der erro ao abrir:</strong> tente <code>teste_minimo.atgraphic</code> e me envie a captura da mensagem, dizendo se o arquivo de teste abriu.</p>
 <h2>Parte B. Ajustes nos campos (no editor)</h2>
@@ -69,7 +69,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>4</td>
-<td>Média prensa automática: atualizado às</td>
+<td>Média compressão online: atualizado às</td>
 </tr>
 <tr>
 <td>8</td>
@@ -77,17 +77,13 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>12</td>
-<td>Composto 2 h: fim da janela</td>
-</tr>
-<tr>
-<td>15 a 18</td>
-<td>Cortes do composto: hora de cada corte</td>
+<td>Referência laboratório: atualizado às</td>
 </tr>
 </tbody>
 </table>
 <p>Dica: depois de achar o atributo certo no objeto 1, me diga o nome. Na próxima versão ele já vem configurado em todos.</p>
 <p><strong>B2. Atributo de qualidade</strong> nos objetos 5 e 9 (qualidade da média e do desvio padrão), com a regra de cor: <code>Good</code> em branco e qualquer outro texto em laranja (RGB 243, 112, 33).</p>
-<p><strong>B3. Mapa dos discretos.</strong> Os objetos 23, 24 e 25 (faixas de compressão) e as três lâmpadas ao lado deles usam o mapa <code>IP_DISCRETEMAP</code>, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.</p>
+<p><strong>B3. Mapa dos discretos.</strong> Os objetos 14, 15 e 16 (faixas de compressão) e as três lâmpadas ao lado deles usam o mapa <code>IP_DISCRETEMAP</code>, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.</p>
 <h2>Parte C. Tendências</h2>
 <table>
 <thead>
@@ -109,15 +105,24 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>0 a 150</td>
 </tr>
 <tr>
-<td>14 (tendência principal)</td>
-<td><code>307-GI-001</code> (cada ensaio, linha azul escura), <code>M4710050020-0031-HHLFU</code> (laboratório, branca) e <code>307-GI-001-C2H</code> (composto da prensa, azul claro)</td>
-<td>50 a 450 nas três</td>
+<td>11 (minitendência do laboratório)</td>
+<td><code>M4710050020-0031-HHLFU</code></td>
+<td>0 a 500</td>
+</tr>
+<tr>
+<td>13 (tendência principal)</td>
+<td><code>307-GI-001</code> (compressão online, azul claro) e <code>M4710050020-0031-HHLFU</code> (referência laboratório, branca)</td>
+<td>50 a 450 nas duas</td>
+</tr>
+<tr>
+<td>17 e 18 (cortadores)</td>
+<td><code>U04-07CR001</code> e <code>U04-07CR002</code> (mapa <code>IP_PIDMAP03</code>)</td>
+<td>8 a 40</td>
 </tr>
 </tbody>
 </table>
-<p><strong>C1.</strong> Na barra de tempo, embaixo da janela, use <strong><code>8:00:00</code></strong>.</p>
-<p><strong>C2.</strong> Os números de 100 a 400 e as linhas de 200, 150 e 100 são parte fixa da tela. <strong>Não altere a escala das penas.</strong></p>
-<p><strong>C3. Teste do composto sem tag calculada:</strong> nas propriedades da pena <code>307-GI-001</code> da tendência 14, veja se existe opção de <strong>média por período</strong> (agregado). Se existir, adicione mais uma pena <code>307-GI-001</code> com <strong>média de 2 h</strong>, cor azul claro (RGB 89, 198, 242) e escala 50 a 450. Ela desenha o composto da prensa enquanto a tag calculada não existe.</p>
+<p><strong>C1.</strong> Na barra de tempo, embaixo de cada tendência, use <strong><code>8:00:00</code></strong> na principal e <strong><code>24:00:00</code></strong> nas dos cortadores (ou o período que preferir).</p>
+<p><strong>C2.</strong> Os números de 100 a 400, as linhas de 200, 150 e 100 e as linhas Automático e Manual dos cortadores são parte fixa da tela. <strong>Não altere a escala das penas</strong>, senão a linha deixa de coincidir com as referências.</p>
 <h2>Parte D. Lâmpadas (já prontas)</h2>
 <table>
 <thead>
@@ -145,39 +150,9 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<p>Os valores 32 e 16 foram tirados dos indicadores Manual/Automático da tela PQ US04. Confira com o cortador em manual: a lâmpada laranja deve acender.</p>
 <h2>Parte E. Salvar</h2>
 <p><strong>E1.</strong> <strong>Arquivo &gt; Salvar</strong>. Abra no Process Explorer e maximize para conferir.</p>
-<h2>Parte F. Tags calculadas (pedir ao administrador do PIMS)</h2>
-<p>Os campos do composto da prensa (10), da diferença (13), da quantidade de cortes (26) e dos cortes (15 a 22) e a linha azul clara da tendência já estão ligados às tags abaixo. <strong>Assim que o administrador criar as tags com estes nomes, a tela passa a mostrar os valores sozinha</strong>, sem nenhuma edição. Até lá, o Aspen mostra <code>***</code> nesses campos, que é a indicação de tag inexistente.</p>
-<table>
-<thead>
-<tr>
-<th>Tag</th>
-<th>Cálculo</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>307-GI-001-C2H</code></td>
-<td>Média de <code>307-GI-001</code> <strong>dos cortes com resultado</strong> na janela de 2 h do composto do laboratório (1 a 4 cortes), gravada no fim da janela</td>
-</tr>
-<tr>
-<td><code>307-GI-001-N2H</code></td>
-<td>Quantidade de cortes com resultado na janela (0 a 4)</td>
-</tr>
-<tr>
-<td><code>307-GI-001-DIF2H</code></td>
-<td><code>307-GI-001-C2H</code> menos <code>M4710050020-0031-HHLFU</code> da mesma janela</td>
-</tr>
-<tr>
-<td><code>307-GI-001-CORTE1</code> a <code>307-GI-001-CORTE4</code></td>
-<td>Resultado de <code>307-GI-001</code> de cada um dos 4 cortes da janela atual, gravado no horário do corte; sem valor quando o corte não teve resultado</td>
-</tr>
-</tbody>
-</table>
-<p>Detalhes (janela pelo horário do corte, defasagem de 20 min até a entrada no PIMS, janelas incompletas e cortadores em manual) em <code>../05_proposta_visual/composto_2h_especificacao.md</code>. Se o administrador preferir outros nomes, me informe que eu regero o arquivo.</p>
-<h2>Parte G. Problemas comuns</h2>
+<h2>Parte F. Problemas comuns</h2>
 <table>
 <thead>
 <tr>
@@ -195,15 +170,15 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>Parte B1</td>
 </tr>
 <tr>
-<td>Campos do composto com <code>***</code></td>
-<td>Normal até as tags calculadas existirem (Parte F)</td>
+<td>Campos e tendências sem dados novos, em todas as telas</td>
+<td>Problema no PIMS ou na coleta da tag, não na tela: confira a mesma tag no Process Explorer ou na tela PQ US04</td>
 </tr>
 <tr>
-<td>Lâmpada de modo não muda</td>
-<td>Confira se o valor de Manual é 16 e de Automático é 32 na tela PQ US04</td>
+<td>Linha do cortador fora das referências Automático e Manual</td>
+<td>Volte a escala para 8 a 40 (Parte C)</td>
 </tr>
 <tr>
-<td>Escala da tendência diferente</td>
+<td>Escala da tendência principal diferente</td>
 <td>Volte para 50 a 450 (Parte C)</td>
 </tr>
 </tbody>
@@ -270,7 +245,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 2: Média prensa automática: valor</h3>
+<h3>Objeto 2: Média compressão online: valor</h3>
 <table>
 <thead>
 <tr>
@@ -329,7 +304,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 3: Média prensa automática: minitendência</h3>
+<h3>Objeto 3: Média compressão online: minitendência</h3>
 <table>
 <thead>
 <tr>
@@ -356,7 +331,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 4: Média prensa automática: atualizado às</h3>
+<h3>Objeto 4: Média compressão online: atualizado às</h3>
 <table>
 <thead>
 <tr>
@@ -415,7 +390,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 5: Média prensa automática: qualidade</h3>
+<h3>Objeto 5: Média compressão online: qualidade</h3>
 <table>
 <thead>
 <tr>
@@ -678,7 +653,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 10: Composto 2 h: prensa automática</h3>
+<h3>Objeto 10: Referência laboratório: valor</h3>
 <table>
 <thead>
 <tr>
@@ -693,74 +668,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>34,66 ; 5,97</td>
+<td>34,66 ; 5,47</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
-<td>5,63 ; 2,19</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-C2H</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code></td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Esquerda</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 89, 198, 242</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>1 casa decimal (0,0)</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Média dos cortes com resultado na janela (1 a 4). Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 11: Composto 2 h: laboratório (MES)</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>43,71 ; 5,97</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>4,06 ; 2,19</td>
+<td>5,63 ; 2,63</td>
 </tr>
 <tr>
 <td>Tag</td>
@@ -780,7 +692,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Alinhamento</td>
-<td>Esquerda</td>
+<td>Direita</td>
 </tr>
 <tr>
 <td>Cor do texto</td>
@@ -804,7 +716,34 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 12: Composto 2 h: fim da janela</h3>
+<h3>Objeto 11: Referência laboratório: minitendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>43,84 ; 5,97</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,38 ; 2,81</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo, escala 0 a 500. Ver Parte C.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 12: Referência laboratório: atualizado às</h3>
 <table>
 <thead>
 <tr>
@@ -819,19 +758,19 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>37,53 ; 9,06</td>
+<td>37,53 ; 9,69</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
-<td>3,94 ; 0,69</td>
+<td>5,16 ; 0,69</td>
 </tr>
 <tr>
 <td>Tag</td>
-<td><code>307-GI-001-C2H</code></td>
+<td><code>M4710050020-0031-HHLFU</code></td>
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
+<td><code>IP_MESVALOR</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -855,82 +794,15 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Formato</td>
-<td>dd/mm/aaaa hh:mm</td>
+<td>dd/mm/aaaa hh:mm:ss</td>
 </tr>
 <tr>
 <td>Regra de cor</td>
 <td>Nenhuma</td>
 </tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
 </tbody>
 </table>
-<h3>Objeto 13: Composto 2 h: diferença prensa menos laboratório</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>44,03 ; 9,06</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>1,75 ; 0,69</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-DIF2H</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code></td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Direita</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>1 casa decimal (0,0)</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 14: Tendência: composto da prensa x composto do laboratório</h3>
+<h3>Objeto 13: Tendência: compressão online x referência laboratório</h3>
 <table>
 <thead>
 <tr>
@@ -953,11 +825,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>Já vem pronta no arquivo, com as 3 penas e escala 50 a 450. Ver Parte C.</td>
+<td>Já vem pronta no arquivo, com as 2 penas e escala 50 a 450. Ver Parte C.</td>
 </tr>
 </tbody>
 </table>
-<h3>Objeto 15: Cortes do composto: hora do corte 1</h3>
+<h3>Objeto 14: Faixa abaixo de 200 kgf/pelota</h3>
 <table>
 <thead>
 <tr>
@@ -972,511 +844,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>37,72 ; 15,80</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>2,50 ; 0,75</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-CORTE1</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Esquerda</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>hh:mm</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 16: Cortes do composto: hora do corte 2</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>37,72 ; 17,05</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>2,50 ; 0,75</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-CORTE2</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Esquerda</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>hh:mm</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 17: Cortes do composto: hora do corte 3</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>37,72 ; 18,30</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>2,50 ; 0,75</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-CORTE3</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Esquerda</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>hh:mm</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 18: Cortes do composto: hora do corte 4</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>37,72 ; 19,55</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>2,50 ; 0,75</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-CORTE4</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code> no arquivo: <strong>trocar pelo atributo de data e hora</strong> (Parte B)</td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Esquerda</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>hh:mm</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 19: Cortes do composto: resultado do corte 1</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>42,09 ; 15,77</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>3,75 ; 0,81</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-CORTE1</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code></td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Direita</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>1 casa decimal (0,0)</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 20: Cortes do composto: resultado do corte 2</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>42,09 ; 17,02</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>3,75 ; 0,81</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-CORTE2</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code></td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Direita</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>1 casa decimal (0,0)</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 21: Cortes do composto: resultado do corte 3</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>42,09 ; 18,27</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>3,75 ; 0,81</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-CORTE3</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code></td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Direita</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>1 casa decimal (0,0)</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 22: Cortes do composto: resultado do corte 4</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>42,09 ; 19,52</td>
-</tr>
-<tr>
-<td>Tamanho em unidades (largura ; altura)</td>
-<td>3,75 ; 0,81</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-CORTE4</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code></td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Direita</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>1 casa decimal (0,0)</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
-</tr>
-<tr>
-<td>Observação</td>
-<td>Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
-</tr>
-</tbody>
-</table>
-<h3>Objeto 23: Faixa abaixo de 200 kgf/pelota</h3>
-<table>
-<thead>
-<tr>
-<th>Propriedade</th>
-<th>Valor</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Ferramenta</td>
-<td>Campo de dados</td>
-</tr>
-<tr>
-<td>Posição em unidades (X ; Y)</td>
-<td>46,03 ; 24,52</td>
+<td>46,03 ; 14,83</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1524,7 +892,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 24: Faixa abaixo de 150 kgf/pelota</h3>
+<h3>Objeto 15: Faixa abaixo de 150 kgf/pelota</h3>
 <table>
 <thead>
 <tr>
@@ -1539,7 +907,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>46,03 ; 25,89</td>
+<td>46,03 ; 16,20</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1587,7 +955,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 25: Faixa abaixo de 100 kgf/pelota</h3>
+<h3>Objeto 16: Faixa abaixo de 100 kgf/pelota</h3>
 <table>
 <thead>
 <tr>
@@ -1602,7 +970,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>46,03 ; 27,27</td>
+<td>46,03 ; 17,58</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -1650,7 +1018,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 26: Composto 2 h: cortes com resultado na janela</h3>
+<h3>Objeto 17: Cortador 07CR001: tendência do modo de operação</h3>
 <table>
 <thead>
 <tr>
@@ -1661,55 +1029,46 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <tbody>
 <tr>
 <td>Ferramenta</td>
-<td>Campo de dados</td>
+<td>Tendência (plot)</td>
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>40,10 ; 10,00</td>
+<td>40,59 ; 23,56</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
-<td>0,75 ; 0,69</td>
-</tr>
-<tr>
-<td>Tag</td>
-<td><code>307-GI-001-N2H</code></td>
-</tr>
-<tr>
-<td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
-</tr>
-<tr>
-<td>Atributo</td>
-<td><code>VAL</code></td>
-</tr>
-<tr>
-<td>Fonte</td>
-<td>Arial negrito, já definida no arquivo</td>
-</tr>
-<tr>
-<td>Alinhamento</td>
-<td>Direita</td>
-</tr>
-<tr>
-<td>Cor do texto</td>
-<td>RGB 255, 255, 255</td>
-</tr>
-<tr>
-<td>Cor de fundo</td>
-<td>RGB 0, 51, 90 (ou transparente), sem borda</td>
-</tr>
-<tr>
-<td>Formato</td>
-<td>Sem casas decimais (0)</td>
-</tr>
-<tr>
-<td>Regra de cor</td>
-<td>Nenhuma</td>
+<td>7,69 ; 4,00</td>
 </tr>
 <tr>
 <td>Observação</td>
-<td>Quantidade de cortes (1 a 4) usados na média. Tag calculada a criar pelo administrador do PIMS (Parte F); até lá o campo fica sem valor.</td>
+<td>Já vem pronta no arquivo, escala 8 a 40 (Automático = 32, Manual = 16). Ver Parte C.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 18: Cortador 07CR002: tendência do modo de operação</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>40,59 ; 29,38</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,69 ; 4,00</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo, escala 8 a 40 (Automático = 32, Manual = 16). Ver Parte C.</td>
 </tr>
 </tbody>
 </table></body></html>
