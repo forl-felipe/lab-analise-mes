@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Qualidade do Embarque</title>
+<title>Qualidade de Embarque</title>
 <!--
-  Protótipo da tela de acompanhamento do embarque (versão 1, padrão visual Samarco). Dados simulados.
+  Protótipo da tela Qualidade de Embarque (versão 2, padrão visual Samarco). Dados simulados.
   Mesmas convenções da tela Compressão Online Usina 4: o que aparece aqui vira objeto nativo do Aspen
   (polígonos, textos, campos de dados e tendências). Os elementos com data-slot são os objetos dinâmicos.
   Parâmetros na URL: ?modo=demo | fundo | mapa
 -->
 <style>
   :root {
+    --ok: #2ECC71;
     --sam-azul: #00335A; --sam-profundo: #002643; --sam-amarelo: #FFC000; --sam-azul-claro: #59C6F2;
     --sam-laranja: #F37021; --sam-cinza: #B5BEC4;
     --bg: var(--sam-profundo); --head: var(--sam-azul); --card: var(--sam-azul); --card-line: #0B4F82;
@@ -32,7 +33,7 @@
   .cab .dir { margin-left: auto; display: flex; align-items: center; gap: 12px; }
   .cab .dir .rot { color: var(--sam-cinza); font-size: 15px; }
 
-  .card { position: absolute; background: var(--card); border: 1px solid var(--card-line); border-radius: 10px; padding: 18px 24px; }
+  .card { position: absolute; background: var(--card); border: 1px solid var(--card-line); border-radius: 10px; padding: 14px 24px; }
   .card h2 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
   .card .topo { display: flex; align-items: center; }
   .card .topo .quando { margin-left: auto; display: flex; align-items: center; gap: 10px; }
@@ -43,28 +44,42 @@
   .v-med { font-size: 18px; font-weight: 700; line-height: 26px; height: 26px; }
   .v-peq { font-size: 15px; line-height: 22px; height: 22px; }
 
-  .grade { display: flex; gap: 16px; margin-top: 16px; }
-  .tile { background: var(--tile); border: 1px solid var(--card-line); border-radius: 8px; padding: 14px 16px; height: 162px; }
+  .grade { display: flex; gap: 16px; margin-top: 10px; }
+  .tile { background: var(--tile); border: 1px solid var(--card-line); border-radius: 8px; padding: 10px 14px; height: 116px; }
   .tile .nome { font-size: 16px; font-weight: 700; line-height: 20px; height: 20px; white-space: nowrap; }
-  .tile .un { font-size: 14px; color: var(--muted); line-height: 18px; height: 18px; margin-top: 4px; }
-  .tile .valor { display: block; text-align: right; font-weight: 700; margin-top: 18px; }
+  .tile .un { font-size: 13px; color: var(--muted); line-height: 16px; height: 16px; margin-top: 2px; }
+  .tile .valor { display: block; text-align: right; font-weight: 700; margin-top: 6px; }
   .fis .tile { width: 234px; }
-  .fis .valor { font-size: 58px; line-height: 66px; height: 66px; width: 200px; }
+  .fis .valor { font-size: 44px; line-height: 52px; height: 52px; width: 204px; }
   .qui .grade { gap: 12px; }
   .qui .tile { width: 154px; padding: 14px 12px; }
-  .qui .valor { font-size: 40px; line-height: 48px; height: 48px; width: 128px; margin-top: 30px; }
+  .qui .valor { font-size: 34px; line-height: 42px; height: 42px; width: 128px; margin-top: 12px; }
   .destaque { border-color: var(--sam-amarelo) !important; }
 
-  .legenda { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 15px; color: var(--muted); }
-  .legenda .gap { width: 22px; }
+  .legenda { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; color: var(--muted); height: 18px; }
+  .legenda .gap { width: 12px; }
   .traco { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
-  .graf-area { position: relative; margin-top: 12px; height: 320px; }
-  .plot-bg { position: absolute; left: 48px; top: 0; width: 610px; height: 320px; background: var(--plot); }
+  .graf-area { position: relative; margin-top: 8px; height: 176px; }
+  .plot-bg { position: absolute; left: 48px; top: 0; width: 380px; height: 176px; background: var(--plot); }
   .ylab { position: absolute; left: 0; width: 40px; text-align: right; font-size: 13px; color: var(--muted); line-height: 16px; }
-  .ylab2 { position: absolute; left: 664px; width: 40px; text-align: left; font-size: 13px; line-height: 16px; }
-  .gl { position: absolute; left: 48px; width: 610px; height: 1px; background: var(--grade); }
+  .ylab2 { position: absolute; left: 434px; width: 40px; text-align: left; font-size: 13px; line-height: 16px; }
+  .gl { position: absolute; left: 48px; width: 380px; height: 1px; background: var(--grade); }
 
-  body.fundo .slot { visibility: hidden; }
+  .lampada { width: 18px; height: 18px; border-radius: 50%; display: inline-block; background: #23506F; flex: none; }
+  .carga .cols { display: flex; gap: 16px; margin-top: 14px; }
+  .bloco { background: var(--tile); border: 1px solid var(--card-line); border-radius: 8px; padding: 14px 16px; height: 232px; }
+  .bloco .tit { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; height: 22px; }
+  .bloco .tit .rot { font-weight: 400; margin-left: 4px; }
+  .bloco .grande { display: flex; align-items: baseline; margin-top: 10px; }
+  .bloco .grande .slot { font-size: 52px; font-weight: 700; line-height: 60px; height: 60px; text-align: right; }
+  .bloco .grande .un { font-size: 17px; color: var(--muted); margin-left: 8px; }
+  .poroes { display: grid; gap: 6px; margin-top: 12px; }
+  .porao { background: var(--plot); border-radius: 5px; height: 48px; padding: 4px 8px; }
+  .porao .p { font-size: 12px; color: var(--muted); line-height: 14px; height: 14px; }
+  .porao .slot { display: block; font-size: 18px; font-weight: 700; line-height: 24px; height: 24px; text-align: right; }
+  .ritmo .sub { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--card-line); }
+  .ritmo .sub .slot { font-size: 20px; font-weight: 700; line-height: 26px; height: 26px; width: 90px; text-align: right; }
+  body.fundo .slot, body.fundo .lampada { visibility: hidden; }
   body.mapa .slot { visibility: visible !important; color: transparent !important; outline: 2px dashed #ff4fd8; outline-offset: -2px; position: relative; background: rgba(255,79,216,.12); }
   body.mapa .slot > * { visibility: hidden !important; }
   body.mapa .slot::after { content: attr(data-slot); position: absolute; left: 4px; top: 2px; font: 700 14px/1 Arial, sans-serif; color: #fff; background: #c2189e; padding: 2px 5px; border-radius: 3px; }
@@ -76,43 +91,65 @@
   <header class="cab">
     <div class="logo" id="logo"><img src="../../assets/samarco-logo-branca.svg" alt="Samarco"></div>
     <div class="sep"></div>
-    <h1>Qualidade do Embarque</h1>
-    <div class="dir"><span class="rot">Última atualização</span><span class="slot v-med" style="width:200px; text-align:right" id="s-atual" data-slot="1">--</span></div>
+    <h1>Qualidade de Embarque</h1>
   </header>
   <div class="filete"></div>
 
+  <!-- Carregamento -->
+  <section class="card carga" style="left:32px; top:117px; width:1536px; height:300px;">
+    <h2><span class="acento"></span>Carregamento</h2>
+    <div class="cols">
+      <div class="bloco ritmo" style="width:330px">
+        <div class="tit">Ritmo de carregamento</div>
+        <div class="grande"><span class="slot" style="width:190px" id="s-ritmo" data-slot="1">--</span><span class="un">t/h</span></div>
+        <div class="rot" style="margin-top:2px">Balança principal (56TP04)</div>
+        <div class="sub"><span class="rot" style="width:150px">Balança redundante</span><span class="slot" id="s-ritmo2" data-slot="21">--</span><span class="rot">t/h</span></div>
+      </div>
+      <div class="bloco" style="width:650px">
+        <div class="tit"><span class="lampada" id="l-oe" data-tag="309-WIT-004.TOT_NAV_OE" data-mapa="IP_ANALOGMAP" data-lo="0.5" data-hi="10000000" data-ativa="--ok"></span>Berço Oeste<span class="rot">total carregado</span></div>
+        <div class="grande"><span class="slot" style="width:190px" id="s-tot-oe" data-slot="22">--</span><span class="un">t</span></div>
+        <div class="poroes" id="p-oe" style="grid-template-columns: repeat(6, 1fr)"></div>
+      </div>
+      <div class="bloco" style="width:476px">
+        <div class="tit"><span class="lampada" id="l-le" data-tag="309-WIT-004.TOT_NAV_LE" data-mapa="IP_ANALOGMAP" data-lo="0.5" data-hi="10000000" data-ativa="--ok"></span>Berço Leste<span class="rot">total carregado</span></div>
+        <div class="grande"><span class="slot" style="width:190px" id="s-tot-le" data-slot="23">--</span><span class="un">t</span></div>
+        <div class="poroes" id="p-le" style="grid-template-columns: repeat(4, 1fr)"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- Físico -->
-  <section class="card fis" style="left:32px; top:117px; width:1536px; height:250px;">
+  <section class="card fis" style="left:32px; top:433px; width:1536px; height:186px;">
     <div class="topo"><h2><span class="acento"></span>Físico</h2>
       <div class="quando"><span class="rot">Último resultado</span><span class="slot v-peq" style="width:165px" id="s-fis-ts" data-slot="2">--</span></div></div>
     <div class="grade" id="g-fis"></div>
   </section>
 
   <!-- Químico -->
-  <section class="card qui" style="left:32px; top:387px; width:1536px; height:250px;">
+  <section class="card qui" style="left:32px; top:635px; width:1536px; height:186px;">
     <div class="topo"><h2><span class="acento"></span>Químico</h2>
       <div class="quando"><span class="rot">Último resultado</span><span class="slot v-peq" style="width:165px" id="s-qui-ts" data-slot="9">--</span></div></div>
     <div class="grade" id="g-qui"></div>
   </section>
 
   <!-- Tendências -->
-  <section class="card" style="left:32px; top:657px; width:758px; height:431px;">
-    <h2><span class="acento"></span>Tendência: compressão</h2>
-    <div class="legenda">
-      <span class="traco" style="background:var(--pena1)"></span><span>Compressão 16,0 mm</span><span class="gap"></span>
-      <span class="traco" style="background:var(--pena2)"></span><span>Compressão 12,5 mm</span><span class="gap"></span><span>kgf/pelota</span>
-    </div>
-    <div class="graf-area" id="ga1"><div class="plot-bg"></div>
-      <div class="slot" style="position:absolute; left:48px; top:0; width:610px; height:320px" data-slot="19"><svg id="t1" width="610" height="320"></svg></div></div>
+  <section class="card" style="left:32px; top:837px; width:501px; height:259px;">
+    <h2><span class="acento"></span>Tendência: ritmo de carregamento</h2>
+    <div class="legenda"><span class="traco" style="background:var(--pena1)"></span><span>Balança principal (t/h)</span></div>
+    <div class="graf-area" id="ga0"><div class="plot-bg"></div>
+      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="24"><svg id="t0" width="380" height="176"></svg></div></div>
   </section>
-  <section class="card" style="left:810px; top:657px; width:758px; height:431px;">
+  <section class="card" style="left:549px; top:837px; width:501px; height:259px;">
+    <h2><span class="acento"></span>Tendência: compressão</h2>
+    <div class="legenda"><span class="traco" style="background:var(--pena1)"></span><span>16,0 mm</span><span class="gap"></span><span class="traco" style="background:var(--pena2)"></span><span>12,5 mm</span><span class="gap"></span><span>kgf/pelota</span></div>
+    <div class="graf-area" id="ga1"><div class="plot-bg"></div>
+      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="19"><svg id="t1" width="380" height="176"></svg></div></div>
+  </section>
+  <section class="card" style="left:1067px; top:837px; width:501px; height:259px;">
     <h2><span class="acento"></span>Tendência: Fe e SiO2</h2>
-    <div class="legenda">
-      <span class="traco" style="background:var(--pena1)"></span><span>Fe (%), escala à esquerda</span><span class="gap"></span>
-      <span class="traco" style="background:var(--pena2)"></span><span>SiO2 (%), escala à direita</span>
-    </div>
+    <div class="legenda"><span class="traco" style="background:var(--pena1)"></span><span>Fe, à esquerda</span><span class="gap"></span><span class="traco" style="background:var(--pena2)"></span><span>SiO2, à direita</span><span class="gap"></span><span>%</span></div>
     <div class="graf-area" id="ga2"><div class="plot-bg"></div>
-      <div class="slot" style="position:absolute; left:48px; top:0; width:610px; height:320px" data-slot="20"><svg id="t2" width="610" height="320"></svg></div></div>
+      <div class="slot" style="position:absolute; left:48px; top:0; width:380px; height:176px" data-slot="20"><svg id="t2" width="380" height="176"></svg></div></div>
   </section>
 </div>
 
@@ -164,13 +201,13 @@
   tiles('g-qui', QUI, []);
 
   // Escalas fixas das tendências: rótulos e grade são parte fixa da tela (o Aspen só traça as linhas).
-  const H = 320, PW = 610;
+  const H = 176, PW = 380;
   function eixos(id, min, max, passo, dec, dir) {
     const area = document.getElementById(id);
     const add = (cls, estilo, txt) => { const e = document.createElement('div'); e.className = cls; e.setAttribute('style', estilo); if (txt) e.textContent = txt; area.appendChild(e); };
     const y = v => (1 - (v - min) / (max - min)) * H;
     for (let v = min + passo; v < max - 1e-9; v += passo) {
-      add('ylab', `top:${y(v) - 8}px`, v.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec }));
+      add('ylab', `top:${y(v) - 8}px`, v.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec, useGrouping: false }));
       add('gl sobre', `top:${y(v)}px`);
     }
     if (dir) {
@@ -181,11 +218,13 @@
     }
     return y;
   }
+  const yR = eixos('ga0', 0, 2500, 500, 0);
   const yC = eixos('ga1', 150, 450, 50, 0);
-  const yF = eixos('ga2', 62, 68, 1, 0, [0, 6, 1, 0]);
+  const yF = eixos('ga2', 62, 68, 2, 0, [0, 6, 2, 0]);
   const yS = v => (1 - v / 6) * H;
 
-  const num = (v, d) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  // Sem separador de milhar, como o campo de dados do Aspen mostra
+  const num = (v, d) => v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d, useGrouping: false });
   const p2 = x => String(x).padStart(2, '0');
   const dh = d => `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
   let semente = 11;
@@ -202,10 +241,29 @@
   const N = 14, agora = new Date(), res = new Date(Math.floor(agora / 72e5) * 72e5);
   const sim = {};
   [...FIS, ...QUI].forEach(([n, , , , dec, tip, varia]) => { sim[n] = serie(tip, varia, N); document.getElementById('v' + n).textContent = num(sim[n][N - 1], dec); });
-  document.getElementById('s-atual').textContent = dh(res);
+  // Carregamento: porões com carga simulada no Berço Oeste; Berço Leste sem navio
+  const poroes = (id, pre, n, cargas, base) => {
+    const g = document.getElementById(id);
+    for (let i = 1; i <= n; i++) {
+      const d = document.createElement('div'); d.className = 'porao';
+      d.innerHTML = `<div class="p">P${i}</div><span class="slot" id="${pre}${i}" data-slot="${base + i - 1}">--</span>`;
+      g.appendChild(d);
+    }
+    let tot = 0;
+    for (let i = 1; i <= n; i++) { const v = cargas[i - 1] || 0; tot += v; document.getElementById(pre + i).textContent = num(v, 0); }
+    return tot;
+  };
+  const totOE = poroes('p-oe', 'poe', 11, [7447, 0, 9003, 0, 9015, 0, 5970, 0, 4581, 0, 0], 25);
+  const totLE = poroes('p-le', 'ple', 7, [], 36);
+  document.getElementById('s-tot-oe').textContent = num(totOE, 0);
+  document.getElementById('s-tot-le').textContent = num(totLE, 0);
+  document.getElementById('l-oe').style.background = totOE > 0.5 ? 'var(--ok)' : '';
+  document.getElementById('s-ritmo').textContent = num(1289.3, 0);
+  document.getElementById('s-ritmo2').textContent = num(1324.4, 0);
   document.getElementById('s-fis-ts').textContent = dh(res);
   document.getElementById('s-qui-ts').textContent = dh(res);
-  const t1 = document.getElementById('t1'), t2 = document.getElementById('t2');
+  const t0 = document.getElementById('t0'), t1 = document.getElementById('t1'), t2 = document.getElementById('t2');
+  degrau(t0, serie(1300, 260, 40), yR, 'var(--pena1)', 2.5);
   degrau(t1, sim[4], yC, 'var(--pena2)', 3); degrau(t1, sim[3], yC, 'var(--pena1)', 3);
   degrau(t2, sim[11], yS, 'var(--pena2)', 3); degrau(t2, sim[10], yF, 'var(--pena1)', 3);
 })();
