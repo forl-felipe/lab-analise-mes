@@ -741,11 +741,11 @@ class Construtor:
         self.nome('rDias', ws, 2, 3)
         ws.data_validation(2, 3, 2, 3, {'validate': 'integer', 'criteria': 'between', 'minimum': 2,
                                         'maximum': NMAXD, 'error_message': 'De 2 a %d dias.' % NMAXD})
-        self.botao(ws, 1, 4, 'Último dia', 'IrUltimoDia', 96, 30, 's', x=8, y=4)
-        self.botao(ws, 1, 5, '✎ Ir para o Dia', 'IrDia', 118, 30, 's', x=50, y=4)
-        self.botao(ws, 1, 8, 'Atualizar painel', 'AtualizarPainel', 120, 30, 's', x=6, y=4)
-        self.botao(ws, 1, 10, 'Copiar imagem', 'CopiarImagemPainel', 116, 30, 'p', x=10, y=4)
-        self.botao(ws, 1, 10, 'Copiar resumo', 'CopiarResumo', 116, 30, 'n', x=132, y=4)
+        self.botao(ws, 1, 4, 'Último dia', 'IrUltimoDia', 86, 30, 's', x=4, y=4)
+        self.botao(ws, 1, 5, '✎ Ir para o Dia', 'IrDia', 112, 30, 's', x=6, y=4)
+        self.botao(ws, 1, 8, 'Atualizar painel', 'AtualizarPainel', 116, 30, 's', x=4, y=4)
+        self.botao(ws, 1, 10, 'Copiar imagem', 'CopiarImagemPainel', 118, 30, 'p', x=2, y=4)
+        self.botao(ws, 1, 10, 'Copiar resumo', 'CopiarResumo', 118, 30, 'n', x=126, y=4)
 
         R = P_R0
         # ---- cabecalho

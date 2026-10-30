@@ -9,6 +9,7 @@ Option Explicit
 ' ---------------------------------------------------------------- botoes da aba Dia
 Public Sub BuscarMES()
     Dim d As Date, vals As Variant, nres As Variant, sit As Variant, ok As Boolean, msg As String, notas As String
+    Dim salvo As Boolean
     If Not EData(Nm("dData").Value) Then
         Aviso "Informe a data do report (célula amarela).", vbExclamation, "Buscar no MES"
         Exit Sub
@@ -27,14 +28,29 @@ Public Sub BuscarMES()
                           vbCrLf, "  ·  ")
     Proteger shDia
     ModoCarga False
+    ' dia fechado: ja grava no historico e leva o painel para este dia (dia em andamento: so mostra)
+    salvo = False
+    If CDbl(d) < Int(CDbl(Now)) And ContarValores(ValoresDia()) > 0 Then
+        salvo = (GravarHist(d, ValoresDia(), Nm("d_fator").Value, Nm("d_obs").Value, "MES", False) > 0)
+        If salvo Then
+            OrdenarHist
+            AvancarPainel d
+            AtualizarPainel
+        End If
+    End If
     Ampulheta False
     Recalcular
     ' a caixa de mensagem do Excel corta textos longos: o detalhe completo fica em "Última busca"
     If Len(notas) > 520 Then notas = Left$(notas, 500) & "... (detalhes em Última busca, no fim da aba Dia)"
     If notas <> "" Then msg = msg & vbCrLf & vbCrLf & notas
+    If salvo Then
+        msg = msg & vbCrLf & vbCrLf & "Dia salvo no histórico e no painel. Se corrigir ou lançar algum valor à mão, " & _
+              "clique em Salvar no histórico de novo."
+    Else
+        msg = msg & vbCrLf & vbCrLf & "Dia ainda não salvo no histórico (dia em andamento ou sem valores)."
+    End If
     If ok And InStr(msg, "Sem resultado") = 0 Then
-        Aviso msg & vbCrLf & vbCrLf & "Confira os valores e clique em Salvar no histórico.", vbInformation, _
-              "Buscar no MES"
+        Aviso msg, vbInformation, "Buscar no MES"
     Else
         Aviso msg & vbCrLf & vbCrLf & "Itens sem resultado: veja a coluna Situação e, se precisar, a aba " & _
               "Diagnóstico (consulta cada tag e mostra os horários com valor).", vbExclamation, "Buscar no MES"

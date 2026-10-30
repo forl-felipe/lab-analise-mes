@@ -111,6 +111,9 @@ Public Sub TesteLO()
     Ok ENumero(Nm("d_tk01").Value) And ENumero(Nm("d_tk02").Value) And _
        Left$(shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).Value, 3) = "MES", "TK 01 e TK 02 vêm do MES (tags TBLQ)"
     Ok shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_NRES).Value = 13, "EB6: 13 resultados no dia"
+    Ok LinhaHist(DateSerial(2026, 10, 16)) > 0 And DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 16)), _
+       "Buscar no MES já grava o dia fechado no histórico e leva o painel para ele"
+    Ok InStr(gUltimaMsg, "salvo no histórico") > 0, "mensagem avisa que o dia foi salvo"
     Ok InStr(gUltimaMsg, "12 de 12") > 0, "mensagem da busca: " & Left$(gUltimaMsg, 120)
     Desproteger shDia
     Nm("d_tk01").Value = 2111
@@ -166,6 +169,7 @@ Public Sub TesteLO()
     gUltimaMsg = ""
     BuscarMES
     Ok InStr(gUltimaMsg, "ainda não terminou") > 0, "buscar hoje avisa que o dia não terminou"
+    Ok LinhaHist(CDate(Int(CDbl(Now)))) = 0, "buscar hoje não grava no histórico"
     ' periodo nao passa de ontem
     Desproteger shDia
     Nm("dDe").Value = CDate(Int(CDbl(Now)))

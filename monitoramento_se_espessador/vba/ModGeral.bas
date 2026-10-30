@@ -42,6 +42,14 @@ Public Sub Inicializar()
         ModoCarga False
     End If
     CarregarDia
+    ' painel abre no ultimo dia salvo no historico
+    If UltimoDiaHist() > 0 And DiaDe(Nm("rFim").Value) <> UltimoDiaHist() Then
+        ModoCarga True
+        Desproteger shPainel
+        Nm("rFim").Value = CDate(UltimoDiaHist())
+        Proteger shPainel
+        ModoCarga False
+    End If
     AjustarGraficos True
     shDia.Activate
 End Sub

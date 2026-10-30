@@ -9,11 +9,11 @@ OK/NOK, comentários automáticos e gráficos com barras por dia + barra escura 
 
 ## Uso no dia a dia
 
-1. Aba **Dia** → data do report (**ontem**: o DVR só entra no MES no fechamento do dia) → **Buscar no MES**.
-   Confira os valores (células amarelas), o Nº de resultados e a coluna Situação.
-2. Lance o Fator, se mudar (dia novo repete o do dia anterior). TK 01 e TK 02 já vêm do MES.
-3. **Salvar no histórico** → o Painel passa a terminar nesse dia.
-4. Aba **Painel** → **Copiar imagem** (e **Copiar resumo** para o corpo do e-mail).
+1. Aba **Dia** → dia dos dados (**ontem**: o DVR só entra no MES no fechamento do dia) → **Buscar no MES**.
+   O dia já é **gravado no histórico** e o **Painel passa a terminar nele**. Confira valores, Nº de resultados e Situação.
+2. Se corrigir algum valor ou o Fator à mão → **Salvar no histórico** de novo.
+3. Aba **Painel** → **Copiar imagem** (e **Copiar resumo** para o corpo do e-mail). Ao abrir a planilha, o Painel
+   já está no último dia salvo.
 
 Dias atrasados: na aba Dia, **Buscar um período** (De/Até, no máximo até ontem) busca e salva cada dia, mantendo
 Fator, Observação e valores lançados à mão em itens que o MES não trouxe.
@@ -85,6 +85,9 @@ Levantamento completo (planilha antiga × caderno × Word × lista de tags): [`d
   EB4/EB6 (EB6 2 210, igual ao histórico). Com `IP_AnalogMap` o MES respondia "Sucesso" sem nenhum dado — a troca
   automática do dia 26/10 tinha levado as tags para esse mapa. Padrão voltou para `IP_MESVALOR` e o Diagnóstico passou a
   descobrir a forma da tag e o mapa sozinho.
+- **30/10/2026 (diagnóstico do dia 29/10)**: 12 de 12 tags com valor; o Diagnóstico gravou em Configurações a forma
+  e o mapa de cada uma. Tanques com resultado às 04:00 e 16:00 (TK 01 sem resultado em 29/10). DVR aparece no
+  Diagnóstico como "D+1 00:00" = centro da janela 23:30–00:30, ou seja, o valor gravado às 23:59 do dia D.
 - **Fator**: só é guardado (não entra em nenhuma conta nem gráfico). Confirmar o que representa.
 
 ## Gerar de novo
