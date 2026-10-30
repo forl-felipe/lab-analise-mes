@@ -11,12 +11,12 @@ OK/NOK, comentários automáticos e gráficos com barras por dia + barra escura 
 
 1. Aba **Dia** → data do report (**ontem**: o DVR só entra no MES no fechamento do dia) → **Buscar no MES**.
    Confira os valores (células amarelas), o Nº de resultados e a coluna Situação.
-2. Lance o que não tem tag: **TK 01 e TK 02 - EB6** (e o Fator, se mudar; dia novo repete o do dia anterior).
+2. Lance o Fator, se mudar (dia novo repete o do dia anterior). TK 01 e TK 02 já vêm do MES.
 3. **Salvar no histórico** → o Painel passa a terminar nesse dia.
 4. Aba **Painel** → **Copiar imagem** (e **Copiar resumo** para o corpo do e-mail).
 
-Dias atrasados: na aba Dia, **Buscar um período** (De/Até, no máximo até ontem) busca e salva cada dia, mantendo TK,
-Fator e Observação já lançados no histórico.
+Dias atrasados: na aba Dia, **Buscar um período** (De/Até, no máximo até ontem) busca e salva cada dia, mantendo
+Fator, Observação e valores lançados à mão em itens que o MES não trouxe.
 
 Item sem resultado: aba **Diagnóstico** → dia já fechado → **Rodar diagnóstico**. Cada tag é consultada sozinha de
 D−1 12:00 a D+1 12:00 e a aba mostra se o MES aceitou a tag e o mapa, quantos horários têm valor, o 1º e o último
@@ -61,7 +61,7 @@ Conferidas pelo laboratório no MES em 26/10/2026 (exceto a S.E. do espessador C
 | S.E. espessador C2 | `M0238010000-0017-HHLQ` | IP_AnalogMap | E · Média |
 | S.E. espessador C3 | `M4238010000-2888-HHLQ` (**não está na conferência — confirmar**) | IP_AnalogMap | E · Média |
 | S.E. batch EB4 / EB6 | `M250010000-17-ABLQ` / `M4250010000-17-ABLQ` | IP_MESVALOR | D · Média |
-| TK 01 / TK 02 - EB6 | sem tag (lançar à mão) | — | — |
+| TK 01 / TK 02 | `M0239040000-0017-TBLQ` / `M0239050000-0017-TBLQ` (Tk1 / Tk2 U2 - SE) | IP_MESVALOR | D · Média |
 | Lama incorporada C3 / C2 | `M4239000000-0781-DDDVR` / `M0239000000-0781-DDDVR` | IP_AnalogMap | D · Último |
 | Concentrado C3 | `M4238010000-1445-DDDVR` (Beneficiamento - Concentrado C3) | IP_AnalogMap | D · Último |
 | Concentrado C2 | `M0238010000-1445-DDDVR` (Esp. Conc DVR (tms)) | IP_AnalogMap | D · Último |

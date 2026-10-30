@@ -103,10 +103,10 @@ Public Sub TesteLO()
     Ok ENumero(Nm("d_eb6").Value) And ENumero(Nm("d_prodC2").Value) And ENumero(Nm("d_concC2").Value), _
        "Buscar no MES (simulação) preenche EB6, produção e concentrado"
     k = IIndice("tk01")
-    Ok Vazio(Nm("d_tk01").Value) And shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).Value = "sem tag: lançar à mão", _
-       "TK 01 sem tag: lançar à mão"
+    Ok ENumero(Nm("d_tk01").Value) And ENumero(Nm("d_tk02").Value) And _
+       Left$(shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).Value, 3) = "MES", "TK 01 e TK 02 vêm do MES (tags TBLQ)"
     Ok shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_NRES).Value = 13, "EB6: 13 resultados no dia"
-    Ok InStr(gUltimaMsg, "11 de 12") > 0 Or InStr(gUltimaMsg, "10 de 10") > 0, "mensagem da busca: " & Left$(gUltimaMsg, 120)
+    Ok InStr(gUltimaMsg, "12 de 12") > 0, "mensagem da busca: " & Left$(gUltimaMsg, 120)
     Desproteger shDia
     Nm("d_tk01").Value = 2111
     Nm("d_obs").Value = "teste"
@@ -136,7 +136,7 @@ Public Sub TesteLO()
     SalvarDia
     Ok LinhaHist(DateSerial(2026, 10, 18)) = r2 And Vazio(H(r3 + 1, H_COL_DATA)), "salvar de novo não duplica o dia"
 
-    ' --- periodo: 17 a 19/10, mantendo o TK 01 lancado a mao em 18/10
+    ' --- periodo: 17 a 19/10, mantendo o fator lancado a mao em 18/10 (TK vem do MES)
     shHist.Cells(r2, H_COL_TK01).Value = 2222
     shHist.Cells(r2, H_COL_FATOR).Value = 170
     Desproteger shDia
@@ -147,11 +147,12 @@ Public Sub TesteLO()
     Ok LinhaHist(DateSerial(2026, 10, 17)) = LinhaHist(DateSerial(2026, 10, 16)) + 1 And _
        LinhaHist(DateSerial(2026, 10, 19)) = LinhaHist(DateSerial(2026, 10, 20)) - 1, "período 17 a 19/10 salvo e em ordem"
     r2 = LinhaHist(DateSerial(2026, 10, 18))
-    Ok H(r2, H_COL_TK01) = 2222 And H(r2, H_COL_FATOR) = 170, "período mantém TK 01 e fator lançados à mão"
+    Ok ENumero(H(r2, H_COL_TK01)) And H(r2, H_COL_TK01) <> 2222 And H(r2, H_COL_FATOR) = 170, _
+       "período: TK 01 atualizado pelo MES e fator lançado à mão mantido"
     Ok H(LinhaHist(DateSerial(2026, 10, 19)), H_COL_FATOR) = 170, "19/10 repete o fator do dia anterior (170)"
     Ok InStr(gUltimaMsg, "3 de 3") > 0, "mensagem do período: 3 de 3 dias"
     Data DateSerial(2026, 10, 18)
-    Ok Nm("d_tk01").Value = 2222 And shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_SIT).Value = "do histórico", _
+    Ok Nm("d_tk01").Value = H(r2, H_COL_TK01) And shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_SIT).Value = "do histórico", _
        "trocar a data abre o dia do histórico"
     Ok Perto(Nm("_difK").Value, Nm("d_eb6").Value - Nm("_espP").Value, 0.001), "resultado do dia na aba Dia"
 

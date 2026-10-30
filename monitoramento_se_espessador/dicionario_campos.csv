@@ -6,8 +6,8 @@ D;S.E. alimentação espessador C3;Dados Horários (VIEW_RECVIEW_GER_HH_03);40-G
 E;S.E. alimentação espessador C2;Dados Horários (VIEW_RECVIEW_GER_HH_02);40-G2-HH ALIMENTACAO ESPESSADO;SE;D-1 23:00 a D 21:00;média;238010000-17-HH-LQ;M0238010000-0017-HHLQ;conferida no MES (26/10);2446
 G;S.E. batch EB4;Dados Horários (VIEW_RECVIEW_GER_HH_02);50-G2-HH AMOSTRAGEM BATCH;SE;D 00:00 a 23:59;média de todos os resultados;-;M250010000-17-ABLQ;conferida no MES (26/10);2169
 I;S.E. batch EB6;Dados Horários (VIEW_RECVIEW_GER_HH_03);50-G3-HH AMOSTRAGEM BATCH;SE;D 00:00 a 23:59;média de todos os resultados (13 no dia, inclui 23:59);-;M4250010000-17-ABLQ;conferida no MES (26/10);2184 (MES: 2184,08)
-L;S.E. TK 01 - EB6;-;-;-;D 00:00 a 23:59;média;-;-;sem tag: lançar à mão;2069
-M;S.E. TK 02 - EB6;-;-;-;D 00:00 a 23:59;média;-;-;sem tag: lançar à mão;2065
+L;S.E. TK 01 - EB6;MES;-;Tk1 U2 - SE (cm²/g);D 00:00 a 23:59;média;239040000-17-TB-LQ;M0239040000-0017-TBLQ;"informada pelo laboratório (30/10); descrição no MES = U2";2069
+M;S.E. TK 02 - EB6;MES;-;Tk2 U2 - SE (cm²/g);D 00:00 a 23:59;média;239050000-17-TB-LQ;M0239050000-0017-TBLQ;"informada pelo laboratório (30/10); descrição no MES = U2";2065
 N;Fator;manual;-;-;-;-;-;-;"não vem do MES; significado a confirmar";160
 O (C3);Lama incorporada C3 (tms);Importação DVR (VIEW_RECVIEW_DVR);BOLETIM DVR;Lama incorporada no concentrado (tms);D 00:00 a 23:59;último valor;4239000000-781-DD-DVR;M4239000000-0781-DDDVR;conferida no MES (26/10);0
 O (C2);Lama incorporada C2 (tms);Importação DVR (VIEW_RECVIEW_DVR);00-G2-DD BALANCO DVR;Lama incorporada no concentrado (tms);D 00:00 a 23:59;último valor (soma com a do C3);239000000-781-DD-DVR;M0239000000-0781-DDDVR;conferida no MES (26/10);0

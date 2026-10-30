@@ -81,8 +81,10 @@ ITENS = [
      '50-G2-HH AMOSTRAGEM BATCH - SE'),
     ('eb6', 'S.E. batch EB6', 'M4250010000-17-ABLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
      '50-G3-HH AMOSTRAGEM BATCH - SE'),
-    ('tk01', 'S.E. TK 01 - EB6', '', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0, 'sem tag: lançar à mão'),
-    ('tk02', 'S.E. TK 02 - EB6', '', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0, 'sem tag: lançar à mão'),
+    ('tk01', 'S.E. TK 01 - EB6', 'M0239040000-0017-TBLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
+     'Tk1 U2 - SE (239040000-17-TB-LQ, cm²/g)'),
+    ('tk02', 'S.E. TK 02 - EB6', 'M0239050000-0017-TBLQ', 'IP_MESVALOR', 'D', 'Média', 300, 8000, 0,
+     'Tk2 U2 - SE (239050000-17-TB-LQ, cm²/g)'),
     ('lamaC3', 'Lama incorporada C3 (tms)', 'M4239000000-0781-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 20000, 0,
      'BOLETIM DVR - Lama incorporada no concentrado'),
     ('lamaC2', 'Lama incorporada C2 (tms)', 'M0239000000-0781-DDDVR', 'IP_AnalogMap', 'D', 'Último', 0, 20000, 0,
@@ -511,8 +513,8 @@ class Construtor:
                  self.f(font_color=MUTED, italic=True, font_size=9))
 
         # (2) resultados
-        self.secao(ws, D_ROW_HDR - 1, 1, ultc, '②  RESULTADOS DO MES  (células amarelas: dá para corrigir · TK 01, '
-                                               'TK 02 e Fator são lançados à mão)')
+        self.secao(ws, D_ROW_HDR - 1, 1, ultc, '②  RESULTADOS DO MES  (células amarelas: dá para corrigir · o Fator '
+                                               'é lançado à mão)')
         th = self.f(bold=True, font_color=BRANCO, bg_color=NAVY2, border=1, border_color=LINE, text_wrap=True,
                     align='center', font_size=9)
         ws.set_row(D_ROW_HDR, 30)
@@ -608,8 +610,8 @@ class Construtor:
         self.botao(ws, r + 1, D_COL['JAN'], 'Buscar período no MES', 'BuscarPeriodo', largura=190, altura=32,
                    estilo='a', x=10, y=8)
         ws.merge_range(r + 1, D_COL['TAG'], r + 2, D_COL['ORIG'],
-                       'Cada dia é buscado e salvo no histórico (até ontem). TK 01, TK 02, Fator e Observação já '
-                       'lançados no histórico são mantidos.', self.f(font_color=MUTED, italic=True, text_wrap=True,
+                       'Cada dia é buscado e salvo no histórico (até ontem). Fator, Observação e valores lançados à mão '
+                       'em itens sem resultado no MES são mantidos.', self.f(font_color=MUTED, italic=True, text_wrap=True,
                                                                      font_size=9))
         r = r + 4
         self.rotulo(ws, r, 1, 1, 'Última busca')
