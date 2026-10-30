@@ -72,7 +72,7 @@ Public Sub TesteLO()
     Ok InStr(shGraf.Cells(18, 4).Text, "#N") = 1, "depois da Média = #N/D (" & shGraf.Cells(18, 4).Text & ")"
     Ok Perto(Nm("gMed_difK").Value, Application.WorksheetFunction.Average(shGraf.Range("E2:E16")), 0.001), _
        "média do período da diferença (" & Nm("gMed_difK").Value & ")"
-    Ok shGraf.Cells(2, GColT("tolP")).Value = 150 And shGraf.Cells(17, GColT("tolN")).Value = -150, "tolerância ±150"
+    Ok shGraf.Cells(2, GColT("tolKP")).Value = 150 And shGraf.Cells(17, GColT("tolJN")).Value = -150, "tolerância ±150 nas duas diferenças"
     Ok CStr(Nm("pSt_difK").Value) = "OK" And CStr(Nm("pSt_difJ").Value) = "OK", "15/10: +114 e +127 dentro da tolerância"
     s = CStr(Nm("gComentarios").Value)
     Ok InStr(s, "Período de 15 dias") > 0 And InStr(s, "15/10") > 0 And InStr(s, "máxima") > 0, "comentários automáticos: " & Left$(s, 90)
@@ -96,13 +96,23 @@ Public Sub TesteLO()
     Ok InStr(s, "Último dia") > 0 And InStr(s, "Período de") > 0 And InStr(s, "Tópico livre") = 0, _
        "restaurar volta os comentários automáticos"
     Desproteger shDia
-    Nm("cfgTol").Value = 100
+    Nm("tol_difK").Value = 100
     Proteger shDia
     Recalcular
-    Ok CStr(Nm("pSt_difK").Value) = "NOK" And shGraf.Cells(2, GColT("tolP")).Value = 100, _
-       "tolerância 100 na aba Dia: +114 vira NOK no painel"
+    Ok CStr(Nm("pSt_difK").Value) = "NOK" And shGraf.Cells(2, GColT("tolKP")).Value = 100 And _
+       shGraf.Cells(2, GColT("tolJP")).Value = 150, "tolerância 100 só na ESP C2 + C3: +114 vira NOK"
+    Ok CStr(Nm("pSt_eb6").Value) = "—" And CStr(Nm("pSt_pctLama").Value) = "—", "item sem tolerância: — no painel"
     Desproteger shDia
-    Nm("cfgTol").Value = 150
+    Nm("tol_eb6").Value = 10
+    Nm("tol_difJ").ClearContents
+    Proteger shDia
+    Recalcular
+    Ok CStr(Nm("pSt_eb6").Value) = "NOK" And CStr(Nm("pSt_difJ").Value) = "—" And _
+       InStr(shGraf.Cells(2, GColT("tolJP")).Text, "#N") = 1, "tolerância no EB6 (|2210 - média| > 10) e sem tolerância na EB4 + ESP C3"
+    Desproteger shDia
+    Nm("tol_eb6").ClearContents
+    Nm("tol_difK").Value = 150
+    Nm("tol_difJ").Value = 150
     Proteger shDia
     Recalcular
 

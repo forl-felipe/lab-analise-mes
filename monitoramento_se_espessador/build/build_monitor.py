@@ -103,7 +103,13 @@ SERVIDOR_PADRAO = 'UBU'
 #   D: D 01:00 ... D 23:00 e o fechamento 23:59 (24 janelas de 1 h a partir de 00:30)
 JANELAS = {'E': (-1, 23, 'Espessador: D-1 23:00 a D 21:00'), 'D': (1, 24, 'Dia: D 00:00 a D 23:59')}
 FATOR_PADRAO = 160
-TOL_PADRAO = 150        # tolerancia da diferenca de S.E. (mesma do Comparativo; confirmar com o laboratorio)
+# tolerancias do painel (aba Dia, bloco 5): vazio ou 0 = sem tolerancia ("—" no painel, sem linha no grafico)
+#   chave, rotulo, valor padrao, formato, referencia (diferencas: |valor| <= tol; demais: |ultimo dia - media| <= tol)
+TOLS = [('eb6', 'S.E. batch EB6', None, '#,##0', 'media'), ('espP', 'ESP C2 + C3 (ponderada)', None, '#,##0', 'media'),
+        ('eb4P', 'EB4 + ESP C3 (ponderada)', None, '#,##0', 'media'),
+        ('difK', 'Diferença EB6 − (ESP C2 + C3)', 150, '#,##0', 'zero'),
+        ('difJ', 'Diferença EB6 − (EB4 + ESP C3)', 150, '#,##0', 'zero'),
+        ('pctLama', '% lama no batch', None, '0.00%', 'media')]
 DIAS_REPORT = 15
 NMAXD = 60              # maximo de dias no Painel
 
@@ -153,7 +159,8 @@ D_ROW_OBS = D_ROW_FATOR + 1
 D_ROW_LEG = D_ROW_OBS + 2        # legenda D / D-1
 D_ROW_RES = D_ROW_OBS + 5        # resultado do dia (calculado)
 D_ROW_COM = D_ROW_RES + 8        # comentarios do painel e tolerancia
-D_ROW_ST = D_ROW_COM + 10        # ultima busca
+D_ROW_TOL = D_ROW_COM + 8        # tolerancias do painel
+D_ROW_ST = D_ROW_TOL + 9         # ultima busca
 D_COL = dict(ITEM=1, VAL=2, NRES=3, JAN=4)
 
 # Aba Diagnostico (0-based)
@@ -169,7 +176,7 @@ C_COL = dict(CHAVE=1, ROT=2, TAG=3, SERV=4, MAPA=5, JAN=6, AGR=7, VMIN=8, VMAX=9
 
 # Aba _Graf (0-based): linha 0 = titulos; k = 1..NMAXD+1 nas linhas 1..NMAXD+1
 #   k <= rDias: dia; k = rDias + 1: "Média" (barras escuras e ◆ diferenca media, como no Comparativo)
-G_COLS = ['data', 'rot', 'espP', 'eb6', 'difK', 'difKmed', 'tolP', 'tolN', 'eb4P', 'difJ', 'difJmed',
+G_COLS = ['data', 'rot', 'espP', 'eb6', 'difK', 'difKmed', 'tolKP', 'tolKN', 'eb4P', 'difJ', 'difJmed', 'tolJP', 'tolJN',
           'tk01', 'tk02', 'pctLama', 'pctMed', 'pct0']
 GC = {k: i for i, k in enumerate(G_COLS)}
 G_DIA = ['espP', 'eb6', 'difK', 'eb4P', 'difJ', 'tk01', 'tk02', 'pctLama']   # valor do dia (historico)
@@ -179,15 +186,16 @@ ESTAT = ['espP', 'eb6', 'difK', 'eb4P', 'difJ', 'tk01', 'tk02', 'pctLama', 'lama
          'concC2', 'fator', 'obs']
 # series de cada grafico (ordem do SeriesCollection: barras e depois linhas) e cores das barras (base, media)
 GRAFICOS = [
-    ('g1', 'Espessador C2 + C3 × Batch EB6', ['espP', 'eb6'], ['difK', 'difKmed', 'tolP', 'tolN'], 'difK'),
-    ('g2', 'Batch EB4 + Espessador C3 × Batch EB6', ['eb4P', 'eb6'], ['difJ', 'difJmed', 'tolP', 'tolN'], 'difJ'),
+    ('g1', 'Espessador C2 + C3 × Batch EB6', ['espP', 'eb6'], ['difK', 'difKmed', 'tolKP', 'tolKN'], 'difK'),
+    ('g2', 'Batch EB4 + Espessador C3 × Batch EB6', ['eb4P', 'eb6'], ['difJ', 'difJmed', 'tolJP', 'tolJN'], 'difJ'),
     ('g3', '% de lama no batch × S.E. do batch EB6 e dos tanques', ['eb6', 'tk01', 'tk02'], ['pctLama', 'pctMed'],
      None),
 ]
 NOMES_SERIE = {'espP': 'ESP C2 + C3 (ponderada)', 'eb6': 'Batch EB6', 'eb4P': 'EB4 + ESP C3 (ponderada)',
                'tk01': 'TK 01 - EB6', 'tk02': 'TK 02 - EB6', 'difK': 'Diferença (EB6 − ESP C2 + C3)',
                'difJ': 'Diferença (EB6 − EB4 + ESP C3)', 'difKmed': 'Diferença média', 'difJmed': 'Diferença média',
-               'tolP': 'Tolerância (±)', 'tolN': 'Tolerância (±)', 'pctLama': '% lama', 'pctMed': '% lama média'}
+               'tolKP': 'Tolerância (±)', 'tolKN': 'Tolerância (±)', 'tolJP': 'Tolerância (±)',
+               'tolJN': 'Tolerância (±)', 'pctLama': '% lama', 'pctMed': '% lama média'}
 
 # Painel: colunas em pixels (as mesmas do Comparativo) e 1a linha do report
 P_COLS = [10, 84, 70, 70, 92, 62, 62, 12, 122, 12, 246, 12, 120, 196, 10]
@@ -592,8 +600,8 @@ class Construtor:
 
         # (4) comentarios do painel (editaveis) e tolerancia
         r = D_ROW_COM
-        self.secao(ws, r, 1, ultc, '④  COMENTÁRIOS DO PAINEL E TOLERÂNCIA  (texto automático: dá para editar · '
-                                   'Sim/Não = entra no painel)')
+        self.secao(ws, r, 1, ultc, '④  COMENTÁRIOS DO PAINEL  (texto automático: dá para editar · Sim/Não = entra '
+                                   'no painel · tópicos livres)')
         self.botao(ws, r, D_COL['JAN'], 'Restaurar automáticos', 'RestaurarComentarios', largura=150, altura=22,
                    estilo='s', x=176, y=0)
         lab = self.f(bold=True, border=1, border_color=LINE2, indent=1, font_size=9.5)
@@ -616,13 +624,24 @@ class Construtor:
             ws.write(rr, D_COL['ITEM'], 'Tópico %d (livre)' % (j + 1), lab)
             ws.merge_range(rr, D_COL['VAL'], rr, D_COL['JAN'], '', txt)
             self.nome('dTop%d' % (j + 1), ws, rr, D_COL['VAL'])
-        rr = r + 8
-        ws.set_row(rr, 24)
-        ws.write(rr, D_COL['ITEM'], 'Tolerância da diferença de S.E. (±)', lab)
-        ws.write(rr, D_COL['VAL'], TOL_PADRAO, self.fi(align='center', bold=True, font_size=11, num_format='#,##0'))
-        self.nome('cfgTol', ws, rr, D_COL['VAL'])
-        ws.merge_range(rr, D_COL['NRES'], rr, D_COL['JAN'], 'linha verde tracejada e OK/NOK do painel',
-                       self.f(border=1, border_color=LINE2, font_color=MUTED, font_size=9, indent=1))
+
+        # (5) tolerancias de cada linha do quadro do painel
+        r = D_ROW_TOL
+        self.secao(ws, r, 1, ultc, '⑤  TOLERÂNCIAS DO PAINEL  (vazio = sem tolerância: "—" no painel)')
+        for j, (k, t, v, nf, ref) in enumerate(TOLS):
+            rr = r + 1 + j
+            ws.set_row(rr, 21)
+            ws.write(rr, D_COL['ITEM'], t, lab)
+            fm = self.fi(align='center', bold=True, font_size=11, num_format=nf)
+            if v is None:
+                ws.write_blank(rr, D_COL['VAL'], None, fm)
+            else:
+                ws.write(rr, D_COL['VAL'], v, fm)
+            self.nome('tol_' + k, ws, rr, D_COL['VAL'])
+            regra = ('OK quando |diferença do último dia| ≤ tolerância · linha verde tracejada no gráfico'
+                     if ref == 'zero' else 'OK quando |último dia − média do período| ≤ tolerância')
+            ws.merge_range(rr, D_COL['NRES'], rr, D_COL['JAN'], regra,
+                           self.f(border=1, border_color=LINE2, font_color=MUTED, font_size=9, indent=1))
 
         r = D_ROW_ST
         self.rotulo(ws, r, 1, 1, 'Última busca')
@@ -651,8 +670,10 @@ class Construtor:
                 ws.write_formula(r, GC[key], '=IF(%d<=rDias,%s,IF(%d=rDias+1,%s,NA()))' % (k, dia, k, media))
             for key, base in [('difKmed', 'difK'), ('difJmed', 'difJ'), ('pctMed', 'pctLama')]:
                 ws.write_formula(r, GC[key], '=IF(AND(%d=rDias+1,ISNUMBER(gMed_%s)),gMed_%s,NA())' % (k, base, base))
-            ws.write_formula(r, GC['tolP'], '=IF(%d<=rDias+1,cfgTol,NA())' % k)
-            ws.write_formula(r, GC['tolN'], '=IF(%d<=rDias+1,-cfgTol,NA())' % k)
+            for key, tk in (('K', 'tol_difK'), ('J', 'tol_difJ')):
+                tem = 'AND(%d<=rDias+1,ISNUMBER(%s),N(%s)>0)' % (k, tk, tk)
+                ws.write_formula(r, GC['tol%sP' % key], '=IF(%s,%s,NA())' % (tem, tk))
+                ws.write_formula(r, GC['tol%sN' % key], '=IF(%s,-%s,NA())' % (tem, tk))
             ws.write_formula(r, GC['pct0'], '=IF(%d<=rDias,IFERROR(%s/1,-1),-1)' % (k, rc(r, GC['pctLama'])))
         # estatisticas do periodo (direto do historico): media, ultimo dia (rFim) e dias com valor
         r0 = G_ROW_ST
@@ -672,9 +693,10 @@ class Construtor:
             self.nome('gMed_' + key, ws, r, 2)
             self.nome('gN_' + key, ws, r, 3)
             if key in ('difK', 'difJ'):
-                ws.write_formula(r, 4, '=COUNTIFS(h_data,">="&(rFim-rDias+1),h_data,"<="&rFim,%s,">"&cfgTol)+'
-                                       'COUNTIFS(h_data,">="&(rFim-rDias+1),h_data,"<="&rFim,%s,"<"&-cfgTol)'
-                                       % (hk, hk))
+                tk = 'tol_' + key
+                ws.write_formula(r, 4, '=IF(N(%s)>0,COUNTIFS(h_data,">="&(rFim-rDias+1),h_data,"<="&rFim,%s,">"&%s)+'
+                                       'COUNTIFS(h_data,">="&(rFim-rDias+1),h_data,"<="&rFim,%s,"<"&-%s),"—")'
+                                       % (tk, hk, tk, hk, tk))
                 self.nome('gFora_' + key, ws, r, 4)
         ws.write(r0 - 1, 1, 'Último dia')
         ws.write(r0 - 1, 2, 'Média')
@@ -691,19 +713,23 @@ class Construtor:
         self.nome('gPctMaxDia', ws, r, 2)
         # status do ultimo dia
         r += 1
-        for j, key in enumerate(('difK', 'difJ')):
-            ws.write(r + j, 0, 'status ' + key)
-            ws.write_formula(r + j, 1, '=IF(ISNUMBER(gUlt_%s),IF(ABS(gUlt_%s)<=cfgTol,"OK","NOK"),"—")' % (key, key))
-            self.nome('pSt_' + key, ws, r + j, 1)
+        ws.write(r, 0, 'status')
+        for j, (key, _t, _v, _nf, ref) in enumerate(TOLS):
+            tk = 'tol_' + key
+            base = '0' if ref == 'zero' else 'N(gMed_%s)' % key
+            ws.write_formula(r, 1 + j, '=IF(OR(N(%s)<=0,NOT(ISNUMBER(gUlt_%s))),"—",IF(ABS(gUlt_%s-%s)<=%s,"OK","NOK"))'
+                             % (tk, key, key, base, tk))
+            self.nome('pSt_' + key, ws, r, 1 + j)
         # textos do painel
         r += 3
         ini = '(rFim-rDias+1)'
         ws.write(r, 0, 'Comentários')
+        FORA = ('IF(N(tol_difK)>0,"; fora da tolerância (±"&tol_difK&"): "&gFora_difK&" dia(s)","")&IF(N(tol_difJ)>0," para ESP C2 + C3 e "&gFora_difJ&" para EB4 + ESP C3 (±"&tol_difJ&")","")')
         auto = [
             ('="Último dia ("&%s&"): batch EB6 "&%s&"; diferença para ESP C2 + C3 "&%s&" e para EB4 + ESP C3 "&%s&"."'
              % (dm('rFim'), tx0('gUlt_eb6'), txs('gUlt_difK'), txs('gUlt_difJ'))),
-            ('="Período de "&rDias&" dias: diferença média "&%s&" e "&%s&"; fora da tolerância (±"&cfgTol&") em "'
-             '&gFora_difK&" e "&gFora_difJ&" dia(s)."' % (txs('gMed_difK'), txs('gMed_difJ'))),
+            ('="Período de "&rDias&" dias: diferença média "&%s&" e "&%s&%s&"."'
+             % (txs('gMed_difK'), txs('gMed_difJ'), FORA)),
             ('="%% lama: "&%s&" no último dia; média "&%s&IF(ISNUMBER(gPctMax),", máxima "&%s&" em "&%s,"")&"."'
              % (txp('gUlt_pctLama'), txp('gMed_pctLama'), txp('gPctMax'), dm('gPctMaxDia'))),
         ]
@@ -722,9 +748,10 @@ class Construtor:
         resumo = ('="Monitoramento S.E. — Espessador × Batch · "&%s&CHAR(10)&"Batch EB6 "&%s&" · ESP C2 + C3 "&%s&'
                   '" (dif. "&%s&", "&pSt_difK&") · EB4 + ESP C3 "&%s&" (dif. "&%s&", "&pSt_difJ&") · %% lama "&%s&'
                   'CHAR(10)&"Período de "&rDias&" dias ("&%s&" a "&%s&"): diferença média "&%s&" e "&%s&'
-                  '"; fora da tolerância (±"&cfgTol&") em "&gFora_difK&" e "&gFora_difJ&" dia(s)."'
+                  'FORA_X&"."'
                   % (dmy('rFim'), tx0('gUlt_eb6'), tx0('gUlt_espP'), txs('gUlt_difK'), tx0('gUlt_eb4P'),
                      txs('gUlt_difJ'), txp('gUlt_pctLama'), dm(ini), dm('rFim'), txs('gMed_difK'), txs('gMed_difJ')))
+        resumo = resumo.replace('FORA_X', FORA)
         ws.write_formula(r, 1, resumo)
         self.nome('gResumo', ws, r, 1)
         r += 2
@@ -765,6 +792,7 @@ class Construtor:
         self.botao(ws, 1, 8, 'Atualizar painel', 'AtualizarPainel', 116, 30, 's', x=4, y=4)
         self.botao(ws, 1, 10, 'Copiar imagem', 'CopiarImagemPainel', 118, 30, 'p', x=2, y=4)
         self.botao(ws, 1, 10, 'Copiar resumo', 'CopiarResumo', 118, 30, 'n', x=126, y=4)
+        self.botao(ws, 1, 12, '✎ Editar comentários', 'IrComentarios', 150, 30, 's', x=6, y=4)
 
         R = P_R0
         # ---- cabecalho
@@ -802,7 +830,7 @@ class Construtor:
                       border_color=LINE, indent=1)
         ws.merge_range(r, 1, r, 6, '', secf)
         ws.write_formula(r, 1, '="ÚLTIMO DIA · "&%s&"   |   PERÍODO DE "&rDias&" DIAS"' % dmy('rFim'), secf, '')
-        ws.merge_range(r, 8, r, 10, 'COMENTÁRIOS', secf)
+        ws.merge_range(r, 8, r, 10, 'COMENTÁRIOS  (editar na aba Dia, bloco ④)', secf)
         ws.merge_range(r, 12, r, 13, 'PRODUÇÃO E DVR', secf)
         # farol: cabecalho
         rh = r + 1
@@ -826,12 +854,9 @@ class Construtor:
             ws.write_formula(rr, 3, '=IF(ISNUMBER(gUlt_%s),gUlt_%s,"—")' % (k, k),
                              self.f(bold=dif, num_format=nf, **ftd), '')
             ws.write_formula(rr, 4, '=IF(ISNUMBER(gMed_%s),gMed_%s,"—")' % (k, k), self.f(num_format=nf, **ftd), '')
-            if dif:
-                ws.write_formula(rr, 5, '=cfgTol', self.f(num_format='#,##0', **ftd), TOL_PADRAO)
-                ws.write_formula(rr, 6, '=pSt_%s' % k, self.f(bold=True, **ftd), '')
-            else:
-                ws.write(rr, 5, '—', self.f(font_color=MUTED, **ftd))
-                ws.write(rr, 6, '—', self.f(font_color=MUTED, **ftd))
+            ws.write_formula(rr, 5, '=IF(N(tol_%s)>0,tol_%s,"—")' % (k, k),
+                             self.f(num_format='0.00%' if k == 'pctLama' else '#,##0', **ftd), '')
+            ws.write_formula(rr, 6, '=pSt_%s' % k, self.f(bold=True, **ftd), '')
         f1, f2 = rh + 1, rh + len(linhas)
         ws.conditional_format(f1, 6, f2, 6, {'type': 'cell', 'criteria': '==', 'value': '"OK"',
                                              'format': self.wb.add_format({'font_color': OK, 'bold': True})})
@@ -901,7 +926,7 @@ class Construtor:
         ws.set_row(r, 16)
         ws.merge_range(r, 1, r, 13, '', self.f(font_size=7, font_color=MUTED, align='center'))
         ws.write_formula(r, 1, '="Diferença = batch EB6 − média ponderada pela produção (C2/C3)   ·   faixa verde '
-                               'tracejada = tolerância (±"&cfgTol&")   ·   ◆ = diferença média do período   ·   barras '
+                               'tracejada = tolerância (aba Dia)   ·   ◆ = diferença média do período   ·   barras '
                                'escuras = média do período"', self.f(font_size=7, font_color=MUTED, align='center'), '')
         self.wb.define_name('pArea', '=%s!%s:%s' % (quote(ws), rc(R, 0, True, True), rc(r, 14, True, True)))
         ws.print_area(R, 0, r, 14)

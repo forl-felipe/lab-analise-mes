@@ -58,9 +58,9 @@ Public Const H_ENTRADAS As String = "data|prodC3|prodC2|espC3|espC2|eb4|eb6|tk01
 ' itens do MES (ordem da aba Dia e de Configuracoes)
 Public Const I_CHAVES As String = "prodC3|prodC2|espC3|espC2|eb4|eb6|tk01|tk02|lamaC3|lamaC2|concC3|concC2"
 ' colunas da aba _Graf (1-based, nesta ordem); linha 1 = titulos, dia k na linha k + 1
-Public Const G_CHAVES As String = "data|rot|espP|eb6|difK|difKmed|tolP|tolN|eb4P|difJ|difJmed|tk01|tk02|pctLama|pctMed|pct0"
+Public Const G_CHAVES As String = "data|rot|espP|eb6|difK|difKmed|tolKP|tolKN|eb4P|difJ|difJmed|tolJP|tolJN|tk01|tk02|pctLama|pctMed|pct0"
 ' series de cada grafico do Painel (barras primeiro) e quantas sao barras
-Public Const GRAF_SERIES As String = "espP,eb6,difK,difKmed,tolP,tolN|eb4P,eb6,difJ,difJmed,tolP,tolN|eb6,tk01,tk02,pctLama,pctMed"
+Public Const GRAF_SERIES As String = "espP,eb6,difK,difKmed,tolKP,tolKN|eb4P,eb6,difJ,difJmed,tolJP,tolJN|eb6,tk01,tk02,pctLama,pctMed"
 Public Const GRAF_NBARRAS As String = "2|2|3"
 Public Const COR_BASE As String = "15980963|14670805|13353913"
 Public Const COR_MEDIA As String = "7356416|10192993|9997437"

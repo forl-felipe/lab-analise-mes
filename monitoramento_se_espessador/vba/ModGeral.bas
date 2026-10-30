@@ -262,6 +262,13 @@ Public Sub IrDiagnostico()
     shDiag.Activate
 End Sub
 
+' Comentarios do painel: editados na aba Dia, bloco 4
+Public Sub IrComentarios()
+    On Error Resume Next
+    shDia.Activate
+    Nm("dCom1").Select
+End Sub
+
 Public Sub IrDia()
     On Error Resume Next
     shDia.Activate

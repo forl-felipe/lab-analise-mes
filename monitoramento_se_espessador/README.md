@@ -14,9 +14,10 @@ OK/NOK, comentários automáticos e gráficos com barras por dia + barra escura 
 1. Aba **Dia** → dia dos dados (**ontem**: o DVR só entra no MES no fechamento do dia) → **Buscar no MES**.
    O dia já é **gravado no histórico** e o **Painel passa a terminar nele**. Confira valores, Nº de resultados e Situação.
 2. Se corrigir algum valor ou o Fator à mão → **Salvar no histórico** de novo.
-3. Comentários do painel e tolerância: bloco **④** da aba Dia (texto automático editável, Sim/Não para entrar no
-   painel, 3 tópicos livres, **Restaurar automáticos**; tolerância da diferença, padrão ±150). Ao trocar a data, os
-   comentários voltam ao automático.
+3. Comentários do painel: bloco **④** da aba Dia (texto automático editável, Sim/Não para entrar no painel, 3 tópicos
+   livres, **Restaurar automáticos**; ao trocar a data, voltam ao automático). No Painel, **✎ Editar comentários**
+   leva até lá. Tolerâncias: bloco **⑤**, uma por linha do quadro do Painel (vazio = "—"; diferenças: |valor| ≤ tol.;
+   demais: |último dia − média do período| ≤ tol.). Padrão: ±150 nas duas diferenças.
 4. Aba **Painel** → **Copiar imagem** (e **Copiar resumo** para o corpo do e-mail). Ao abrir a planilha, o Painel
    já está no último dia salvo.
 
@@ -33,7 +34,7 @@ dia e os horários com valor.
 | Aba | Para quê |
 |---|---|
 | **Painel** | Report gerencial (padrão do Comparativo): quadro *Último dia / Média do período / Tolerância / Status* (EB6, ESP C2+C3, EB4+ESP C3, as duas diferenças, % lama), **comentários automáticos** (último dia, período, dias fora da tolerância, % lama máxima, observação do dia) e caixa *Produção e DVR*. Gráficos: *Espessador C2 + C3 × Batch EB6*, *Batch EB4 + Espessador C3 × Batch EB6* e *% de lama no batch × S.E. do EB6 e dos tanques*. Barra de cima (fora da imagem): data final, nº de dias (2 a 60), Último dia, Ir para o Dia, Atualizar painel, Copiar imagem, Copiar resumo. |
-| **Dia** | ① dia dos dados, ② resultados do MES (item, valor, nº de resultados, janela) com a legenda de D / D−1 em datas, ③ resultado do dia, ④ comentários do painel e tolerância, e a última busca. |
+| **Dia** | ① dia dos dados, ② resultados do MES (item, valor, nº de resultados, janela) com a legenda de D / D−1 em datas, ③ resultado do dia, ④ comentários do painel, ⑤ tolerâncias e a última busca. |
 | **Histórico** | Um dia por linha, de 28/01/2026 em diante (planilha anterior + buscas no MES). Colunas cinza são calculadas; dá para lançar dias à mão. |
 | **Diagnóstico** | Só quando algum item vier sem valor (ver acima). |
 | **Configurações** (oculta, senha `Samarco@Lab`) | Tag, servidor, mapa, janela, agregação e faixa válida de cada item; janelas de horário; fator padrão; fonte (MES ou SIMULAÇÃO). |
@@ -50,8 +51,7 @@ dia e os horários com valor.
   % lama = (lama C3 + lama C2) / (conc C3 + conc C2). Conferido com 18/08/2026 (2266,07 · 2155,21 · −82,07 · +28,79).
 - Tag recusada pelo MES: tenta o mesmo código no outro formato (`-0596-` ↔ `-596-`); mapa recusado: tenta
   `IP_AnalogMap`, `IP_MESVALOR`, `IP_DiscreteMap`. O que o MES aceitar fica gravado em Configurações.
-- Status OK/NOK do Painel: |diferença do último dia| ≤ tolerância (Configurações, padrão ±150 — o mesmo da S.E. no
-  Comparativo; confirmar com o laboratório).
+- Status OK/NOK do Painel: por linha, com a tolerância do bloco ⑤ da aba Dia (vazio = sem status).
 - Busca de **hoje**: a planilha avisa que o dia não terminou (DVR e fechamento do batch ainda não estão no MES) e
   pergunta antes de salvar.
 
