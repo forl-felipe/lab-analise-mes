@@ -80,6 +80,22 @@ Public Sub SalvarDia()
     Aviso "Dia " & TxtDia(d) & " salvo no histórico. O painel já mostra este dia.", vbInformation, "Salvar"
 End Sub
 
+' Comentarios do painel: volta os tres automaticos (formulas), todos "Sim", e limpa os topicos livres.
+' Roda sozinho ao trocar a data da aba Dia.
+Public Sub RestaurarComentarios()
+    Dim j As Long
+    ModoCarga True
+    Desproteger shDia
+    For j = 1 To 3
+        Nm("dCom" & j).Formula = "=gCom" & j
+        Nm("dComOn" & j).Value = "Sim"
+        Nm("dTop" & j).ClearContents
+    Next j
+    Proteger shDia
+    ModoCarga False
+    Recalcular
+End Sub
+
 ' Troca da data na aba Dia: abre o dia do historico (ou limpa para um dia novo)
 Public Sub CarregarDia()
     Dim d As Date, r As Long, k As Long, v As Variant

@@ -40,6 +40,7 @@ Public Sub Inicializar()
         Nm("dData").Value = CDate(Int(CDbl(Now)) - 1)
         Proteger shDia
         ModoCarga False
+        RestaurarComentarios
     End If
     CarregarDia
     ' painel abre no ultimo dia salvo no historico

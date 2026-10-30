@@ -1,5 +1,7 @@
 # Monitoramento S.E. — Espessador × Batch
 
+Guia rápido de uso: [`guia/Guia_rapido_Monitoramento_SE.png`](guia/Guia_rapido_Monitoramento_SE.png).
+
 Planilha `Monitoramento_SE_Espessador_Batch.xlsm`: versão automática da `Monitoramento SE - Após fator ESP 6.2.xlsx`
 (aba *Média ponderada*). O botão **Buscar no MES** traz os resultados do dia, **Salvar no histórico** grava o dia e o
 **Painel** monta o report gerencial dos últimos N dias, pronto para copiar como imagem. O Painel segue o mesmo padrão
@@ -12,7 +14,10 @@ OK/NOK, comentários automáticos e gráficos com barras por dia + barra escura 
 1. Aba **Dia** → dia dos dados (**ontem**: o DVR só entra no MES no fechamento do dia) → **Buscar no MES**.
    O dia já é **gravado no histórico** e o **Painel passa a terminar nele**. Confira valores, Nº de resultados e Situação.
 2. Se corrigir algum valor ou o Fator à mão → **Salvar no histórico** de novo.
-3. Aba **Painel** → **Copiar imagem** (e **Copiar resumo** para o corpo do e-mail). Ao abrir a planilha, o Painel
+3. Comentários do painel e tolerância: bloco **④** da aba Dia (texto automático editável, Sim/Não para entrar no
+   painel, 3 tópicos livres, **Restaurar automáticos**; tolerância da diferença, padrão ±150). Ao trocar a data, os
+   comentários voltam ao automático.
+4. Aba **Painel** → **Copiar imagem** (e **Copiar resumo** para o corpo do e-mail). Ao abrir a planilha, o Painel
    já está no último dia salvo.
 
 Lançamento à mão: dá para digitar um dia direto na aba **Histórico** (data + valores nas colunas brancas); as
@@ -28,10 +33,10 @@ dia e os horários com valor.
 | Aba | Para quê |
 |---|---|
 | **Painel** | Report gerencial (padrão do Comparativo): quadro *Último dia / Média do período / Tolerância / Status* (EB6, ESP C2+C3, EB4+ESP C3, as duas diferenças, % lama), **comentários automáticos** (último dia, período, dias fora da tolerância, % lama máxima, observação do dia) e caixa *Produção e DVR*. Gráficos: *Espessador C2 + C3 × Batch EB6*, *Batch EB4 + Espessador C3 × Batch EB6* e *% de lama no batch × S.E. do EB6 e dos tanques*. Barra de cima (fora da imagem): data final, nº de dias (2 a 60), Último dia, Ir para o Dia, Atualizar painel, Copiar imagem, Copiar resumo. |
-| **Dia** | ① dia dos dados, ② resultados do MES (item, valor, nº de resultados, janela) com a legenda de D / D−1 em datas, ③ resultado do dia e a última busca. |
+| **Dia** | ① dia dos dados, ② resultados do MES (item, valor, nº de resultados, janela) com a legenda de D / D−1 em datas, ③ resultado do dia, ④ comentários do painel e tolerância, e a última busca. |
 | **Histórico** | Um dia por linha, de 28/01/2026 em diante (planilha anterior + buscas no MES). Colunas cinza são calculadas; dá para lançar dias à mão. |
 | **Diagnóstico** | Só quando algum item vier sem valor (ver acima). |
-| **Configurações** (oculta, senha `Samarco@Lab`) | Tag, servidor, mapa, janela, agregação e faixa válida de cada item; janelas de horário; **tolerância da diferença (±150)**; fator padrão; fonte (MES ou SIMULAÇÃO). |
+| **Configurações** (oculta, senha `Samarco@Lab`) | Tag, servidor, mapa, janela, agregação e faixa válida de cada item; janelas de horário; fator padrão; fonte (MES ou SIMULAÇÃO). |
 | Dados_MES, _Graf (ocultas) | Consultas ao Aspen (fórmula e resposta de cada consulta) e séries dos gráficos. |
 
 ## Regras

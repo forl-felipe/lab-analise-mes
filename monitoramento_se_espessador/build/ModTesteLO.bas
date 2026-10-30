@@ -80,6 +80,32 @@ Public Sub TesteLO()
     Ok DiaDe(Nm("gPctMaxDia").Value) = CLng(DateSerial(2026, 10, 14)), "% lama máxima em 14/10"
     Ok Perto(Nm("gUlt_lama").Value, 335, 0.001), "caixa Produção e DVR: lama 335 em 15/10"
 
+    ' --- comentarios editaveis na aba Dia e tolerancia
+    Ok InStr(CStr(Nm("dCom1").Value), "Último dia") > 0 And Nm("dCom1").HasFormula, "comentário automático na aba Dia"
+    Desproteger shDia
+    Nm("dCom1").Value = "Texto editado pelo laboratório"
+    Nm("dComOn2").Value = "Não"
+    Nm("dTop1").Value = "Tópico livre do dia"
+    Proteger shDia
+    Recalcular
+    s = CStr(Nm("gComentarios").Value)
+    Ok InStr(s, "Texto editado") > 0 And InStr(s, "Período de") = 0 And InStr(s, "Tópico livre") > 0 And _
+       InStr(s, "% lama") > 0, "painel usa o comentário editado, tira o desmarcado e inclui o tópico"
+    RestaurarComentarios
+    s = CStr(Nm("gComentarios").Value)
+    Ok InStr(s, "Último dia") > 0 And InStr(s, "Período de") > 0 And InStr(s, "Tópico livre") = 0, _
+       "restaurar volta os comentários automáticos"
+    Desproteger shDia
+    Nm("cfgTol").Value = 100
+    Proteger shDia
+    Recalcular
+    Ok CStr(Nm("pSt_difK").Value) = "NOK" And shGraf.Cells(2, GColT("tolP")).Value = 100, _
+       "tolerância 100 na aba Dia: +114 vira NOK no painel"
+    Desproteger shDia
+    Nm("cfgTol").Value = 150
+    Proteger shDia
+    Recalcular
+
     ' --- leitura da saida do MES (janela E) e tags
     Ok TesteLeitura() = "1000|23|2011|12", "leitura da janela E: produção média 1000 (23 h), S.E. média 2011 (12 resultados): " & TesteLeitura()
     Ok VarianteTag("M0239010000-0596-HHCC") = "M0239010000-596-HHCC", "variante de tag -0596- -> -596-"

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Guia rápido</title>
+<style>
+  :root { --navy:#00335A; --navy2:#004070; --amarelo:#FFC000; --verde:#0A7C50; --ink:#1D2B36; --muted:#5B6B77;
+          --linha:#C9D1D7; --bg:#F3F5F7; --input:#FFF8E1; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1200px; font-family: "Segoe UI", "Inter", Arial, sans-serif; color: var(--ink); background: #fff; }
+  header { background: var(--navy); color: #fff; padding: 22px 32px 18px; border-bottom: 5px solid var(--amarelo);
+           display: flex; justify-content: space-between; align-items: baseline; }
+  header h1 { font-size: 26px; font-weight: 700; }
+  header span { font-size: 15px; color: #D5DEEB; font-weight: 600; }
+  main { padding: 26px 32px 22px; }
+  h2 { font-size: 15px; color: #003B6C; font-weight: 700; letter-spacing: .3px; text-transform: uppercase;
+       border-bottom: 2px solid var(--amarelo); padding-bottom: 5px; margin-bottom: 14px; }
+  .passos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 26px; }
+  .passo { border: 1px solid var(--linha); border-top: 4px solid var(--navy2); padding: 14px 14px 16px; background: #fff; }
+  .num { width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 700;
+         display: flex; align-items: center; justify-content: center; font-size: 15px; margin-bottom: 10px; }
+  .passo b { display: block; font-size: 15px; margin-bottom: 6px; }
+  .passo p { font-size: 13px; line-height: 1.45; color: #34444F; }
+  .btn { display: inline-block; padding: 1px 7px; border-radius: 4px; font-weight: 700; font-size: 12px; white-space: nowrap; }
+  .am { background: var(--amarelo); color: #002643; } .vd { background: var(--verde); color: #fff; }
+  .az { background: var(--navy2); color: #fff; } .cz { background: #E8EBF0; color: #4A5A66; }
+  .cel { background: var(--input); border: 1px solid #E6C66A; padding: 0 5px; font-size: 12px; }
+  .abas { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 22px; }
+  .aba { background: var(--bg); padding: 12px 14px; border-left: 4px solid var(--navy2); }
+  .aba b { font-size: 14px; display: block; margin-bottom: 4px; }
+  .aba p { font-size: 12.5px; line-height: 1.4; color: #4A5A66; }
+  .rodape { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; font-size: 12.5px; color: #34444F; }
+  .rodape div { border: 1px solid var(--linha); padding: 10px 14px; line-height: 1.5; }
+  .rodape b { color: #003B6C; }
+  strong { font-weight: 700; font-size: inherit; color: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Monitoramento S.E. — Espessador × Batch</h1>
+  <span>Como usar a planilha</span>
+</header>
+<main>
+  <h2>Todo dia</h2>
+  <section class="passos">
+    <div class="passo"><div class="num">1</div><b>Escolher o dia</b>
+      <p>Aba <strong>Dia</strong> → <span class="cel">Dia dos dados</span>. Normalmente é <strong>ontem</strong> (D). O report sai em D+1.</p></div>
+    <div class="passo"><div class="num">2</div><b>Buscar no MES</b>
+      <p>Clicar <span class="btn am">Buscar no MES</span>. Traz os 12 itens e já grava o dia no Histórico e no Painel.</p></div>
+    <div class="passo"><div class="num">3</div><b>Conferir</b>
+      <p>Nº de resultados <strong style="color:#C62828">0</strong> = sem valor no MES. Corrigir ou lançar nas células amarelas e clicar <span class="btn vd">Salvar no histórico</span>.</p></div>
+    <div class="passo"><div class="num">4</div><b>Comentários</b>
+      <p>Bloco ④ da aba Dia: editar o texto, marcar <strong>Sim/Não</strong>, escrever tópicos e ajustar a tolerância (±150).</p></div>
+    <div class="passo"><div class="num">5</div><b>Enviar</b>
+      <p>Aba <strong>Painel</strong> → <span class="btn az">Copiar imagem</span> e colar no e-mail. <span class="btn cz">Copiar resumo</span> para o texto.</p></div>
+  </section>
+
+  <h2>Abas</h2>
+  <section class="abas">
+    <div class="aba"><b>Painel</b><p>Report gerencial: último dia, média do período, OK/NOK, comentários e gráficos. Data final e nº de dias no topo.</p></div>
+    <div class="aba"><b>Dia</b><p>Busca no MES, valores do dia, resultado do dia, comentários e tolerância.</p></div>
+    <div class="aba"><b>Histórico</b><p>Um dia por linha. Dá para lançar ou corrigir à mão (colunas cinza calculam sozinhas).</p></div>
+    <div class="aba"><b>Diagnóstico</b><p>Só se um item vier sem valor e o MES tiver o dado: acha a tag que funciona.</p></div>
+    <div class="aba"><b>Configurações</b><p>Tags e janelas do MES. Botão Configurações na aba Dia · senha Samarco@Lab.</p></div>
+  </section>
+
+  <section class="rodape">
+    <div><b>Horários buscados</b> (D = dia dos dados)<br>
+      Produção e espessadores: D-1 23:00 a D 21:00 · média<br>
+      Batch EB4/EB6, tanques e DVR: D 00:00 a D 23:59</div>
+    <div><b>Contas</b><br>
+      Diferença = batch EB6 − média ponderada pela produção C2/C3<br>
+      % lama = lama incorporada (C3 + C2) ÷ concentrado (C3 + C2)</div>
+  </section>
+</main>
+</body>
+</html>

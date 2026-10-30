@@ -152,7 +152,8 @@ D_ROW_FATOR = D_ROW_IT0 + NI
 D_ROW_OBS = D_ROW_FATOR + 1
 D_ROW_LEG = D_ROW_OBS + 2        # legenda D / D-1
 D_ROW_RES = D_ROW_OBS + 5        # resultado do dia (calculado)
-D_ROW_ST = D_ROW_RES + 9         # ultima busca
+D_ROW_COM = D_ROW_RES + 8        # comentarios do painel e tolerancia
+D_ROW_ST = D_ROW_COM + 10        # ultima busca
 D_COL = dict(ITEM=1, VAL=2, NRES=3, JAN=4)
 
 # Aba Diagnostico (0-based)
@@ -405,8 +406,6 @@ class Construtor:
         self.secao(ws, r, 1, 5, 'PARÂMETROS')
         params = [
             ('cfgFonte', 'Fonte dos dados (MES ou SIMULAÇÃO para treinar sem MES)', 'MES'),
-            ('cfgTol', 'Tolerância da diferença de S.E. no painel (±, cm²/g) — linha verde tracejada e OK/NOK',
-             TOL_PADRAO),
             ('cfgFatorPadrao', 'Fator padrão de um dia novo (se não houver dia anterior no histórico)', FATOR_PADRAO),
             ('cfgDiasPadrao', 'Dias no painel (padrão ao abrir)', DIAS_REPORT),
             ('cfgTimeout', 'Tempo máximo de espera de cada consulta (s)', 120),
@@ -422,7 +421,7 @@ class Construtor:
                 ws.write(r + 1 + j, 3, v, celc)
             self.nome(nm, ws, r + 1 + j, 3)
         ws.data_validation(r + 1, 3, r + 1, 3, {'validate': 'list', 'source': ['MES', 'SIMULAÇÃO']})
-        ws.data_validation(r + 7, 3, r + 7, 3, {'validate': 'list', 'source': ['DATA', 'TEXTO', 'MM/DD']})
+        ws.data_validation(r + 6, 3, r + 6, 3, {'validate': 'list', 'source': ['DATA', 'TEXTO', 'MM/DD']})
         ws.protect(SENHA_CFG, {'format_columns': True, 'format_rows': True})
 
     # ------------------------------------------------------------------------ Historico
@@ -552,7 +551,7 @@ class Construtor:
         self.nome('d_fator', ws, r, D_COL['VAL'])
         r = D_ROW_OBS
         ws.set_row(r, 21)
-        ws.write(r, D_COL['ITEM'], 'Observação (vai para o painel)', itf)
+        ws.write(r, D_COL['ITEM'], 'Observação do dia (vai para o painel)', itf)
         ws.merge_range(r, D_COL['VAL'], r, D_COL['JAN'], '', self.fi(indent=1))
         self.nome('d_obs', ws, r, D_COL['VAL'])
 
@@ -590,6 +589,40 @@ class Construtor:
                              self.f(bold=True, border=1, border_color=LINE2, bg_color=BG, align='center',
                                     num_format=nf), '')
             self.nome('_' + k, ws, rr, D_COL['VAL'])
+
+        # (4) comentarios do painel (editaveis) e tolerancia
+        r = D_ROW_COM
+        self.secao(ws, r, 1, ultc, '④  COMENTÁRIOS DO PAINEL E TOLERÂNCIA  (texto automático: dá para editar · '
+                                   'Sim/Não = entra no painel)')
+        self.botao(ws, r, D_COL['JAN'], 'Restaurar automáticos', 'RestaurarComentarios', largura=150, altura=22,
+                   estilo='s', x=176, y=0)
+        lab = self.f(bold=True, border=1, border_color=LINE2, indent=1, font_size=9.5)
+        tog = self.fi(align='center', bold=True)
+        txt = self.fi(text_wrap=True, valign='top', font_size=9.5, indent=1)
+        nomes_auto = ['Automático: último dia', 'Automático: período', 'Automático: % lama']
+        for j in range(3):
+            rr = r + 1 + j
+            ws.set_row(rr, 32)
+            ws.write(rr, D_COL['ITEM'], nomes_auto[j], lab)
+            ws.write(rr, D_COL['VAL'], 'Sim', tog)
+            ws.data_validation(rr, D_COL['VAL'], rr, D_COL['VAL'], {'validate': 'list', 'source': ['Sim', 'Não']})
+            ws.merge_range(rr, D_COL['NRES'], rr, D_COL['JAN'], '', txt)
+            ws.write_formula(rr, D_COL['NRES'], '=gCom%d' % (j + 1), txt, '')
+            self.nome('dComOn%d' % (j + 1), ws, rr, D_COL['VAL'])
+            self.nome('dCom%d' % (j + 1), ws, rr, D_COL['NRES'])
+        for j in range(3):
+            rr = r + 4 + j
+            ws.set_row(rr, 24)
+            ws.write(rr, D_COL['ITEM'], 'Tópico %d (livre)' % (j + 1), lab)
+            ws.merge_range(rr, D_COL['VAL'], rr, D_COL['JAN'], '', txt)
+            self.nome('dTop%d' % (j + 1), ws, rr, D_COL['VAL'])
+        rr = r + 8
+        ws.set_row(rr, 24)
+        ws.write(rr, D_COL['ITEM'], 'Tolerância da diferença de S.E. (±)', lab)
+        ws.write(rr, D_COL['VAL'], TOL_PADRAO, self.fi(align='center', bold=True, font_size=11, num_format='#,##0'))
+        self.nome('cfgTol', ws, rr, D_COL['VAL'])
+        ws.merge_range(rr, D_COL['NRES'], rr, D_COL['JAN'], 'linha verde tracejada e OK/NOK do painel',
+                       self.f(border=1, border_color=LINE2, font_color=MUTED, font_size=9, indent=1))
 
         r = D_ROW_ST
         self.rotulo(ws, r, 1, 1, 'Última busca')
@@ -666,13 +699,22 @@ class Construtor:
         r += 3
         ini = '(rFim-rDias+1)'
         ws.write(r, 0, 'Comentários')
-        com = ('="•  Último dia ("&%s&"): batch EB6 "&%s&"; diferença para ESP C2 + C3 "&%s&" e para EB4 + ESP C3 "'
-               '&%s&"."&CHAR(10)&"•  Período de "&rDias&" dias: diferença média "&%s&" e "&%s&"; fora da tolerância '
-               '(±"&cfgTol&") em "&gFora_difK&" e "&gFora_difJ&" dia(s)."&CHAR(10)&"•  %% lama: "&%s&" no último dia; '
-               'média "&%s&IF(ISNUMBER(gPctMax),", máxima "&%s&" em "&%s,"")&"."'
-               '&IF(TRIM(gUlt_obs)<>"",CHAR(10)&"•  "&gUlt_obs,"")'
-               % (dm('rFim'), tx0('gUlt_eb6'), txs('gUlt_difK'), txs('gUlt_difJ'), txs('gMed_difK'),
-                  txs('gMed_difJ'), txp('gUlt_pctLama'), txp('gMed_pctLama'), txp('gPctMax'), dm('gPctMaxDia')))
+        auto = [
+            ('="Último dia ("&%s&"): batch EB6 "&%s&"; diferença para ESP C2 + C3 "&%s&" e para EB4 + ESP C3 "&%s&"."'
+             % (dm('rFim'), tx0('gUlt_eb6'), txs('gUlt_difK'), txs('gUlt_difJ'))),
+            ('="Período de "&rDias&" dias: diferença média "&%s&" e "&%s&"; fora da tolerância (±"&cfgTol&") em "'
+             '&gFora_difK&" e "&gFora_difJ&" dia(s)."' % (txs('gMed_difK'), txs('gMed_difJ'))),
+            ('="%% lama: "&%s&" no último dia; média "&%s&IF(ISNUMBER(gPctMax),", máxima "&%s&" em "&%s,"")&"."'
+             % (txp('gUlt_pctLama'), txp('gMed_pctLama'), txp('gPctMax'), dm('gPctMaxDia'))),
+        ]
+        for j, f in enumerate(auto):
+            ws.write_formula(r, 2 + j, f)
+            self.nome('gCom%d' % (j + 1), ws, r, 2 + j)
+        # comentarios do painel = automaticos marcados "Sim" (texto da aba Dia, editavel) + topicos + observacao
+        partes = ['IF(AND(dComOn%d="Sim",TRIM(dCom%d&"")<>""),"•  "&dCom%d&CHAR(10),"")' % (j, j, j) for j in (1, 2, 3)]
+        partes += ['IF(TRIM(dTop%d&"")<>"","•  "&dTop%d&CHAR(10),"")' % (j, j) for j in (1, 2, 3)]
+        partes += ['IF(TRIM(gUlt_obs)<>"","•  "&gUlt_obs,"")']
+        com = '=' + '&'.join(partes)
         ws.write_formula(r, 1, com)
         self.nome('gComentarios', ws, r, 1)
         r += 1
@@ -1071,7 +1113,8 @@ def montar_vba(layout_code):
     eventos = {
         'shDia': ('Option Explicit\n\nPrivate Sub Worksheet_Change(ByVal Target As Range)\n'
                   '    On Error Resume Next\n    If gCarregando Then Exit Sub\n'
-                  '    If Not Intersect(Target, Nm("dData")) Is Nothing Then CarregarDia\n'
+                  '    If Not Intersect(Target, Nm("dData")) Is Nothing Then\n'
+                  '        CarregarDia\n        RestaurarComentarios\n    End If\n'
                   'End Sub\n'),
         'shPainel': ('Option Explicit\n\nPrivate Sub Worksheet_Change(ByVal Target As Range)\n'
                      '    On Error Resume Next\n    If gCarregando Then Exit Sub\n'
