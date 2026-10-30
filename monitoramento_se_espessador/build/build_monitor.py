@@ -236,6 +236,8 @@ class Construtor:
         self.hoje = dtm.date.today()
         with open(HISTORICO, encoding='utf-8') as fh:
             self.hist = sorted(json.load(fh), key=lambda d: d['data'])
+        if TESTE:       # o teste automatico usa a base fixa ate 15/10/2026 (dias seguintes sao simulados)
+            self.hist = [d for d in self.hist if d['data'] <= '2026-10-15']
         self.dia0 = self.hist[-1] if self.hist else {}      # a aba Dia abre com o ultimo dia do historico
         self.ultimo_dia = (dtm.datetime.strptime(self.hist[-1]['data'], '%Y-%m-%d') if self.hist
                            else dtm.datetime.combine(self.hoje, dtm.time()))
@@ -434,7 +436,7 @@ class Construtor:
         self.faixa(ws, 1, 1, ultc, 'HISTÓRICO DIÁRIO',
                    'Um dia por linha. Colunas azuis: MES ou lançamento · cinza: calculadas (não editar)')
         ws.write(3, 1, 'Gravado pela aba Dia (Buscar no MES / Salvar). Pode corrigir à mão as colunas de valor '
-                       '(TK 01, TK 02, Fator, Observação...). A base de 28/01 a 15/10/2026 veio da planilha antiga.',
+                       '(Fator, Observação...). Base de 28/01/2026 em diante: planilha anterior + buscas no MES (coluna Origem).',
                  self.f(font_color=MUTED, italic=True, font_size=9))
         th = self.f(bold=True, font_color=BRANCO, bg_color=NAVY2, border=1, border_color=LINE, text_wrap=True,
                     align='center', font_size=9)
@@ -460,8 +462,12 @@ class Construtor:
                     if k == 'data':
                         ws.write_datetime(r, c, dtm.datetime.strptime(reg['data'], '%Y-%m-%d'), val['data'])
                     elif k == 'origem':
-                        ws.write_string(r, c, 'Importado', val['txt'])
-                    elif k in reg:
+                        ws.write_string(r, c, str(reg.get('origem', 'Importado')), val['txt'])
+                    elif k == 'atual' and reg.get('atual'):
+                        ws.write_datetime(r, c, dtm.datetime.fromisoformat(reg['atual']), val['datahora'])
+                    elif k == 'obs' and reg.get('obs'):
+                        ws.write_string(r, c, str(reg['obs']), val['txt'])
+                    elif k in reg and isinstance(reg[k], (int, float)):
                         ws.write_number(r, c, reg[k], val[tipo])
                     else:
                         ws.write_blank(r, c, None, val[tipo])
@@ -571,7 +577,7 @@ class Construtor:
         ws.merge_range(r, D_COL['VAL'], r, D_COL['ORIG'], '', self.fi(indent=1))
         self.nome('d_obs', ws, r, D_COL['VAL'])
         self.nome('dOrigem', ws, r + 1, D_COL['VAL'])
-        ws.write_string(r + 1, D_COL['VAL'], 'Importado' if self.dia0 else '', self.f(font_color=BRANCO, font_size=8))
+        ws.write_string(r + 1, D_COL['VAL'], str(self.dia0.get('origem', 'Importado')) if self.dia0 else '', self.f(font_color=BRANCO, font_size=8))
 
         # (3) resultado do dia (mesmas formulas do historico)
         r = D_ROW_RES
