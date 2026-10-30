@@ -341,7 +341,7 @@ Public Sub DiagnosticoMES()
     mMapasRuins = ""
     Ampulheta True
     Desproteger shDiag
-    shDiag.Range(shDiag.Cells(X_ROW0, 3), shDiag.Cells(X_ROW0 + NI - 1, 12)).ClearContents
+    shDiag.Range(shDiag.Cells(X_ROW0, X_COL_TAG), shDiag.Cells(X_ROW0 + NI - 1, X_COL_LISTA)).ClearContents
     Nm("xStatus").Value = "'Rodando..."
     qIni = CDate(CDbl(d) - 0.5 - 0.5 / 24)
     nJan = DIAG_JANELAS
@@ -351,7 +351,7 @@ Public Sub DiagnosticoMES()
     mapas = Split(MAPAS_DIAG, "|")
     For k = 1 To NI
         If ICfg(k, C_COL_TAG) = "" Then
-            shDiag.Cells(X_ROW0 + k - 1, 6).Value = "sem tag (lançamento à mão)"
+            shDiag.Cells(X_ROW0 + k - 1, X_COL_RES).Value = "sem tag (lançamento à mão)"
             achou(k) = True
         Else
             nTag = nTag + 1
@@ -402,17 +402,15 @@ Public Sub DiagnosticoMES()
     For k = 1 To NI
         If Not achou(k) Then
             r = X_ROW0 + k - 1
-            shDiag.Cells(r, 3).Value = "'" & ICfg(k, C_COL_TAG)
-            shDiag.Cells(r, 4).Value = ICfg(k, C_COL_MAPA)
-            shDiag.Cells(r, 5).Value = JanelaTxt(k)
-            shDiag.Cells(r, 6).Value = "sem valor em nenhuma forma testada"
-            shDiag.Cells(r, 7).Value = 0
-            shDiag.Cells(r, 11).Value = "'Testadas: " & Left$(tent(k), 240)
+            shDiag.Cells(r, X_COL_TAG).Value = "'" & ICfg(k, C_COL_TAG)
+            shDiag.Cells(r, X_COL_MAPA).Value = ICfg(k, C_COL_MAPA)
+            shDiag.Cells(r, X_COL_RES).Value = "sem valor (confira a tag no MES)"
+            shDiag.Cells(r, X_COL_LISTA).Value = "'Formas testadas: " & Left$(tent(k), 240)
         End If
     Next k
     GoTo Fim
 SemAspen:
-    shDiag.Cells(X_ROW0, 6).Value = "sem o suplemento do Aspen (#NOME?)"
+    shDiag.Cells(X_ROW0, X_COL_RES).Value = "sem o suplemento do Aspen (#NOME?)"
 Fim:
     mDescobrindo = False
     For k = 1 To NI
@@ -469,11 +467,6 @@ Public Function TesteFormas(ByVal t As String) As String
     TesteFormas = Join(FormasTag(t), "|")
 End Function
 
-Private Function JanelaTxt(ByVal k As Long) As String
-    JanelaTxt = IIf(UCase$(ICfg(k, C_COL_JAN)) = "E", "E: D-1 23:00 a D 21:00", "D: D 00:00 a 23:59") & " · " & _
-                ICfg(k, C_COL_AGR)
-End Function
-
 ' Preenche a linha do item k na aba Diagnostico com a coluna col da saida; devolve quantos valores achou
 Private Function ResultadoDiag(ByVal k As Long, ByVal d As Date, ByVal bruto As Variant, ByVal col As Long, _
                                ByVal qIni As Date, ByVal ps As String, ByVal resp As String) As Long
@@ -500,18 +493,13 @@ Private Function ResultadoDiag(ByVal k As Long, ByVal d As Date, ByVal bruto As 
     PeriodoJanela UCase$(ICfg(k, C_COL_JAN)), d, qN, nN
     LerSaida bruto, qN, nN, ps, v, n
     r = X_ROW0 + k - 1
-    res = "OK · " & nV & " valor(es)"
-    If IsEmpty(v(k)) Then res = res & " · nenhum na janela do item"
-    shDiag.Cells(r, 3).Value = "'" & mTagOvr(k)
-    shDiag.Cells(r, 4).Value = mMapOvr(k)
-    shDiag.Cells(r, 5).Value = JanelaTxt(k)
-    shDiag.Cells(r, 6).Value = res
-    shDiag.Cells(r, 7).Value = nV
-    shDiag.Cells(r, 8).Value = "'" & Format$(CDate(t1), "dd\/mm hh:mm")
-    shDiag.Cells(r, 9).Value = "'" & Format$(CDate(t2), "dd\/mm hh:mm")
-    If Not IsEmpty(v(k)) Then shDiag.Cells(r, 10).Value = Round(CDbl(v(k)), 3)
-    shDiag.Cells(r, 11).Value = "'" & lista
-    shDiag.Cells(r, 12).Value = "'" & Left$(resp, 250)
+    res = "OK"
+    If IsEmpty(v(k)) Then res = "sem valor neste dia (há em dias vizinhos)"
+    shDiag.Cells(r, X_COL_TAG).Value = "'" & mTagOvr(k)
+    shDiag.Cells(r, X_COL_MAPA).Value = mMapOvr(k)
+    shDiag.Cells(r, X_COL_RES).Value = res
+    If Not IsEmpty(v(k)) Then shDiag.Cells(r, X_COL_VAL).Value = Round(CDbl(v(k)), 2)
+    shDiag.Cells(r, X_COL_LISTA).Value = "'" & lista
 End Function
 
 ' Grava em Configuracoes a tag/mapa que trouxe valor (se diferente); devolve a linha da mensagem

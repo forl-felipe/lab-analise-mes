@@ -109,7 +109,7 @@ Public Sub TesteLO()
        "Buscar no MES (simulação) preenche EB6, produção e concentrado"
     k = IIndice("tk01")
     Ok ENumero(Nm("d_tk01").Value) And ENumero(Nm("d_tk02").Value) And _
-       Left$(shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).Value, 3) = "MES", "TK 01 e TK 02 vêm do MES (tags TBLQ)"
+       shDia.Cells(D_ROW_IT0 + k - 1, D_COL_NRES).Value > 0, "TK 01 e TK 02 vêm do MES (tags TBLQ)"
     Ok shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_NRES).Value = 13, "EB6: 13 resultados no dia"
     Ok LinhaHist(DateSerial(2026, 10, 16)) > 0 And DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 16)), _
        "Buscar no MES já grava o dia fechado no histórico e leva o painel para ele"
@@ -122,8 +122,8 @@ Public Sub TesteLO()
     SalvarDia
     r = LinhaHist(DateSerial(2026, 10, 16))
     Ok r = LinhaHist(DateSerial(2026, 10, 15)) + 1, "16/10 salvo logo depois de 15/10 (linha " & r & ")"
-    Ok H(r, H_COL_TK01) = 2111 And H(r, H_COL_ORIGEM) = "MES" And H(r, H_COL_OBS) = "teste" And H(r, H_COL_FATOR) = 160, _
-       "16/10: TK 01, origem, observação e fator gravados"
+    Ok H(r, H_COL_TK01) = 2111 And H(r, H_COL_OBS) = "teste" And H(r, H_COL_FATOR) = 160, _
+       "16/10: TK 01, observação e fator gravados"
     Ok Perto(H(r, H_COL_ESPP), (H(r, H_COL_ESPC3) * H(r, H_COL_PRODC3) + H(r, H_COL_ESPC2) * H(r, H_COL_PRODC2)) / _
        (H(r, H_COL_PRODC3) + H(r, H_COL_PRODC2)), 0.001), "16/10: ponderada calculada na linha nova"
     Ok DiaDe(Nm("rFim").Value) = CLng(DateSerial(2026, 10, 16)), "Painel avança para 16/10"
@@ -144,23 +144,22 @@ Public Sub TesteLO()
     SalvarDia
     Ok LinhaHist(DateSerial(2026, 10, 18)) = r2 And Vazio(H(r3 + 1, H_COL_DATA)), "salvar de novo não duplica o dia"
 
-    ' --- periodo: 17 a 19/10, mantendo o fator lancado a mao em 18/10 (TK vem do MES)
-    shHist.Cells(r2, H_COL_TK01).Value = 2222
-    shHist.Cells(r2, H_COL_FATOR).Value = 170
-    Desproteger shDia
-    Nm("dDe").Value = DateSerial(2026, 10, 17)
-    Nm("dAte").Value = DateSerial(2026, 10, 19)
-    Proteger shDia
-    BuscarPeriodo
-    Ok LinhaHist(DateSerial(2026, 10, 17)) = LinhaHist(DateSerial(2026, 10, 16)) + 1 And _
-       LinhaHist(DateSerial(2026, 10, 19)) = LinhaHist(DateSerial(2026, 10, 20)) - 1, "período 17 a 19/10 salvo e em ordem"
+    ' --- lancamento a mao direto no Historico (dia 17/10): o painel le e a aba Dia abre o dia
+    r = LinhaHist(DateSerial(2026, 10, 18)) + 2
+    Ok Vazio(H(r, H_COL_DATA)), "linha livre no fim do histórico"
+    shHist.Cells(r, H_COL_DATA).Value = DateSerial(2026, 10, 17)
+    shHist.Cells(r, H_COL_PRODC3).Value = 25000
+    shHist.Cells(r, H_COL_PRODC2).Value = 20000
+    shHist.Cells(r, H_COL_ESPC3).Value = 2000
+    shHist.Cells(r, H_COL_ESPC2).Value = 1900
+    shHist.Cells(r, H_COL_EB6).Value = 2100
+    Recalcular
+    Ok Perto(H(r, H_COL_DIFK), 2100 - (2000 * 25000 + 1900 * 20000) / 45000, 0.001), "dia lançado à mão: diferença calculada"
+    Data DateSerial(2026, 10, 17)
+    Ok Nm("d_eb6").Value = 2100 And Nm("d_espC3").Value = 2000, "aba Dia abre o dia lançado à mão no histórico"
     r2 = LinhaHist(DateSerial(2026, 10, 18))
-    Ok ENumero(H(r2, H_COL_TK01)) And H(r2, H_COL_TK01) <> 2222 And H(r2, H_COL_FATOR) = 170, _
-       "período: TK 01 atualizado pelo MES e fator lançado à mão mantido"
-    Ok H(LinhaHist(DateSerial(2026, 10, 19)), H_COL_FATOR) = 170, "19/10 repete o fator do dia anterior (170)"
-    Ok InStr(gUltimaMsg, "3 de 3") > 0, "mensagem do período: 3 de 3 dias"
     Data DateSerial(2026, 10, 18)
-    Ok Nm("d_tk01").Value = H(r2, H_COL_TK01) And shDia.Cells(D_ROW_IT0 + IIndice("eb6") - 1, D_COL_SIT).Value = "do histórico", _
+    Ok Nm("d_tk01").Value = H(r2, H_COL_TK01) And Nm("d_eb6").Value = H(r2, H_COL_EB6), _
        "trocar a data abre o dia do histórico"
     Ok Perto(Nm("_difK").Value, Nm("d_eb6").Value - Nm("_espP").Value, 0.001), "resultado do dia na aba Dia"
 
@@ -170,14 +169,6 @@ Public Sub TesteLO()
     BuscarMES
     Ok InStr(gUltimaMsg, "ainda não terminou") > 0, "buscar hoje avisa que o dia não terminou"
     Ok LinhaHist(CDate(Int(CDbl(Now)))) = 0, "buscar hoje não grava no histórico"
-    ' periodo nao passa de ontem
-    Desproteger shDia
-    Nm("dDe").Value = CDate(Int(CDbl(Now)))
-    Nm("dAte").Value = CDate(Int(CDbl(Now)))
-    Proteger shDia
-    gUltimaMsg = ""
-    BuscarPeriodo
-    Ok InStr(gUltimaMsg, "até ontem") > 0 And LinhaHist(CDate(Int(CDbl(Now)))) = 0, "período não inclui hoje"
 
     ' --- diagnostico sem o Aspen (LibreOffice): avisa e nao trava
     Desproteger shConfig
@@ -188,9 +179,9 @@ Public Sub TesteLO()
     Proteger shDiag
     gUltimaMsg = ""
     DiagnosticoMES
-    Ok InStr(CStr(shDiag.Cells(X_ROW0, 6).Value), "suplemento") > 0 And InStr(gUltimaMsg, "#NOME?") > 0, _
-       "diagnóstico sem o Aspen: avisa o suplemento (" & shDiag.Cells(X_ROW0, 6).Value & ")"
-    Ok InStr(CStr(shDiag.Cells(X_ROW0 + IIndice("tk01") - 1, 6).Value), "sem tag") > 0 Or _
+    Ok InStr(CStr(shDiag.Cells(X_ROW0, X_COL_RES).Value), "suplemento") > 0 And InStr(gUltimaMsg, "#NOME?") > 0, _
+       "diagnóstico sem o Aspen: avisa o suplemento (" & shDiag.Cells(X_ROW0, X_COL_RES).Value & ")"
+    Ok InStr(CStr(shDiag.Cells(X_ROW0 + IIndice("tk01") - 1, X_COL_RES).Value), "sem tag") > 0 Or _
        InStr(CStr(Nm("xStatus").Value), "15/10/2026") > 0, "diagnóstico grava a última execução"
 
     GoTo Fim

@@ -9,11 +9,13 @@ Public Const D_COL_ITEM As Long = 2
 Public Const D_COL_VAL As Long = 3
 Public Const D_COL_NRES As Long = 4
 Public Const D_COL_JAN As Long = 5
-Public Const D_COL_TAG As Long = 6
-Public Const D_COL_SIT As Long = 7
-Public Const D_COL_ORIG As Long = 8
 ' aba Diagnostico (1-based)
 Public Const X_ROW0 As Long = 9
+Public Const X_COL_TAG As Long = 3
+Public Const X_COL_MAPA As Long = 4
+Public Const X_COL_RES As Long = 5
+Public Const X_COL_VAL As Long = 6
+Public Const X_COL_LISTA As Long = 7
 ' aba Configuracoes (1-based)
 Public Const C_ROW_IT0 As Long = 8
 Public Const C_COL_CHAVE As Long = 2
@@ -50,10 +52,9 @@ Public Const H_COL_LAMA As Long = 18
 Public Const H_COL_CONCC3 As Long = 19
 Public Const H_COL_CONCC2 As Long = 20
 Public Const H_COL_PCTLAMA As Long = 21
-Public Const H_COL_ORIGEM As Long = 22
-Public Const H_COL_ATUAL As Long = 23
-Public Const H_COL_OBS As Long = 24
-Public Const H_ENTRADAS As String = "data|prodC3|prodC2|espC3|espC2|eb4|eb6|tk01|tk02|fator|lamaC3|lamaC2|concC3|concC2|origem|atual|obs"
+Public Const H_COL_ATUAL As Long = 22
+Public Const H_COL_OBS As Long = 23
+Public Const H_ENTRADAS As String = "data|prodC3|prodC2|espC3|espC2|eb4|eb6|tk01|tk02|fator|lamaC3|lamaC2|concC3|concC2|atual|obs"
 ' itens do MES (ordem da aba Dia e de Configuracoes)
 Public Const I_CHAVES As String = "prodC3|prodC2|espC3|espC2|eb4|eb6|tk01|tk02|lamaC3|lamaC2|concC3|concC2"
 ' colunas da aba _Graf (1-based, nesta ordem); linha 1 = titulos, dia k na linha k + 1

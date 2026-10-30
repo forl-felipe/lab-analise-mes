@@ -138,7 +138,6 @@ H_COLS = [  # chave, titulo, largura, formato, formula (None = valor)
     ('concC2', 'Concentrado C2 (tms)', 11, 'int', None),
     ('pctLama', '% lama', 8, 'pct',
      '=IF(OR({lama}="",{concC3}="",{concC2}=""),"",IF({concC3}+{concC2}=0,"",{lama}/({concC3}+{concC2})))'),
-    ('origem', 'Origem', 10, 'txt', None),
     ('atual', 'Atualizado em', 15, 'datahora', None),
     ('obs', 'Observação', 30, 'txt', None),
 ]
@@ -151,17 +150,17 @@ D_ROW_HDR = 9
 D_ROW_IT0 = D_ROW_HDR + 1        # 1o item
 D_ROW_FATOR = D_ROW_IT0 + NI
 D_ROW_OBS = D_ROW_FATOR + 1
-D_ROW_RES = D_ROW_OBS + 3        # resultado do dia (calculado)
-D_ROW_PER = D_ROW_RES + 9        # buscar periodo
-D_COL = dict(ITEM=1, VAL=2, NRES=3, JAN=4, TAG=5, SIT=6, ORIG=7)
+D_ROW_LEG = D_ROW_OBS + 2        # legenda D / D-1
+D_ROW_RES = D_ROW_OBS + 5        # resultado do dia (calculado)
+D_ROW_ST = D_ROW_RES + 9         # ultima busca
+D_COL = dict(ITEM=1, VAL=2, NRES=3, JAN=4)
 
 # Aba Diagnostico (0-based)
 X_ROW_HDR = 7
 X_ROW0 = X_ROW_HDR + 1
-X_COLS = ['Item', 'Tag consultada', 'Mapa', 'Janela do item', 'Resultado', 'Horários com valor',
-          '1º horário', 'Último horário', 'Valor na janela do item', 'Horários e valores (D-1 12:00 a D+1 12:00)',
-          'Resposta do Aspen']
-X_LARG = [30, 26, 13, 20, 26, 10, 13, 13, 12, 70, 50]
+X_COLS = ['Item', 'Tag', 'Mapa', 'Resultado', 'Valor do dia', 'Horários com valor (D-1 12:00 a D+1 12:00)']
+X_LARG = [32, 26, 14, 34, 13, 95]
+X_COL = dict(TAG=2, MAPA=3, RES=4, VAL=5, LISTA=6)     # 0-based
 
 # Aba Configuracoes (0-based)
 C_ROW_IT0 = 7
@@ -436,7 +435,7 @@ class Construtor:
         self.faixa(ws, 1, 1, ultc, 'HISTÓRICO DIÁRIO',
                    'Um dia por linha. Colunas azuis: MES ou lançamento · cinza: calculadas (não editar)')
         ws.write(3, 1, 'Gravado pela aba Dia (Buscar no MES / Salvar). Pode corrigir à mão as colunas de valor '
-                       '(Fator, Observação...). Base de 28/01/2026 em diante: planilha anterior + buscas no MES (coluna Origem).',
+                       '(Fator, Observação...). Base de 28/01/2026 em diante: planilha anterior + buscas no MES. Dá para lançar um dia à mão aqui (data + valores).',
                  self.f(font_color=MUTED, italic=True, font_size=9))
         th = self.f(bold=True, font_color=BRANCO, bg_color=NAVY2, border=1, border_color=LINE, text_wrap=True,
                     align='center', font_size=9)
@@ -461,8 +460,6 @@ class Construtor:
                 elif reg is not None:
                     if k == 'data':
                         ws.write_datetime(r, c, dtm.datetime.strptime(reg['data'], '%Y-%m-%d'), val['data'])
-                    elif k == 'origem':
-                        ws.write_string(r, c, str(reg.get('origem', 'Importado')), val['txt'])
                     elif k == 'atual' and reg.get('atual'):
                         ws.write_datetime(r, c, dtm.datetime.fromisoformat(reg['atual']), val['datahora'])
                     elif k == 'obs' and reg.get('obs'):
@@ -483,40 +480,35 @@ class Construtor:
     def aba_dia(self):
         ws = self.ws_dia
         ws.set_column(0, 0, 1.5)
-        larg = {'ITEM': 40, 'VAL': 14, 'NRES': 11, 'JAN': 30, 'TAG': 27, 'SIT': 36, 'ORIG': 52}
+        larg = {'ITEM': 40, 'VAL': 14, 'NRES': 11, 'JAN': 46}
         for k, w in larg.items():
             ws.set_column(D_COL[k], D_COL[k], w)
-        ultc = D_COL['ORIG']
+        ultc = D_COL['JAN']
         ws.set_row(0, 8)
         ws.set_row(1, 34)
         ws.merge_range(1, 1, 1, ultc, 'DADOS DO DIA', self.f(bold=True, font_size=14, font_color=BRANCO,
                                                              bg_color=NAVY, indent=1, bottom=5,
                                                              bottom_color=AMARELO))
-        self.botao(ws, 1, D_COL['SIT'], 'Ver painel →', 'IrPainel', largura=118, altura=24, estilo='p', x=150, y=5)
-        self.botao(ws, 1, D_COL['ORIG'], 'Diagnóstico do MES', 'IrDiagnostico', largura=150, altura=24, estilo='s',
+        self.botao(ws, 1, D_COL['NRES'], 'Ver painel →', 'IrPainel', largura=110, altura=24, estilo='p', x=0, y=5)
+        self.botao(ws, 1, D_COL['JAN'], 'Diagnóstico do MES', 'IrDiagnostico', largura=140, altura=24, estilo='s',
                    x=40, y=5)
-        self.botao(ws, 1, D_COL['ORIG'], 'Configurações', 'AbrirConfiguracoes', largura=120, altura=24, estilo='s',
-                   x=200, y=5)
+        self.botao(ws, 1, D_COL['JAN'], 'Configurações', 'AbrirConfiguracoes', largura=120, altura=24, estilo='s',
+                   x=190, y=5)
 
-        # (1) data do report + botoes
-        self.secao(ws, 3, 1, 2, '①  DATA DO REPORT')
+        # (1) data + botoes
+        self.secao(ws, 3, 1, 2, '①  DIA DOS DADOS')
         ws.set_row(D_ROW_DATA, 30)
-        ws.write(D_ROW_DATA, D_COL['ITEM'], 'Dia dos dados ▸', self.f(bold=True, font_color=AZUL_TIT,
-                                                                           align='right'))
+        ws.write(D_ROW_DATA, D_COL['ITEM'], 'Dia dos dados (D) ▸', self.f(bold=True, font_color=AZUL_TIT,
+                                                                             align='right'))
         ent = self.fi(bold=True, font_size=13, align='center', num_format='dd/mm/yyyy', border=2,
                       border_color=AMARELO)
         ws.write_datetime(D_ROW_DATA, D_COL['VAL'], self.ultimo_dia, ent)
         self.nome('dData', ws, D_ROW_DATA, D_COL['VAL'])
-        self.botao(ws, 3, D_COL['JAN'], 'Buscar no MES', 'BuscarMES', largura=190, altura=34, estilo='a', x=10, y=6)
-        self.botao(ws, 3, D_COL['TAG'], 'Salvar no histórico', 'SalvarDia', largura=190, altura=34, estilo='g',
-                   x=20, y=6)
-        ws.write_formula(D_ROW_DATA + 1, D_COL['ITEM'],
-                         '="Report de "&%s&"  ·  produção e espessadores: "&%s&" 23:00 a "&%s&" 21:00  ·  batch, '
-                         'tanques e DVR: "&%s&" 00:00 a 23:59"' % (dm('(dData+1)'), dm('(dData-1)'), dm('dData'),
-                                                                   dm('dData')),
-                         self.f(font_color=MUTED, italic=True, font_size=9), '')
-        ws.write(D_ROW_DATA + 2, D_COL['ITEM'], 'O DVR (produção C3, lama e concentrados) só entra no MES no fechamento '
-                                                 'do dia: busque o dia anterior. Ao trocar a data, o dia já salvo é aberto.',
+        self.botao(ws, 3, D_COL['NRES'], 'Buscar no MES', 'BuscarMES', largura=170, altura=34, estilo='a', x=4, y=6)
+        self.botao(ws, 3, D_COL['JAN'], 'Salvar no histórico', 'SalvarDia', largura=180, altura=34, estilo='g',
+                   x=104, y=6)
+        ws.write(D_ROW_DATA + 1, D_COL['ITEM'], 'Buscar no MES já grava o dia no histórico e no painel. Salvar no '
+                                                 'histórico: depois de corrigir ou lançar um valor à mão.',
                  self.f(font_color=MUTED, italic=True, font_size=9))
 
         # (2) resultados
@@ -526,15 +518,13 @@ class Construtor:
                     align='center', font_size=9)
         ws.set_row(D_ROW_HDR, 30)
         for c, t in [(D_COL['ITEM'], 'Item'), (D_COL['VAL'], 'Valor'), (D_COL['NRES'], 'Nº de resultados'),
-                     (D_COL['JAN'], 'Janela no MES'), (D_COL['TAG'], 'Tag'), (D_COL['SIT'], 'Situação'),
-                     (D_COL['ORIG'], 'Origem no MES')]:
+                     (D_COL['JAN'], 'Janela no MES')]:
             ws.write(D_ROW_HDR, c, t, th)
         itf = self.f(bold=True, border=1, border_color=LINE2, indent=1)
         valf = self.fi(bold=True, font_size=11, align='center', num_format='#,##0')
         valf1 = self.fi(bold=True, font_size=11, align='center', num_format='#,##0.0')
-        info = self.f(border=1, border_color=LINE2, font_color=MUTED, font_size=9)
+        info = self.f(border=1, border_color=LINE2, font_color=MUTED, font_size=9, indent=1)
         infoc = self.f(border=1, border_color=LINE2, font_color=MUTED, font_size=9, align='center')
-        sit = self.f(border=1, border_color=LINE2, font_color=INK2, font_size=9)
         for i, it in enumerate(ITENS):
             r = D_ROW_IT0 + i
             ws.set_row(r, 21)
@@ -547,37 +537,37 @@ class Construtor:
                 ws.write_blank(r, D_COL['VAL'], None, vf)
             ws.write_blank(r, D_COL['NRES'], None, infoc)
             ws.write_formula(r, D_COL['JAN'],
-                             '=IF(%s="","",IF(%s="E","D-1 23:00 a D 21:00","D 00:00 a 23:59")&" · "&%s)'
-                             % (cfg('TAG'), cfg('JAN'), cfg('AGR')), info, '')
-            ws.write_formula(r, D_COL['TAG'], '=IF(%s="","(sem tag)",%s)' % (cfg('TAG'), cfg('TAG')), info, '')
-            if it[2]:
-                ws.write(r, D_COL['SIT'], 'do histórico' if it[0] in self.dia0 else '', sit)
-            else:
-                ws.write(r, D_COL['SIT'], 'sem tag: lançar à mão', sit)
-            ws.write_formula(r, D_COL['ORIG'], '=' + cfg('ORIG'), info, '')
+                             '=IF(%s="","lançar à mão",IF(%s="E","D-1 23:00 a D 21:00","D 00:00 a D 23:59")&"  ·  "&'
+                             'LOWER(%s))' % (cfg('TAG'), cfg('JAN'), cfg('AGR')), info, '')
             self.nome('d_' + it[0], ws, r, D_COL['VAL'])
-        ws.conditional_format(D_ROW_IT0, D_COL['SIT'], D_ROW_IT0 + NI - 1, D_COL['SIT'],
-                              {'type': 'text', 'criteria': 'begins with', 'value': 'sem resultado',
+        # numero de resultados zero em vermelho (item sem valor no MES)
+        ws.conditional_format(D_ROW_IT0, D_COL['NRES'], D_ROW_IT0 + NI - 1, D_COL['NRES'],
+                              {'type': 'cell', 'criteria': '==', 'value': 0,
                                'format': self.wb.add_format({'font_color': NOK, 'bold': True})})
-        ws.conditional_format(D_ROW_IT0, D_COL['SIT'], D_ROW_IT0 + NI - 1, D_COL['SIT'],
-                              {'type': 'text', 'criteria': 'begins with', 'value': 'tag recusada',
-                               'format': self.wb.add_format({'font_color': NOK, 'bold': True})})
-        ws.conditional_format(D_ROW_IT0, D_COL['SIT'], D_ROW_IT0 + NI - 1, D_COL['SIT'],
-                              {'type': 'text', 'criteria': 'begins with', 'value': 'MES',
-                               'format': self.wb.add_format({'font_color': OK})})
         r = D_ROW_FATOR
         ws.set_row(r, 21)
         ws.write(r, D_COL['ITEM'], 'Fator', itf)
         ws.write(r, D_COL['VAL'], self.dia0.get('fator', FATOR_PADRAO), valf)
-        ws.merge_range(r, D_COL['NRES'], r, D_COL['ORIG'], 'Lançado à mão (dia novo: repete o do dia anterior)', info)
+        ws.merge_range(r, D_COL['NRES'], r, D_COL['JAN'], 'lançado à mão (dia novo: repete o do dia anterior)', info)
         self.nome('d_fator', ws, r, D_COL['VAL'])
         r = D_ROW_OBS
         ws.set_row(r, 21)
         ws.write(r, D_COL['ITEM'], 'Observação (vai para o painel)', itf)
-        ws.merge_range(r, D_COL['VAL'], r, D_COL['ORIG'], '', self.fi(indent=1))
+        ws.merge_range(r, D_COL['VAL'], r, D_COL['JAN'], '', self.fi(indent=1))
         self.nome('d_obs', ws, r, D_COL['VAL'])
-        self.nome('dOrigem', ws, r + 1, D_COL['VAL'])
-        ws.write_string(r + 1, D_COL['VAL'], str(self.dia0.get('origem', 'Importado')) if self.dia0 else '', self.f(font_color=BRANCO, font_size=8))
+
+        # legenda das janelas, com as datas do dia escolhido
+        leg = self.f(font_color=INK2, font_size=9, bg_color=BG, indent=1)
+        legb = self.f(font_color=INK2, font_size=9, bg_color=BG, indent=1, bold=True)
+        r = D_ROW_LEG
+        ws.merge_range(r, 1, r, ultc, '', legb)
+        ws.write_formula(r, 1, '="Legenda:   D = dia dos dados ("&%s&")   ·   D-1 = dia anterior ("&%s&")   ·   '
+                               'report enviado em D+1 ("&%s&")"' % (dmy('dData'), dm('(dData-1)'), dm('(dData+1)')),
+                         legb, '')
+        ws.merge_range(r + 1, 1, r + 1, ultc, '', leg)
+        ws.write_formula(r + 1, 1, '="D-1 23:00 a D 21:00 = "&%s&" 23:00 a "&%s&" 21:00 (produção e espessadores)   ·   '
+                                   'D 00:00 a D 23:59 = "&%s&" (batch, tanques e DVR)"'
+                         % (dm('(dData-1)'), dm('dData'), dm('dData')), leg, '')
 
         # (3) resultado do dia (mesmas formulas do historico)
         r = D_ROW_RES
@@ -601,28 +591,9 @@ class Construtor:
                                     num_format=nf), '')
             self.nome('_' + k, ws, rr, D_COL['VAL'])
 
-        # (4) buscar periodo
-        r = D_ROW_PER
-        self.secao(ws, r, 1, 2, '④  BUSCAR UM PERÍODO  (dias atrasados)')
-        ent2 = self.fi(bold=True, align='center', num_format='dd/mm/yyyy')
-        lab = self.f(bold=True, font_color=AZUL_TIT, align='right')
-        ws.set_row(r + 1, 26)
-        ws.set_row(r + 2, 26)
-        ws.write(r + 1, D_COL['ITEM'], 'De ▸', lab)
-        ws.write_blank(r + 1, D_COL['VAL'], None, ent2)
-        ws.write(r + 2, D_COL['ITEM'], 'Até ▸', lab)
-        ws.write_blank(r + 2, D_COL['VAL'], None, ent2)
-        self.nome('dDe', ws, r + 1, D_COL['VAL'])
-        self.nome('dAte', ws, r + 2, D_COL['VAL'])
-        self.botao(ws, r + 1, D_COL['JAN'], 'Buscar período no MES', 'BuscarPeriodo', largura=190, altura=32,
-                   estilo='a', x=10, y=8)
-        ws.merge_range(r + 1, D_COL['TAG'], r + 2, D_COL['ORIG'],
-                       'Cada dia é buscado e salvo no histórico (até ontem). Fator, Observação e valores lançados à mão '
-                       'em itens sem resultado no MES são mantidos.', self.f(font_color=MUTED, italic=True, text_wrap=True,
-                                                                     font_size=9))
-        r = r + 4
+        r = D_ROW_ST
         self.rotulo(ws, r, 1, 1, 'Última busca')
-        ws.merge_range(r + 1, 1, r + 4, D_COL['ORIG'], '',
+        ws.merge_range(r + 1, 1, r + 3, ultc, '',
                        self.f(font_color=INK2, font_size=9, text_wrap=True, valign='top', border=1,
                               border_color=LINE, bg_color=BG))
         self.nome('dStatus', ws, r + 1, 1)
@@ -973,19 +944,15 @@ class Construtor:
             ws.set_column(1 + j, 1 + j, w)
         ultc = len(X_COLS)
         self.faixa(ws, 1, 1, ultc, 'DIAGNÓSTICO DO MES',
-                   'Consulta cada tag sozinha, de D−1 12:00 a D+1 12:00 em janelas de 1 h: mostra se o MES aceita a '
-                   'tag e o mapa e em que horários há valor')
-        self.secao(ws, 4, 1, 1, '①  DIA DO TESTE')
+                   'Use se algum item vier sem valor: testa cada tag no MES e grava em Configurações a forma que '
+                   'funciona')
+        self.secao(ws, 4, 1, 1, '①  DIA DO TESTE (já fechado)')
         ws.set_row(5, 28)
         ws.write_datetime(5, 1, self.ultimo_dia, self.fi(bold=True, font_size=12, align='center',
                                                          num_format='dd/mm/yyyy', border=2, border_color=AMARELO))
         self.nome('xData', ws, 5, 1)
         self.botao(ws, 4, 2, 'Rodar diagnóstico', 'DiagnosticoMES', largura=180, altura=32, estilo='a', x=10, y=10)
         self.botao(ws, 4, 4, 'Voltar ao Dia', 'IrDia', largura=130, altura=32, estilo='s', x=20, y=10)
-        ws.merge_range(4, 6, 5, ultc, 'Use um dia já fechado (ontem ou antes). Itens sem valor no período: a tag ou '
-                                       'o mapa não trazem dados — confira no MES. Valor fora da janela do item: ajuste a '
-                                       'janela/agregação em Configurações.',
-                       self.f(font_color=MUTED, italic=True, text_wrap=True, font_size=9))
         th = self.f(bold=True, font_color=BRANCO, bg_color=NAVY2, border=1, border_color=LINE, text_wrap=True,
                     align='center', font_size=9)
         ws.set_row(X_ROW_HDR, 30)
@@ -997,10 +964,11 @@ class Construtor:
             ws.write(X_ROW0 + i, 1, it[1], self.f(bold=True, border=1, border_color=LINE2, font_size=9, indent=1))
             for j in range(1, len(X_COLS)):
                 ws.write_blank(X_ROW0 + i, 1 + j, None, cel)
-        ws.conditional_format(X_ROW0, 5, X_ROW0 + NI - 1, 5,
+        cr = X_COL['RES']
+        ws.conditional_format(X_ROW0, cr, X_ROW0 + NI - 1, cr,
                               {'type': 'text', 'criteria': 'begins with', 'value': 'OK',
                                'format': self.wb.add_format({'font_color': OK, 'bold': True})})
-        ws.conditional_format(X_ROW0, 5, X_ROW0 + NI - 1, 5,
+        ws.conditional_format(X_ROW0, cr, X_ROW0 + NI - 1, cr,
                               {'type': 'text', 'criteria': 'not containing', 'value': 'OK',
                                'format': self.wb.add_format({'font_color': NOK, 'bold': True})})
         ws.write(X_ROW0 + NI + 1, 1, 'Última execução:', self.f(bold=True, font_color=MUTED, font_size=9))
@@ -1043,6 +1011,8 @@ class Construtor:
         for k, c in D_COL.items():
             L.append('Public Const D_COL_%s As Long = %d' % (k, c + 1))
         L += ["' aba Diagnostico (1-based)", 'Public Const X_ROW0 As Long = %d' % (X_ROW0 + 1)]
+        for k, c in X_COL.items():
+            L.append('Public Const X_COL_%s As Long = %d' % (k, c + 1))
         L += ["' aba Configuracoes (1-based)", 'Public Const C_ROW_IT0 As Long = %d' % (C_ROW_IT0 + 1)]
         for k, c in C_COL.items():
             L.append('Public Const C_COL_%s As Long = %d' % (k, c + 1))

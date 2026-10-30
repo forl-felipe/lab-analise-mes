@@ -223,7 +223,6 @@ Public Function HCol(ByVal chave As String) As Long
         Case "lamac2": HCol = H_COL_LAMAC2
         Case "concc3": HCol = H_COL_CONCC3
         Case "concc2": HCol = H_COL_CONCC2
-        Case "origem": HCol = H_COL_ORIGEM
         Case "atual": HCol = H_COL_ATUAL
         Case "obs": HCol = H_COL_OBS
     End Select

@@ -2,8 +2,8 @@ Option Explicit
 
 ' ============================================================================
 '  ModDia - aba Dia e aba Historico
-'  Buscar no MES -> confere/lanca a mao -> Salvar no historico (um dia por linha).
-'  Buscar periodo: busca e salva cada dia, mantendo o que ja foi lancado a mao no historico.
+'  Buscar no MES -> grava o dia fechado no historico (um dia por linha) e atualiza o painel.
+'  Valor corrigido/lancado a mao na aba Dia -> Salvar no historico. Tambem da para lancar direto no Historico.
 ' ============================================================================
 
 ' ---------------------------------------------------------------- botoes da aba Dia
@@ -20,7 +20,6 @@ Public Sub BuscarMES()
     ModoCarga True
     Desproteger shDia
     PreencherDia vals, nres, sit
-    Nm("dOrigem").Value = "'MES"
     If Not ENumero(Nm("d_fator").Value) Then Nm("d_fator").Value = FatorPadrao(d)
     msg = ResumoBusca(d, vals, sit)
     notas = gNotasMES
@@ -31,7 +30,7 @@ Public Sub BuscarMES()
     ' dia fechado: ja grava no historico e leva o painel para este dia (dia em andamento: so mostra)
     salvo = False
     If CDbl(d) < Int(CDbl(Now)) And ContarValores(ValoresDia()) > 0 Then
-        salvo = (GravarHist(d, ValoresDia(), Nm("d_fator").Value, Nm("d_obs").Value, "MES", False) > 0)
+        salvo = (GravarHist(d, ValoresDia(), Nm("d_fator").Value, Nm("d_obs").Value, False) > 0)
         If salvo Then
             OrdenarHist
             AvancarPainel d
@@ -52,8 +51,8 @@ Public Sub BuscarMES()
     If ok And InStr(msg, "Sem resultado") = 0 Then
         Aviso msg, vbInformation, "Buscar no MES"
     Else
-        Aviso msg & vbCrLf & vbCrLf & "Itens sem resultado: veja a coluna Situação e, se precisar, a aba " & _
-              "Diagnóstico (consulta cada tag e mostra os horários com valor).", vbExclamation, "Buscar no MES"
+        Aviso msg & vbCrLf & vbCrLf & "Item sem resultado: confira no MES; se o MES tiver o valor, rode a aba " & _
+              "Diagnóstico (ela acha a forma da tag que funciona).", vbExclamation, "Buscar no MES"
     End If
 End Sub
 
@@ -73,63 +72,12 @@ Public Sub SalvarDia()
                  vbCrLf & "Salvar assim mesmo? (dá para buscar e salvar de novo amanhã)", vbQuestion + vbYesNo, _
                  "Salvar") <> vbYes Then Exit Sub
     End If
-    r = GravarHist(d, ValoresDia(), Nm("d_fator").Value, Nm("d_obs").Value, OrigemDia(), False)
+    r = GravarHist(d, ValoresDia(), Nm("d_fator").Value, Nm("d_obs").Value, False)
     If r = 0 Then Exit Sub
     OrdenarHist
     AvancarPainel d
     AtualizarPainel
     Aviso "Dia " & TxtDia(d) & " salvo no histórico. O painel já mostra este dia.", vbInformation, "Salvar"
-End Sub
-
-' Busca e salva cada dia de dDe a dAte
-Public Sub BuscarPeriodo()
-    Dim d0 As Long, d1 As Long, d As Long, vals As Variant, nres As Variant, sit As Variant, ok As Boolean
-    Dim res As String, notas As String, nOk As Long, nDias As Long, nV As Long
-    If Not (EData(Nm("dDe").Value) And EData(Nm("dAte").Value)) Then
-        Aviso "Informe o período (De e Até).", vbExclamation, "Buscar período"
-        Exit Sub
-    End If
-    d0 = DiaDe(Nm("dDe").Value)
-    d1 = DiaDe(Nm("dAte").Value)
-    If d1 < d0 Then
-        Aviso "A data Até é anterior à data De.", vbExclamation, "Buscar período"
-        Exit Sub
-    End If
-    If d1 - d0 > 92 Then
-        Aviso "Período de no máximo 93 dias por vez.", vbExclamation, "Buscar período"
-        Exit Sub
-    End If
-    ' dia de hoje fica de fora: o DVR e o fechamento do batch so entram no MES depois das 23:59
-    If d1 > Int(CDbl(Now)) - 1 Then d1 = Int(CDbl(Now)) - 1
-    If d1 < d0 Then
-        Aviso "O período só pode ir até ontem (o dia de hoje ainda não fechou no MES).", vbExclamation, _
-              "Buscar período"
-        Exit Sub
-    End If
-    Ampulheta True
-    For d = d0 To d1
-        nDias = nDias + 1
-        ok = BuscarDiaMES(CDate(d), vals, nres, sit)
-        If gNotasMES <> "" Then notas = notas & TxtDia(CDate(d)) & ": " & gNotasMES
-        nV = ContarValores(vals)
-        If nV > 0 Then
-            If GravarHist(CDate(d), vals, FatorPadrao(CDate(d)), "", "MES", True) > 0 Then nOk = nOk + 1
-        End If
-        res = res & Format$(CDate(d), "dd\/mm") & ": " & nV & " de " & ItensComTag() & IIf(nV = 0, " (não salvo)", "") & _
-              vbCrLf
-        If Not ok And nV = 0 Then Exit For        ' MES sem resposta: nao insiste nos outros dias
-    Next d
-    OrdenarHist
-    If nOk > 0 Then AvancarPainel CDate(d1)
-    ModoCarga False
-    CarregarDia
-    AtualizarPainel
-    Ampulheta False
-    Nm("dStatus").Value = "'" & Format$(Now, "dd\/mm hh:mm") & "  Período " & TxtDia(CDate(d0)) & " a " & _
-                          TxtDia(CDate(d1)) & ": " & nOk & " dia(s) salvos.  " & Replace(res, vbCrLf, "  ")
-    Aviso "Período " & TxtDia(CDate(d0)) & " a " & TxtDia(CDate(d1)) & ": " & nOk & " de " & nDias & _
-          " dia(s) salvos no histórico." & vbCrLf & vbCrLf & "Itens com resultado no MES por dia:" & vbCrLf & res & _
-          IIf(notas <> "", vbCrLf & notas, ""), IIf(nOk = nDias, vbInformation, vbExclamation), "Buscar período"
 End Sub
 
 ' Troca da data na aba Dia: abre o dia do historico (ou limpa para um dia novo)
@@ -144,23 +92,14 @@ Public Sub CarregarDia()
         If r > 0 Then v = shHist.Cells(r, HCol(IChave(k))).Value Else v = Empty
         If Vazio(v) Then Nm("d_" & IChave(k)).ClearContents Else Nm("d_" & IChave(k)).Value = v
         shDia.Cells(D_ROW_IT0 + k - 1, D_COL_NRES).ClearContents
-        If ICfg(k, C_COL_TAG) = "" Then
-            shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).Value = "sem tag: lançar à mão"
-        ElseIf r > 0 Then
-            shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).Value = "do histórico"
-        Else
-            shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).ClearContents
-        End If
     Next k
     If r > 0 Then
         v = shHist.Cells(r, H_COL_FATOR).Value
         If ENumero(v) Then Nm("d_fator").Value = v Else Nm("d_fator").Value = FatorPadrao(d)
         Nm("d_obs").Value = shHist.Cells(r, H_COL_OBS).Value
-        Nm("dOrigem").Value = "'" & CStr(shHist.Cells(r, H_COL_ORIGEM).Value)
     Else
         Nm("d_fator").Value = FatorPadrao(d)
         Nm("d_obs").ClearContents
-        Nm("dOrigem").ClearContents
     End If
     Proteger shDia
     ModoCarga False
@@ -169,22 +108,15 @@ End Sub
 
 ' ---------------------------------------------------------------- aba Dia
 Private Sub PreencherDia(ByVal vals As Variant, ByVal nres As Variant, ByVal sit As Variant)
-    Dim k As Long, c As Range, s As String
+    Dim k As Long
     For k = 1 To NI
-        Set c = Nm("d_" & IChave(k))
-        s = CStr(sit(k))
         If ICfg(k, C_COL_TAG) <> "" Then
-            If Not IsEmpty(vals(k)) Then
-                c.Value = Round(CDbl(vals(k)), 2)
-            ElseIf Not Vazio(c.Value) Then
-                s = s & " (valor mantido)"
-            End If
+            ' item sem resultado no MES: o valor que ja estava (lancado a mao) fica
+            If Not IsEmpty(vals(k)) Then Nm("d_" & IChave(k)).Value = Round(CDbl(vals(k)), 2)
             shDia.Cells(D_ROW_IT0 + k - 1, D_COL_NRES).Value = nres(k)
-            If ItemRecusado(k) Then s = "tag recusada pelo MES (ver Configurações)"
         Else
             shDia.Cells(D_ROW_IT0 + k - 1, D_COL_NRES).ClearContents
         End If
-        shDia.Cells(D_ROW_IT0 + k - 1, D_COL_SIT).Value = s
     Next k
 End Sub
 
@@ -203,19 +135,6 @@ Private Function ContarValores(ByVal vals As Variant) As Long
     For k = 1 To NI
         If Not IsEmpty(vals(k)) Then ContarValores = ContarValores + 1
     Next k
-End Function
-
-Private Function ItensComTag() As Long
-    Dim k As Long
-    For k = 1 To NI
-        If ICfg(k, C_COL_TAG) <> "" Then ItensComTag = ItensComTag + 1
-    Next k
-End Function
-
-Private Function OrigemDia() As String
-    OrigemDia = CfgTxt("dOrigem")
-    If OrigemDia = "" Then OrigemDia = "Manual"
-    If OrigemDia = "Importado" Then OrigemDia = "Importado/editado"
 End Function
 
 Private Function ResumoBusca(ByVal d As Date, ByVal vals As Variant, ByVal sit As Variant) As String
@@ -279,10 +198,10 @@ Public Function FatorPadrao(ByVal d As Date) As Double
     Next i
 End Function
 
-' Grava o dia d no historico (substitui a linha do dia, se ja existir). manter = True (busca de periodo):
-' item sem resultado, TK, Fator e Observacao ja lancados ficam como estao. Devolve a linha (0 = sem espaco).
+' Grava o dia d no historico (substitui a linha do dia, se ja existir). manter = True: item sem valor, Fator e
+' Observacao ja lancados ficam como estao. Devolve a linha (0 = sem espaco).
 Public Function GravarHist(ByVal d As Date, ByVal vals As Variant, ByVal fator As Variant, ByVal obs As Variant, _
-                           ByVal origem As String, ByVal manter As Boolean) As Long
+                           ByVal manter As Boolean) As Long
     Dim r As Long, k As Long, c As Range
     r = LinhaHist(d)
     If r = 0 Then
@@ -313,7 +232,6 @@ Public Function GravarHist(ByVal d As Date, ByVal vals As Variant, ByVal fator A
         End If
     End If
     If Not manter Then shHist.Cells(r, H_COL_OBS).Value = obs
-    shHist.Cells(r, H_COL_ORIGEM).Value = origem
     shHist.Cells(r, H_COL_ATUAL).Value = Now
     shHist.Cells(r, H_COL_ATUAL).NumberFormat = "dd/mm/yyyy hh:mm"
     ModoCarga False
