@@ -25,9 +25,11 @@
     }
   },
   "repetibilidade": {
-    "pares": 6,
-    "s_r_pp": 0.037,
-    "r95_pp": 0.102,
+    "pares": 7,
+    "s_r_tipico_pp": 0.037,
+    "r95_tipico_pp": 0.102,
+    "s_r_com_azimuth_pp": 0.135,
+    "r95_com_azimuth_pp": 0.375,
     "azimuth_delta_pp": 0.49
   },
   "correlacoes": [
@@ -133,6 +135,29 @@
     "p_2025": 0.00040725673553879024,
     "coef_2026": -0.547,
     "p_2026": 0.0014605768770789506
+  },
+  "incorporacao": {
+    "embarques": 37,
+    "com_incorporacao": 16,
+    "inc_total_media_pct": 6.11,
+    "efeito_tem_inc_pp": -0.04,
+    "p_tem_inc": 0.695,
+    "coef_por_pp": {
+      "inc_pfuf": [
+        -0.0275,
+        0.243
+      ],
+      "inc_pm": [
+        -0.0093,
+        0.682
+      ],
+      "inc_pfsa": [
+        0.0804,
+        0.061
+      ]
+    },
+    "efeito_embarque_so_navios_sem_incorporacao": -0.426,
+    "p_efeito_embarque_sem_inc": 4.2479484716950115e-05
   },
   "seguranca": {
     "embarques_com_umidade": 36,

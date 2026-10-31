@@ -72,9 +72,13 @@ def main():
     M["por_produto"] = full.groupby("product").tml.agg(["count", "mean", "std", "min", "max"]).round(3).to_dict("index")
     reps = full[full.n_tests_sample > 1].groupby("sample_id")
     pairs = [(g.material.iloc[-1], abs(g.tml.iloc[0] - g.tml.iloc[1])) for _, g in reps]
-    intra = [dl for m, dl in pairs if "ofc" not in m]
+    # Todos os pares são do mesmo laboratório (inclusive o Azimuth "ofc", confirmado pelo cliente).
+    intra = [dl for m, dl in pairs if "ofc" not in m]          # pares típicos
+    allp = [dl for _, dl in pairs]                              # inclui o Azimuth
     s_r = float(np.sqrt(np.mean(np.square(intra)) / 2))
-    M["repetibilidade"] = {"pares": len(intra), "s_r_pp": round(s_r, 3), "r95_pp": round(2.77 * s_r, 3),
+    s_r_all = float(np.sqrt(np.mean(np.square(allp)) / 2))
+    M["repetibilidade"] = {"pares": len(allp), "s_r_tipico_pp": round(s_r, 3), "r95_tipico_pp": round(2.77 * s_r, 3),
+                           "s_r_com_azimuth_pp": round(s_r_all, 3), "r95_com_azimuth_pp": round(2.77 * s_r_all, 3),
                            "azimuth_delta_pp": round([dl for m, dl in pairs if "ofc" in m][0], 2)}
 
     # ============ 2. Correlações (Spearman, PFN+PFSA) ============
@@ -127,6 +131,33 @@ def main():
     ax.set_title("Amostras de embarque têm TML menor que as de pátio/produção")
     ax.legend(loc="upper left", fontsize=9)
     savefig(fig, "02_efeito_embarque.png")
+
+    # ============ 3b. Incorporação no embarque (PFUF, PM, PFSA) ============
+    sh_ = d[d.ship == 1].copy()
+    sh_["tem_inc"] = (sh_.inc_total > 0).astype(int)
+    r_inc = smf.ols("tml ~ ppc + inc_pfuf + inc_pm + inc_pfsa", sh_).fit()
+    r_has = smf.ols("tml ~ ppc + tem_inc", sh_).fit()
+    sem_inc = d[(d.ship == 0) | (d.inc_total == 0)]
+    r_ship0 = smf.ols("tml ~ ppc + ship", sem_inc).fit()
+    M["incorporacao"] = {
+        "embarques": int(len(sh_)), "com_incorporacao": int(sh_.tem_inc.sum()),
+        "inc_total_media_pct": round(float(sh_.loc[sh_.tem_inc == 1, "inc_total"].mean()), 2),
+        "efeito_tem_inc_pp": round(r_has.params["tem_inc"], 3), "p_tem_inc": round(float(r_has.pvalues["tem_inc"]), 3),
+        "coef_por_pp": {c: [round(r_inc.params[c], 4), round(float(r_inc.pvalues[c]), 3)] for c in ["inc_pfuf", "inc_pm", "inc_pfsa"]},
+        "efeito_embarque_so_navios_sem_incorporacao": round(r_ship0.params["ship"], 3),
+        "p_efeito_embarque_sem_inc": float(r_ship0.pvalues["ship"])}
+    fig, ax = plt.subplots(figsize=(7.5, 4.4))
+    fit0 = smf.ols("tml ~ ppc", d).fit()
+    sh_["res"] = sh_.tml - fit0.predict(sh_)
+    pa = d[d.ship == 0]; pa_res = pa.tml - fit0.predict(pa)
+    ax.axhline(0, color=INK2, lw=0.8)
+    ax.axhline(pa_res.mean(), color=S1, lw=1.5, ls="--")
+    ax.text(4.6, pa_res.mean() + 0.03, f"média das amostras de pátio/produção ({pa_res.mean():+.2f})", color=INK2, fontsize=8)
+    ax.scatter(sh_.inc_total, sh_.res, s=46, color=S2, edgecolor=SURF, lw=1.3, zorder=3)
+    ax.set_xlabel("Incorporação total no embarque (PFUF + PM + PFSA, %)")
+    ax.set_ylabel("TML − previsto pelo PPC (pp)")
+    ax.set_title("Embarques: a incorporação não explica o TML mais baixo")
+    savefig(fig, "09_incorporacao.png")
 
     # ============ 4. Segurança: umidade de embarque × TML ============
     sh = full[full.moist_ship.notna() & full["product"].isin(["PFN", "PFSA", "PSC"])].copy()

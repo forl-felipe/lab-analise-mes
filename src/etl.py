@@ -25,12 +25,12 @@ F25 = RAW / "Historico_TML_2025.xlsx"
 F26 = RAW / "Historico_TML_2026.xlsx"
 
 COLMAP = {
-    "Material": "material", "PFUF": "pfuf", "PM": "pm", "PFSA": "pfsa_col", "Data": "date",
+    "Material": "material", "PFUF": "inc_pfuf", "PM": "inc_pm", "PFSA": "inc_pfsa", "Data": "date",
     "SiO2": "sio2", "P": "p", "PPC": "ppc", "Densidade (g/cm³)": "rho_s", "-325#": "m325",
     "Hematita Especular": "hem_esp", "Hematita Porosa": "hem_por", "Magnetita": "mag",
     "Goethita": "goe", "TML %": "tml", "Umidade Embarque": "moist_ship", "SE": "se_blaine",
 }
-NUM = ["pfuf", "pm", "pfsa_col", "sio2", "p", "ppc", "rho_s", "m325", "hem_esp", "hem_por",
+NUM = ["inc_pfuf", "inc_pm", "inc_pfsa", "sio2", "p", "ppc", "rho_s", "m325", "hem_esp", "hem_por",
        "mag", "goe", "tml", "moist_ship", "se_blaine"]
 
 
@@ -128,6 +128,13 @@ def main():
     base["se_blaine"] = base.groupby("sample_id")["se_blaine"].transform(lambda x: x.ffill().bfill())
     base["n_tests_sample"] = base.groupby("sample_id")["tml"].transform("size")
 
+    # ---- Incorporação no embarque (% de PF Ultrafino, Material Móvel e PF SA) ----
+    # Só existe para embarques; célula vazia num embarque = sem incorporação (0 %).
+    inc = ["inc_pfuf", "inc_pm", "inc_pfsa"]
+    for c in inc:
+        base[c] = np.where(base["is_shipment"], base[c].fillna(0.0), np.nan)
+    base["inc_total"] = base[inc].sum(axis=1, min_count=1)
+
     # ---- Margem de segurança de embarque (TML - umidade) -------------------
     base["margin_pp"] = base["tml"] - base["moist_ship"]
     base["moist_over_tml"] = base["moist_ship"] > base["tml"]
@@ -135,7 +142,7 @@ def main():
     base = base.sort_values(["date", "source"]).reset_index(drop=True)
     cols = ["sample_id", "source", "_excel_row", "date", "year", "product", "material", "is_shipment",
             "has_desiccant", "sio2", "p", "ppc", "rho_s", "m325", "se_blaine", "hem_esp", "hem_por",
-            "mag", "goe", "mineral_protocol", "pfuf", "pm", "pfsa_col", "tml", "moist_ship",
+            "mag", "goe", "mineral_protocol", "inc_pfuf", "inc_pm", "inc_pfsa", "inc_total", "tml", "moist_ship",
             "margin_pp", "moist_over_tml", "n_tests_sample"]
     base = base[cols]
     base.to_csv(OUT / "tml_dataset.csv", index=False)

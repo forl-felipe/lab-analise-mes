@@ -9,9 +9,9 @@
 ## 0. Sumário executivo
 
 1. **A base tem 70 ensaios de TML, de 63 amostras físicas.** São 61 de PFN, 7 de PF SA e 3 de PSC. Para PFN/PFSA, o TML varia de 10,43% a 12,64%, com média de 11,19% e desvio-padrão de 0,44 pp. É uma faixa estreita: o "sinal" a prever é de poucos décimos.
-2. **O laboratório é muito repetível.** O desvio de repetibilidade é s_r = 0,04 pp (r95 = 0,10 pp, calculado sobre 6 pares de réplicas). O piso de erro, portanto, não é o ensaio. A exceção é o Azimuth, com dois TMLs (10,86% e 11,35%) para a mesma química, uma diferença de 0,49 pp que precisa ser explicada.
+2. **O laboratório costuma ser muito repetível, mas tem exceções.** Em 6 dos 7 pares de réplicas, a diferença é pequena: s_r = 0,04 pp (r95 = 0,10 pp). O 7º par é o Azimuth, com 10,86% e 11,35% para a mesma química, **no mesmo laboratório**: 0,49 pp, mais que o próprio erro do modelo. Com ele, s_r sobe para 0,14 pp (r95 = 0,37 pp). Na rotina o ensaio é preciso, mas pode haver desvios grandes ocasionais, provavelmente de subamostragem ou de procedimento.
 3. **Achado mais forte: amostras de embarque têm TML 0,45 pp menor** que amostras de pátio ou produção com o mesmo PPC (IC95%: −0,62 a −0,28 pp; p = 2·10⁻⁷). O efeito aparece separadamente em 2025 (−0,36) e em 2026 (−0,55). Na prática, **o TML de pátio superestima o TML do navio**.
-4. **Alerta de segurança, a verificar com urgência.** Em **18 de 36 registros** com umidade de embarque, que correspondem a **17 navios**, a umidade registrada está **acima** do TML do próprio embarque. A margem mediana é de +0,01 pp e a pior é −0,52 pp. Isso é coerente com o item 3: se a carga foi planejada com o TML de pátio, ela embarca acima do TML real.
+4. **Alerta de segurança, confirmado na base.** A "Umidade Embarque" é a **média final do embarque**. Em **18 de 36 registros (17 navios)**, essa umidade final ficou **acima** do TML medido na amostra do próprio embarque. A margem mediana é de +0,01 pp e a pior é −0,52 pp. Isso é coerente com o item 3: se a carga foi planejada com o TML de pátio, ela embarca acima do TML real do navio.
 5. **As equações de regressão atuais não se sustentam fora da amostra.** Aplicadas aos 23 ensaios de 2026 que têm mineralogia, o R² cai de 0,83 para 0,03 (Hematita Porosa), de 0,81 para 0,23 (Goethita) e de 0,45 para 0,16 (PPC). Em 2025 o R² fica negativo. O motivo é que foram ajustadas em 10 ou 11 pontos filtrados.
 6. **Os dados de mineralogia de 2025 e 2026 vêm de protocolos incompatíveis.** A goethita de 2025 é, em média, 56% do valor estequiométrico esperado pelo PPC; a de 2026 é 84%. Os dois anos **não podem ser misturados** num modelo de mineralogia.
 7. **Modelo proposto (v0): híbrido física + estatística.** O modelo prevê o índice de vazios do ensaio (e80) e converte em TML pela equação do PFD80. O erro em validação cruzada honesta é **RMSE = 0,29 pp** e **MAE = 0,23 pp**, contra 0,44 pp sem modelo e cerca de 0,47 pp das equações atuais. O modelo entrega um **limite inferior de 95%** (TML previsto − 0,41 pp) para decisão do lado seguro.
@@ -55,7 +55,7 @@ A lista completa, com 45 itens, está em `data/processed/data_quality.csv`. Os p
   - SiO₂ e PPC das linhas 43–44 divergem do histórico (3,95 contra 1,47; 3,92 contra 3,69).
 - **Validade:** uma linha usa `+89` dias em vez de `+179` (2025, P35).
 - **Ordem cronológica:** em 2026, o ensaio de 28/08 está registrado depois do de 15/10.
-- **Colunas PFUF / PM / PFSA:** os valores numéricos não têm definição na planilha. Preciso saber o que representam, porque podem ser variáveis úteis (proporção na mistura?).
+- **Colunas PFUF / PM / PFSA:** são o **% de incorporação** no embarque, conforme informado pelo time. PFUF = pellet feed ultrafino (sigla a confirmar), PM = material móvel, PFSA = PF SA. Só existem em embarques (16 de 37 navios têm algum valor, com média de 6,1% no total). Na base consolidada, célula vazia em embarque passou a significar 0%. A análise está na seção 3.2.
 
 ---
 
@@ -117,6 +117,16 @@ Mesmo controlando por PPC, densidade, SiO₂ e produto, as amostras de navio tê
 2. **Composição da amostra:** a amostra de embarque é uma composta de muitos incrementos, enquanto a de pátio ou produção é mais "pontual".
 3. **Diferença de procedimento:** outro laboratório, operador, tempo entre coleta e ensaio, ou secagem prévia.
 4. **Uso de desidratante:** nos pares de 2025 (KSL Sydney, Azimuth com e sem), o efeito é pequeno e inconsistente. Não explica o −0,45 pp.
+5. **Incorporação de PFUF, PM ou PFSA:** **descartada como explicação.** Os navios **sem nenhuma incorporação** já têm TML 0,43 pp menor que o pátio (p = 4·10⁻⁵). Entre os navios, ter ou não incorporação muda o TML em só −0,04 pp (p = 0,70), e nenhum componente é significativo. O PFUF tem sinal negativo (−0,03 pp por ponto de incorporação; p = 0,24), coerente com ultrafinos alterando o empacotamento, mas sem força estatística com 16 navios.
+
+![incorporação](figures/09_incorporacao.png)
+
+**Decisão sobre a incorporação no preditor:** ela **não entra no v0**, por três motivos:
+- não há efeito mensurável;
+- a amostra do navio já é da carga misturada, então a química e a densidade medidas já refletem a incorporação;
+- incluí-la com 16 pontos só adicionaria ruído.
+
+Ela **fica registrada na base** (`inc_pfuf`, `inc_pm`, `inc_pfsa`, `inc_total`) e volta a ser testada quando houver mais navios com incorporação, principalmente de PFUF acima de 5%, onde o efeito físico tende a aparecer. Quando houver granulometria, o efeito do ultrafino será capturado diretamente por ela, que é a forma fisicamente correta.
 
 **Recomendação:** um experimento controlado, com a mesma pilha ensaiada como amostra de pátio e como amostra de embarque, no mesmo laboratório, com granulometria a laser nas duas, para isolar a causa.
 
@@ -124,12 +134,18 @@ Mesmo controlando por PPC, densidade, SiO₂ e produto, as amostras de navio tê
 
 ![umidade x TML](figures/03_umidade_vs_tml.png)
 
-Dos 36 registros com umidade de embarque, **18 (17 navios) têm umidade registrada acima do TML**: 10 de 23 em 2025 e 8 de 13 em 2026. Antes de qualquer conclusão, é preciso confirmar:
-- se a "Umidade Embarque" e o TML estão na mesma base (úmida);
-- em que ponto a umidade é medida (média do navio, porões, momento) e se o TML usado no certificado é o mesmo da planilha;
-- o efeito do desidratante na umidade final.
+O time confirmou que a "Umidade Embarque" é a **média final do embarque**, a mesma base usada para comparar com o TML. Dos 36 registros, **18 (17 navios) terminaram com umidade média acima do TML medido na amostra do próprio navio**: 10 de 23 em 2025 e 8 de 13 em 2026, ou seja, a proporção cresceu.
 
-Se os números se confirmarem, este é o principal resultado prático do projeto: **o preditor deve ser usado com o limite inferior e com o tipo de amostra "embarque"**, nunca com o TML de pátio.
+Leitura técnica:
+- O TML da amostra de embarque só fica pronto **depois** do carregamento. A decisão de carregar, portanto, foi tomada com outro valor, provavelmente o TML de pátio ou de produção. Como o TML do navio fica, em média, **0,45 pp abaixo** do de pátio (seção 3.2), a carga sai com folga aparente e chega sem folga real.
+- A pior diferença foi −0,52 pp (KSL Sydney, 2025) e, em 2026, −0,40 pp (Frontier Explorer).
+
+O que verificar (fora do escopo estatístico, mas essencial):
+1. **qual TML consta no certificado de cada navio** apresentado ao comandante (IMSBC Code, seção 4);
+2. se a umidade declarada no certificado é a mesma média final da planilha;
+3. o procedimento quando o TML do navio sai abaixo da umidade final.
+
+**Consequência para o preditor:** a meta de umidade de carregamento deve ser definida com o **TML previsto como embarque (`--embarque 1`) e pelo limite inferior de 95%**, nunca com o TML de pátio.
 
 ### 3.4 As equações atuais fora da amostra
 
@@ -207,7 +223,7 @@ O preditor avisa quando a entrada está fora da faixa de treino (PPC 2,89–4,42
 |---|---|
 | Variação total do TML (PFN/PFSA) | 0,44 |
 | Erro do melhor modelo com os dados atuais | 0,29 |
-| Repetibilidade do laboratório | 0,04 |
+| Repetibilidade do laboratório (típica / com Azimuth) | 0,04 / 0,14 |
 | **Não explicado e não ruído (variáveis faltantes)** | **≈ 0,29** |
 
 O erro restante quase todo é **sinal físico não medido**. A física do PFD80 e a literatura (Ferreira & Lima, 2022) indicam qual é: a **distribuição granulométrica**, que governa o empacotamento (e80), e o **comportamento de compactação** de cada amostra.
@@ -219,7 +235,8 @@ O erro restante quase todo é **sinal físico não medido**. A física do PFD80 
 ### Fase A: governança de dados (imediata, custo baixo)
 - Substituir as planilhas por uma **tabela única de ensaios** (um ensaio por linha), com: ID da amostra, **tipo de amostra** (navio / pátio / produção / alimentação), ponto de coleta, data de coleta **e** de ensaio, laboratório, operador, produto, desidratante (sim/não, dose), réplica (T01/T02).
 - Gravar números como números, padronizar o protocolo de mineralogia (manter o de 2026, que fecha em cerca de 97%) e **guardar todos os pontos da curva de compactação** do PFD80 (umidade × densidade seca, 5 a 6 pontos), além de Sr na OMC (critério de validade ≥ 90%).
-- Definir as colunas PFUF / PM / PFSA.
+- Manter as colunas de incorporação (PFUF / PM / PFSA, em %) preenchidas em **todos** os embarques, inclusive com 0.
+- Registrar a **massa e o método de subamostragem** de cada ensaio, para investigar desvios como o do Azimuth.
 
 ### Fase B: novas medições em cada amostra de TML (o maior ganho de precisão)
 1. **Granulometria a laser completa:** D10, D50, D90, % < 10 µm, % < 45 µm, span. É a variável que, pela literatura, mais pesa no PFD80.
@@ -244,11 +261,12 @@ Meta de base: **150 a 200 ensaios** com esse pacote completo. No ritmo atual (ce
 
 ## 7. Próximas ações recomendadas (em ordem)
 
-1. **Verificar os 17 navios com umidade registrada acima do TML** (seção 3.3).
-2. **Esclarecer o par Azimuth** (10,86% × 11,35% "ofc"): é o mesmo material em laboratórios diferentes?
-3. **Experimento embarque × pátio** com granulometria a laser (seção 3.2).
-4. Implantar a Fase A já nos próximos ensaios.
-5. Adotar o v0 (com limite inferior) como ferramenta de triagem e comparar com cada novo ensaio oficial.
+1. **Levar o alerta da seção 3.3 à gerência e à área responsável pelos certificados**: 17 navios com umidade final acima do TML do próprio embarque.
+2. **Mudar a referência da meta de umidade de carregamento** para o TML previsto como embarque, pelo limite inferior de 95% do v0.
+3. **Investigar o par Azimuth** (Δ = 0,49 pp no mesmo laboratório): subamostra, operador, umidade inicial e pontos da curva de compactação dos dois ensaios.
+4. **Experimento embarque × pátio** com granulometria a laser (seção 3.2), para achar a causa do −0,45 pp.
+5. Implantar a Fase A já nos próximos ensaios.
+6. Adotar o v0 (com limite inferior) como ferramenta de triagem e comparar com cada novo ensaio oficial.
 
 ---
 
