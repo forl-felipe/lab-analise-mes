@@ -1490,7 +1490,7 @@ End Function
 ' (Fe recusado tambem em IP_AnalogMap -> IP_DiscreteMap; SiO2 continua com IP_AnalogMap)
 Public Function TesteMapas(ByVal texto As String) As String
     Dim n As Long
-    mMapasRuins = "|M0650024000-0003-DDLQU>IP_ANALOGMAP|"
+    mMapasRuins = "|M0620010000-0002-TNLQU>IP_ANALOGMAP|"
     mInvalidas = ""
     n = MapasRecusados(texto, True)
     TesteMapas = n & "|" & MapaAtual(1, LAB_PF) & "|" & MapaAtual(2, LAB_PF)

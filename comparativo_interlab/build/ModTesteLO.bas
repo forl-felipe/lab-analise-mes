@@ -478,7 +478,7 @@ Public Sub TesteLO()
     Ok VarianteTag("306TP001-FX001-R") = "", "tag sem codigo numerico: sem variante"
 
     ' --- mapa recusado pelo MES: tenta o proximo da lista e grava o que funcionou
-    Ok TesteMapas("Erro:(M0650024000-0003-DDLQU) Map Name IP_MESVALOR is invalid(M0650024000-0004-DDLQU) Map Name " & _
+    Ok TesteMapas("Erro:(M0620010000-0002-TNLQU) Map Name IP_MESVALOR is invalid(M0650024000-0004-DDLQU) Map Name " & _
        "IP_MESVALOR is invalid") = "2|IP_DiscreteMap|IP_AnalogMap", "mapa recusado: 2 tags, troca para o proximo mapa"
 
     ' --- leitura do PFUF: janela das 23:30; S.E. gravado em outro horario do mesmo dia; Fe fora da faixa

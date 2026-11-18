@@ -154,7 +154,7 @@ batches).
   Análise sem valor às 23:30 usa o último valor do **mesmo dia** do composto (a mensagem avisa o horário); valor
   fora da faixa válida (Configurações) é descartado e a mensagem mostra qual foi. Faixa da S.E. do PFUF: 100 a 20000.
   Os valores que o MES não devolver ficam como estão.
-- Tags (servidor UBU, aba Configurações): `M0650024000-0003-DDLQU` (Fe — no MES "PF Elutriação - FeO"),
+- Tags (servidor UBU, aba Configurações): `M0620010000-0002-TNLQU` (Fe — no MES "Fe(%)", 620010000-2-TN-LQU; antes era a de FeO),
   `M0650024000-0004-DDLQU` (SiO₂), `M0650024000-0008-DDLQU` (P), `M0650024000-0017-DDLFU` (S.E.).
   Mapa `IP_AnalogMap` (o MES recusou `IP_MESVALOR` para essas tags). O rótulo mostrado no painel também é editável lá.
   Mesmo tratamento de tag recusada/variante de código do batch.
