@@ -23,7 +23,7 @@ End Function
 
 ' Planilhas padrao: abas visiveis, tipo da busca fixo e o caminho principal de cada uma (fonte = SIMULACAO)
 Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
-    Dim rb As Long
+    Dim rb As Long, s As String
     Inicializar
     Desproteger shConfig
     Nm("cfgFonte").Value = "SIMULAÇÃO"
@@ -58,6 +58,26 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         Ok ENumero(Celula(1, pSE, 0)) And ENumero(Celula(1, pSE, 1)), "comparativo: Germano e Ubu"
         SalvarHistorico
         Ok LinhaHistorico(301) > 0, "301 salvo no historico"
+        ' conferencia copiada da planilha dos tecnicos (celulas mescladas vem vazias)
+        Nm("bId").Value = 319
+        s = LerConferencia("14/11/26 00:00" & vbTab & vbTab & "15/11/26 03:00" & vbTab & "16/11/26 16:14" & vbTab & _
+            vbTab & "17/11/26 16:31" & vbTab & vbTab & "16/11/26 17:30" & vbTab & vbTab & "13" & vbTab & "+2 h" & _
+            vbTab & "17/11/26" & vbTab & "03" & vbCrLf)
+        Ok InStr(s, "Conferência colada") > 0, "conferencia reconhecida: " & Left$(s, 120)
+        Ok Abs(CDbl(V("bIniG")) - CDbl(DateSerial(2026, 11, 14))) < 0.0001 And _
+           Abs(CDbl(V("bFimU")) - CDbl(DateSerial(2026, 11, 17) + TimeSerial(16, 31, 0))) < 0.0001, "conferencia: Germano e Ubu"
+        Ok Abs(CDbl(V("bIniPMan")) - CDbl(DateSerial(2026, 11, 16) + TimeSerial(17, 30, 0))) < 0.0001 And Vazio(V("bNivel")), _
+           "conferencia: inicio fora do atraso de um nivel = inicio manual"
+        Ok CLng(V("bNHor")) = 13 And CDbl(V("bExtH")) = 2 And CStr(V("bMin")) = "03", "conferencia: 13 bi-horarios, +2 h, mineroduto 03"
+        gUltimaMsg = ""
+        BuscarMES
+        Ok InStr(gUltimaMsg, "Batch estendido: 1 bi-hor") > 0, "comparativo: batch estendido com a media de Germano"
+        ' inicio = chegada + 6 h (nivel medio), sem as celulas vazias e sem o termino em Ubu
+        s = LerConferencia("14/11/26 00:00" & vbTab & "15/11/26 03:00" & vbTab & "16/11/26 16:14" & vbTab & _
+            "16/11/26 22:14" & vbTab & "13" & vbTab & "—" & vbTab & "17/11/26" & vbTab & "03")
+        Ok CStr(V("bNivel")) = "Médio" And Vazio(V("bIniPMan")) And Vazio(V("bFimU")) And Vazio(V("bExtH")), _
+           "conferencia: inicio = chegada + atraso do nivel medio (" & V("bNivel") & ")"
+        Ok LerConferencia("nada aqui") = "", "texto sem conferencia: nao muda nada"
     End If
     Ok InStr(gUltimaMsg, "Erro") = 0, "sem mensagem de erro: " & gUltimaMsg
 End Sub

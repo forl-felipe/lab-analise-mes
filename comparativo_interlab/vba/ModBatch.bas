@@ -494,6 +494,197 @@ End Sub
 
 
 
+' ---------------------------------------------------------------- colar a CONFERENCIA da planilha dos tecnicos
+' Na planilha de acompanhamento (aba Preenchimento) o tecnico ja tem a linha CONFERENCIA: Germano inicio/termino,
+' Ubu chegada/termino, inicio no processo, bi-horarios, estendido, data e mineroduto. Copiada (Ctrl+C), o botao
+' Colar conferencia le o texto da area de transferencia e preenche o batch daqui.
+Public Sub ColarConferencia()
+    Dim t As String, msg As String
+    t = TextoAreaTransferencia()
+    If Trim$(t) = "" Then
+        Aviso "Nada copiado. Na planilha dos técnicos (aba Preenchimento), selecione a linha da CONFERÊNCIA " & _
+              "(de Germano · início a Mineroduto), Ctrl+C, e clique de novo em Colar conferência.", vbExclamation, _
+              "Colar conferência"
+        Exit Sub
+    End If
+    msg = LerConferencia(t)
+    If msg = "" Then
+        Aviso "Não reconheci a conferência no que foi copiado. Copie a linha de valores da CONFERÊNCIA da planilha " & _
+              "dos técnicos (de Germano · início a Mineroduto).", vbExclamation, "Colar conferência"
+    Else
+        Aviso msg, vbInformation, "Colar conferência"
+    End If
+End Sub
+
+' Texto da area de transferencia (Ctrl+C no Excel, no aplicativo ou no navegador)
+Private Function TextoAreaTransferencia() As String
+    Dim d As Object, v As Variant
+    On Error Resume Next
+    Set d = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")      ' MSForms.DataObject
+    If Not d Is Nothing Then
+        d.GetFromClipboard
+        TextoAreaTransferencia = d.GetText(1)
+    End If
+    If Len(TextoAreaTransferencia) = 0 Or InStr(TextoAreaTransferencia, "??") > 0 Then
+        Err.Clear
+        v = CreateObject("htmlfile").parentWindow.clipboardData.GetData("text")
+        If Not IsNull(v) And Not IsEmpty(v) Then TextoAreaTransferencia = CStr(v)
+    End If
+End Function
+
+' Le a linha copiada (colunas separadas por tabulacao) e preenche o batch. Devolve a mensagem; "" = nao reconheceu.
+' Posicoes (como na aba Preenchimento dos tecnicos, celulas mescladas vem vazias): 0 Germano inicio, 2 Germano termino,
+' 3 Ubu chegada, 5 Ubu termino, 7 inicio no processo, 9 bi-horarios, 10 estendido, 11 data, 12 mineroduto.
+Public Function LerConferencia(ByVal texto As String) As String
+    Dim linhas As Variant, tk As Variant, i As Long, j As Long, p0 As Long, d As Date, nDatas As Long
+    Dim gIni As Variant, gFim As Variant, uIni As Variant, uFim As Variant, ip As Variant, nBi As Variant
+    Dim ext As Double, mn As String, t As String, atr As Double, nivel As String, msg As String
+    Dim k As Long
+
+    texto = Replace(texto, vbCrLf, vbLf)
+    texto = Replace(texto, vbCr, vbLf)
+    linhas = Split(texto, vbLf)
+    For i = LBound(linhas) To UBound(linhas)
+        tk = Split(CStr(linhas(i)), vbTab)
+        nDatas = 0
+        p0 = -1
+        For j = LBound(tk) To UBound(tk)
+            If DataBR(CStr(tk(j)), d, True) Then
+                nDatas = nDatas + 1
+                If p0 < 0 Then p0 = j
+            End If
+        Next j
+        If nDatas >= 2 Then Exit For
+    Next i
+    If nDatas < 2 Then Exit Function
+
+    gIni = Empty: gFim = Empty: uIni = Empty: uFim = Empty: ip = Empty: nBi = Empty
+    If UBound(tk) >= p0 + 7 And Tok(tk, p0 + 1) = "" And Tok(tk, p0 + 4) = "" Then
+        ' linha copiada com as celulas mescladas (posicoes fixas: a 2a coluna de cada mescla vem vazia)
+        If DataBR(Tok(tk, p0), d, True) Then gIni = d
+        If DataBR(Tok(tk, p0 + 2), d, True) Then gFim = d
+        If DataBR(Tok(tk, p0 + 3), d, True) Then uIni = d
+        If DataBR(Tok(tk, p0 + 5), d, True) Then uFim = d
+        If DataBR(Tok(tk, p0 + 7), d, True) Then ip = d
+        t = Tok(tk, p0 + 9)
+        If IsNumeric(t) And t <> "" Then nBi = CLng(t)
+        t = Tok(tk, p0 + 10)
+        If Left$(t, 1) = "+" Then ext = Val(Mid$(t, 2))
+        mn = Tok(tk, p0 + 12)
+    Else
+        ' sem as celulas vazias: pela ordem (4 datas = sem o termino em Ubu)
+        k = 0
+        For j = LBound(tk) To UBound(tk)
+            t = Trim$(CStr(tk(j)))
+            If DataBR(t, d, True) Then
+                Select Case k
+                    Case 0: gIni = d
+                    Case 1: gFim = d
+                    Case 2: uIni = d
+                    Case 3: uFim = d
+                    Case 4: ip = d
+                End Select
+                k = k + 1
+            ElseIf Left$(t, 1) = "+" Then
+                ext = Val(Mid$(t, 2))
+            ElseIf IsNumeric(t) And t <> "" And InStr(t, "/") = 0 And k >= 3 Then
+                If IsEmpty(nBi) Then nBi = CLng(t) Else mn = t
+            End If
+        Next j
+        If k = 4 Then ip = uFim: uFim = Empty
+    End If
+    If IsEmpty(gIni) And IsEmpty(uIni) Then Exit Function
+
+    ModoCarga True
+    Desproteger shBatch
+    Nm("bIniG").MergeArea.ClearContents
+    Nm("bFimG").MergeArea.ClearContents
+    Nm("bIniU").MergeArea.ClearContents
+    Nm("bFimU").MergeArea.ClearContents
+    If Not IsEmpty(gIni) Then Nm("bIniG").Value = gIni
+    If Not IsEmpty(gFim) Then Nm("bFimG").Value = gFim
+    If Not IsEmpty(uIni) Then Nm("bIniU").Value = uIni
+    If Not IsEmpty(uFim) Then Nm("bFimU").Value = uFim
+    ' inicio no processo: se bate com chegada + atraso de um nivel dos tanques, fica o nivel; senao, inicio manual
+    Nm("bNivel").MergeArea.ClearContents
+    Nm("bIniPMan").MergeArea.ClearContents
+    If Not IsEmpty(ip) Then
+        If Not IsEmpty(uIni) Then
+            atr = Round((CDbl(ip) - CDbl(uIni)) * 24, 2)
+            nivel = NivelDoAtraso(atr)
+        End If
+        If nivel <> "" Then
+            Nm("bNivel").Value = nivel
+        Else
+            Nm("bIniPMan").Value = ip
+        End If
+    End If
+    If Not IsEmpty(nBi) Then
+        If nBi >= 1 And nBi <= NMAX Then Nm("bNHor").Value = nBi
+    End If
+    Nm("bExtH").MergeArea.ClearContents
+    If ext > 0 Then Nm("bExtH").Value = ext
+    If mn <> "" Then Nm("bMin").Value = "'" & Format$(Val(mn), "00")
+    msg = "Conferência colada:" & IIf(IsEmpty(gIni), "", "  Germano " & Format$(gIni, "dd\/mm hh:mm") & _
+          IIf(IsEmpty(gFim), "", " a " & Format$(gFim, "dd\/mm hh:mm"))) & _
+          IIf(IsEmpty(uIni), "", "   ·   Ubu " & Format$(uIni, "dd\/mm hh:mm") & _
+          IIf(IsEmpty(uFim), "", " a " & Format$(uFim, "dd\/mm hh:mm"))) & _
+          IIf(IsEmpty(ip), "", "   ·   início " & Format$(ip, "dd\/mm hh:mm") & _
+          IIf(nivel <> "", " (nível " & LCase$(nivel) & ")", " (manual)")) & _
+          IIf(IsEmpty(nBi), "", "   ·   " & nBi & " bi-horários") & IIf(ext > 0, " (estendido +" & ext & " h)", "")
+    Nm("bFasesMsg").Value = "'" & msg
+    Proteger shBatch
+    ModoCarga False
+    gAlterado = True
+    Recalcular
+    On Error Resume Next
+    AtualizarUltimos
+    LerConferencia = msg & vbCrLf & vbCrLf & "Agora é só Buscar no MES." & IIf(ext > 0, " Os " & Int(ext / HORAS_SLOT + 0.5) & _
+        " bi-horários estendidos recebem a média de Germano, como na planilha dos técnicos.", "")
+End Function
+
+Private Function Tok(tk As Variant, ByVal i As Long) As String
+    If i >= LBound(tk) And i <= UBound(tk) Then Tok = Trim$(CStr(tk(i)))
+End Function
+
+' Nivel dos tanques cujo atraso (Configuracoes) e h horas; "" se nenhum
+Private Function NivelDoAtraso(ByVal h As Double) As String
+    Dim rN As Range, rH As Range, i As Long
+    On Error Resume Next
+    Set rN = Nm("cfgAtrasoN")
+    Set rH = Nm("cfgAtrasoH")
+    For i = 1 To rN.Cells.Count
+        If ENumero(rH.Cells(i).Value) And CStr(rN.Cells(i).Value) <> "" Then
+            If Abs(CDbl(rH.Cells(i).Value) - h) < 0.02 Then
+                NivelDoAtraso = CStr(rN.Cells(i).Value)
+                Exit Function
+            End If
+        End If
+    Next i
+End Function
+
+' "dd/mm/aa hh:mm", "dd/mm/aaaa hh:mm" ou (comHora = False) so a data; nao depende do idioma do Windows
+Private Function DataBR(ByVal t As String, ByRef d As Date, ByVal comHora As Boolean) As Boolean
+    Dim pd As Variant, ph As Variant, partes As Variant, a As Long
+    t = Trim$(t)
+    partes = Split(t, " ")
+    If UBound(partes) < IIf(comHora, 1, 0) Then Exit Function
+    pd = Split(partes(0), "/")
+    If UBound(pd) <> 2 Then Exit Function
+    If Not (IsNumeric(pd(0)) And IsNumeric(pd(1)) And IsNumeric(pd(2))) Then Exit Function
+    a = CLng(pd(2))
+    If a < 100 Then a = a + 2000
+    If CLng(pd(1)) < 1 Or CLng(pd(1)) > 12 Or CLng(pd(0)) < 1 Or CLng(pd(0)) > 31 Then Exit Function
+    d = DateSerial(a, CLng(pd(1)), CLng(pd(0)))
+    If comHora Then
+        ph = Split(partes(UBound(partes)), ":")
+        If UBound(ph) < 1 Then Exit Function
+        If Not (IsNumeric(ph(0)) And IsNumeric(ph(1))) Then Exit Function
+        d = d + TimeSerial(CLng(ph(0)), CLng(ph(1)), 0)
+    End If
+    DataBR = True
+End Function
+
 ' ---------------------------------------------------------------- colar as Fases do Evento do MES
 ' Le as linhas coladas em bFases (Fase, Descricao, Inicio, Termino - com ou sem cabecalho) e preenche
 ' inicio/termino de Germano (fase cfgFaseG, ex.: EB06) e de Ubu (fase que comeca com cfgFaseU, ex.: UBU3).

@@ -30,6 +30,8 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 VBA_DIR = os.path.join(RAIZ, 'vba')
 TESTE = '--teste' in sys.argv
+# --historico arquivo.json: gera so o comparativo, ja com o historico de uma planilha antiga (extrair_historico.py)
+HIST_IMPORTAR = sys.argv[sys.argv.index('--historico') + 1] if '--historico' in sys.argv else None
 # Variantes (mesmo VBA; as abas que uma nao usa ficam muito ocultas, para o Excel sempre compilar):
 #   ACOMP    - tecnicos de turno: Preenchimento (busca so Germano) e Batch (5 batches em processamento)
 #   COMP     - report diario: Batch, Painel e Historico (comparativo Germano x Ubu)
@@ -114,6 +116,8 @@ TAGS = {('SE', 0): 'M4250010000-0017-ABLQ', ('SE', 1): 'M4650060010-0017-HHLFU',
 MAPA_PADRAO = 'IP_MESVALOR'
 # Tags do PFUF sao analogicas: o MES recusou IP_MESVALOR ("Map Name IP_MESVALOR is invalid", 22/10/2026)
 MAPA_PFUF = 'IP_AnalogMap'
+# Fe (%) de Ubu e tag de analise do laboratorio (como as do batch): mapa IP_MESVALOR
+MAPA_PFUF_TAG = {'Fe': 'IP_MESVALOR'}
 # Pellet Feed Ultra Fino (elutriacao) - composto diario de Ubu, tags informadas pelo laboratorio (22/10/2026)
 # (chave, rotulo no painel, tag, descricao no MES, decimais, faixa valida, valor tipico (simulacao))
 # Fe: tag de Fe (%) de Ubu no lugar da de FeO da elutriacao (pedido do laboratorio, 18/11/2026)
@@ -424,7 +428,7 @@ class Construtor:
             ws.write_string(rr, C_COL['LAB'], pf[1], self.fi(align='center'))
             ws.write_string(rr, C_COL['TAG'], pf[2], self.fi(font_name='Consolas', font_size=9.5))
             ws.write(rr, C_COL['SERV'], SERVIDOR_PADRAO, self.fi(align='center'))
-            ws.write(rr, C_COL['MAPA'], MAPA_PFUF, self.fi(align='center'))
+            ws.write(rr, C_COL['MAPA'], MAPA_PFUF_TAG.get(pf[0], MAPA_PFUF), self.fi(align='center'))
             ws.write(rr, C_COL['VMIN'], pf[5][0], self.fi(align='center'))
             ws.write(rr, C_COL['VMAX'], pf[5][1], self.fi(align='center'))
             ws.write(rr, C_COL['TIP'], pf[6], self.fi(align='center'))
@@ -662,12 +666,21 @@ class Construtor:
         ws.set_row(7, 24)
         ws.set_row(8, 8)
         # ---- 2 · fases do evento: area de colar (sem nada mesclado em volta)
-        self.secao(ws, 9, 1, 8, '2 · FASES DO EVENTO   (copie a tabela de fases do MES e cole na área amarela)')
         fhelp = self.f(font_size=8.5, font_color=INK2, text_wrap=True, valign='top', bg_color=SEC, border=1,
                        border_color=LINE2)
-        ws.merge_range(10, 1, 14, 2, 'No MES: evento do batch > Fases > selecione a tabela > Ctrl+C.\n\n'
-                                     'Aqui: clique na 1ª célula amarela > Ctrl+V. Início/término de Germano (EB06) '
-                                     'e de Ubu (UBU3) entram sozinhos na conferência.', fhelp)
+        if VARIANTE == 'ACOMP':
+            self.secao(ws, 9, 1, 8, '2 · FASES DO EVENTO   (copie a tabela de fases do MES e cole na área amarela)')
+            ws.merge_range(10, 1, 14, 2, 'No MES: evento do batch > Fases > selecione a tabela > Ctrl+C.\n\n'
+                                         'Aqui: clique na 1ª célula amarela > Ctrl+V. Início/término de Germano (EB06) '
+                                         'e de Ubu (UBU3) entram sozinhos na conferência.', fhelp)
+        else:
+            # comparativo: ou as fases do MES, ou a linha CONFERENCIA da planilha de acompanhamento (tecnicos)
+            self.secao(ws, 9, 1, 8, '2 · FASES DO EVENTO   (fases do MES ou conferência da planilha dos técnicos)')
+            ws.merge_range(10, 1, 14, 2, 'Planilha dos técnicos (acompanhamento): aba Preenchimento > selecione a '
+                                         'linha da CONFERÊNCIA (de Germano · início a Mineroduto) > Ctrl+C > aqui, '
+                                         'botão Colar conferência.\n\nOu, no MES: Fases > Ctrl+C > clique na 1ª '
+                                         'célula amarela > Ctrl+V.', fhelp)
+            self.botao(ws, 13, 3, 'Colar conferência dos técnicos', 'ColarConferencia', 262, 26, 'a', x=0, y=2)
         ws.merge_range(15, 1, 16, 2, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True,
                                                valign='top'))
         self.nome('bFasesMsg', ws, 15, 1)
@@ -678,7 +691,7 @@ class Construtor:
         for r in range(10, 17):
             for c in range(3, 9):
                 ws.write_blank(r, c, None, fpaste if r <= 12 and c <= 6 else fsobra)
-            ws.set_row(r, 20 if r <= 12 else (16 if r >= 15 else 10))
+            ws.set_row(r, 20 if r <= 12 else (16 if r >= 15 else (30 if r == 13 and VARIANTE != 'ACOMP' else 10)))
         self.nome('bFases', ws, 10, 3, 16, 8)
         ws.set_row(17, 8)
         # conferencia (preenchida sozinha; da para corrigir): rotulos na linha RL, valores na RV
@@ -704,9 +717,20 @@ class Construtor:
                      '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))', fauto_v, 'bNHor')
         ws.data_validation(RV, 10, RV, 10, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
                                             'maximum': NMAX, 'error_message': 'Entre 1 e %d horários.' % NMAX})
-        ws.write(RL, 11, 'DEFASAGEM', fl)
-        ws.write_formula(RV, 11, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")', fcalc_h)
-        self.nome('bDef', ws, RV, 11)
+        if VARIANTE == 'ACOMP':
+            # planilha dos tecnicos: no lugar da defasagem, a extensao do batch (vai junto quando a linha da
+            # conferencia e copiada para o comparativo); a defasagem fica numa celula oculta
+            ws.write(RL, 11, 'ESTENDIDO', fl)
+            ws.write_formula(RV, 11, '=IF(N(bExtH)>0,"+"&N(bExtH)&" h","—")',
+                             self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, font_color=INK2,
+                                    font_size=9.5))
+            cdef = 16
+        else:
+            ws.write(RL, 11, 'DEFASAGEM', fl)
+            cdef = 11
+        ws.write_formula(RV, cdef, '=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"")',
+                         fcalc_h)
+        self.nome('bDef', ws, RV, cdef)
         fdata = self.f(align='center', num_format='dd/mm/yy', bg_color=AUTO, border=1, border_color=AUTO_BORDA,
                        locked=False, font_size=9.5)
         ws.write(RL, 12, 'DATA REPORT', fl)
@@ -1442,8 +1466,9 @@ class Construtor:
             ws.write(0, i, h, self.f(bold=True))
         ws.set_column(0, len(REG_COLS) - 1, 18)
         # batches em acompanhamento trazidos da planilha do laboratorio (ultimos batches da aba Batch)
-        if os.path.exists(HIST_USUARIO) and VARIANTE == 'COMPLETA':
-            with open(HIST_USUARIO, encoding='utf-8') as fh:
+        arq_hist = HIST_IMPORTAR or (HIST_USUARIO if VARIANTE == 'COMPLETA' else None)
+        if arq_hist and os.path.exists(arq_hist):
+            with open(arq_hist, encoding='utf-8') as fh:
                 hu = json.load(fh)
             fdt = self.f(num_format='dd/mm/yyyy hh:mm')
             for r, linha in enumerate(hu.get('acomp', []), start=1):
@@ -1510,9 +1535,9 @@ class Construtor:
         ws.set_row(3, 22)
         ws.set_row(4, 18)
         # historico salvo pelo laboratorio (planilha de 26/10/2026: batches 284 e 293), mapeado pelo nome das colunas
-        with open(HIST_USUARIO, encoding='utf-8') as fh:
+        with open(HIST_IMPORTAR or HIST_USUARIO, encoding='utf-8') as fh:
             hu = json.load(fh)
-        if VARIANTE != 'COMPLETA':
+        if VARIANTE != 'COMPLETA' and not HIST_IMPORTAR:
             # planilhas padrao: historico limpo (o do laboratorio fica so na versao de teste)
             hu = dict(batches=[], leituras=[], colunas_leituras=hu['colunas_leituras'])
 
@@ -1841,7 +1866,8 @@ def _patch_anchor(m):
 def gerar(variante):
     global VARIANTE
     VARIANTE = variante
-    saida = os.path.join(RAIZ, VARIANTES[variante] + ('_TESTE' if TESTE else '') + '.xlsm')
+    saida = os.path.join(RAIZ, VARIANTES[variante] + ('_TESTE' if TESTE else '') +
+                         ('_COM_HISTORICO' if HIST_IMPORTAR else '') + '.xlsm')
     c = Construtor(saida + '.base.xlsm')
     c.construir()
     vba_bin = montar_vba(c.modulo_layout())
@@ -1858,6 +1884,9 @@ def gerar(variante):
 
 def main():
     # as duas planilhas padrao (limpas); com --teste, tambem a completa (teste automatico de tudo)
+    if HIST_IMPORTAR:
+        gerar('COMP')
+        return
     for v in (['COMPLETA', 'ACOMP', 'COMP'] if TESTE else ['ACOMP', 'COMP']):
         gerar(v)
 

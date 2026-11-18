@@ -56,6 +56,7 @@ Public Sub BuscarMES()
     Dim n As Long, nG As Long, iniU As Date, iniG As Date
     Dim resG As Variant, resU As Variant, simulado As Boolean, okG As Boolean, okU As Boolean
     Dim qG As Long, qU As Long, msg As String, semTag As String, pf As String, t0 As Single, seg As Long
+    Dim nEstend As Long
 
     If mOcupado Then
         Aviso "Consulta ao MES em andamento. Aguarde.", vbInformation, "MES"
@@ -124,6 +125,9 @@ Public Sub BuscarMES()
     qG = GravarResultados(0, resG, nG, okG, iniG)
     qU = GravarResultados(1, resU, n, okU, iniU)
     If okG Then GravarHorariosG nG
+    ' batch estendido (conferencia colada da planilha dos tecnicos): bi-horarios a mais com a media de Germano
+    nEstend = 0
+    If okG Then nEstend = EstenderGermano(n)
     Application.StatusBar = "Consultando MES - pellet feed ultra fino..."
     pf = AtualizarPFUF()
     Application.StatusBar = False
@@ -136,6 +140,8 @@ Public Sub BuscarMES()
           "   (" & nG & " janelas a partir de " & Format$(iniG, "dd\/mm hh:mm") & ")" & vbCrLf & _
           "  " & CfgTxt("bLabB") & ": " & qU & IIf(okU, "", " (consulta falhou)") & _
           "   (" & n & " janelas a partir de " & Format$(iniU, "dd\/mm hh:mm") & ")"
+    If nEstend > 0 Then msg = msg & vbCrLf & vbCrLf & "Batch estendido: " & nEstend & _
+        " bi-horário(s) no fim com a média de Germano."
     If Not simulado And (CDbl(iniU) + n * HORAS_SLOT / 24 > CDbl(Now) Or CDbl(iniG) + nG * HORAS_SLOT / 24 > CDbl(Now)) Then
         msg = msg & vbCrLf & vbCrLf & "Batch ainda em andamento: horários futuros ficam em branco."
     End If
