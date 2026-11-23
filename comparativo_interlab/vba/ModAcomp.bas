@@ -1043,6 +1043,8 @@ Private Sub RegistrarAcomp(ByVal id As Variant)
     CopiarData Nm("bFimG").Value, shAcompReg.Cells(r, 7)
     If ENumero(Nm("bNHor").Value) Then shAcompReg.Cells(r, 8).Value = CLng(Nm("bNHor").Value)
     shAcompReg.Cells(r, 9).Value = Now
+    If ENumero(Nm("bExtH").Value) Then shAcompReg.Cells(r, 10).Value = CDbl(Nm("bExtH").Value) _
+        Else shAcompReg.Cells(r, 10).ClearContents
 End Sub
 
 Private Sub CopiarData(ByVal v As Variant, ByVal c As Range)
@@ -1099,6 +1101,10 @@ Public Sub AtualizarUltimos()
     Dim ids() As Double, orig() As String, lin() As Long, n As Long, r As Long, v As Variant, atual As Variant
     Dim i As Long, j As Long, k As Long, td As Double, ts As String, tl As Long, c As Range, cheg As Variant
     Dim fim As Variant, nivel As Variant, inip As Variant, rh As Long
+    If VARIANTE = "ACOMP" Then
+        AtualizarConferencias
+        Exit Sub
+    End If
     On Error GoTo Fim
     atual = Nm("bId").Value
     ReDim ids(1 To 1)
@@ -1152,6 +1158,71 @@ Public Sub AtualizarUltimos()
             If EData(inip) Then shBatch.Cells(rh, U_COL_INIP).Value = CDate(inip)
             If EData(cheg) And EData(fim) Then shBatch.Cells(rh, U_COL_DUR).Value = Round((CDbl(fim) - CDbl(cheg)) * 24, 1)
             shBatch.Cells(rh, U_COL_ORIGEM).Value = IIf(orig(k) = "H", "Histórico", "Acompanhamento")
+        End If
+    Next k
+    Proteger shBatch
+    ModoCarga False
+    Exit Sub
+Fim:
+    ModoCarga False
+End Sub
+
+' Planilha dos tecnicos: tabela com a conferencia de cada batch do registro (o mais recente em cima), sem formulas,
+' no mesmo desenho da linha da conferencia, para copiar para o comparativo: A batch, B:C Germano inicio, D termino,
+' E:F Ubu chegada, G:H termino, I:J inicio no processo, K bi-horarios, L estendido, M nivel, N tempo em Ubu
+Private Sub AtualizarConferencias()
+    Dim ids() As Double, lin() As Long, n As Long, r As Long, v As Variant, i As Long, j As Long, k As Long
+    Dim td As Double, tl As Long, rh As Long, c As Range, x As Variant
+    On Error GoTo Fim
+    ReDim ids(1 To 1)
+    ReDim lin(1 To 1)
+    r = 2
+    Do While Not Vazio(shAcompReg.Cells(r, 1).Value)
+        v = shAcompReg.Cells(r, 1).Value
+        If ENumero(v) Then
+            n = n + 1
+            ReDim Preserve ids(1 To n)
+            ReDim Preserve lin(1 To n)
+            ids(n) = CDbl(v)
+            lin(n) = r
+        End If
+        r = r + 1
+    Loop
+    For i = 1 To n - 1
+        For j = i + 1 To n
+            If ids(j) > ids(i) Then
+                td = ids(i): ids(i) = ids(j): ids(j) = td
+                tl = lin(i): lin(i) = lin(j): lin(j) = tl
+            End If
+        Next j
+    Next i
+    ModoCarga True
+    Desproteger shBatch
+    For k = 1 To N_ULT
+        rh = B_ROW_ULT + k - 1
+        For Each c In shBatch.Range(shBatch.Cells(rh, 1), shBatch.Cells(rh, 14)).Cells
+            If c.MergeCells Then c.MergeArea.ClearContents Else c.ClearContents
+        Next c
+        If k <= n Then
+            r = lin(k)
+            shBatch.Cells(rh, 1).Value = ids(k)
+            CopiarData shAcompReg.Cells(r, 6).Value, shBatch.Cells(rh, 2)
+            CopiarData shAcompReg.Cells(r, 7).Value, shBatch.Cells(rh, 4)
+            CopiarData shAcompReg.Cells(r, 2).Value, shBatch.Cells(rh, 5)
+            CopiarData shAcompReg.Cells(r, 3).Value, shBatch.Cells(rh, 7)
+            CopiarData shAcompReg.Cells(r, 5).Value, shBatch.Cells(rh, 9)
+            x = shAcompReg.Cells(r, 8).Value
+            If ENumero(x) Then shBatch.Cells(rh, 11).Value = CLng(x)
+            x = shAcompReg.Cells(r, 10).Value
+            If ENumero(x) Then
+                If CDbl(x) > 0 Then shBatch.Cells(rh, 12).Value = "'+" & CDbl(x) & " h" Else shBatch.Cells(rh, 12).Value = "'—"
+            Else
+                shBatch.Cells(rh, 12).Value = "'—"
+            End If
+            x = shAcompReg.Cells(r, 4).Value
+            If Not Vazio(x) Then shBatch.Cells(rh, 13).Value = "'" & CStr(x)
+            If EData(shAcompReg.Cells(r, 2).Value) And EData(shAcompReg.Cells(r, 3).Value) Then _
+                shBatch.Cells(rh, 14).Value = Round((CDbl(shAcompReg.Cells(r, 3).Value) - CDbl(shAcompReg.Cells(r, 2).Value)) * 24, 1)
         End If
     Next k
     Proteger shBatch

@@ -34,7 +34,7 @@ Public Const A_ROW0 As Long = 2
 Public Const ACOMP_Q As String = "SiO2|P|PPC"
 Public Const ACOMP_F As String = "SE|325"
 Public Const SENHA_CFG As String = "fislab"
-Public Const REG_NCOL As Long = 9
+Public Const REG_NCOL As Long = 10
 ' Historico: coluna (na tabela, 1-based) de campos usados nos ultimos batches
 Public Const H_COL_INIU As Long = 4
 Public Const H_COL_FIMU As Long = 5

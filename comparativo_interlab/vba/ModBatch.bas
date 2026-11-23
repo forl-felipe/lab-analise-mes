@@ -501,7 +501,8 @@ End Sub
 Public Function LinhaConf() As Range
     Dim r As Long
     r = Nm("bIniG").Row
-    Set LinhaConf = shBatch.Range(shBatch.Cells(r, 2), shBatch.Cells(r, 14))
+    ' coluna A: numero do batch, quando a linha vem da tabela de conferencias dos tecnicos
+    Set LinhaConf = shBatch.Range(shBatch.Cells(r, 1), shBatch.Cells(r, 14))
 End Function
 
 Public Sub ConferenciaAlterada(ByVal alvo As Range)
@@ -562,6 +563,7 @@ Private Sub RestaurarLinhaConf(ByVal comData As Boolean)
         If Not EData(Nm("bData").Value) Or Nm("bData").HasFormula Then Nm("bData").Formula = "=TODAY()"
         Nm("bData").NumberFormat = "dd/mm/yy"
     End If
+    LinhaConf().Cells(1, 1).Formula = "=IF(bId="""","""",bId)"
     LinhaConf().Locked = False
     On Error GoTo 0
     Proteger shBatch
@@ -614,7 +616,7 @@ Public Function LerConferencia(ByVal texto As String) As String
     Dim linhas As Variant, tk As Variant, i As Long, j As Long, p0 As Long, d As Date, nDatas As Long
     Dim gIni As Variant, gFim As Variant, uIni As Variant, uFim As Variant, ip As Variant, nBi As Variant
     Dim ext As Double, mn As String, t As String, atr As Double, nivel As String, msg As String
-    Dim k As Long
+    Dim k As Long, idB As Long
 
     texto = Replace(texto, vbCrLf, vbLf)
     texto = Replace(texto, vbCr, vbLf)
@@ -669,9 +671,20 @@ Public Function LerConferencia(ByVal texto As String) As String
         If k = 4 Then ip = uFim: uFim = Empty
     End If
     If IsEmpty(gIni) And IsEmpty(uIni) Then Exit Function
+    ' numero do batch antes da 1a data (linha da tabela de conferencias dos tecnicos)
+    For j = p0 - 1 To LBound(tk) Step -1
+        t = Trim$(Replace(Tok(tk, j), "Batch", "", , , vbTextCompare))
+        If t <> "" Then
+            If IsNumeric(t) And InStr(t, "/") = 0 And InStr(t, ":") = 0 Then idB = CLng(t)
+            Exit For
+        End If
+    Next j
+    ' mineroduto: so um codigo de 1 ou 2 algarismos (03)
+    If Not (Len(mn) >= 1 And Len(mn) <= 2 And IsNumeric(mn)) Then mn = ""
 
     ModoCarga True
     Desproteger shBatch
+    If idB > 0 Then Nm("bId").Value = idB
     Nm("bIniG").MergeArea.ClearContents
     Nm("bFimG").MergeArea.ClearContents
     Nm("bIniU").MergeArea.ClearContents
@@ -700,7 +713,7 @@ Public Function LerConferencia(ByVal texto As String) As String
     Nm("bExtH").MergeArea.ClearContents
     If ext > 0 Then Nm("bExtH").Value = ext
     If mn <> "" Then Nm("bMin").Value = "'" & Format$(Val(mn), "00")
-    msg = "Conferência colada:" & IIf(IsEmpty(gIni), "", "  Germano " & Format$(gIni, "dd\/mm hh:mm") & _
+    msg = IIf(idB > 0, "Batch " & idB & " - c", "C") & "onferência colada:" & IIf(IsEmpty(gIni), "", "  Germano " & Format$(gIni, "dd\/mm hh:mm") & _
           IIf(IsEmpty(gFim), "", " a " & Format$(gFim, "dd\/mm hh:mm"))) & _
           IIf(IsEmpty(uIni), "", "   ·   Ubu " & Format$(uIni, "dd\/mm hh:mm") & _
           IIf(IsEmpty(uFim), "", " a " & Format$(uFim, "dd\/mm hh:mm"))) & _

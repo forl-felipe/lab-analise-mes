@@ -23,7 +23,7 @@ End Function
 
 ' Planilhas padrao: abas visiveis, tipo da busca fixo e o caminho principal de cada uma (fonte = SIMULACAO)
 Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
-    Dim rb As Long, s As String
+    Dim rb As Long, s As String, i As Long
     Inicializar
     Desproteger shConfig
     Nm("cfgFonte").Value = "SIMULAÇÃO"
@@ -46,6 +46,13 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         Ok InStr(gUltimaMsg, "Acompanhamento do batch 301") > 0, "busca Germano e Ubu: " & gUltimaMsg
         rb = LinhaBloco(shAcomp, 301)
         Ok rb = LinhaBlocoN(1) And ENumero(shAcomp.Cells(LinhaAnalise(rb, 1), ColHora(1)).Value), "301 no 1o lugar da aba Batch"
+        Ok CStr(shBatch.Cells(B_ROW_ULT, 1).Value) = "301" And EData(shBatch.Cells(B_ROW_ULT, 2).Value) And _
+           EData(shBatch.Cells(B_ROW_ULT, 9).Value), "tabela de conferencias: 301 com Germano e inicio no processo"
+        s = ""
+        For i = 1 To 14
+            s = s & IIf(i > 1, vbTab, "") & shBatch.Cells(B_ROW_ULT, i).Text
+        Next i
+        Ok InStr(LerConferencia(s), "Batch 301") = 1, "linha da tabela copiada e lida: " & Left$(s, 80)
         Ok ENumero(shAcomp.Cells(LinhaAnalise(rb, 4) + 1, ColHora(1)).Value), "Ubu do MES no bloco"
         Ok shConfig.Visible = XL_HIDDEN And shDadosMES.Visible = XL_VERYHIDDEN, "so Configuracoes em Reexibir"
         ProximoBatchAcomp
@@ -63,7 +70,7 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         s = LerConferencia("14/11/26 00:00" & vbTab & vbTab & "15/11/26 03:00" & vbTab & "16/11/26 16:14" & vbTab & _
             vbTab & "17/11/26 16:31" & vbTab & vbTab & "16/11/26 17:30" & vbTab & vbTab & "13" & vbTab & "+2 h" & _
             vbTab & "17/11/26" & vbTab & "03" & vbCrLf)
-        Ok InStr(s, "Conferência colada") > 0, "conferencia reconhecida: " & Left$(s, 120)
+        Ok InStr(s, "onferência colada") > 0, "conferencia reconhecida: " & Left$(s, 120)
         Ok Abs(CDbl(V("bIniG")) - CDbl(DateSerial(2026, 11, 14))) < 0.0001 And _
            Abs(CDbl(V("bFimU")) - CDbl(DateSerial(2026, 11, 17) + TimeSerial(16, 31, 0))) < 0.0001, "conferencia: Germano e Ubu"
         Ok Abs(CDbl(V("bIniPMan")) - CDbl(DateSerial(2026, 11, 16) + TimeSerial(17, 30, 0))) < 0.0001 And Vazio(V("bNivel")), _
@@ -78,24 +85,31 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         Ok CStr(V("bNivel")) = "Médio" And Vazio(V("bIniPMan")) And Vazio(V("bFimU")) And Vazio(V("bExtH")), _
            "conferencia: inicio = chegada + atraso do nivel medio (" & V("bNivel") & ")"
         Ok LerConferencia("nada aqui") = "", "texto sem conferencia: nao muda nada"
+        ' linha da tabela de conferencias dos tecnicos: vem com o numero do batch na 1a coluna
+        s = LerConferencia("324" & vbTab & "20/11/26 00:00" & vbTab & vbTab & "20/11/26 23:59" & vbTab & "22/11/26 10:34" & _
+            vbTab & vbTab & "22/11/26 23:37" & vbTab & vbTab & "22/11/26 14:34" & vbTab & vbTab & "13" & vbTab & "—" & _
+            vbTab & "Baixo" & vbTab & "13,1 h")
+        Ok CLng(V("bId")) = 324 And CStr(V("bNivel")) = "Baixo" And CLng(V("bNHor")) = 13 And CStr(V("bMin")) = "03", _
+           "linha da tabela dos tecnicos: batch 324, nivel baixo (" & V("bId") & "/" & V("bNivel") & ")"
         ' Ctrl+V da linha dos tecnicos direto na linha da conferencia (sem area de transferencia: le as celulas)
         Dim lc As Range
         LimparBatch
         Nm("bId").Value = 266
         Set lc = LinhaConf()
         Desproteger shBatch
-        lc.Cells(1, 1).Value = "'14/11/26 00:00"
-        lc.Cells(1, 3).Value = "'15/11/26 03:00"
-        lc.Cells(1, 4).Value = "'16/11/26 16:14"
-        lc.Cells(1, 6).Value = "'17/11/26 16:31"
-        lc.Cells(1, 8).Value = "'16/11/26 17:30"
-        lc.Cells(1, 10).Value = 13
-        lc.Cells(1, 11).Value = "'+4 h"
-        lc.Cells(1, 12).Value = "'17/11/26"
-        lc.Cells(1, 13).Value = "'03"
+        lc.Cells(1, 2).Value = "'14/11/26 00:00"
+        lc.Cells(1, 4).Value = "'15/11/26 03:00"
+        lc.Cells(1, 5).Value = "'16/11/26 16:14"
+        lc.Cells(1, 7).Value = "'17/11/26 16:31"
+        lc.Cells(1, 9).Value = "'16/11/26 17:30"
+        lc.Cells(1, 11).Value = 13
+        lc.Cells(1, 12).Value = "'+4 h"
+        lc.Cells(1, 13).Value = "'17/11/26"
+        lc.Cells(1, 14).Value = "'03"
         ConferenciaAlterada lc
         Ok EData(V("bIniG")) And EData(V("bFimU")) And CLng(V("bNHor")) = 13 And CDbl(V("bExtH")) = 4, _
            "Ctrl+V da conferencia: Germano, Ubu, 13 bi-horarios, +4 h"
+        Ok CStr(LinhaConf().Cells(1, 1).Value) = "266", "coluna BATCH da conferencia volta a mostrar o batch (" & LinhaConf().Cells(1, 1).Text & ")"
         Ok Nm("bIniP").HasFormula And Nm("bDef").HasFormula And Abs(CDbl(V("bIniP")) - CDbl(DateSerial(2026, 11, 16) + _
            TimeSerial(17, 30, 0))) < 0.0001, "Ctrl+V da conferencia: formulas refeitas, inicio manual 16/11 17:30"
     End If

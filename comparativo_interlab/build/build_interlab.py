@@ -164,7 +164,14 @@ ACOMP_F = ['SE', '325']            # analises fisicas
 # Senha da aba Configuracoes (muito oculta; abre pelo botao Configuracoes da aba Batch)
 SENHA_CFG = 'fislab'
 REG_COLS = ['Batch', 'Chegada Ubu (UBU3)', 'Término Ubu', 'Nível dos tanques', 'Início no processo',
-            'Início Germano (EB06)', 'Término Germano', 'Nº bi-horários', 'Atualizado em']
+            'Início Germano (EB06)', 'Término Germano', 'Nº bi-horários', 'Atualizado em', 'Estendido (h)']
+# planilha dos tecnicos: tabela com a conferencia de cada batch, no mesmo desenho da linha da conferencia (para
+# copiar para o comparativo): A = batch; B:C, D, E:F, G:H, I:J, K, L como na conferencia; M = nivel; N = tempo em Ubu
+CONF_COLS = [('BATCH', 'BATCH', 0, 0, '0'), ('INIG', 'GERMANO · INÍCIO (EB06)', 1, 2, 'dd/mm/yy hh:mm'),
+             ('FIMG', 'GERMANO · TÉRMINO', 3, 3, 'dd/mm/yy hh:mm'), ('CHEG', 'UBU · CHEGADA (UBU3)', 4, 5, 'dd/mm/yy hh:mm'),
+             ('FIMU', 'UBU · TÉRMINO', 6, 7, 'dd/mm/yy hh:mm'), ('INIP', '► INÍCIO NO PROCESSO', 8, 9, 'dd/mm/yy hh:mm'),
+             ('NHOR', 'BI-HORÁRIOS', 10, 10, '0'), ('EXT', 'ESTENDIDO', 11, 11, None), ('NIVEL', 'NÍVEL', 12, 12, None),
+             ('DUR', 'TEMPO EM UBU', 13, 13, '0.0" h"')]
 MODOS = ['Comparativo (batch processado)', 'Acompanhamento (em processamento)']
 B_ROW_CNT = B_ROW_MED + 1
 
@@ -570,7 +577,7 @@ class Construtor:
     def aba_batch(self):
         ws = self.ws_bat
         b = self.atual
-        ws.set_column(0, 0, 1.5)
+        ws.set_column(0, 0, 6.5)   # tecnicos: coluna do batch na tabela; comparativo: batch na linha da conferencia
         ws.set_column(1, 1, 5)
         ws.set_column(2, 2, 25)
         ws.set_column(3, 3, 16.5)
@@ -708,8 +715,8 @@ class Construtor:
         else:
             # comparativo: a linha de valores tem o mesmo desenho da dos tecnicos; copiada la (Ctrl+C) e colada aqui
             # (Ctrl+V em GERMANO · INICIO), o VBA le e arruma (ModBatch.ConferenciaAlterada)
-            self.secao(ws, 18, 1, 13, '2 · CONFERÊNCIA   (copie a linha da conferência na planilha dos técnicos, clique '
-                                      'na 1ª célula abaixo e Ctrl+V)')
+            self.secao(ws, 18, 0, 13, '2 · CONFERÊNCIA   (planilha dos técnicos > tabela CONFERÊNCIA DOS BATCHES > linha do '
+                                      'batch > Ctrl+C; aqui, clique em BATCH e Ctrl+V)')
             self.botao(ws, 18, 11, 'Colar conferência', 'ColarConferencia', 150, 22, 'a', x=0, y=2)
         conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
                 (4, 5, 'Ubu · chegada (UBU3)', 'bIniU', fauto_dt), (6, 7, 'Ubu · término', 'bFimU', fauto_dt)]
@@ -727,6 +734,11 @@ class Construtor:
         ws.merge_range(RV, 8, RV, 9, '', fip)
         ws.write_formula(RV, 8, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
         self.nome('bIniP', ws, RV, 8)
+        if VARIANTE != 'ACOMP':
+            # coluna A: mostra o batch e recebe o numero dele quando a linha vem da tabela dos tecnicos
+            ws.write(RL, 0, 'BATCH', fl)
+            ws.write_formula(RV, 0, '=IF(bId="","",bId)', self.f(locked=False, bold=True, align='center', font_size=9.5,
+                                                                   bg_color=AUTO, border=1, border_color=AUTO_BORDA))
         ws.write(RL, 10, 'BI-HORÁRIOS', fl)
         self.entrada(ws, RV, 10, 10, len(b['rows']) if b else
                      '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))', fauto_v, 'bNHor')
@@ -764,31 +776,12 @@ class Construtor:
         # --- ultimos batches em Ubu (referencia para o proximo; o VBA preenche a partir do historico e do
         #     acompanhamento)
         r = B_ROW_ULT - 2
-        self.secao(ws, r, 1, 13, 'REFERÊNCIA · ÚLTIMOS BATCHES EM UBU   (para preencher o próximo)')
         fu_l = self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom')
         fu = dict(align='center', font_size=9.5, border=1, border_color=LINE2, bg_color='#FAFBFC')
-        cab = [('BATCH', 'BATCH', None), ('NIVEL', 'NÍVEL TANQUES', None), ('CHEG', 'UBU · CHEGADA (UBU3)', 'dd/mm/yy hh:mm'),
-               ('FIM', 'UBU · TÉRMINO', 'dd/mm/yy hh:mm'), ('INIP', 'INÍCIO NO PROCESSO', 'dd/mm/yy hh:mm'),
-               ('DUR', 'TEMPO EM UBU', '0.0" h"'), ('ORIGEM', 'ORIGEM', None)]
-        largura = dict(BATCH=2, NIVEL=1, CHEG=2, FIM=2, INIP=2, DUR=2, ORIGEM=2)
-        for k, rot, fmt in cab:
-            c1 = U_COL[k]
-            c2 = c1 + largura[k] - 1
-            if c2 > c1:
-                ws.merge_range(r + 1, c1, r + 1, c2, rot, fu_l)
-            else:
-                ws.write(r + 1, c1, rot, fu_l)
-            for i in range(N_ULT):
-                ff = self.f(num_format=fmt, bold=(k == 'BATCH'), **fu) if fmt else self.f(bold=(k == 'BATCH'), **fu)
-                if c2 > c1:
-                    ws.merge_range(B_ROW_ULT + i, c1, B_ROW_ULT + i, c2, '', ff)
-                else:
-                    ws.write_blank(B_ROW_ULT + i, c1, None, ff)
-        for i in range(N_ULT):
-            ws.set_row(B_ROW_ULT + i, 17)
-        ws.set_row(r + 1, 14)
-        ws.set_row(B_ROW_ULT + N_ULT, 8)
-        self.nome('bUltimos', ws, B_ROW_ULT, 1, B_ROW_ULT + N_ULT - 1, 13)
+        if VARIANTE == 'ACOMP':
+            self.tabela_conferencias(ws, r, fu_l, fu)
+        else:
+            self.tabela_referencia(ws, r, fu_l, fu)
 
         # --- pellet feed ultra fino: composto diario do dia anterior (Buscar no MES; da para corrigir)
         r = B_ROW_ULT + N_ULT + 1
@@ -989,6 +982,54 @@ class Construtor:
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
         ws.protect(SENHA_CFG, {'format_columns': True, 'format_rows': True, 'format_cells': True,
                                'select_locked_cells': True, 'select_unlocked_cells': True})
+
+    def tabela_referencia(self, ws, r, fu_l, fu):
+        """Comparativo: ultimos batches em Ubu (historico), referencia para o proximo."""
+        self.secao(ws, r, 1, 13, 'REFERÊNCIA · ÚLTIMOS BATCHES EM UBU   (para preencher o próximo)')
+        cab = [('BATCH', 'BATCH', None), ('NIVEL', 'NÍVEL TANQUES', None), ('CHEG', 'UBU · CHEGADA (UBU3)', 'dd/mm/yy hh:mm'),
+               ('FIM', 'UBU · TÉRMINO', 'dd/mm/yy hh:mm'), ('INIP', 'INÍCIO NO PROCESSO', 'dd/mm/yy hh:mm'),
+               ('DUR', 'TEMPO EM UBU', '0.0" h"'), ('ORIGEM', 'ORIGEM', None)]
+        largura = dict(BATCH=2, NIVEL=1, CHEG=2, FIM=2, INIP=2, DUR=2, ORIGEM=2)
+        for k, rot, fmt in cab:
+            c1 = U_COL[k]
+            c2 = c1 + largura[k] - 1
+            if c2 > c1:
+                ws.merge_range(r + 1, c1, r + 1, c2, rot, fu_l)
+            else:
+                ws.write(r + 1, c1, rot, fu_l)
+            for i in range(N_ULT):
+                ff = self.f(num_format=fmt, bold=(k == 'BATCH'), **fu) if fmt else self.f(bold=(k == 'BATCH'), **fu)
+                if c2 > c1:
+                    ws.merge_range(B_ROW_ULT + i, c1, B_ROW_ULT + i, c2, '', ff)
+                else:
+                    ws.write_blank(B_ROW_ULT + i, c1, None, ff)
+        for i in range(N_ULT):
+            ws.set_row(B_ROW_ULT + i, 17)
+        ws.set_row(r + 1, 14)
+        ws.set_row(B_ROW_ULT + N_ULT, 8)
+        self.nome('bUltimos', ws, B_ROW_ULT, 1, B_ROW_ULT + N_ULT - 1, 13)
+
+    def tabela_conferencias(self, ws, r, fu_l, fu):
+        """Planilha dos tecnicos: a conferencia de cada batch (o atual e os anteriores), sem formulas, no mesmo desenho
+        da linha da conferencia: selecionar a linha (coluna A a N), Ctrl+C e colar no comparativo (ModAcomp)."""
+        self.secao(ws, r, 0, 13, 'CONFERÊNCIA DOS BATCHES   (para o comparativo: selecione a linha do batch, da coluna '
+                                 'BATCH a TEMPO EM UBU, e Ctrl+C)')
+        for k, rot, c1, c2, fmt in CONF_COLS:
+            if c2 > c1:
+                ws.merge_range(r + 1, c1, r + 1, c2, rot, fu_l)
+            else:
+                ws.write(r + 1, c1, rot, fu_l)
+            for i in range(N_ULT):
+                ff = self.f(num_format=fmt, bold=(k == 'BATCH'), **fu) if fmt else self.f(**fu)
+                if c2 > c1:
+                    ws.merge_range(B_ROW_ULT + i, c1, B_ROW_ULT + i, c2, '', ff)
+                else:
+                    ws.write_blank(B_ROW_ULT + i, c1, None, ff)
+        for i in range(N_ULT):
+            ws.set_row(B_ROW_ULT + i, 18)
+        ws.set_row(r + 1, 14)
+        ws.set_row(B_ROW_ULT + N_ULT, 8)
+        self.nome('bUltimos', ws, B_ROW_ULT, 0, B_ROW_ULT + N_ULT - 1, 13)
 
     @staticmethod
     def f_hora_u(i):
