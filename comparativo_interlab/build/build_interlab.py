@@ -586,7 +586,7 @@ class Construtor:
         fauto_v = self.f(align='center', bg_color=AUTO, border=1, border_color=AUTO_BORDA, locked=False,
                          font_size=9.5)
         fcalc_h = self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, num_format='0.0" h"',
-                         font_color=INK2, font_size=9.5)
+                         font_color=INK2, font_size=9.5, locked=(VARIANTE == 'ACOMP'))
         fl = self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom')
         # legenda dos campos (para saber exatamente onde preencher); a planilha de acompanhamento fica sem ela
         if VARIANTE == 'ACOMP':
@@ -674,13 +674,10 @@ class Construtor:
                                          'Aqui: clique na 1ª célula amarela > Ctrl+V. Início/término de Germano (EB06) '
                                          'e de Ubu (UBU3) entram sozinhos na conferência.', fhelp)
         else:
-            # comparativo: ou as fases do MES, ou a linha CONFERENCIA da planilha de acompanhamento (tecnicos)
-            self.secao(ws, 9, 1, 8, '2 · FASES DO EVENTO   (fases do MES ou conferência da planilha dos técnicos)')
-            ws.merge_range(10, 1, 14, 2, 'Planilha dos técnicos (acompanhamento): aba Preenchimento > selecione a '
-                                         'linha da CONFERÊNCIA (de Germano · início a Mineroduto) > Ctrl+C > aqui, '
-                                         'botão Colar conferência.\n\nOu, no MES: Fases > Ctrl+C > clique na 1ª '
-                                         'célula amarela > Ctrl+V.', fhelp)
-            self.botao(ws, 13, 3, 'Colar conferência dos técnicos', 'ColarConferencia', 262, 26, 'a', x=0, y=2)
+            # comparativo: o normal e colar a CONFERENCIA dos tecnicos na etapa 3; as fases do MES ficam opcionais
+            self.secao(ws, 9, 1, 8, '2 · FASES DO EVENTO DO MES   (opcional: o normal é colar a conferência na etapa 3)')
+            ws.merge_range(10, 1, 14, 2, 'Só se o batch não estiver na planilha dos técnicos.\n\nNo MES: evento do '
+                                         'batch > Fases > Ctrl+C. Aqui: 1ª célula amarela > Ctrl+V.', fhelp)
         ws.merge_range(15, 1, 16, 2, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True,
                                                valign='top'))
         self.nome('bFasesMsg', ws, 15, 1)
@@ -691,12 +688,19 @@ class Construtor:
         for r in range(10, 17):
             for c in range(3, 9):
                 ws.write_blank(r, c, None, fpaste if r <= 12 and c <= 6 else fsobra)
-            ws.set_row(r, 20 if r <= 12 else (16 if r >= 15 else (30 if r == 13 and VARIANTE != 'ACOMP' else 10)))
+            ws.set_row(r, 20 if r <= 12 else (16 if r >= 15 else 10))
         self.nome('bFases', ws, 10, 3, 16, 8)
         ws.set_row(17, 8)
         # conferencia (preenchida sozinha; da para corrigir): rotulos na linha RL, valores na RV
         RL, RV = 19, 20
-        self.secao(ws, 18, 1, 13, '3 · CONFERÊNCIA   (preenchida pelas fases e pelo MES — corrija se precisar)')
+        if VARIANTE == 'ACOMP':
+            self.secao(ws, 18, 1, 13, '3 · CONFERÊNCIA   (preenchida pelas fases e pelo MES — corrija se precisar)')
+        else:
+            # comparativo: a linha de valores tem o mesmo desenho da dos tecnicos; copiada la (Ctrl+C) e colada aqui
+            # (Ctrl+V em GERMANO · INICIO), o VBA le e arruma (ModBatch.ConferenciaAlterada)
+            self.secao(ws, 18, 1, 13, '3 · CONFERÊNCIA   (copie a linha da conferência na planilha dos técnicos, clique '
+                                      'na 1ª célula abaixo e Ctrl+V)')
+            self.botao(ws, 18, 11, 'Colar conferência', 'ColarConferencia', 150, 22, 'a', x=0, y=2)
         conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
                 (4, 5, 'Ubu · chegada (UBU3)', 'bIniU', fauto_dt), (6, 7, 'Ubu · término', 'bFimU', fauto_dt)]
         for c1, c2, rot, nm, fmt in conf:
@@ -707,8 +711,9 @@ class Construtor:
             self.entrada(ws, RV, c1, c2, None, fmt, nm)
         ws.merge_range(RL, 8, RL, 9, '► INÍCIO NO PROCESSO', self.f(bold=True, font_size=7.5, font_color=OK,
                                                                    valign='bottom'))
+        # comparativo: inicio no processo e defasagem desbloqueados para a linha inteira aceitar o Ctrl+V
         fip = self.f(align='center', bold=True, font_color=OK, bg_color=OK_BG, border=1, border_color='#B9DEC9',
-                     num_format='dd/mm/yy hh:mm', font_size=9.5)
+                     num_format='dd/mm/yy hh:mm', font_size=9.5, locked=(VARIANTE == 'ACOMP'))
         ws.merge_range(RV, 8, RV, 9, '', fip)
         ws.write_formula(RV, 8, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
         self.nome('bIniP', ws, RV, 8)
@@ -972,8 +977,8 @@ class Construtor:
         ws.fit_to_pages(1, 0)
         ws.set_paper(9)
         ws.set_margins(0.3, 0.3, 0.4, 0.4)
-        ws.protect(SENHA_CFG, {'format_columns': True, 'format_rows': True, 'select_locked_cells': True,
-                        'select_unlocked_cells': True})
+        ws.protect(SENHA_CFG, {'format_columns': True, 'format_rows': True, 'format_cells': True,
+                               'select_locked_cells': True, 'select_unlocked_cells': True})
 
     @staticmethod
     def f_hora_u(i):
@@ -1817,6 +1822,9 @@ def montar_vba(layout_code):
                     '    On Error Resume Next\n    MarcarAlterado\n'
                     '    If gCarregando Then Exit Sub\n'
                     '    If Not Intersect(Target, Nm("bFases")) Is Nothing Then LerFases\n'
+                    '    If VARIANTE <> "ACOMP" Then\n'
+                    '        If Not Intersect(Target, LinhaConf()) Is Nothing Then ConferenciaAlterada Target\n'
+                    '    End If\n'
                     '    If Not Intersect(Target, Nm("bNivel")) Is Nothing Then NivelOuManual True\n'
                     '    If Not Intersect(Target, Nm("bIniPMan").MergeArea) Is Nothing Then NivelOuManual False\n'
                     '    If Not Intersect(Target, Nm("bId")) Is Nothing Then\n'

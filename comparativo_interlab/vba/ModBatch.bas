@@ -494,6 +494,81 @@ End Sub
 
 
 
+' ---------------------------------------------------------------- conferencia colada (Ctrl+V) na etapa 3
+' A linha de valores da CONFERENCIA tem o mesmo desenho aqui e na planilha dos tecnicos. Copiada la e colada aqui,
+' chegam valores e formulas da outra planilha; vale o texto copiado (o que o tecnico via na tela): ele preenche o
+' batch e as formulas daqui (inicio no processo, defasagem, data) sao refeitas.
+Public Function LinhaConf() As Range
+    Dim r As Long
+    r = Nm("bIniG").Row
+    Set LinhaConf = shBatch.Range(shBatch.Cells(r, 2), shBatch.Cells(r, 14))
+End Function
+
+Public Sub ConferenciaAlterada(ByVal alvo As Range)
+    Dim v As Variant
+    If alvo.Columns.Count >= 5 Then
+        ConferenciaColada
+    ElseIf Not Intersect(alvo, Nm("bIniP").MergeArea) Is Nothing Then
+        ' digitou o inicio no processo: vira inicio manual (e a formula volta)
+        v = Nm("bIniP").Value
+        RestaurarLinhaConf False
+        If EData(v) Then
+            ModoCarga True
+            Nm("bIniPMan").Value = CDate(v)
+            Nm("bNivel").MergeArea.ClearContents
+            ModoCarga False
+            Recalcular
+        End If
+    ElseIf Not Intersect(alvo, Nm("bDef")) Is Nothing Then
+        RestaurarLinhaConf False
+    End If
+End Sub
+
+Public Sub ConferenciaColada()
+    Dim msg As String, t As String, c As Long, lin As Range
+    msg = LerConferencia(TextoAreaTransferencia())
+    If msg = "" Then
+        ' sem a area de transferencia: o que ficou nas celulas
+        Set lin = LinhaConf()
+        For c = 1 To lin.Columns.Count
+            t = t & IIf(c > 1, vbTab, "") & lin.Cells(1, c).Text
+        Next c
+        msg = LerConferencia(t)
+    End If
+    RestaurarLinhaConf True
+    If msg = "" Then
+        Aviso "Não reconheci a conferência colada. Na planilha dos técnicos, copie a linha de valores da " & _
+              "CONFERÊNCIA (de Germano · início a Mineroduto) e cole na 1ª célula da linha da conferência.", _
+              vbExclamation, "Conferência"
+    Else
+        Aviso msg, vbInformation, "Conferência"
+    End If
+End Sub
+
+' Formulas e formatos da linha da conferencia depois de um Ctrl+V vindo de outra planilha
+Private Sub RestaurarLinhaConf(ByVal comData As Boolean)
+    ModoCarga True
+    Desproteger shBatch
+    On Error Resume Next
+    With Nm("bIniP")
+        .Formula = "=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""""))"
+        .MergeArea.NumberFormat = "dd/mm/yy hh:mm"
+    End With
+    With Nm("bDef")
+        .Formula = "=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"""")"
+        .NumberFormat = "0.0"" h"""
+    End With
+    If comData Then
+        If Not EData(Nm("bData").Value) Or Nm("bData").HasFormula Then Nm("bData").Formula = "=TODAY()"
+        Nm("bData").NumberFormat = "dd/mm/yy"
+    End If
+    LinhaConf().Locked = False
+    On Error GoTo 0
+    Proteger shBatch
+    ModoCarga False
+    Recalcular
+End Sub
+
 ' ---------------------------------------------------------------- colar a CONFERENCIA da planilha dos tecnicos
 ' Na planilha de acompanhamento (aba Preenchimento) o tecnico ja tem a linha CONFERENCIA: Germano inicio/termino,
 ' Ubu chegada/termino, inicio no processo, bi-horarios, estendido, data e mineroduto. Copiada (Ctrl+C), o botao

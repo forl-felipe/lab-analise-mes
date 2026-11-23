@@ -78,6 +78,26 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         Ok CStr(V("bNivel")) = "Médio" And Vazio(V("bIniPMan")) And Vazio(V("bFimU")) And Vazio(V("bExtH")), _
            "conferencia: inicio = chegada + atraso do nivel medio (" & V("bNivel") & ")"
         Ok LerConferencia("nada aqui") = "", "texto sem conferencia: nao muda nada"
+        ' Ctrl+V da linha dos tecnicos direto na linha da conferencia (sem area de transferencia: le as celulas)
+        Dim lc As Range
+        LimparBatch
+        Nm("bId").Value = 266
+        Set lc = LinhaConf()
+        Desproteger shBatch
+        lc.Cells(1, 1).Value = "'14/11/26 00:00"
+        lc.Cells(1, 3).Value = "'15/11/26 03:00"
+        lc.Cells(1, 4).Value = "'16/11/26 16:14"
+        lc.Cells(1, 6).Value = "'17/11/26 16:31"
+        lc.Cells(1, 8).Value = "'16/11/26 17:30"
+        lc.Cells(1, 10).Value = 13
+        lc.Cells(1, 11).Value = "'+4 h"
+        lc.Cells(1, 12).Value = "'17/11/26"
+        lc.Cells(1, 13).Value = "'03"
+        ConferenciaAlterada lc
+        Ok EData(V("bIniG")) And EData(V("bFimU")) And CLng(V("bNHor")) = 13 And CDbl(V("bExtH")) = 4, _
+           "Ctrl+V da conferencia: Germano, Ubu, 13 bi-horarios, +4 h"
+        Ok Nm("bIniP").HasFormula And Nm("bDef").HasFormula And Abs(CDbl(V("bIniP")) - CDbl(DateSerial(2026, 11, 16) + _
+           TimeSerial(17, 30, 0))) < 0.0001, "Ctrl+V da conferencia: formulas refeitas, inicio manual 16/11 17:30"
     End If
     Ok InStr(gUltimaMsg, "Erro") = 0, "sem mensagem de erro: " & gUltimaMsg
 End Sub

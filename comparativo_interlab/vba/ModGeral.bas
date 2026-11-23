@@ -296,7 +296,7 @@ End Function
 
 Public Sub Proteger(ByVal ws As Worksheet)
     On Error Resume Next
-    ws.Protect Password:=SenhaAba(ws), DrawingObjects:=True, Contents:=True, _
+    ws.Protect Password:=SenhaAba(ws), DrawingObjects:=True, Contents:=True, AllowFormattingCells:=True, _
                AllowFormattingColumns:=True, AllowFormattingRows:=True
     If Err.Number <> 0 Then
         Err.Clear
