@@ -30,9 +30,13 @@ Private Const MAPAS_ALT As String = "IP_MESVALOR|IP_AnalogMap|IP_DiscreteMap"
 Private Const MAPAS_DIAG As String = "IP_MESVALOR|IP_AnalogMap"
 ' Diagnostico: janelas de 1 h de D-1 12:00 a D+1 12:00
 Private Const DIAG_JANELAS As Long = 48
+' Suplemento do Aspen nao reconhecido: segundos tentando de novo depois de liga-lo
+Private Const ESPERA_ASPEN_SEG As Double = 12
 
 ' Funcao do Aspen nao reconhecida (#NOME?): nao repete a consulta nem o aviso
 Private mSemAspen As Boolean
+' O que foi achado/feito com os suplementos do Aspen na ultima tentativa (para a mensagem)
+Private mInfoAspen As String
 ' Tags recusadas pelo MES nesta sessao, no formato |TAG1|TAG2|
 Private mInvalidas As String
 ' Mapas recusados pelo MES nesta sessao ("Map Name X is invalid"), no formato |TAG>MAPA|
@@ -215,10 +219,14 @@ Private Function Consultar(ByRef ps As String, ByVal qIni As Date, ByVal nJan As
             anc.Value = "'Suplemento Aspen não reconhecido (#NOME?)"
             LimparSaida sai
             mSemAspen = True
-            Aviso "O Excel não reconheceu a função do MES (GetCalculationValues) - aparece #NOME?." & vbCrLf & _
-                  vbCrLf & "Verificar se o suplemento Aspen Process Data está ativo neste Excel: Arquivo > " & _
-                  "Opções > Suplementos > Gerenciar: Suplementos COM > Ir... (o mesmo usado nos relatórios do " & _
-                  "laboratório). Depois feche e abra a planilha.", vbExclamation, "MES"
+            Aviso "O Excel não reconheceu a função do MES (GetCalculationValues - aparece #NOME?): o suplemento " & _
+                  "do Aspen não está carregado neste Excel." & vbCrLf & vbCrLf & mInfoAspen & vbCrLf & vbCrLf & _
+                  "O que fazer:" & vbCrLf & _
+                  "1. Feche todas as janelas do Excel e abra a planilha pelo próprio Excel (não pelo Teams, " & _
+                  "Outlook, navegador ou anexo de e-mail)." & vbCrLf & _
+                  "2. Se continuar: Arquivo > Opções > Suplementos > Gerenciar: Suplementos COM > Ir... e marque o " & _
+                  "do Aspen. Confira também Gerenciar: Itens Desabilitados." & vbCrLf & _
+                  "3. Clique de novo em Buscar no MES.", vbExclamation, "MES"
             Consultar = -1
             Exit Function
         End If
@@ -773,7 +781,94 @@ End Function
 
 ' Escreve a consulta na ancora. O nome da funcao do Aspen aparece de formas diferentes conforme a instalacao
 ' (com ou sem "_xll."); testa as formas e guarda a que o Excel reconhece (sem #NOME?) em mesPrefixo.
+' #NOME? em todas as formas = suplemento do Aspen nao carregado (Excel aberto pelo Teams/Outlook, segunda janela
+' do Excel, suplemento desligado depois de um travamento ou ainda carregando): liga o suplemento, se achar, e tenta
+' de novo por alguns segundos antes de desistir.
 Private Function EscreverConsulta(ByVal anc As Range, ByVal args As String) As Boolean
+    Dim t0 As Single
+    mInfoAspen = ""
+    If TentarFormas(anc, args) Then
+        EscreverConsulta = True
+        Exit Function
+    End If
+    mInfoAspen = LigarAspen()
+    If gTesteLO Then Exit Function
+    t0 = Timer
+    Do
+        Application.StatusBar = "Carregando o suplemento do Aspen...  " & Int(Timer - t0) & " s"
+        EsperarSeg 1.5
+        If TentarFormas(anc, args) Then
+            Application.StatusBar = False
+            EscreverConsulta = True
+            Exit Function
+        End If
+        If Timer < t0 Then t0 = t0 - 86400
+    Loop While Timer - t0 < ESPERA_ASPEN_SEG
+    Application.StatusBar = False
+End Function
+
+Private Sub EsperarSeg(ByVal seg As Double)
+    Dim t As Single
+    t = Timer
+    Do
+        DoEvents
+        If Timer < t Then t = t - 86400
+    Loop While Timer - t < seg
+End Sub
+
+' Procura os suplementos do Aspen (COM e XLL) neste Excel e liga os que estiverem desligados.
+' Devolve o texto para a mensagem (o que achou e o estado de cada um).
+Private Function LigarAspen() As String
+    Dim ca As Object, ad As Object, txt As String, r As String, n As Long, lst As Object
+    On Error Resume Next
+    Set lst = Nothing
+    Set lst = Application.COMAddIns
+    If Not lst Is Nothing Then
+    For Each ca In lst
+        txt = ""
+        txt = ca.Description & " " & ca.progID
+        If InStr(1, txt, "Aspen", vbTextCompare) > 0 Or InStr(1, txt, "Process Data", vbTextCompare) > 0 Then
+            n = n + 1
+            If Not ca.Connect Then
+                Err.Clear
+                ca.Connect = True
+                r = r & "  - " & ca.Description & " (COM): estava desligado - " & _
+                    IIf(Err.Number = 0 And ca.Connect, "religado agora", "não foi possível religar") & vbCrLf
+            Else
+                r = r & "  - " & ca.Description & " (COM): ligado" & vbCrLf
+            End If
+        End If
+    Next ca
+    End If
+    Set lst = Nothing
+    Set lst = Application.AddIns
+    If Not lst Is Nothing Then
+    For Each ad In lst
+        txt = ""
+        txt = ad.Name & " " & ad.FullName & " " & ad.Title
+        If InStr(1, txt, "Aspen", vbTextCompare) > 0 Or InStr(1, txt, "ProcessData", vbTextCompare) > 0 Then
+            n = n + 1
+            If Not ad.Installed Then
+                Err.Clear
+                ad.Installed = True
+                r = r & "  - " & ad.Name & " (suplemento do Excel): estava desligado - " & _
+                    IIf(Err.Number = 0 And ad.Installed, "religado agora", "não foi possível religar") & vbCrLf
+            Else
+                r = r & "  - " & ad.Name & " (suplemento do Excel): ligado" & vbCrLf
+            End If
+        End If
+    Next ad
+    End If
+    If n = 0 Then
+        LigarAspen = "Nenhum suplemento do Aspen foi encontrado neste Excel (Excel aberto por outro caminho ou em " & _
+                     "outro computador)."
+    Else
+        LigarAspen = "Suplementos do Aspen neste Excel:" & vbCrLf & r
+    End If
+End Function
+
+' Tenta as formas do nome da funcao do Aspen; True = o Excel reconheceu uma delas
+Private Function TentarFormas(ByVal anc As Range, ByVal args As String) As Boolean
     Dim cand As Variant, i As Long, pre As String, lista As String
     lista = CfgTxt("mesPrefixo") & "|=AspenTech.PME.ProcessData.Functions.GetCalculationValues(" & _
             "|=_xll.AspenTech.PME.ProcessData.Functions.GetCalculationValues(" & "|=GetCalculationValues("
@@ -789,7 +884,7 @@ Private Function EscreverConsulta(ByVal anc As Range, ByVal args As String) As B
                 If Not CelulaErroNome(anc) Then
                     On Error GoTo 0
                     If CfgTxt("mesPrefixo") <> pre Then GravarCfg "mesPrefixo", "'" & pre
-                    EscreverConsulta = True
+                    TentarFormas = True
                     Exit Function
                 End If
             End If

@@ -217,6 +217,8 @@ Public Sub TesteLO()
     DiagnosticoMES
     Ok InStr(CStr(shDiag.Cells(X_ROW0, X_COL_RES).Value), "suplemento") > 0 And InStr(gUltimaMsg, "#NOME?") > 0, _
        "diagnóstico sem o Aspen: avisa o suplemento (" & shDiag.Cells(X_ROW0, X_COL_RES).Value & ")"
+    Ok InStr(gUltimaMsg, "Nenhum suplemento do Aspen") > 0 And InStr(gUltimaMsg, "Feche todas as janelas") > 0, _
+       "mensagem sem o Aspen diz o que achou e o que fazer"
     Ok InStr(CStr(shDiag.Cells(X_ROW0 + IIndice("tk01") - 1, X_COL_RES).Value), "sem tag") > 0 Or _
        InStr(CStr(Nm("xStatus").Value), "15/10/2026") > 0, "diagnóstico grava a última execução"
 
