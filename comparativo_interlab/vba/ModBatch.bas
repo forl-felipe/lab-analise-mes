@@ -588,6 +588,132 @@ Private Sub RestaurarLinhaConf(ByVal comData As Boolean)
     Recalcular
 End Sub
 
+' ---------------------------------------------------------------- conferencia direto da planilha dos tecnicos
+' Com a planilha de acompanhamento (tecnicos) aberta no mesmo Excel, a conferencia do batch vem do registro dela
+' (aba _Acomp: chegada/termino em Ubu, nivel, inicio no processo, Germano, bi-horarios) e a extensao do bloco do
+' batch (ou da coluna Estendido do registro). Nao precisa copiar nada.
+Public Function TrazerConferencia(ByVal id As Variant, Optional ByVal avisar As Boolean = False) As String
+    Dim wb As Workbook, ws As Worksheet, r As Long, v As Variant, ext As Double, nivel As String, msg As String
+    If Not ENumero(id) Then Exit Function
+    For Each wb In Application.Workbooks
+        If Not wb Is ThisWorkbook Then
+            Set ws = Nothing
+            On Error Resume Next
+            Set ws = wb.Worksheets("_Acomp")
+            On Error GoTo 0
+            If Not ws Is Nothing Then
+                If CStr(ws.Cells(1, 2).Value) = "Chegada Ubu (UBU3)" Then
+                    r = 2
+                    Do While Not Vazio(ws.Cells(r, 1).Value) And r < 5000
+                        v = ws.Cells(r, 1).Value
+                        If ENumero(v) Then
+                            If CDbl(v) = CDbl(id) Then Exit Do
+                        End If
+                        r = r + 1
+                    Loop
+                    If Not Vazio(ws.Cells(r, 1).Value) Then
+                        ext = ExtensaoNosTecnicos(wb, ws, r, CDbl(id))
+                        nivel = Trim$(CStr(ws.Cells(r, 4).Value))
+                        msg = AplicarConferencia(CLng(id), DataOuVazio(ws.Cells(r, 6).Value), DataOuVazio(ws.Cells(r, 7).Value), _
+                                                 DataOuVazio(ws.Cells(r, 2).Value), DataOuVazio(ws.Cells(r, 3).Value), _
+                                                 DataOuVazio(ws.Cells(r, 5).Value), NumeroOuVazio(ws.Cells(r, 8).Value), _
+                                                 ext, "", nivel, "da planilha dos técnicos (" & wb.Name & ")")
+                        TrazerConferencia = msg
+                        If avisar Then Aviso msg, vbInformation, "Conferência"
+                        Exit Function
+                    End If
+                End If
+            End If
+        End If
+    Next wb
+End Function
+
+' Horas estendidas do batch na planilha dos tecnicos: coluna Estendido (h) do registro ou, nas versoes sem ela, o
+' marcador do bloco do batch na aba de acompanhamento (bi-horarios estendidos x 2 h)
+Private Function ExtensaoNosTecnicos(ByVal wb As Workbook, ByVal reg As Worksheet, ByVal r As Long, ByVal id As Double) As Double
+    Dim ws As Worksheet, i As Long, v As Variant
+    On Error Resume Next
+    If CStr(reg.Cells(1, 10).Value) <> "" Then
+        If ENumero(reg.Cells(r, 10).Value) Then ExtensaoNosTecnicos = CDbl(reg.Cells(r, 10).Value)
+        Exit Function
+    End If
+    For Each ws In wb.Worksheets
+        For i = 1 To 400
+            v = ws.Cells(i, 40).Value
+            If ENumero(v) Then
+                If CDbl(v) = id And CStr(ws.Cells(i, 42).Value) Like "ACOMP*" Then
+                    If ENumero(ws.Cells(i, 44).Value) Then ExtensaoNosTecnicos = CDbl(ws.Cells(i, 44).Value) * HORAS_SLOT
+                    Exit Function
+                End If
+            End If
+        Next i
+    Next ws
+End Function
+
+Private Function DataOuVazio(ByVal v As Variant) As Variant
+    If EData(v) Then DataOuVazio = CDate(v) Else DataOuVazio = Empty
+End Function
+
+Private Function NumeroOuVazio(ByVal v As Variant) As Variant
+    If ENumero(v) Then NumeroOuVazio = CLng(v) Else NumeroOuVazio = Empty
+End Function
+
+' ---------------------------------------------------------------- pellet feed ultra fino (lancamento manual)
+' Os 4 resultados do dia copiados do MES (Fe, SiO2, P, S.E., um embaixo do outro) e colados em Fe: em cada linha
+' vale o 1o numero (o MES pode mandar mais de uma coluna); texto com virgula vira numero; o resto da area e limpo.
+Public Sub PFUFColado()
+    Dim area As Range, k As Long, c As Long, v As Variant, x As Double, achou As Boolean, txt As String
+    Set area = Nm("bPfCola")
+    ModoCarga True
+    Desproteger shBatch
+    For k = 1 To NPF
+        achou = False
+        For c = 1 To area.Columns.Count
+            v = area.Cells(k, c).Value
+            If Not achou And NumeroColado(v, x) Then
+                area.Cells(k, 1).Value = x
+                achou = True
+                txt = txt & IIf(txt <> "", "  ·  ", "") & RotuloPF(k) & " " & area.Cells(k, 1).Text
+            End If
+            If c > 1 Then area.Cells(k, c).ClearContents
+        Next c
+        If Not achou Then area.Cells(k, 1).ClearContents
+        area.Cells(k, 1).NumberFormat = IIf(PfDecimais(k) = 0, "0", "0." & String$(PfDecimais(k), "0"))
+        area.Cells(k, 1).Interior.Color = RGB(255, 242, 204)
+        area.Cells(k, 1).HorizontalAlignment = -4108
+    Next k
+    area.Locked = False
+    Nm("bPfMsg").Value = "'" & IIf(txt = "", "", "Colado: " & txt)
+    Proteger shBatch
+    ModoCarga False
+    gAlterado = True
+End Sub
+
+Private Function NumeroColado(ByVal v As Variant, ByRef x As Double) As Boolean
+    Dim t As String
+    If IsError(v) Or IsEmpty(v) Then Exit Function
+    If VarType(v) = vbDouble Or VarType(v) = vbLong Or VarType(v) = vbInteger Or VarType(v) = vbCurrency Then
+        x = CDbl(v)
+        NumeroColado = True
+        Exit Function
+    End If
+    t = Trim$(Replace(CStr(v), Chr(160), ""))
+    If t = "" Then Exit Function
+    If InStr(t, ",") > 0 And InStr(t, ".") > 0 Then t = Replace(t, ".", "")      ' 2.236,5
+    t = Replace(t, ",", ".")
+    If Not IsNumeric(Replace(t, ".", "0")) Then Exit Function
+    x = Val(t)
+    NumeroColado = True
+End Function
+
+Private Function RotuloPF(ByVal k As Long) As String
+    RotuloPF = Split("Fe|SiO2|P|S.E.", "|")(k - 1)
+End Function
+
+Private Function PfDecimais(ByVal k As Long) As Long
+    PfDecimais = CLng(Split(PF_DECIMAIS, "|")(k - 1))
+End Function
+
 ' ---------------------------------------------------------------- colar a CONFERENCIA da planilha dos tecnicos
 ' Na planilha de acompanhamento (aba Preenchimento) o tecnico ja tem a linha CONFERENCIA: Germano inicio/termino,
 ' Ubu chegada/termino, inicio no processo, bi-horarios, estendido, data e mineroduto. Copiada (Ctrl+C), o botao
@@ -696,6 +822,22 @@ Public Function LerConferencia(ByVal texto As String) As String
     ' mineroduto: so um codigo de 1 ou 2 algarismos (03)
     If Not (Len(mn) >= 1 And Len(mn) <= 2 And IsNumeric(mn)) Then mn = ""
 
+    ' sem o numero do batch (linha 3 dos tecnicos): pergunta, para nao gravar no batch anterior
+    If idB = 0 Then
+        idB = PerguntarBatch()
+        If idB = 0 Then
+            LerConferencia = "Conferência não colada: falta o número do batch."
+            Exit Function
+        End If
+    End If
+    LerConferencia = AplicarConferencia(idB, gIni, gFim, uIni, uFim, ip, nBi, ext, mn, "", "colada")
+End Function
+
+' Preenche o batch com a conferencia (colada ou lida da planilha dos tecnicos) e devolve a mensagem
+Public Function AplicarConferencia(ByVal idB As Long, ByVal gIni As Variant, ByVal gFim As Variant, ByVal uIni As Variant, _
+                                   ByVal uFim As Variant, ByVal ip As Variant, ByVal nBi As Variant, ByVal ext As Double, _
+                                   ByVal mn As String, ByVal nivelDado As String, ByVal origem As String) As String
+    Dim atr As Double, nivel As String, msg As String
     ModoCarga True
     Desproteger shBatch
     If idB > 0 Then Nm("bId").Value = idB
@@ -707,19 +849,20 @@ Public Function LerConferencia(ByVal texto As String) As String
     If Not IsEmpty(gFim) Then Nm("bFimG").Value = gFim
     If Not IsEmpty(uIni) Then Nm("bIniU").Value = uIni
     If Not IsEmpty(uFim) Then Nm("bFimU").Value = uFim
-    ' inicio no processo: se bate com chegada + atraso de um nivel dos tanques, fica o nivel; senao, inicio manual
+    ' inicio no processo: o nivel que veio, ou o que bate com chegada + atraso; senao, inicio manual
     Nm("bNivel").MergeArea.ClearContents
     Nm("bIniPMan").MergeArea.ClearContents
-    If Not IsEmpty(ip) Then
+    nivel = nivelDado
+    If Not IsEmpty(ip) And nivel = "" Then
         If Not IsEmpty(uIni) Then
             atr = Round((CDbl(ip) - CDbl(uIni)) * 24, 2)
             nivel = NivelDoAtraso(atr)
         End If
-        If nivel <> "" Then
-            Nm("bNivel").Value = nivel
-        Else
-            Nm("bIniPMan").Value = ip
-        End If
+    End If
+    If nivel <> "" Then
+        Nm("bNivel").Value = nivel
+    ElseIf Not IsEmpty(ip) Then
+        Nm("bIniPMan").Value = ip
     End If
     If Not IsEmpty(nBi) Then
         If nBi >= 1 And nBi <= NMAX Then Nm("bNHor").Value = nBi
@@ -727,7 +870,7 @@ Public Function LerConferencia(ByVal texto As String) As String
     Nm("bExtH").MergeArea.ClearContents
     If ext > 0 Then Nm("bExtH").Value = ext
     If mn <> "" Then Nm("bMin").Value = "'" & Format$(Val(mn), "00")
-    msg = IIf(idB > 0, "Batch " & idB & " - c", "C") & "onferência colada:" & IIf(IsEmpty(gIni), "", "  Germano " & Format$(gIni, "dd\/mm hh:mm") & _
+    msg = IIf(idB > 0, "Batch " & idB & " - c", "C") & "onferência " & origem & ":" & IIf(IsEmpty(gIni), "", "  Germano " & Format$(gIni, "dd\/mm hh:mm") & _
           IIf(IsEmpty(gFim), "", " a " & Format$(gFim, "dd\/mm hh:mm"))) & _
           IIf(IsEmpty(uIni), "", "   ·   Ubu " & Format$(uIni, "dd\/mm hh:mm") & _
           IIf(IsEmpty(uFim), "", " a " & Format$(uFim, "dd\/mm hh:mm"))) & _
@@ -741,8 +884,19 @@ Public Function LerConferencia(ByVal texto As String) As String
     Recalcular
     On Error Resume Next
     AtualizarUltimos
-    LerConferencia = msg & vbCrLf & vbCrLf & "Agora é só Buscar no MES." & IIf(ext > 0, " Os " & Int(ext / HORAS_SLOT + 0.5) & _
+    AplicarConferencia = msg & vbCrLf & vbCrLf & "Agora é só Buscar no MES." & IIf(ext > 0, " Os " & Int(ext / HORAS_SLOT + 0.5) & _
         " bi-horários estendidos recebem a média de Germano, como na planilha dos técnicos.", "")
+End Function
+
+' Numero do batch da conferencia colada sem ele (InputBox; no teste automatico, o que ja esta na aba)
+Private Function PerguntarBatch() As Long
+    Dim r As Variant
+    If gSilencioso Then
+        If ENumero(Nm("bId").Value) Then PerguntarBatch = CLng(Nm("bId").Value)
+        Exit Function
+    End If
+    r = InputBox("Número do batch desta conferência:", "Conferência", CStr(Nm("bId").Value))
+    If IsNumeric(r) And Trim$(CStr(r)) <> "" Then PerguntarBatch = CLng(r)
 End Function
 
 Private Function Tok(tk As Variant, ByVal i As Long) As String

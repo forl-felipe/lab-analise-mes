@@ -67,10 +67,19 @@ Public Sub BuscarMES()
         BuscarAcompanhamento
         Exit Sub
     End If
+    If Not ENumero(Nm("bId").Value) Then
+        Aviso "Informe o número do batch (etapa 1).", vbExclamation, "MES"
+        Exit Sub
+    End If
+    ' sem a conferencia: tenta a planilha dos tecnicos aberta
     If Not EData(Nm("gJanU").Value) Then
-        ' sem os horarios do batch: busca so o pellet feed ultra fino
-        BuscarSoPFUF "Leituras do batch: não buscadas - falta a chegada em Ubu (cole as Fases do Evento ou " & _
-                   "informe a chegada/início no processo na aba Batch)."
+        TrazerConferencia Nm("bId").Value
+        Recalcular
+    End If
+    If Not EData(Nm("gJanU").Value) Then
+        Aviso "Falta a conferência do batch " & CfgTxt("bId") & " (chegada em Ubu e Germano)." & vbCrLf & vbCrLf & _
+              "Abra a planilha dos técnicos no Excel e digite de novo o número do batch, ou cole a linha da " & _
+              "conferência (etapa 2).", vbExclamation, "MES"
         Exit Sub
     End If
     n = 0
@@ -128,9 +137,7 @@ Public Sub BuscarMES()
     ' batch estendido (conferencia colada da planilha dos tecnicos): bi-horarios a mais com a media de Germano
     nEstend = 0
     If okG Then nEstend = EstenderGermano(n)
-    Application.StatusBar = "Consultando MES - pellet feed ultra fino..."
-    pf = AtualizarPFUF()
-    Application.StatusBar = False
+    ' pellet feed ultra fino: lancado a mao (aba Batch, etapa 3); a consulta automatica saiu
     seg = Int(Timer - t0)
     If seg < 0 Then seg = seg + 86400
     Nm("mesTempo").Value = "'" & Format$(Now, "dd\/mm\/yyyy hh:mm:ss") & IIf(simulado, " (SIMULAÇÃO)", "  -  " & seg & " s")

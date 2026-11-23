@@ -150,7 +150,7 @@ B_COL_TG = 3              # D  data/hora Germano
 B_COL_V1 = 4              # E  1o valor (SE A); valor (p, lab) em B_COL_V1 + 2p + lab
 B_COL_D1 = 15             # P  1a diferenca
 B_COL_R1 = 20             # U  1o "rank" (par A/B para os graficos)
-B_ROW_G0 = 45             # 1a linha de leituras
+B_ROW_G0 = 47             # 1a linha de leituras
 B_ROW_MED = B_ROW_G0 + NMAX
 B_ROW_ULT = 24            # 1a linha da tabela dos ultimos batches (preenchida pelo VBA)
 N_ULT = 4                 # quantos batches anteriores mostrar
@@ -422,7 +422,7 @@ class Construtor:
 
         # pellet feed ultra fino (elutriacao): composto diario
         r = C_ROW_PF0 - 2
-        self.secao(ws, r, 1, 10, 'PELLET FEED ULTRA FINO (ELUTRIAÇÃO) — COMPOSTO DIÁRIO DE UBU')
+        self.secao(ws, r, 1, 10, 'PELLET FEED ULTRA FINO (ELUTRIAÇÃO) — TAGS NÃO USADAS (O PFUF É LANÇADO À MÃO NA ABA BATCH)')
         hdr_pf = ['Análise', 'Rótulo no painel', 'Tag', 'Servidor', 'Mapa', 'Mín. válido', 'Máx. válido',
                   'Típico (simulação)', 'Descrição no MES']
         for i, h in enumerate(hdr_pf):
@@ -612,7 +612,7 @@ class Construtor:
         # ---- 1 · identificacao (esquerda) e ACOES (direita)
         self.secao(ws, 4, 1, 8, '1 · IDENTIFICAÇÃO DO BATCH')
         self.secao(ws, 4, 10, 13, 'AÇÕES')
-        estender = VARIANTE != 'COMP'
+        estender = True
         ws.merge_range(5, 1, 5, 2, 'BATCH Nº', fl)
         ws.write(5, 3, 'NÍVEL DOS TANQUES', fl)
         ws.merge_range(5, 4, 5, 5, 'INÍCIO NO PROCESSO (MANUAL)', fl)
@@ -715,8 +715,8 @@ class Construtor:
         else:
             # comparativo: a linha de valores tem o mesmo desenho da dos tecnicos; copiada la (Ctrl+C) e colada aqui
             # (Ctrl+V em GERMANO · INICIO), o VBA le e arruma (ModBatch.ConferenciaAlterada)
-            self.secao(ws, 18, 0, 13, '2 · CONFERÊNCIA   (planilha dos técnicos > tabela CONFERÊNCIA DOS BATCHES > linha do '
-                                      'batch > Ctrl+C; aqui, clique em BATCH e Ctrl+V)')
+            self.secao(ws, 18, 0, 13, '2 · CONFERÊNCIA   (com a planilha dos técnicos aberta no Excel, vem sozinha ao digitar '
+                                      'o batch · ou copie a linha do batch lá e Ctrl+V em BATCH)')
             self.botao(ws, 18, 11, 'Colar conferência', 'ColarConferencia', 150, 22, 'a', x=0, y=2)
         conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
                 (4, 5, 'Ubu · chegada (UBU3)', 'bIniU', fauto_dt), (6, 7, 'Ubu · término', 'bFimU', fauto_dt)]
@@ -783,27 +783,34 @@ class Construtor:
         else:
             self.tabela_referencia(ws, r, fu_l, fu)
 
-        # --- pellet feed ultra fino: composto diario do dia anterior (Buscar no MES; da para corrigir)
+        # --- pellet feed ultra fino: composto diario do dia anterior, lancado a mao (copiado do MES, na vertical)
         r = B_ROW_ULT + N_ULT + 1
-        self.secao(ws, r, 1, 13, ('4' if VARIANTE == 'ACOMP' else '3') + ' · PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO DIA ANTERIOR   (vem junto no Buscar no MES · dá para corrigir)')
+        self.secao(ws, r, 1, 13, ('4' if VARIANTE == 'ACOMP' else '3') + ' · PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO '
+                                 'DIA ANTERIOR   (no MES, copie os 4 resultados na vertical e cole em Fe)')
         ws.merge_range(r + 1, 1, r + 1, 2, 'DATA DO COMPOSTO', fl)
         self.entrada(ws, r + 2, 1, 2, '=IF(ISNUMBER(bData),bData-cfgPfDias,"")',
-                     self.f(align='center', num_format='dd/mm/yyyy', bg_color=AUTO, border=1, border_color=AUTO_BORDA,
-                            locked=False, font_size=9.5), 'bPfData')
+                     self.fi(align='center', num_format='dd/mm/yyyy', font_size=11, bold=True), 'bPfData')
+        ws.merge_range(r + 3, 1, r + 4, 2, 'Digite a data do composto. No MES: selecione Fe, SiO₂, P e S.E. '
+                                           '(um embaixo do outro) > Ctrl+C. Aqui: clique em Fe > Ctrl+V.',
+                       self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True, valign='top'))
+        fsobra = self.f(locked=False, font_size=9.5)
         for k, pf in enumerate(PFUF):
-            c = 3 + k
-            ws.write(r + 1, c, pf[1].upper(), self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom',
-                                                    align='center'))
-            ws.write_blank(r + 2, c, None, self.fi(align='center', num_format=fmt_num(pf[4]), font_size=9.5))
-            self.nome('bPf%s' % pf[0], ws, r + 2, c)
-        ws.merge_range(r + 2, 7, r + 2, 13, '', self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True))
-        self.nome('bPfMsg', ws, r + 2, 7)
-        ws.set_row(r + 1, 14)
-        ws.set_row(r + 2, 22)
-        ws.set_row(r + 3, 8)
+            rr = r + 1 + k
+            ws.write(rr, 3, pf[1], self.f(bold=True, font_size=9.5, font_color=AZUL_TIT, align='right', indent=1))
+            ws.write_blank(rr, 4, None, self.fi(align='center', num_format=fmt_num(pf[4]), font_size=10, bold=True))
+            self.nome('bPf%s' % pf[0], ws, rr, 4)
+            # colunas ao lado livres: se o MES vier com mais de uma coluna, o Ctrl+V nao esbarra em celula travada
+            for c in range(5, 8):
+                ws.write_blank(rr, c, None, fsobra)
+            ws.set_row(rr, 18)
+        ws.merge_range(r + 1, 8, r + 4, 13, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True,
+                                                       valign='top'))
+        self.nome('bPfMsg', ws, r + 1, 8)
+        self.nome('bPfCola', ws, r + 1, 4, r + 4, 7)
+        ws.set_row(r + 5, 8)
 
         # --- comentarios do report (logo abaixo da conferencia, para editar antes de salvar)
-        r = B_ROW_ULT + N_ULT + 5
+        r = B_ROW_ULT + N_ULT + 7
         assert r + 10 == B_ROW_G0 - 2
         self.secao(ws, r, 1, 13, ('5' if VARIANTE == 'ACOMP' else '4') + ' · COMENTÁRIOS DO REPORT   (os dois primeiros são automáticos — dá para editar)')
         fauto = self.fi(italic=True, font_size=9.5, font_color=INK2, text_wrap=True, bg_color=AUTO)
@@ -1876,10 +1883,13 @@ def montar_vba(layout_code):
                     '    If VARIANTE <> "ACOMP" Then\n'
                     '        If Not Intersect(Target, LinhaConf()) Is Nothing Then ConferenciaAlterada Target\n'
                     '    End If\n'
+                    '    If Not Intersect(Target, Nm("bPfCola")) Is Nothing Then PFUFColado\n'
                     '    If Not Intersect(Target, Nm("bNivel")) Is Nothing Then NivelOuManual True\n'
                     '    If Not Intersect(Target, Nm("bIniPMan").MergeArea) Is Nothing Then NivelOuManual False\n'
                     '    If Not Intersect(Target, Nm("bId")) Is Nothing Then\n'
-                    '        PreencherDoAcomp\n        AtualizarUltimos\n    End If\nEnd Sub\n'),
+                    '        PreencherDoAcomp\n'
+                    '        If VARIANTE <> "ACOMP" Then TrazerConferencia Nm("bId").Value, True\n'
+                    '        AtualizarUltimos\n    End If\nEnd Sub\n'),
     }
     for cn in ['shBatch', 'shAcomp', 'shPainel', 'shHist', 'shLeituras', 'shConfig', 'shDadosMES',
                'shGraf', 'shAcompReg']:

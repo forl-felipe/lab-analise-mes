@@ -157,8 +157,7 @@ Public Sub TesteLO()
     Ok Nm("bAcomp").HasFormula And Nm("bFrase").HasFormula, "novo batch com comentarios automaticos"
     gUltimaMsg = ""
     BuscarMES
-    Ok InStr(gUltimaMsg, "não buscadas") > 0 And InStr(gUltimaMsg, "4 de 4") > 0, _
-       "Buscar no MES sem chegada em Ubu: busca so o PFUF (" & gUltimaMsg & ")"
+    Ok InStr(gUltimaMsg, "Falta a conferência") > 0, "Buscar no MES sem a conferencia: avisa (" & gUltimaMsg & ")"
     Nm("bIniU").Value = DateSerial(2026, 10, 10) + TimeSerial(7, 30, 0)
     Nm("bFimU").Value = DateSerial(2026, 10, 11) + TimeSerial(8, 10, 0)
     Nm("bIniG").Value = DateSerial(2026, 10, 8) + TimeSerial(5, 30, 0)
@@ -193,15 +192,22 @@ Public Sub TesteLO()
     Ok CStr(shGraf.Cells(2 + 7, (pSE - 1) * G_BLOCO + 1).Value) = "Média", "rotulo Media apos os pares"
     ' pellet feed ultra fino: composto do dia anterior a data do report
     Ok Abs(CDbl(V("bPfData")) - (CDbl(V("bData")) - 1)) < 0.0001, "PFUF: data do composto = report - 1"
-    Ok ENumero(V("bPfFe")) And ENumero(V("bPfSiO2")) And ENumero(V("bPfP")) And ENumero(V("bPfSE")), _
-       "PFUF: Fe, SiO2, P e S.E. simulados"
-    Ok InStr(gUltimaMsg, "PFUF (composto de") > 0, "PFUF na mensagem do Buscar no MES"
+    ' PFUF lancado a mao: os 4 valores do MES colados na vertical (texto com virgula, com uma coluna a mais)
+    Dim pc As Range
+    Set pc = Nm("bPfCola")
+    Desproteger shBatch
+    pc.Cells(1, 1).Value = "'67,85"
+    pc.Cells(2, 1).Value = "'1,32"
+    pc.Cells(3, 2).Value = "'0,035"
+    pc.Cells(4, 1).Value = 2236
+    PFUFColado
+    Ok Abs(CDbl(V("bPfFe")) - 67.85) < 0.0001 And Abs(CDbl(V("bPfSiO2")) - 1.32) < 0.0001 And _
+       Abs(CDbl(V("bPfP")) - 0.035) < 0.00001 And CDbl(V("bPfSE")) = 2236 And Vazio(pc.Cells(3, 2).Value), _
+       "PFUF colado na vertical: Fe, SiO2, P e S.E. (" & V("bPfMsg") & ")"
+    Recalcular
     Ok InStr(CStr(V("eResumo")), "PFUF (composto diário") > 0, "PFUF no resumo: " & V("eResumo")
     Ok InStr(CStr(shPainel.Cells(Nm("pSt_SE").Row - 1, 13).Value), "COMPOSTO DIÁRIO — PFUF · ") = 1, _
        "PFUF: titulo do quadro no painel (" & shPainel.Cells(Nm("pSt_SE").Row - 1, 13).Value & ")"
-    gUltimaMsg = ""
-    BuscarPFUF
-    Ok InStr(gUltimaMsg, "4 de 4") > 0, "Buscar so o PFUF: " & gUltimaMsg
     Nm("bPfFe").Value = 66.12
     Nm("bAcomp").Value = "Acompanhamento editado"
     salvo1 = Celula(3, pSi, 0)

@@ -90,6 +90,7 @@ em linhas e colunas fixas; apagar ou inserir uma linha/coluna desloca tudo e a m
 |---|---|
 | **Batch** | Preenchimento completo em etapas: **1 · Identificação** (batch Nº, nível dos tanques e atraso), **2 · Conferência** (colada da planilha dos técnicos), **Referência · últimos batches em Ubu**, **3 · Pellet feed ultra fino**, **4 · Comentários do report** e **5 · Leituras por horário** (Germano e Ubu); ajustes opcionais no fim. Ações: Buscar no MES (batch + PFUF), Salvar no histórico, Ver painel, Limpar leituras; na faixa do título: Configurações (com senha). **Salvar no histórico** já deixa a aba em branco para o próximo batch. |
 | **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **pellet feed ultra fino** (composto diário do dia anterior: Fe, SiO₂, P, S.E.) e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo. |
+| **Conferência dos técnicos** | Com a planilha dos técnicos aberta no mesmo Excel (pode ser a do SharePoint, aberta no aplicativo), basta digitar o número do batch: a conferência vem do registro dela (Germano, Ubu, nível ou início manual, bi-horários e a extensão do batch). O Buscar no MES também tenta isso quando a conferência está vazia. |
 | **Colar conferência** | Na planilha dos técnicos, aba Preenchimento, tabela **CONFERÊNCIA DOS BATCHES**: selecione a linha do batch (da coluna BATCH a TEMPO EM UBU) e Ctrl+C; aqui, na aba Batch, etapa 2 · CONFERÊNCIA, clique na célula BATCH e Ctrl+V — as duas linhas têm o mesmo desenho. O número do batch vem junto. A tabela não tem fórmulas, então o Excel não pergunta sobre nomes repetidos (copiar a linha 3 · Conferência dos técnicos, que tem fórmulas, faz o Excel perguntar "o nome já existe"). A macro lê o que foi copiado e refaz as fórmulas daqui (início no processo, defasagem, data). Se o Ctrl+V não for aceito, o botão **Colar conferência** faz o mesmo. Entram Germano início/término, Ubu chegada/término, bi-horários, mineroduto e o início no processo: se ele for a chegada + o atraso de um nível dos tanques (Configurações), fica o nível; senão, vira início manual. Se o batch foi estendido, o Buscar no MES completa os bi-horários a mais com a média de Germano, como na planilha dos técnicos. O comparativo não tem mais a etapa das fases do MES. |
 | **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. Vem vazia. |
 | **BD_Leituras** (oculta) | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
@@ -149,23 +150,10 @@ batches).
 
 ## Pellet feed ultra fino (elutriação) — composto diário
 
-- **Composto do dia anterior** à data do report (ex.: report de 22/10 → composto de 21/10). A data fica no Batch
-  (`data do report − 1`, configurável em *Dias antes da data do report*) e pode ser trocada à mão.
-- Um botão só: o **Buscar no MES** traz as leituras do batch e o PFUF (sem a chegada em Ubu ainda, traz só o PFUF).
-- O composto do dia é gravado no MES às **23:30 do próprio dia** (Configurações: *Horário de lançamento no MES*).
-  A consulta usa janelas de **2 h**, como as leituras do batch, de 12 h antes a 12 h depois do dia do composto; vale a
-  janela que contém as 23:30. As demais janelas com resultado aparecem na mensagem, para conferir o horário.
-  O MES repete o último resultado nas janelas seguintes até chegar outro, então só vale **resultado novo**
-  (diferente da janela anterior): valor repetido é o composto anterior e não entra (a mensagem avisa). Análise sem
-  resultado novo às 23:30 usa o resultado novo mais perto desse horário no dia do composto (até 06:00 do dia
-  seguinte; a mensagem avisa o horário); valor
-  fora da faixa válida (Configurações) é descartado e a mensagem mostra qual foi. Faixa da S.E. do PFUF: 100 a 20000.
-  Os valores que o MES não devolver ficam como estão.
-- Tags (servidor UBU, aba Configurações): `M0650024000-0002-DDLQU` (Fe, "Média Per. Formula"; antes era a de FeO),
-  `M0650024000-0004-DDLQU` (SiO₂), `M0650024000-0008-DDLQU` (P), `M0650024000-0017-DDLFU` (S.E., "Média Per.
-  Formula"). Mapa `IP_AnalogMap` (o MES recusou `IP_MESVALOR` para essas tags). O rótulo mostrado no painel também é editável lá.
-  Mesmo tratamento de tag recusada/variante de código do batch.
-- Os 4 valores e a data do composto vão para o histórico (colunas *PFUF ...*).
+Lançado à mão (a consulta automática ao MES saiu): na aba Batch, etapa 3, a data do composto (padrão: dia anterior
+ao report) e os 4 resultados copiados do MES na vertical (Fe, SiO₂, P, S.E.) — clique em Fe e Ctrl+V. Em cada linha
+vale o 1º número (texto com vírgula vira número; colunas a mais são limpas). Ao Salvar no histórico, data e
+resultados ficam gravados com o batch e aparecem no Painel e no resumo do e-mail.
 
 ## Tempo da consulta
 
