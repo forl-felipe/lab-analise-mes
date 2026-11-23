@@ -1389,11 +1389,18 @@ End Function
 Private Function LerSaidaPF(ByVal sai As Range, ByVal ini As Date, ByVal alvo As Date, ByVal ps As String) As Variant
     Dim lst As Variant, r As Long, i As Long, k As Long, v As Variant, x As Double, tj As Date, n As Long, d() As Variant
     Dim noDia() As Variant, tDia() As Double, foraFaixa() As String, txtJan As String, dia As Double
+    Dim anterior() As Variant, novo As Boolean, repetido() As Boolean, dist As Double, melhor() As Double
     lst = Split(ps, ",")
     ReDim d(1 To NPF)
     ReDim noDia(1 To NPF)
     ReDim tDia(1 To NPF)
     ReDim foraFaixa(1 To NPF)
+    ReDim anterior(1 To NPF)
+    ReDim repetido(1 To NPF)
+    ReDim melhor(1 To NPF)
+    For k = 1 To NPF
+        melhor(k) = 999
+    Next k
     dia = Int(CDbl(alvo))
     For k = 1 To NPF
         mNotaPF(k) = ""
@@ -1406,17 +1413,31 @@ Private Function LerSaidaPF(ByVal sai As Range, ByVal ini As Date, ByVal alvo As
             k = CLng(lst(i))
             v = sai.Cells(r, 2 + i - LBound(lst)).Value
             If ComoNumero(v, x) Then
+                ' o MES repete o ultimo resultado nas janelas seguintes, ate chegar outro: so vale o valor novo
+                ' (diferente da janela anterior); o repetido e o composto de antes
+                novo = True
+                If ENumero(anterior(k)) Then novo = (Abs(x - CDbl(anterior(k))) > 0.0000001 * (1 + Abs(x)))
+                anterior(k) = x
                 If ValorValido(k, LAB_PF, x) Then
-                    n = n + 1
-                    If CDbl(tj) <= CDbl(alvo) + 1 / 1440 And CDbl(alvo) < CDbl(tj) + HORAS_SLOT / 24 - 1 / 1440 Then d(k) = x
-                    ' outro horario do mesmo dia do composto: fica de reserva (vale o ultimo do dia)
-                    If CDbl(tj) >= dia - 1 / 1440 And CDbl(tj) < dia + 1 - 1 / 1440 Then
-                        noDia(k) = x
-                        tDia(k) = CDbl(tj)
+                    If novo Then n = n + 1
+                    If CDbl(tj) <= CDbl(alvo) + 1 / 1440 And CDbl(alvo) < CDbl(tj) + HORAS_SLOT / 24 - 1 / 1440 Then
+                        If novo Then d(k) = x Else repetido(k) = True
+                    End If
+                    ' resultado novo em outro horario do dia do composto (ate 6 h do dia seguinte): fica de reserva,
+                    ' vale o mais perto do horario de lancamento
+                    If novo And CDbl(tj) >= dia - 1 / 1440 And CDbl(tj) < dia + 1.25 - 1 / 1440 Then
+                        dist = Abs(CDbl(tj) + HORAS_SLOT / 48 - CDbl(alvo))
+                        If dist < melhor(k) Then
+                            melhor(k) = dist
+                            noDia(k) = x
+                            tDia(k) = CDbl(tj)
+                        End If
                     End If
                 Else
                     If foraFaixa(k) = "" Then foraFaixa(k) = CStr(x) & " em " & txtJan
                 End If
+            Else
+                anterior(k) = Empty
             End If
         Next i
         If n > 0 Then
@@ -1429,6 +1450,8 @@ Private Function LerSaidaPF(ByVal sai As Range, ByVal ini As Date, ByVal alvo As
             d(k) = noDia(k)
             mNotaPF(k) = "achado às " & Format$(CDate(tDia(k)), "hh:mm") & "-" & _
                          Format$(CDate(tDia(k) + HORAS_SLOT / 24), "hh:mm") & " (fora das " & Format$(alvo, "hh:mm") & ")"
+        ElseIf Not ENumero(d(k)) And repetido(k) Then
+            mNotaPF(k) = "sem resultado novo no dia (o MES só repetiu o resultado anterior)"
         ElseIf Not ENumero(d(k)) And foraFaixa(k) <> "" Then
             mNotaPF(k) = "valor " & foraFaixa(k) & " fora da faixa válida (" & TagCfg(k, LAB_PF, C_COL_VMIN) & _
                          " a " & TagCfg(k, LAB_PF, C_COL_VMAX) & ", aba Configurações)"
@@ -1459,6 +1482,15 @@ Public Function TesteLeituraPF() As String
     Next k
     TesteLeituraPF = r & IIf(InStr(mNotaPF(4), "08:00") > 0, "nota SE", "") & "|" & _
                      IIf(InStr(mNotaPF(1), "fora da faixa") > 0, "nota Fe", "")
+    ' S.E. 2100 desde 20/10 20:00 (composto do dia anterior), repetido em todas as janelas: nao e o de 21/10
+    LimparSaida sai
+    For k = 0 To 23
+        sai.Cells(k + 1, 1).Value = CDate(CDbl(ini) + k / 12)
+        If k >= 4 Then sai.Cells(k + 1, 5).Value = 2100
+    Next k
+    d = LerSaidaPF(sai, ini, DateSerial(2026, 10, 21) + TimeSerial(23, 30, 0), "1,2,3,4")
+    TesteLeituraPF = TesteLeituraPF & "|" & IIf(ENumero(d(4)), "SE " & d(4), "SE repetido") & _
+                     IIf(InStr(mNotaPF(4), "repetiu") > 0, " nota", "")
     LimparSaida sai
 End Function
 
@@ -1496,7 +1528,7 @@ End Function
 ' (Fe recusado tambem em IP_AnalogMap -> IP_DiscreteMap; SiO2 continua com IP_AnalogMap)
 Public Function TesteMapas(ByVal texto As String) As String
     Dim n As Long
-    mMapasRuins = "|M0620010000-0002-TNLQU>IP_ANALOGMAP|"
+    mMapasRuins = "|M0650024000-0002-DDLQU>IP_ANALOGMAP|"
     mInvalidas = ""
     n = MapasRecusados(texto, True)
     TesteMapas = n & "|" & MapaAtual(1, LAB_PF) & "|" & MapaAtual(2, LAB_PF)

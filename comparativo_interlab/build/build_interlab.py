@@ -117,14 +117,15 @@ MAPA_PADRAO = 'IP_MESVALOR'
 # Tags do PFUF sao analogicas: o MES recusou IP_MESVALOR ("Map Name IP_MESVALOR is invalid", 22/10/2026)
 MAPA_PFUF = 'IP_AnalogMap'
 # Fe (%) de Ubu e tag de analise do laboratorio (como as do batch): mapa IP_MESVALOR
-MAPA_PFUF_TAG = {'Fe': 'IP_MESVALOR'}
+MAPA_PFUF_TAG = {}            # mapa diferente para alguma tag do PFUF (chave -> mapa)
 # Pellet Feed Ultra Fino (elutriacao) - composto diario de Ubu, tags informadas pelo laboratorio (22/10/2026)
 # (chave, rotulo no painel, tag, descricao no MES, decimais, faixa valida, valor tipico (simulacao))
-# Fe: tag de Fe (%) de Ubu no lugar da de FeO da elutriacao (pedido do laboratorio, 18/11/2026)
-PFUF = [('Fe', 'Fe', 'M0620010000-0002-TNLQU', 'Fe (%) UBU - 620010000-2-TN-LQU', 2, (0, 80), 67.5),
-        ('SiO2', 'SiO₂', 'M0650024000-0004-DDLQU', 'PF Elutriação - SiO2', 2, (0, 20), 1.30),
-        ('P', 'P', 'M0650024000-0008-DDLQU', 'PF Elutriação - P', 3, (0, 1), 0.035),
-        ('SE', 'S.E.', 'M0650024000-0017-DDLFU', 'PF Elutriação Superfície Específica', 0, (100, 20000), 2200)]
+# Fe: tag de Fe da elutriacao (no lugar da de FeO), lista do laboratorio de 23/11/2026
+PFUF = [('Fe', 'Fe', 'M0650024000-0002-DDLQU', 'PF Elutriação - Fe (Média Per. Formula)', 2, (0, 80), 67.5),
+        ('SiO2', 'SiO₂', 'M0650024000-0004-DDLQU', 'PF Elutriacao - SiO2', 2, (0, 20), 1.30),
+        ('P', 'P', 'M0650024000-0008-DDLQU', 'PF Elutriacao - P', 3, (0, 1), 0.035),
+        ('SE', 'S.E.', 'M0650024000-0017-DDLFU', 'PF Elutriação - Superficie Especifica (Média Per. Formula)', 0,
+         (100, 20000), 2200)]
 
 
 def fmt_num(d, milhar=False):
@@ -678,9 +679,14 @@ class Construtor:
             self.secao(ws, 9, 1, 8, '2 · FASES DO EVENTO DO MES   (opcional: o normal é colar a conferência na etapa 3)')
             ws.merge_range(10, 1, 14, 2, 'Só se o batch não estiver na planilha dos técnicos.\n\nNo MES: evento do '
                                          'batch > Fases > Ctrl+C. Aqui: 1ª célula amarela > Ctrl+V.', fhelp)
-        ws.merge_range(15, 1, 16, 2, '', self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True,
-                                               valign='top'))
-        self.nome('bFasesMsg', ws, 15, 1)
+        fmsg = self.f(font_size=8.5, font_color=OK, bold=True, text_wrap=True, valign='top')
+        if VARIANTE == 'ACOMP':
+            ws.merge_range(15, 1, 16, 2, '', fmsg)
+            self.nome('bFasesMsg', ws, 15, 1)
+        else:
+            # comparativo: a mensagem fica embaixo da conferencia
+            ws.merge_range(21, 1, 21, 13, '', fmsg)
+            self.nome('bFasesMsg', ws, 21, 1)
         # area amarela do tamanho da tabela do MES (4 colunas x 3 linhas); em volta, celulas livres sem cor para
         # colar sem erro se vier cabecalho ou uma coluna a mais (LerFases le a area toda)
         fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4)
@@ -691,6 +697,10 @@ class Construtor:
             ws.set_row(r, 20 if r <= 12 else (16 if r >= 15 else 10))
         self.nome('bFases', ws, 10, 3, 16, 8)
         ws.set_row(17, 8)
+        if VARIANTE != 'ACOMP':
+            # comparativo: so a conferencia (as fases do MES ficam ocultas; o nome bFases continua para as macros)
+            for r in range(9, 18):
+                ws.set_row(r, None, None, {'hidden': True})
         # conferencia (preenchida sozinha; da para corrigir): rotulos na linha RL, valores na RV
         RL, RV = 19, 20
         if VARIANTE == 'ACOMP':
@@ -698,7 +708,7 @@ class Construtor:
         else:
             # comparativo: a linha de valores tem o mesmo desenho da dos tecnicos; copiada la (Ctrl+C) e colada aqui
             # (Ctrl+V em GERMANO · INICIO), o VBA le e arruma (ModBatch.ConferenciaAlterada)
-            self.secao(ws, 18, 1, 13, '3 · CONFERÊNCIA   (copie a linha da conferência na planilha dos técnicos, clique '
+            self.secao(ws, 18, 1, 13, '2 · CONFERÊNCIA   (copie a linha da conferência na planilha dos técnicos, clique '
                                       'na 1ª célula abaixo e Ctrl+V)')
             self.botao(ws, 18, 11, 'Colar conferência', 'ColarConferencia', 150, 22, 'a', x=0, y=2)
         conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
@@ -749,7 +759,7 @@ class Construtor:
         ws.data_validation(RV, 13, RV, 13, {'validate': 'list', 'source': '=lstMin'})
         ws.set_row(RL, 14)
         ws.set_row(RV, 22)
-        ws.set_row(RV + 1, 8)
+        ws.set_row(RV + 1, 8 if VARIANTE == 'ACOMP' else 18)
 
         # --- ultimos batches em Ubu (referencia para o proximo; o VBA preenche a partir do historico e do
         #     acompanhamento)
@@ -782,7 +792,7 @@ class Construtor:
 
         # --- pellet feed ultra fino: composto diario do dia anterior (Buscar no MES; da para corrigir)
         r = B_ROW_ULT + N_ULT + 1
-        self.secao(ws, r, 1, 13, '4 · PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO DIA ANTERIOR   (vem junto no Buscar no MES · dá para corrigir)')
+        self.secao(ws, r, 1, 13, ('4' if VARIANTE == 'ACOMP' else '3') + ' · PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO DIA ANTERIOR   (vem junto no Buscar no MES · dá para corrigir)')
         ws.merge_range(r + 1, 1, r + 1, 2, 'DATA DO COMPOSTO', fl)
         self.entrada(ws, r + 2, 1, 2, '=IF(ISNUMBER(bData),bData-cfgPfDias,"")',
                      self.f(align='center', num_format='dd/mm/yyyy', bg_color=AUTO, border=1, border_color=AUTO_BORDA,
@@ -802,7 +812,7 @@ class Construtor:
         # --- comentarios do report (logo abaixo da conferencia, para editar antes de salvar)
         r = B_ROW_ULT + N_ULT + 5
         assert r + 10 == B_ROW_G0 - 2
-        self.secao(ws, r, 1, 13, '5 · COMENTÁRIOS DO REPORT   (os dois primeiros são automáticos — dá para editar)')
+        self.secao(ws, r, 1, 13, ('5' if VARIANTE == 'ACOMP' else '4') + ' · COMENTÁRIOS DO REPORT   (os dois primeiros são automáticos — dá para editar)')
         fauto = self.fi(italic=True, font_size=9.5, font_color=INK2, text_wrap=True, bg_color=AUTO)
         for rr, rot, form, nm, nm_inc in [(r + 1, 'Parâmetros fora', '=gFrase', 'bFrase', 'bIncFrase'),
                                           (r + 2, 'Acompanhamento', '=gAcomp', 'bAcomp', 'bIncAcomp')]:
@@ -827,7 +837,7 @@ class Construtor:
         ws.set_row(r + 9, 8)
 
         # --- leituras
-        self.secao(ws, B_ROW_G0 - 2, 1, 13, '6 · LEITURAS POR HORÁRIO   (vêm do MES; em branco = sem análise no laboratório)')
+        self.secao(ws, B_ROW_G0 - 2, 1, 13, ('6' if VARIANTE == 'ACOMP' else '5') + ' · LEITURAS POR HORÁRIO   (vêm do MES; em branco = sem análise no laboratório)')
         r0 = B_ROW_G0
         fgh = self.f(bold=True, font_size=8.5, font_color=BRANCO, bg_color=NAVY2, align='center', border=1,
                      border_color=BRANCO, text_wrap=True)
@@ -953,19 +963,19 @@ class Construtor:
             self.botao(ws, 1, 9, '%s →' % self.ws_aco.name, 'IrAcomp', 150, 28, 'p', x=20, y=5)
         if VARIANTE != 'ACOMP':
             self.botao(ws, 1, 12, 'Configurações', 'AbrirConfiguracoes', 120, 28, 's', x=6, y=5)
-        self.botao(ws, 5, 10, 'Buscar no MES', 'BuscarMES', 262, 40, 'a', x=8, y=6)
         if VARIANTE == 'ACOMP':
+            self.botao(ws, 5, 10, 'Buscar no MES', 'BuscarMES', 262, 40, 'a', x=8, y=6)
             self.botao(ws, 9, 10, 'Próximo batch (limpar esta aba)', 'ProximoBatchAcomp', 262, 34, 'd', x=8, y=4)
             ws.merge_range(12, 10, 16, 13, 'Buscar no MES: resultados de Germano e de Ubu do batch, que vão para o '
                                            'bloco dele na aba %s (5 batches por planilha).  Próximo batch: limpa '
                                            'esta aba; o que foi lançado na aba %s fica.'
                                            % (self.ws_aco.name, self.ws_aco.name), fac)
         else:
-            self.botao(ws, 9, 10, 'Salvar no histórico', 'SalvarHistorico', 262, 34, 'g', x=8, y=4)
-            self.botao(ws, 12, 10, 'Ver painel →', 'IrPainel', 127, 28, 'n', x=8, y=4)
-            self.botao(ws, 12, 12, 'Limpar leituras', 'LimparLeituras', 127, 28, 'd', x=4, y=4)
-            ws.merge_range(14, 10, 16, 13, 'Buscar no MES: leituras do batch (Germano e Ubu) e PFUF.  Salvar no '
-                                           'histórico: grava o comparativo e deixa a aba pronta para o próximo.', fac)
+            # comparativo: as linhas das fases ficam ocultas, entao as acoes cabem ao lado da identificacao
+            self.botao(ws, 5, 10, 'Buscar no MES', 'BuscarMES', 127, 34, 'a', x=8, y=4)
+            self.botao(ws, 5, 12, 'Salvar no histórico', 'SalvarHistorico', 127, 34, 'g', x=4, y=4)
+            self.botao(ws, 7, 10, 'Ver painel →', 'IrPainel', 127, 26, 'n', x=8, y=0)
+            self.botao(ws, 7, 12, 'Limpar leituras', 'LimparLeituras', 127, 26, 'd', x=4, y=0)
         ws.print_area(0, 0, self.b_fim, 13)
         ws.freeze_panes(2, 0)
         if VARIANTE == 'ACOMP':
