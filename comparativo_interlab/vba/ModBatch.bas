@@ -423,8 +423,8 @@ Public Sub LimparBatch()
     Nm("bIncAcomp").Value = "Sim"
     RestaurarComentariosAuto True
     Nm("bFasesMsg").MergeArea.ClearContents
-    ' pellet feed ultra fino: composto do dia anterior a data do report (buscado no MES)
-    Nm("bPfData").Formula = "=IF(ISNUMBER(bData),bData-cfgPfDias,"""")"
+    ' pellet feed ultra fino: data livre; batch novo comeca com o dia anterior (Configuracoes: dias antes do report)
+    Nm("bPfData").Value = CDate(Int(CDbl(Date)) - IIf(ENumero(Nm("cfgPfDias").Value), Nm("cfgPfDias").Value, 1))
     For i = 1 To NPF
         Nm("bPf" & Split(PF_CHAVES, "|")(i - 1)).ClearContents
     Next i
@@ -527,17 +527,58 @@ Public Sub ConferenciaColada()
     EsvaziarLinhaCola
     ocupado = False
     If vazia Then Exit Sub
-    If msg = "" Then
-        Aviso "Não reconheci o que foi colado. Na planilha dos técnicos, copie a linha do batch (na tabela " & _
-              "CONFERÊNCIA DOS BATCHES, da coluna BATCH a TEMPO EM UBU, ou a linha da conferência) e cole na 1ª " & _
-              "célula da linha amarela COLE AQUI.", vbExclamation, "Conferência"
-    Else
-        Aviso msg, vbInformation, "Conferência"
-    End If
+    AvisoConferencia msg
     Exit Sub
 Falha:
     ocupado = False
     RestaurarExcel
+End Sub
+
+' Ctrl+V deste arquivo (Application.OnKey, ligado enquanto ele esta ativo): nas linhas COLE AQUI (conferencia) e do
+' PFUF o Excel nao cola nada - a planilha le so o texto copiado. Assim formulas e nomes da outra planilha nunca
+' chegam aqui (sem o aviso "o nome ja existe") e os 4 resultados do PFUF ja ficam empilhados. Fora delas: colar normal.
+Public Sub ColarInteligente()
+    Dim t As String, msg As String
+    On Error GoTo Normal
+    If VARIANTE <> "ACOMP" And ActiveSheet Is shBatch Then
+        If Not Intersect(Selection, Nm("bConfCola")) Is Nothing Then
+            t = TextoAreaTransferencia()
+            If Trim$(t) <> "" Then
+                msg = LerConferencia(t)
+                EsvaziarLinhaCola
+                AvisoConferencia msg
+                Exit Sub
+            End If
+        ElseIf Not Intersect(Selection, Nm("bPfCola")) Is Nothing Then
+            t = TextoAreaTransferencia()
+            If Trim$(t) <> "" Then
+                If ColarPFUFTexto(t) Then Exit Sub
+            End If
+        End If
+    End If
+Normal:
+    On Error Resume Next
+    ActiveSheet.Paste
+End Sub
+
+' Liga/desliga o Ctrl+V deste arquivo (ThisWorkbook: ao abrir/ativar liga; ao sair/fechar devolve o normal)
+Public Sub LigarColar(ByVal ligar As Boolean)
+    On Error Resume Next
+    If ligar Then
+        Application.OnKey "^v", "'" & ThisWorkbook.Name & "'!ColarInteligente"
+    Else
+        Application.OnKey "^v"
+    End If
+End Sub
+
+Private Sub AvisoConferencia(ByVal msg As String)
+    If msg = "" Then
+        Aviso "Não reconheci o que foi colado. Na planilha dos técnicos, copie a linha do batch (na tabela " & _
+              "CONFERÊNCIA DOS BATCHES, da coluna BATCH a TEMPO EM UBU, ou a linha da conferência) e cole na " & _
+              "linha amarela COLE AQUI.", vbExclamation, "Conferência"
+    Else
+        Aviso msg, vbInformation, "Conferência"
+    End If
 End Sub
 
 ' Deixa a linha COLE AQUI vazia e com o formato dela (o Ctrl+V traz o formato da outra planilha)
@@ -628,28 +669,75 @@ Private Function NumeroOuVazio(ByVal v As Variant) As Variant
 End Function
 
 ' ---------------------------------------------------------------- pellet feed ultra fino (lancamento manual)
-' Os 4 resultados do dia copiados do MES (Fe, SiO2, P, S.E., um embaixo do outro) e colados em Fe: em cada linha
-' vale o 1o numero (o MES pode mandar mais de uma coluna); texto com virgula vira numero; o resto da area e limpo.
+' Os 4 resultados do dia copiados do MES na ordem ORDEM_PF (Fe, S.E., SiO2, P) e colados em Fe. Pelo Ctrl+V da
+' planilha (ColarInteligente) o texto copiado e repartido nas 4 linhas; colado pelo Excel, se tudo cair numa celula
+' so (o MES manda o texto em linhas), ela e repartida aqui. Em cada linha vale o 1o numero; o resto e limpo.
 Public Sub PFUFColado()
-    Dim area As Range, k As Long, c As Long, v As Variant, x As Double, achou As Boolean, txt As String
+    Dim area As Range, k As Long, c As Long, t As String, v As String
+    Set area = Nm("bPfCola")
+    ' tudo numa celula so, com quebras de linha: reparte
+    For k = 1 To NPF
+        For c = 1 To area.Columns.Count
+            v = CStr(area.Cells(k, c).Value)
+            If InStr(v, vbLf) > 0 Or InStr(v, vbCr) > 0 Then
+                t = v
+                Exit For
+            End If
+        Next c
+        If t <> "" Then Exit For
+    Next k
+    If t <> "" Then
+        ColarPFUFTexto t
+        Exit Sub
+    End If
+    ArrumarPFUF
+End Sub
+
+' Texto copiado do MES (uma linha por resultado, ou separado por tabulacao): os numeros, na ordem, vao para as linhas
+Public Function ColarPFUFTexto(ByVal texto As String) As Boolean
+    Dim partes As Variant, i As Long, k As Long, x As Double, area As Range
+    texto = Replace(Replace(Replace(texto, vbCrLf, vbLf), vbCr, vbLf), vbTab, vbLf)
+    partes = Split(texto, vbLf)
+    Set area = Nm("bPfCola")
+    ModoCarga True
+    Desproteger shBatch
+    area.ClearContents
+    For i = LBound(partes) To UBound(partes)
+        If k < NPF Then
+            If NumeroColado(partes(i), x) Then
+                k = k + 1
+                area.Cells(k, 1).Value = x
+            End If
+        End If
+    Next i
+    Proteger shBatch
+    ModoCarga False
+    ArrumarPFUF
+    ColarPFUFTexto = (k > 0)
+End Function
+
+' Em cada linha, o 1o numero vai para a coluna do resultado; formatos e mensagem
+Private Sub ArrumarPFUF()
+    Dim area As Range, k As Long, c As Long, v As Variant, x As Double, achou As Boolean, txt As String, chave As String
     Set area = Nm("bPfCola")
     ModoCarga True
     Desproteger shBatch
     For k = 1 To NPF
+        chave = Split(ORDEM_PF, "|")(k - 1)
         achou = False
         For c = 1 To area.Columns.Count
             v = area.Cells(k, c).Value
             If Not achou And NumeroColado(v, x) Then
                 area.Cells(k, 1).Value = x
                 achou = True
-                txt = txt & IIf(txt <> "", "  ·  ", "") & RotuloPF(k) & " " & area.Cells(k, 1).Text
             End If
             If c > 1 Then area.Cells(k, c).ClearContents
         Next c
         If Not achou Then area.Cells(k, 1).ClearContents
-        area.Cells(k, 1).NumberFormat = IIf(PfDecimais(k) = 0, "0", "0." & String$(PfDecimais(k), "0"))
+        area.Cells(k, 1).NumberFormat = IIf(DecimaisPF(chave) = 0, "0", "0." & String$(DecimaisPF(chave), "0"))
         area.Cells(k, 1).Interior.Color = RGB(255, 242, 204)
         area.Cells(k, 1).HorizontalAlignment = -4108
+        If achou Then txt = txt & IIf(txt <> "", "  ·  ", "") & RotuloPF(chave) & " " & area.Cells(k, 1).Text
     Next k
     area.Locked = False
     Nm("bPfMsg").Value = "'" & IIf(txt = "", "", "Colado: " & txt)
@@ -675,12 +763,19 @@ Private Function NumeroColado(ByVal v As Variant, ByRef x As Double) As Boolean
     NumeroColado = True
 End Function
 
-Private Function RotuloPF(ByVal k As Long) As String
-    RotuloPF = Split("Fe|SiO2|P|S.E.", "|")(k - 1)
+Private Function RotuloPF(ByVal chave As String) As String
+    Select Case chave
+        Case "SE": RotuloPF = "S.E."
+        Case Else: RotuloPF = chave
+    End Select
 End Function
 
-Private Function PfDecimais(ByVal k As Long) As Long
-    PfDecimais = CLng(Split(PF_DECIMAIS, "|")(k - 1))
+Private Function DecimaisPF(ByVal chave As String) As Long
+    Dim ch As Variant, i As Long
+    ch = Split(PF_CHAVES, "|")
+    For i = LBound(ch) To UBound(ch)
+        If ch(i) = chave Then DecimaisPF = CLng(Split(PF_DECIMAIS, "|")(i))
+    Next i
 End Function
 
 ' ---------------------------------------------------------------- colar a CONFERENCIA da planilha dos tecnicos

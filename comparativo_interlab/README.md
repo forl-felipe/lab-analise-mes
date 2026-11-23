@@ -149,10 +149,17 @@ batches).
 
 ## Pellet feed ultra fino (elutriação) — composto diário
 
-Lançado à mão (a consulta automática ao MES saiu): na aba Batch, etapa 3, a data do composto (padrão: dia anterior
-ao report) e os 4 resultados copiados do MES na vertical (Fe, SiO₂, P, S.E.) — clique em Fe e Ctrl+V. Em cada linha
-vale o 1º número (texto com vírgula vira número; colunas a mais são limpas). Ao Salvar no histórico, data e
-resultados ficam gravados com o batch e aparecem no Painel e no resumo do e-mail.
+Lançado à mão (sem consulta ao MES): na aba Batch, etapa 3, a **data do composto** (livre; batch novo começa com o
+dia anterior) e os 4 resultados copiados do MES **na ordem Fe, S.E., SiO₂, P** — clique em Fe e Ctrl+V: os valores
+ficam empilhados nas 4 linhas (texto com vírgula vira número). Ao Salvar no histórico, data e resultados ficam
+gravados com o batch e aparecem no Painel e no resumo do e-mail.
+
+## Ctrl+V nas linhas amarelas
+
+Enquanto o comparativo está ativo, o Ctrl+V dele é da planilha (`ColarInteligente`): na linha COLE AQUI e no PFUF
+o Excel não cola nada — a planilha lê só o texto copiado. Assim fórmulas e nomes da outra planilha não chegam aqui
+(o Excel não pergunta "o nome já existe") e os resultados do PFUF já ficam empilhados. Em qualquer outro lugar o
+Ctrl+V é o normal. (Colar pelo botão direito do mouse é o colar do Excel.)
 
 ## Tempo da consulta
 

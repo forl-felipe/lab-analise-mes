@@ -117,7 +117,8 @@ MAPA_PADRAO = 'IP_MESVALOR'
 # Tags do PFUF sao analogicas: o MES recusou IP_MESVALOR ("Map Name IP_MESVALOR is invalid", 22/10/2026)
 MAPA_PFUF = 'IP_AnalogMap'
 # Fe (%) de Ubu e tag de analise do laboratorio (como as do batch): mapa IP_MESVALOR
-MAPA_PFUF_TAG = {}            # mapa diferente para alguma tag do PFUF (chave -> mapa)
+MAPA_PFUF_TAG = {}
+ORDEM_PF = ['Fe', 'SE', 'SiO2', 'P']   # ordem dos resultados do PFUF copiados do MES (linhas da aba Batch)            # mapa diferente para alguma tag do PFUF (chave -> mapa)
 # Pellet Feed Ultra Fino (elutriacao) - composto diario de Ubu, tags informadas pelo laboratorio (22/10/2026)
 # (chave, rotulo no painel, tag, descricao no MES, decimais, faixa valida, valor tipico (simulacao))
 # Fe: tag de Fe da elutriacao (no lugar da de FeO), lista do laboratorio de 23/11/2026
@@ -816,13 +817,17 @@ class Construtor:
         self.secao(ws, r, 1, 13, ('4' if VARIANTE == 'ACOMP' else '3') + ' · PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO '
                                  'DIA ANTERIOR   (no MES, copie os 4 resultados na vertical e cole em Fe)')
         ws.merge_range(r + 1, 1, r + 1, 2, 'DATA DO COMPOSTO', fl)
-        self.entrada(ws, r + 2, 1, 2, '=IF(ISNUMBER(bData),bData-cfgPfDias,"")',
-                     self.fi(align='center', num_format='dd/mm/yyyy', font_size=11, bold=True), 'bPfData')
-        ws.merge_range(r + 3, 1, r + 4, 2, 'Digite a data do composto. No MES: selecione Fe, SiO₂, P e S.E. '
-                                           '(um embaixo do outro) > Ctrl+C. Aqui: clique em Fe > Ctrl+V.',
+        # data livre (digitada); o VBA so sugere o dia anterior a um batch novo
+        self.entrada(ws, r + 2, 1, 2, None, self.fi(align='center', num_format='dd/mm/yyyy', font_size=11, bold=True),
+                     'bPfData')
+        ws.merge_range(r + 3, 1, r + 4, 2, 'Digite a data do composto. No MES: copie os 4 resultados '
+                                           '(nessa ordem, Fe, S.E., SiO₂, P) > Ctrl+C. Aqui: clique em Fe > Ctrl+V.',
                        self.f(font_size=8, font_color=MUTED, italic=True, text_wrap=True, valign='top'))
         fsobra = self.f(locked=False, font_size=9.5)
-        for k, pf in enumerate(PFUF):
+        # na ordem em que o MES entrega (Fe, S.E., SiO2, P): colados de uma vez, ja ficam empilhados
+        pf_por_chave = {pf[0]: pf for pf in PFUF}
+        for k, chave in enumerate(ORDEM_PF):
+            pf = pf_por_chave[chave]
             rr = r + 1 + k
             ws.write(rr, 3, pf[1], self.f(bold=True, font_size=9.5, font_color=AZUL_TIT, align='right', indent=1))
             ws.write_blank(rr, 4, None, self.fi(align='center', num_format=fmt_num(pf[4]), font_size=10, bold=True))
@@ -1784,7 +1789,8 @@ class Construtor:
              "Public Const H_COL_NIVEL As Long = %d" % (H_COLS.index('Nível dos tanques') + 1),
              "Public Const H_COL_INIP As Long = %d" % (H_COLS.index('Início no processo') + 1),
              'Public Const PF_CHAVES As String = "%s"' % '|'.join(k[0] for k in PFUF),
-             'Public Const PF_DECIMAIS As String = "%s"' % '|'.join(str(k[4]) for k in PFUF)]
+             'Public Const PF_DECIMAIS As String = "%s"' % '|'.join(str(k[4]) for k in PFUF),
+             'Public Const ORDEM_PF As String = "%s"' % '|'.join(ORDEM_PF)]
         for k, v in C_COL.items():
             L.append("Public Const C_COL_%s As Long = %d" % (k, v + 1))
         L += ["' aba _Graf",

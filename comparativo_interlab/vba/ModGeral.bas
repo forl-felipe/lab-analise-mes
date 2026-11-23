@@ -46,6 +46,7 @@ Public Sub Inicializar()
         shAcomp.Visible = XL_VERYHIDDEN
     End If
     gAlterado = False
+    LigarColar True
     AtualizarUltimos
     AjustarGraficos
     shBatch.Activate

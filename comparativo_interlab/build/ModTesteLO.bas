@@ -199,13 +199,25 @@ Public Sub TesteLO()
     Set pc = Nm("bPfCola")
     Desproteger shBatch
     pc.Cells(1, 1).Value = "'67,85"
-    pc.Cells(2, 1).Value = "'1,32"
-    pc.Cells(3, 2).Value = "'0,035"
-    pc.Cells(4, 1).Value = 2236
+    pc.Cells(2, 1).Value = 2236
+    pc.Cells(3, 2).Value = "'1,32"
+    pc.Cells(4, 1).Value = "'0,035"
     PFUFColado
     Ok Abs(CDbl(V("bPfFe")) - 67.85) < 0.0001 And Abs(CDbl(V("bPfSiO2")) - 1.32) < 0.0001 And _
        Abs(CDbl(V("bPfP")) - 0.035) < 0.00001 And CDbl(V("bPfSE")) = 2236 And Vazio(pc.Cells(3, 2).Value), _
-       "PFUF colado na vertical: Fe, SiO2, P e S.E. (" & V("bPfMsg") & ")"
+       "PFUF colado na vertical: Fe, S.E., SiO2, P (" & V("bPfMsg") & ")"
+    ' texto do MES (uma linha por resultado, na ordem Fe, S.E., SiO2, P): pelo Ctrl+V da planilha
+    Ok ColarPFUFTexto("63,49" & vbCrLf & "6482" & vbCrLf & "3,27" & vbCrLf & "0,062") And _
+       Abs(CDbl(V("bPfFe")) - 63.49) < 0.0001 And CDbl(V("bPfSE")) = 6482 And Abs(CDbl(V("bPfSiO2")) - 3.27) < 0.0001 And _
+       Abs(CDbl(V("bPfP")) - 0.062) < 0.00001, "PFUF: texto do MES empilhado em Fe, S.E., SiO2 e P"
+    ' colado pelo Excel numa celula so (texto com quebras de linha): reparte
+    Desproteger shBatch
+    pc.Cells(1, 1).Value = "63,49" & vbLf & "6482" & vbLf & "3,27" & vbLf & "0,062"
+    PFUFColado
+    Ok Abs(CDbl(V("bPfFe")) - 63.49) < 0.0001 And CDbl(V("bPfSE")) = 6482 And Abs(CDbl(V("bPfP")) - 0.062) < 0.00001, _
+       "PFUF: tudo numa celula so e repartido nas 4 linhas"
+    Desproteger shBatch
+    Nm("bPfFe").Value = 67.85: Nm("bPfSiO2").Value = 1.32: Nm("bPfP").Value = 0.035: Nm("bPfSE").Value = 2236
     Recalcular
     Ok InStr(CStr(V("eResumo")), "PFUF (composto diário") > 0, "PFUF no resumo: " & V("eResumo")
     Ok InStr(CStr(shPainel.Cells(Nm("pSt_SE").Row - 1, 13).Value), "COMPOSTO DIÁRIO — PFUF · ") = 1, _
@@ -220,7 +232,7 @@ Public Sub TesteLO()
     Ok r > 0, "291 salvo no historico (linha " & r & ")"
     Ok Vazio(V("bId")) And Not ENumero(Celula(1, pSE, 0)), "salvar deixa a aba Batch em branco para o proximo"
     Ok Nm("bTol_SE").HasFormula And CDbl(V("bTol_SE")) = 150, "tolerancia volta ao padrao depois de salvar"
-    Ok Not ENumero(V("bPfFe")) And Nm("bPfData").HasFormula, "PFUF em branco no proximo batch"
+    Ok Not ENumero(V("bPfFe")) And Abs(CDbl(V("bPfData")) - (Int(CDbl(Date)) - 1)) < 0.0001, "PFUF em branco no proximo batch; data = ontem (editavel)"
     Ok CDbl(shHist.Cells(r, H_COL1 + 15).Value) = 999, "tolerancia do batch gravada no historico"
     nL = 0
     For i = 2 To 2000

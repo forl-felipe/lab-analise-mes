@@ -42,6 +42,7 @@ Public Const H_COL_NIVEL As Long = 6
 Public Const H_COL_INIP As Long = 56
 Public Const PF_CHAVES As String = "Fe|SiO2|P|SE"
 Public Const PF_DECIMAIS As String = "2|2|3|0"
+Public Const ORDEM_PF As String = "Fe|SE|SiO2|P"
 Public Const C_COL_PARAM As Long = 2
 Public Const C_COL_LAB As Long = 3
 Public Const C_COL_TAG As Long = 4
