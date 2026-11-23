@@ -32,7 +32,7 @@ O arquivo `Qualidade_de_Embarque.atgraphic` foi gerado pelo mesmo processo da te
 
 **B1. Atributo de data e hora.** Os campos "Último resultado" do Físico (objeto 23) e do Químico (objeto 30) vêm com o atributo `VAL` e mostram um número no lugar da hora. Dê duplo clique em cada um e troque `VAL` pelo atributo de data e hora da lista. Se preferir, apague os dois campos e o texto "Último resultado".
 
-**B2. Mapa das tags de qualidade.** Os 15 resultados físicos e químicos usam o mapa `IP_MESVALOR`, o mesmo da tag de compressão do laboratório que já funciona na outra tela. Se algum campo mostrar `***`, abra o campo e confira o mapa na lista.
+**B2. Mapa das tags de qualidade.** Conforme o Tag Browser do PIMS, Fe, SiO2, Al2O3 e PPC estão no mapa `IP_MESVALOR`; os outros 11 resultados (físicos, CaO, MgO, P, Mn e B2) estão no mapa `IP_ANALOGMAP`. O arquivo já vem assim. Campo com `***` indica tag sem valor no PIMS (no Tag Browser aparece `???`): não é erro da tela.
 
 **B3. Carregamento.** Ritmo, totais e porões usam o mapa `IP_ANALOGMAP`, como na tela de embarque atual. Nada a fazer.
 

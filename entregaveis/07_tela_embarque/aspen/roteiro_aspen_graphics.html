@@ -55,7 +55,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <p><strong>Se der erro ao abrir:</strong> tente <code>teste_minimo.atgraphic</code> e me envie a captura da mensagem, dizendo se o arquivo de teste abriu.</p>
 <h2>Parte B. Ajustes nos campos (no editor)</h2>
 <p><strong>B1. Atributo de data e hora.</strong> Os campos "Último resultado" do Físico (objeto 23) e do Químico (objeto 30) vêm com o atributo <code>VAL</code> e mostram um número no lugar da hora. Dê duplo clique em cada um e troque <code>VAL</code> pelo atributo de data e hora da lista. Se preferir, apague os dois campos e o texto "Último resultado".</p>
-<p><strong>B2. Mapa das tags de qualidade.</strong> Os 15 resultados físicos e químicos usam o mapa <code>IP_MESVALOR</code>, o mesmo da tag de compressão do laboratório que já funciona na outra tela. Se algum campo mostrar <code>***</code>, abra o campo e confira o mapa na lista.</p>
+<p><strong>B2. Mapa das tags de qualidade.</strong> Conforme o Tag Browser do PIMS, Fe, SiO2, Al2O3 e PPC estão no mapa <code>IP_MESVALOR</code>; os outros 11 resultados (físicos, CaO, MgO, P, Mn e B2) estão no mapa <code>IP_ANALOGMAP</code>. O arquivo já vem assim. Campo com <code>***</code> indica tag sem valor no PIMS (no Tag Browser aparece <code>???</code>): não é erro da tela.</p>
 <p><strong>B3. Carregamento.</strong> Ritmo, totais e porões usam o mapa <code>IP_ANALOGMAP</code>, como na tela de embarque atual. Nada a fazer.</p>
 <h2>Parte C. Tendências</h2>
 <table>
@@ -1474,7 +1474,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1533,7 +1533,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1592,7 +1592,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1651,7 +1651,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1710,7 +1710,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1769,7 +1769,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -1828,7 +1828,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -2123,7 +2123,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -2182,7 +2182,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -2241,7 +2241,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -2300,7 +2300,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -2359,7 +2359,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_MESVALOR</code></td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>

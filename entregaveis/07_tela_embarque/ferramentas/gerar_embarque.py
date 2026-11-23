@@ -24,6 +24,16 @@ ARQUIVO = "Qualidade_de_Embarque.atgraphic"
 A, MES = "IP_ANALOGMAP", "IP_MESVALOR"
 CARD, TILE, CAIXA = "0, 51, 90", "1, 62, 107", "1, 41, 74"
 HORA = mp.HORA
+# Mapa de cada tag de resultado conforme o Tag Browser do PIMS (UBU, 23/11/2026): só Fe, SiO2, Al2O3 e PPC
+# estão em IP_MesValor; as demais estão em IP_AnalogMap (e ainda sem valor no PIMS).
+MAPA_RESULTADO = {"M0620010000-0002-TNLQU": MES, "M0620010000-0004-TNLQU": MES, "M0620010000-0005-TNLQU": MES,
+                  "M0620010000-0013-TNLQU": MES}
+
+
+def mapa(tag):
+    return MAPA_RESULTADO.get(tag, A)
+
+
 FMT = {0: "Sem casas decimais (0)", 1: "1 casa decimal (0,0)", 2: "2 casas decimais (0,00)", 3: "3 casas decimais (0,000)"}
 
 # Elementos de qualidade: (objeto, nome, tag, casas decimais)
@@ -46,8 +56,8 @@ SPEC = {
                 obs="A lâmpada ao lado do título acende em verde quando o total é maior que zero (já vem pronta)."),
     15: mp.campo("Berço Leste: total carregado (t)", "309-WIT-004.TOT_NAV_LE", A, "VAL", 44, True, "Direita", TILE, FMT[0],
                  obs="A lâmpada ao lado do título acende em verde quando o total é maior que zero (já vem pronta)."),
-    23: mp.campo("Físico: último resultado", "M0620010000-0031-TNLFU", MES, HORA, 13, False, "Esquerda", CARD, mp.DH),
-    30: mp.campo("Químico: último resultado", "M0620010000-0002-TNLQU", MES, HORA, 13, False, "Esquerda", CARD, mp.DH),
+    23: mp.campo("Físico: último resultado", "M0620010000-0031-TNLFU", mapa("M0620010000-0031-TNLFU"), HORA, 13, False, "Esquerda", CARD, mp.DH),
+    30: mp.campo("Químico: último resultado", "M0620010000-0002-TNLQU", mapa("M0620010000-0002-TNLQU"), HORA, 13, False, "Esquerda", CARD, mp.DH),
     40: mp.tendencia("Tendência: ritmo de carregamento", "Já vem pronta no arquivo, escala 0 a 2500 t/h. Ver Parte C.", "008-WI-010"),
     41: mp.tendencia("Tendência: compressão", "Já vem pronta no arquivo, escala 150 a 450 kgf/pelota. Ver Parte C.",
                      "M0620010000-0031-TNLFU e M0620010000-0035-TNLFU"),
@@ -59,15 +69,17 @@ for k in range(11):
 for k in range(7):
     SPEC[16 + k] = mp.campo(f"Berço Leste: porão P{k + 1} (t)", f"309-WIT-004.TOT_POR_LE{k + 1:02d}", A, "VAL", 15, True, "Direita", CAIXA, FMT[0])
 for n, nome, tag, dec in FISICO:
-    SPEC[n] = mp.campo(f"Físico: {nome}", tag, MES, "VAL", 37, True, "Direita", TILE, FMT[dec])
+    SPEC[n] = mp.campo(f"Físico: {nome}", tag, mapa(tag), "VAL", 37, True, "Direita", TILE, FMT[dec])
 for n, nome, tag, dec in QUIMICO:
-    SPEC[n] = mp.campo(f"Químico: {nome}", tag, MES, "VAL", 29, True, "Direita", TILE, FMT[dec])
+    SPEC[n] = mp.campo(f"Químico: {nome}", tag, mapa(tag), "VAL", 29, True, "Direita", TILE, FMT[dec])
 
 AZUL_CLARO, BRANCO, PLOT = (89, 198, 242), (255, 255, 255), (1, 41, 74)
 PENAS = {
     40: [("008-WI-010", A, 0, 2500, AZUL_CLARO)],
-    41: [("M0620010000-0035-TNLFU", MES, 150, 450, BRANCO), ("M0620010000-0031-TNLFU", MES, 150, 450, AZUL_CLARO)],
-    42: [("M0620010000-0004-TNLQU", MES, 0, 6, BRANCO), ("M0620010000-0002-TNLQU", MES, 62, 68, AZUL_CLARO)],
+    41: [("M0620010000-0035-TNLFU", mapa("M0620010000-0035-TNLFU"), 150, 450, BRANCO),
+         ("M0620010000-0031-TNLFU", mapa("M0620010000-0031-TNLFU"), 150, 450, AZUL_CLARO)],
+    42: [("M0620010000-0004-TNLQU", mapa("M0620010000-0004-TNLQU"), 0, 6, BRANCO),
+         ("M0620010000-0002-TNLQU", mapa("M0620010000-0002-TNLQU"), 62, 68, AZUL_CLARO)],
 }
 
 
