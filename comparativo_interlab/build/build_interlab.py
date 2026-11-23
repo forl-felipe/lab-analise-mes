@@ -594,7 +594,7 @@ class Construtor:
         fauto_v = self.f(align='center', bg_color=AUTO, border=1, border_color=AUTO_BORDA, locked=False,
                          font_size=9.5)
         fcalc_h = self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, num_format='0.0" h"',
-                         font_color=INK2, font_size=9.5, locked=(VARIANTE == 'ACOMP'))
+                         font_color=INK2, font_size=9.5)
         fl = self.f(bold=True, font_size=7.5, font_color=MUTED, valign='bottom')
         # legenda dos campos (para saber exatamente onde preencher); a planilha de acompanhamento fica sem ela
         if VARIANTE == 'ACOMP':
@@ -691,9 +691,9 @@ class Construtor:
             ws.merge_range(15, 1, 16, 2, '', fmsg)
             self.nome('bFasesMsg', ws, 15, 1)
         else:
-            # comparativo: a mensagem fica embaixo da conferencia
-            ws.merge_range(21, 1, 21, 13, '', fmsg)
-            self.nome('bFasesMsg', ws, 21, 1)
+            # comparativo: mensagem numa celula oculta (o aviso aparece na tela)
+            ws.write_blank(17, 1, None, fmsg)
+            self.nome('bFasesMsg', ws, 17, 1)
         # area amarela do tamanho da tabela do MES (4 colunas x 3 linhas); em volta, celulas livres sem cor para
         # colar sem erro se vier cabecalho ou uma coluna a mais (LerFases le a area toda)
         fpaste = self.fi(font_size=8, num_format='dd/mm hh:mm', border=4)
@@ -713,10 +713,10 @@ class Construtor:
         if VARIANTE == 'ACOMP':
             self.secao(ws, 18, 1, 13, '3 · CONFERÊNCIA   (preenchida pelas fases e pelo MES — corrija se precisar)')
         else:
-            # comparativo: a linha de valores tem o mesmo desenho da dos tecnicos; copiada la (Ctrl+C) e colada aqui
-            # (Ctrl+V em GERMANO · INICIO), o VBA le e arruma (ModBatch.ConferenciaAlterada)
-            self.secao(ws, 18, 0, 13, '2 · CONFERÊNCIA   (com a planilha dos técnicos aberta no Excel, vem sozinha ao digitar '
-                                      'o batch · ou copie a linha do batch lá e Ctrl+V em BATCH)')
+            # comparativo: a linha do batch e copiada na planilha dos tecnicos e colada na linha amarela embaixo
+            # (sempre vazia); o VBA le, preenche a conferencia e esvazia a linha (ModBatch.ConferenciaColada)
+            self.secao(ws, 18, 0, 13, '2 · CONFERÊNCIA   (copie a linha do batch na planilha dos técnicos e cole na linha '
+                                      'amarela COLE AQUI, abaixo)')
             self.botao(ws, 18, 11, 'Colar conferência', 'ColarConferencia', 150, 22, 'a', x=0, y=2)
         conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
                 (4, 5, 'Ubu · chegada (UBU3)', 'bIniU', fauto_dt), (6, 7, 'Ubu · término', 'bFimU', fauto_dt)]
@@ -730,25 +730,36 @@ class Construtor:
                                                                    valign='bottom'))
         # comparativo: inicio no processo e defasagem desbloqueados para a linha inteira aceitar o Ctrl+V
         fip = self.f(align='center', bold=True, font_color=OK, bg_color=OK_BG, border=1, border_color='#B9DEC9',
-                     num_format='dd/mm/yy hh:mm', font_size=9.5, locked=(VARIANTE == 'ACOMP'))
+                     num_format='dd/mm/yy hh:mm', font_size=9.5)
         ws.merge_range(RV, 8, RV, 9, '', fip)
-        ws.write_formula(RV, 8, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))', fip)
+        if VARIANTE == 'ACOMP':
+            # planilha dos tecnicos: a linha da conferencia so com referencias a celulas desta aba (sem nomes), para
+            # ser copiada para o comparativo sem o Excel perguntar "o nome ja existe"; o atraso do nivel e o Nº de
+            # horarios automatico ficam em celulas ocultas (colunas R e S)
+            ws.write_formula(RV, 17, '=N(gAtrasoNivel)')
+            ws.write_formula(RV, 18, '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))')
+            self.nome('bNHorAuto', ws, RV, 18)
+            ws.write_formula(RV, 8, '=IF(ISNUMBER(E7),E7,IF(ISNUMBER(E21),E21+R21/24,""))', fip)
+        else:
+            ws.write_formula(RV, 8, '=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""))',
+                             fip)
         self.nome('bIniP', ws, RV, 8)
         if VARIANTE != 'ACOMP':
             # coluna A: mostra o batch e recebe o numero dele quando a linha vem da tabela dos tecnicos
             ws.write(RL, 0, 'BATCH', fl)
-            ws.write_formula(RV, 0, '=IF(bId="","",bId)', self.f(locked=False, bold=True, align='center', font_size=9.5,
-                                                                   bg_color=AUTO, border=1, border_color=AUTO_BORDA))
+            ws.write_formula(RV, 0, '=IF(bId="","",bId)', self.f(bold=True, align='center', font_size=9.5,
+                                                                   bg_color=SEC, border=1, border_color=LINE2))
         ws.write(RL, 10, 'BI-HORÁRIOS', fl)
         self.entrada(ws, RV, 10, 10, len(b['rows']) if b else
-                     '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))', fauto_v, 'bNHor')
+                     ('=$S$21' if VARIANTE == 'ACOMP' else
+                      '=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))'), fauto_v, 'bNHor')
         ws.data_validation(RV, 10, RV, 10, {'validate': 'integer', 'criteria': 'between', 'minimum': 1,
                                             'maximum': NMAX, 'error_message': 'Entre 1 e %d horários.' % NMAX})
         if VARIANTE == 'ACOMP':
             # planilha dos tecnicos: no lugar da defasagem, a extensao do batch (vai junto quando a linha da
             # conferencia e copiada para o comparativo); a defasagem fica numa celula oculta
             ws.write(RL, 11, 'ESTENDIDO', fl)
-            ws.write_formula(RV, 11, '=IF(N(bExtH)>0,"+"&N(bExtH)&" h","—")',
+            ws.write_formula(RV, 11, '=IF(N(G7)>0,"+"&N(G7)&" h","—")',
                              self.f(align='center', bg_color=SEC, border=1, border_color=LINE2, font_color=INK2,
                                     font_size=9.5))
             cdef = 16
@@ -771,7 +782,24 @@ class Construtor:
         ws.data_validation(RV, 13, RV, 13, {'validate': 'list', 'source': '=lstMin'})
         ws.set_row(RL, 14)
         ws.set_row(RV, 22)
-        ws.set_row(RV + 1, 8 if VARIANTE == 'ACOMP' else 18)
+        if VARIANTE == 'ACOMP':
+            ws.set_row(RV + 1, 8)
+        else:
+            # linha COLE AQUI: vazia, desbloqueada, com as mesmas mesclas da linha dos tecnicos (coluna A = batch,
+            # quando a linha vem da tabela CONFERENCIA DOS BATCHES; da linha 3 deles, comeca em GERMANO · INICIO)
+            fcola = self.fi(font_size=8, font_color=MUTED, align='center', border=4)
+            for c1, c2 in [(0, 0), (1, 2), (3, 3), (4, 5), (6, 7), (8, 9), (10, 10), (11, 11), (12, 12), (13, 13)]:
+                if c2 > c1:
+                    ws.merge_range(RV + 1, c1, RV + 1, c2, '', fcola)
+                else:
+                    ws.write_blank(RV + 1, c1, None, fcola)
+            ws.set_row(RV + 1, 24)
+            self.nome('bConfCola', ws, RV + 1, 0, RV + 1, 13)
+            ws.data_validation(RV + 1, 0, RV + 1, 13, {'validate': 'any', 'input_title': 'COLE AQUI (Ctrl+V)',
+                                                       'input_message': 'Linha do batch copiada da planilha dos técnicos. '
+                                                       'Da tabela CONFERÊNCIA DOS BATCHES: cole na 1ª célula (BATCH). '
+                                                       'Da linha 3 · Conferência: cole em GERMANO · INÍCIO. Depois do '
+                                                       'Ctrl+V a linha esvazia sozinha.'})
 
         # --- ultimos batches em Ubu (referencia para o proximo; o VBA preenche a partir do historico e do
         #     acompanhamento)
@@ -1881,14 +1909,13 @@ def montar_vba(layout_code):
                     '    If gCarregando Then Exit Sub\n'
                     '    If Not Intersect(Target, Nm("bFases")) Is Nothing Then LerFases\n'
                     '    If VARIANTE <> "ACOMP" Then\n'
-                    '        If Not Intersect(Target, LinhaConf()) Is Nothing Then ConferenciaAlterada Target\n'
+                    '        If Not Intersect(Target, Nm("bConfCola")) Is Nothing Then ConferenciaColada\n'
                     '    End If\n'
                     '    If Not Intersect(Target, Nm("bPfCola")) Is Nothing Then PFUFColado\n'
                     '    If Not Intersect(Target, Nm("bNivel")) Is Nothing Then NivelOuManual True\n'
                     '    If Not Intersect(Target, Nm("bIniPMan").MergeArea) Is Nothing Then NivelOuManual False\n'
                     '    If Not Intersect(Target, Nm("bId")) Is Nothing Then\n'
                     '        PreencherDoAcomp\n'
-                    '        If VARIANTE <> "ACOMP" Then TrazerConferencia Nm("bId").Value, True\n'
                     '        AtualizarUltimos\n    End If\nEnd Sub\n'),
     }
     for cn in ['shBatch', 'shAcomp', 'shPainel', 'shHist', 'shLeituras', 'shConfig', 'shDadosMES',

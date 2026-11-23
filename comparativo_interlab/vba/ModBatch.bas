@@ -429,7 +429,11 @@ Public Sub LimparBatch()
         Nm("bPf" & Split(PF_CHAVES, "|")(i - 1)).ClearContents
     Next i
     Nm("bPfMsg").MergeArea.ClearContents
-    Nm("bNHor").Formula = "=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))"
+    If VARIANTE = "ACOMP" Then
+        Nm("bNHor").Formula = "=" & Nm("bNHorAuto").Address(True, True)       ' sem nomes (copiavel)
+    Else
+        Nm("bNHor").Formula = "=IF(ISNUMBER(gNGer),gNGer,IF(ISNUMBER(gNHorFim),gNHorFim,padNHor))"
+    End If
     For p = 1 To NP
         Nm("bTol_" & PChave(p)).Formula = "=padTol_" & PChave(p)
     Next p
@@ -494,98 +498,63 @@ End Sub
 
 
 
-' ---------------------------------------------------------------- conferencia colada (Ctrl+V) na etapa 3
-' A linha de valores da CONFERENCIA tem o mesmo desenho aqui e na planilha dos tecnicos. Copiada la e colada aqui,
-' chegam valores e formulas da outra planilha; vale o texto copiado (o que o tecnico via na tela): ele preenche o
-' batch e as formulas daqui (inicio no processo, defasagem, data) sao refeitas.
+' ---------------------------------------------------------------- conferencia colada (Ctrl+V) na linha COLE AQUI
+' A linha do batch e copiada na planilha dos tecnicos (tabela CONFERENCIA DOS BATCHES, com o numero do batch, ou a
+' linha 3 da conferencia) e colada na linha amarela COLE AQUI, que tem as mesmas mesclas e fica sempre vazia: o VBA
+' le o que foi colado, preenche a conferencia do batch (linha de cima) e esvazia a linha de novo.
 Public Function LinhaConf() As Range
-    Dim r As Long
-    r = Nm("bIniG").Row
-    ' coluna A: numero do batch, quando a linha vem da tabela de conferencias dos tecnicos
-    Set LinhaConf = shBatch.Range(shBatch.Cells(r, 1), shBatch.Cells(r, 14))
+    Set LinhaConf = Nm("bConfCola")
 End Function
 
-Public Sub ConferenciaAlterada(ByVal alvo As Range)
+Public Sub ConferenciaColada()
     Static ocupado As Boolean
-    Dim v As Variant
+    Dim msg As String, t As String, c As Long, lin As Range, vazia As Boolean, comFormula As Boolean
     If ocupado Then Exit Sub                     ' nunca roda por cima de si mesma
     ocupado = True
     On Error GoTo Falha
-    If alvo.Rows.Count = 1 And alvo.Columns.Count >= 5 Then
-        ConferenciaColada
-    ElseIf Not Intersect(alvo, Nm("bIniP").MergeArea) Is Nothing Then
-        ' digitou o inicio no processo: vira inicio manual (e a formula volta)
-        v = Nm("bIniP").Value
-        RestaurarLinhaConf False
-        If EData(v) Then
-            ModoCarga True
-            Nm("bIniPMan").Value = CDate(v)
-            Nm("bNivel").MergeArea.ClearContents
-            ModoCarga False
-            Recalcular
-        End If
-    ElseIf Not Intersect(alvo, Nm("bDef")) Is Nothing Then
-        RestaurarLinhaConf False
+    Set lin = LinhaConf()
+    vazia = True
+    For c = 1 To lin.Columns.Count
+        t = t & IIf(c > 1, vbTab, "") & lin.Cells(1, c).Text
+        If Trim$(lin.Cells(1, c).Text) <> "" Then vazia = False
+        If lin.Cells(1, c).HasFormula Then comFormula = True
+    Next c
+    If Not vazia Then
+        ' a linha 3 dos tecnicos vem com formulas (recalculadas aqui, com os dados daqui): vale o texto copiado
+        If comFormula Then msg = LerConferencia(TextoAreaTransferencia())
+        If msg = "" Then msg = LerConferencia(t)
     End If
+    EsvaziarLinhaCola
     ocupado = False
+    If vazia Then Exit Sub
+    If msg = "" Then
+        Aviso "Não reconheci o que foi colado. Na planilha dos técnicos, copie a linha do batch (na tabela " & _
+              "CONFERÊNCIA DOS BATCHES, da coluna BATCH a TEMPO EM UBU, ou a linha da conferência) e cole na 1ª " & _
+              "célula da linha amarela COLE AQUI.", vbExclamation, "Conferência"
+    Else
+        Aviso msg, vbInformation, "Conferência"
+    End If
     Exit Sub
 Falha:
     ocupado = False
     RestaurarExcel
 End Sub
 
-Public Sub ConferenciaColada()
-    Dim msg As String, t As String, c As Long, lin As Range, vazia As Boolean
-    ' o que foi colado nas celulas (a tabela de conferencias dos tecnicos nao tem formulas: e o que vale)
-    Set lin = LinhaConf()
-    vazia = True
-    For c = 1 To lin.Columns.Count
-        t = t & IIf(c > 1, vbTab, "") & lin.Cells(1, c).Text
-        If c > 1 And Trim$(lin.Cells(1, c).Text) <> "" Then vazia = False
-    Next c
-    If vazia Then
-        ' linha apagada (Delete): so refaz as formulas
-        RestaurarLinhaConf True
-        Exit Sub
-    End If
-    If lin.Cells(1, 9).HasFormula Or lin.Cells(1, 12).HasFormula Then
-        ' veio a linha 3 dos tecnicos (com formulas, recalculadas aqui): vale o texto copiado
-        msg = LerConferencia(TextoAreaTransferencia())
-    End If
-    If msg = "" Then msg = LerConferencia(t)
-    RestaurarLinhaConf True
-    If msg = "" Then
-        Aviso "Não reconheci a conferência colada. Na planilha dos técnicos, copie a linha de valores da " & _
-              "CONFERÊNCIA (de Germano · início a Mineroduto) e cole na 1ª célula da linha da conferência.", _
-              vbExclamation, "Conferência"
-    Else
-        Aviso msg, vbInformation, "Conferência"
-    End If
-End Sub
-
-' Formulas e formatos da linha da conferencia depois de um Ctrl+V vindo de outra planilha
-Private Sub RestaurarLinhaConf(ByVal comData As Boolean)
+' Deixa a linha COLE AQUI vazia e com o formato dela (o Ctrl+V traz o formato da outra planilha)
+Private Sub EsvaziarLinhaCola()
+    Dim lin As Range
+    On Error Resume Next
     ModoCarga True
     Desproteger shBatch
-    On Error Resume Next
-    With Nm("bIniP")
-        .Formula = "=IF(ISNUMBER(bIniPMan),bIniPMan,IF(ISNUMBER(bIniU),bIniU+N(gAtrasoNivel)/24,""""))"
-        .MergeArea.NumberFormat = "dd/mm/yy hh:mm"
-    End With
-    With Nm("bDef")
-        .Formula = "=IF(AND(ISNUMBER(gJanU),ISNUMBER(gJanG)),ROUND((gJanU-gJanG)*24,2),"""")"
-        .NumberFormat = "0.0"" h"""
-    End With
-    If comData Then
-        If Not EData(Nm("bData").Value) Or Nm("bData").HasFormula Then Nm("bData").Formula = "=TODAY()"
-        Nm("bData").NumberFormat = "dd/mm/yy"
-    End If
-    LinhaConf().Cells(1, 1).Formula = "=IF(bId="""","""",bId)"
-    LinhaConf().Locked = False
-    On Error GoTo 0
+    Set lin = LinhaConf()
+    lin.ClearContents
+    lin.NumberFormat = "General"
+    lin.Interior.Color = RGB(255, 242, 204)
+    lin.Font.Color = RGB(91, 107, 119)
+    lin.Font.Bold = False
+    lin.Locked = False
     Proteger shBatch
     ModoCarga False
-    Recalcular
 End Sub
 
 ' ---------------------------------------------------------------- conferencia direto da planilha dos tecnicos

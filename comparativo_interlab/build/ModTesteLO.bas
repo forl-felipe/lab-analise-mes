@@ -106,10 +106,12 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         lc.Cells(1, 12).Value = "'+4 h"
         lc.Cells(1, 13).Value = "'17/11/26"
         lc.Cells(1, 14).Value = "'03"
-        ConferenciaAlterada lc
+        ConferenciaColada
         Ok EData(V("bIniG")) And EData(V("bFimU")) And CLng(V("bNHor")) = 13 And CDbl(V("bExtH")) = 4, _
            "Ctrl+V da conferencia: Germano, Ubu, 13 bi-horarios, +4 h"
-        Ok CStr(LinhaConf().Cells(1, 1).Value) = "266", "coluna BATCH da conferencia volta a mostrar o batch (" & LinhaConf().Cells(1, 1).Text & ")"
+        Ok Vazio(lc.Cells(1, 2).Value) And Vazio(lc.Cells(1, 9).Value) And Not lc.Cells(1, 2).Locked, _
+           "linha COLE AQUI vazia de novo depois de colar"
+        Ok CStr(V("bId")) = "266", "batch 266 (o que ja estava, colando a linha sem o numero)"
         Ok Nm("bIniP").HasFormula And Nm("bDef").HasFormula And Abs(CDbl(V("bIniP")) - CDbl(DateSerial(2026, 11, 16) + _
            TimeSerial(17, 30, 0))) < 0.0001, "Ctrl+V da conferencia: formulas refeitas, inicio manual 16/11 17:30"
     End If

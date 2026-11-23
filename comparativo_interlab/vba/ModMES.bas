@@ -71,15 +71,10 @@ Public Sub BuscarMES()
         Aviso "Informe o número do batch (etapa 1).", vbExclamation, "MES"
         Exit Sub
     End If
-    ' sem a conferencia: tenta a planilha dos tecnicos aberta
-    If Not EData(Nm("gJanU").Value) Then
-        TrazerConferencia Nm("bId").Value
-        Recalcular
-    End If
     If Not EData(Nm("gJanU").Value) Then
         Aviso "Falta a conferência do batch " & CfgTxt("bId") & " (chegada em Ubu e Germano)." & vbCrLf & vbCrLf & _
-              "Abra a planilha dos técnicos no Excel e digite de novo o número do batch, ou cole a linha da " & _
-              "conferência (etapa 2).", vbExclamation, "MES"
+              "Na planilha dos técnicos, copie a linha do batch e cole na linha amarela COLE AQUI (etapa 2).", _
+              vbExclamation, "MES"
         Exit Sub
     End If
     n = 0
