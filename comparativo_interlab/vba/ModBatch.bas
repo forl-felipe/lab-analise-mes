@@ -506,8 +506,12 @@ Public Function LinhaConf() As Range
 End Function
 
 Public Sub ConferenciaAlterada(ByVal alvo As Range)
+    Static ocupado As Boolean
     Dim v As Variant
-    If alvo.Columns.Count >= 5 Then
+    If ocupado Then Exit Sub                     ' nunca roda por cima de si mesma
+    ocupado = True
+    On Error GoTo Falha
+    If alvo.Rows.Count = 1 And alvo.Columns.Count >= 5 Then
         ConferenciaColada
     ElseIf Not Intersect(alvo, Nm("bIniP").MergeArea) Is Nothing Then
         ' digitou o inicio no processo: vira inicio manual (e a formula volta)
@@ -523,19 +527,32 @@ Public Sub ConferenciaAlterada(ByVal alvo As Range)
     ElseIf Not Intersect(alvo, Nm("bDef")) Is Nothing Then
         RestaurarLinhaConf False
     End If
+    ocupado = False
+    Exit Sub
+Falha:
+    ocupado = False
+    RestaurarExcel
 End Sub
 
 Public Sub ConferenciaColada()
-    Dim msg As String, t As String, c As Long, lin As Range
-    msg = LerConferencia(TextoAreaTransferencia())
-    If msg = "" Then
-        ' sem a area de transferencia: o que ficou nas celulas
-        Set lin = LinhaConf()
-        For c = 1 To lin.Columns.Count
-            t = t & IIf(c > 1, vbTab, "") & lin.Cells(1, c).Text
-        Next c
-        msg = LerConferencia(t)
+    Dim msg As String, t As String, c As Long, lin As Range, vazia As Boolean
+    ' o que foi colado nas celulas (a tabela de conferencias dos tecnicos nao tem formulas: e o que vale)
+    Set lin = LinhaConf()
+    vazia = True
+    For c = 1 To lin.Columns.Count
+        t = t & IIf(c > 1, vbTab, "") & lin.Cells(1, c).Text
+        If c > 1 And Trim$(lin.Cells(1, c).Text) <> "" Then vazia = False
+    Next c
+    If vazia Then
+        ' linha apagada (Delete): so refaz as formulas
+        RestaurarLinhaConf True
+        Exit Sub
     End If
+    If lin.Cells(1, 9).HasFormula Or lin.Cells(1, 12).HasFormula Then
+        ' veio a linha 3 dos tecnicos (com formulas, recalculadas aqui): vale o texto copiado
+        msg = LerConferencia(TextoAreaTransferencia())
+    End If
+    If msg = "" Then msg = LerConferencia(t)
     RestaurarLinhaConf True
     If msg = "" Then
         Aviso "Não reconheci a conferência colada. Na planilha dos técnicos, copie a linha de valores da " & _
@@ -594,19 +611,16 @@ Public Sub ColarConferencia()
 End Sub
 
 ' Texto da area de transferencia (Ctrl+C no Excel, no aplicativo ou no navegador)
+' (so MSForms.DataObject: o outro caminho, pelo Internet Explorer, pode abrir um aviso escondido e travar o Excel)
 Private Function TextoAreaTransferencia() As String
-    Dim d As Object, v As Variant
+    Dim d As Object
     On Error Resume Next
     Set d = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")      ' MSForms.DataObject
     If Not d Is Nothing Then
         d.GetFromClipboard
         TextoAreaTransferencia = d.GetText(1)
     End If
-    If Len(TextoAreaTransferencia) = 0 Or InStr(TextoAreaTransferencia, "??") > 0 Then
-        Err.Clear
-        v = CreateObject("htmlfile").parentWindow.clipboardData.GetData("text")
-        If Not IsNull(v) And Not IsEmpty(v) Then TextoAreaTransferencia = CStr(v)
-    End If
+    If InStr(TextoAreaTransferencia, "??") > 0 Then TextoAreaTransferencia = ""
 End Function
 
 ' Le a linha copiada (colunas separadas por tabulacao) e preenche o batch. Devolve a mensagem; "" = nao reconheceu.

@@ -27,6 +27,7 @@ Public gUltimaMsg As String
 ' ---------------------------------------------------------------- abertura
 Public Sub Inicializar()
     On Error Resume Next
+    RestaurarExcel
     shDadosMES.Visible = XL_HIDDEN
     shGraf.Visible = XL_HIDDEN
     shLeituras.Visible = XL_HIDDEN
@@ -272,6 +273,18 @@ Public Function Aviso(ByVal msg As String, Optional ByVal estilo As Long = 64, _
         Aviso = MsgBox(msg, estilo, titulo)
     End If
 End Function
+
+' Se uma macro parar no meio (erro, Esc), o Excel pode ficar com eventos desligados, tela congelada, cursor de espera
+' e a barra de status presa: volta tudo ao normal (ao abrir o arquivo e depois de qualquer erro)
+Public Sub RestaurarExcel()
+    On Error Resume Next
+    gCarregando = False
+    Application.EnableEvents = True
+    Application.ScreenUpdating = True
+    Application.Cursor = XL_DEFAULT
+    Application.StatusBar = False
+    Application.Interactive = True
+End Sub
 
 Public Sub Ampulheta(ByVal ligada As Boolean)
     On Error Resume Next
