@@ -316,7 +316,7 @@ class Construtor:
             self.ws_pai = wb.add_worksheet('Painel')
             self.ws_his = wb.add_worksheet('Histórico')
         elif VARIANTE == 'COMP':
-            self.ws_bat = wb.add_worksheet('Batch')
+            self.ws_bat = wb.add_worksheet('Colar batch')
             self.ws_pai = wb.add_worksheet('Painel')
             self.ws_his = wb.add_worksheet('Histórico')
             self.ws_aco = wb.add_worksheet('Acompanhamento')
@@ -716,9 +716,8 @@ class Construtor:
         else:
             # comparativo: a linha do batch e copiada na planilha dos tecnicos e colada na linha amarela embaixo
             # (sempre vazia); o VBA le, preenche a conferencia e esvazia a linha (ModBatch.ConferenciaColada)
-            self.secao(ws, 18, 0, 13, '2 · CONFERÊNCIA   (copie a linha do batch na planilha dos técnicos e cole na linha '
-                                      'amarela COLE AQUI, abaixo)')
-            self.botao(ws, 18, 11, 'Colar conferência', 'ColarConferencia', 150, 22, 'a', x=0, y=2)
+            self.secao(ws, 18, 0, 13, '2 · BATCH DOS TÉCNICOS   (aba Batch deles: selecione o bloco do batch inteiro > '
+                                      'Ctrl+C; aqui, clique na linha amarela COLE AQUI > Ctrl+V)')
         conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
                 (4, 5, 'Ubu · chegada (UBU3)', 'bIniU', fauto_dt), (6, 7, 'Ubu · término', 'bFimU', fauto_dt)]
         for c1, c2, rot, nm, fmt in conf:
@@ -797,10 +796,10 @@ class Construtor:
             ws.set_row(RV + 1, 24)
             self.nome('bConfCola', ws, RV + 1, 0, RV + 1, 13)
             ws.data_validation(RV + 1, 0, RV + 1, 13, {'validate': 'any', 'input_title': 'COLE AQUI (Ctrl+V)',
-                                                       'input_message': 'Linha do batch copiada da planilha dos técnicos. '
-                                                       'Da tabela CONFERÊNCIA DOS BATCHES: cole na 1ª célula (BATCH). '
-                                                       'Da linha 3 · Conferência: cole em GERMANO · INÍCIO. Depois do '
-                                                       'Ctrl+V a linha esvazia sozinha.'})
+                                                       'input_message': 'Planilha dos técnicos, aba Batch: selecione o '
+                                                       'bloco do batch (da faixa BATCH até a última linha da grade) e '
+                                                       'Ctrl+C. Aqui: clique nesta linha e Ctrl+V. Batch, horários, '
+                                                       'Germano e Ubu entram sozinhos.'})
 
         # --- ultimos batches em Ubu (referencia para o proximo; o VBA preenche a partir do historico e do
         #     acompanhamento)
@@ -870,7 +869,7 @@ class Construtor:
         ws.set_row(r + 9, 8)
 
         # --- leituras
-        self.secao(ws, B_ROW_G0 - 2, 1, 13, ('6' if VARIANTE == 'ACOMP' else '5') + ' · LEITURAS POR HORÁRIO   (vêm do MES; em branco = sem análise no laboratório)')
+        self.secao(ws, B_ROW_G0 - 2, 1, 13, ('6' if VARIANTE == 'ACOMP' else '5') + ' · LEITURAS POR HORÁRIO   (' + ('vêm do MES' if VARIANTE == 'ACOMP' else 'vêm do bloco colado; dá para corrigir') + ')')
         r0 = B_ROW_G0
         fgh = self.f(bold=True, font_size=8.5, font_color=BRANCO, bg_color=NAVY2, align='center', border=1,
                      border_color=BRANCO, text_wrap=True)
@@ -1005,7 +1004,8 @@ class Construtor:
                                            % (self.ws_aco.name, self.ws_aco.name), fac)
         else:
             # comparativo: as linhas das fases ficam ocultas, entao as acoes cabem ao lado da identificacao
-            self.botao(ws, 5, 10, 'Buscar no MES', 'BuscarMES', 127, 34, 'a', x=8, y=4)
+            # sem consulta ao MES: o batch vem colado da planilha dos tecnicos (bloco da aba Batch deles)
+            self.botao(ws, 5, 10, 'Colar batch', 'ColarConferencia', 127, 34, 'a', x=8, y=4)
             self.botao(ws, 5, 12, 'Salvar no histórico', 'SalvarHistorico', 127, 34, 'g', x=4, y=4)
             self.botao(ws, 7, 10, 'Ver painel →', 'IrPainel', 127, 26, 'n', x=8, y=0)
             self.botao(ws, 7, 12, 'Limpar leituras', 'LimparLeituras', 127, 26, 'd', x=4, y=0)

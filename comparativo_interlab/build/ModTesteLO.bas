@@ -17,6 +17,15 @@ Private Function V(ByVal nome As String) As Variant
     V = Nm(nome).Value
 End Function
 
+' Uma linha de texto copiado do Excel (celulas separadas por tabulacao)
+Private Function Lin(ParamArray c() As Variant) As String
+    Dim i As Long
+    For i = LBound(c) To UBound(c)
+        Lin = Lin & IIf(i > LBound(c), vbTab, "") & c(i)
+    Next i
+    Lin = Lin & vbCrLf
+End Function
+
 Private Function Celula(ByVal i As Long, ByVal p As Long, ByVal lab As Long) As Variant
     Celula = shBatch.Cells(B_ROW_G0 + i - 1, ColValor(p, lab)).Value
 End Function
@@ -58,7 +67,7 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         ProximoBatchAcomp
         Ok Vazio(V("bId")) And IdBloco(1) = 301, "proximo batch limpa o preenchimento e o bloco fica"
     Else
-        Ok shBatch.Name = "Batch" And shPainel.Visible = XL_VISIBLE And shAcomp.Visible = XL_VERYHIDDEN, _
+        Ok shBatch.Name = "Colar batch" And shPainel.Visible = XL_VISIBLE And shAcomp.Visible = XL_VERYHIDDEN, _
            "abas Batch, Painel e Historico; acompanhamento oculto"
         Ok Not ModoAcomp(), "sempre comparativo"
         BuscarMES
@@ -85,6 +94,49 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         Ok CStr(V("bNivel")) = "Médio" And Vazio(V("bIniPMan")) And Vazio(V("bFimU")) And Vazio(V("bExtH")), _
            "conferencia: inicio = chegada + atraso do nivel medio (" & V("bNivel") & ")"
         Ok LerConferencia("nada aqui") = "", "texto sem conferencia: nao muda nada"
+        ' bloco inteiro do batch copiado da aba Batch dos tecnicos (como o Excel copia: observacoes entre aspas)
+        Dim bl As String, si As String
+        si = "SiO" & ChrW(8322)
+        bl = Lin("BATCH 326", "", "", "", "") & Lin("") & Lin("RESUMO DO BATCH   (média)", "", "", "OBSERVAÇÕES") & _
+             Lin("ANÁLISE", "", "GERMANO (MÉDIA)", "", """Chegada em Ubu (UBU3): 23/11 00:24" & vbLf & _
+                 "Início no processo: 23/11 08:00" & vbLf & "Germano (EB06): 20/11 12:01 a 20/11 23:59" & vbLf & _
+                 "Batch estendido +4 h""") & _
+             Lin(si, "", "3,72", "—") & Lin("") & _
+             Lin("DATA", "", "23/11", "23/11", "23/11", "23/11", "23/11", "23/11", "23/11", "23/11") & _
+             Lin("HORÁRIO (UBU)", "", "9:30", "11:30", "13:30", "15:30", "17:30", "19:30", "21:30", "23:30") & _
+             Lin(si, "Germano", "3,74", "3,32", "3,03", "3,20", "5,09", "3,96", "3,72", "3,72") & _
+             Lin("", ChrW(9998) & " Alimentação 04", "3,80", "", "3,10") & Lin("", "Diferença", "0,06") & Lin("") & _
+             Lin("S.E.", "Germano", "2372", "2251", "2332", "2451", "2479", "2496", "2397", "2397") & _
+             Lin("", ChrW(9998) & " Alimentação 04", "2264") & Lin("", "Diferença", "-108")
+        s = LerColado(bl)
+        Ok InStr(s, "Batch 326 colado") = 1, "bloco do batch lido: " & Left$(s, 120)
+        Ok CLng(V("bId")) = 326 And CLng(V("bNHor")) = 8 And CDbl(V("bExtH")) = 4 And _
+           Abs(CDbl(V("bIniU")) - CDbl(DateSerial(2026, 11, 23) + TimeSerial(0, 24, 0))) < 0.0001 And _
+           Abs(CDbl(V("bIniPMan")) - CDbl(DateSerial(2026, 11, 23) + TimeSerial(8, 0, 0))) < 0.0001 And _
+           Abs(CDbl(V("bFimG")) - CDbl(DateSerial(2026, 11, 20) + TimeSerial(23, 59, 0))) < 0.0001, _
+           "bloco: batch 326, 8 bi-horarios, +4 h, chegada, inicio e Germano das observacoes"
+        Ok Abs(CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value) - CDbl(DateSerial(2026, 11, 23) + TimeSerial(9, 30, 0))) < 0.0001 And _
+           Abs(CDbl(Celula(1, pSi, 0)) - 3.74) < 0.0001 And Abs(CDbl(Celula(1, pSi, 1)) - 3.8) < 0.0001 And _
+           Abs(CDbl(Celula(3, pSi, 1)) - 3.1) < 0.0001 And Not ENumero(Celula(2, pSi, 1)) And _
+           CDbl(Celula(1, pSE, 1)) = 2264 And CDbl(Celula(8, pSE, 0)) = 2397, _
+           "bloco: horarios e resultados de Germano e de Ubu na grade"
+        ' observacoes numa linha so (sem aspas) e numeros com ponto
+        bl = Lin("BATCH 327") & Lin("ANÁLISE", "", "GERMANO", "", "Chegada em Ubu (UBU3): 23/11 13:00 Nível dos tanques: " & _
+             "Médio Início no processo: 23/11 19:00 Germano (EB06): 21/11 00:00 a 21/11 23:59") & _
+             Lin("DATA", "", "23/11", "24/11") & Lin("HORÁRIO (UBU)", "", "23:30", "1:30") & _
+             Lin("S.E.", "Germano", "2401", "2388") & Lin("", ChrW(9998) & " Alimentação 04", "", "2290")
+        s = LerColado(bl)
+        Ok CLng(V("bId")) = 327 And CStr(V("bNivel")) = "Médio" And Vazio(V("bIniPMan")) And CLng(V("bNHor")) = 2 And _
+           Abs(CDbl(shBatch.Cells(B_ROW_G0 + 1, B_COL_TU).Value) - CDbl(DateSerial(2026, 11, 24) + TimeSerial(1, 30, 0))) < 0.0001 And _
+           CDbl(Celula(2, pSE, 1)) = 2290 And Not ENumero(Celula(3, pSE, 0)), _
+           "bloco 327: nivel medio, virada do dia, so os 2 horarios (" & V("bNivel") & ")"
+        ' PFUF a mao e salvar: o batch colado vai para o historico com os resultados e o PFUF
+        Ok ColarPFUFTexto("63,49" & vbLf & "6482" & vbLf & "3,27" & vbLf & "0,062"), "PFUF do 327 colado"
+        SalvarHistorico
+        Ok LinhaHistorico(327) > 0, "327 (colado da planilha dos tecnicos) salvo no historico"
+        AbrirBatch 327
+        Ok CDbl(Celula(2, pSE, 1)) = 2290 And Abs(CDbl(V("bPfFe")) - 63.49) < 0.0001 And CStr(V("bNivel")) = "Médio", _
+           "327 reaberto do historico com Ubu, PFUF e nivel"
         ' linha da tabela de conferencias dos tecnicos: vem com o numero do batch na 1a coluna
         s = LerConferencia("324" & vbTab & "20/11/26 00:00" & vbTab & vbTab & "20/11/26 23:59" & vbTab & "22/11/26 10:34" & _
             vbTab & vbTab & "22/11/26 23:37" & vbTab & vbTab & "22/11/26 14:34" & vbTab & vbTab & "13" & vbTab & "—" & _

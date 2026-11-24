@@ -1,5 +1,8 @@
 Option Explicit
 
+' por que o ultimo bloco colado nao foi lido (mensagem)
+Private mMotivoBloco As String
+
 ' ============================================================================
 '  ModBatch - historico de batches (tbl_Batches + tbl_Leituras), novo batch,
 '  abrir/excluir e importacao da planilha antiga.
@@ -108,7 +111,7 @@ Public Sub SalvarHistorico()
     ' a aba Batch fica pronta para o proximo batch, com as tolerancias e padroes da aba Configuracoes
     LimparBatch
     Aviso "Batch " & id & IIf(novo, " salvo", " atualizado") & " no histórico (" & n & " leituras)." & vbCrLf & vbCrLf & _
-          "A aba Batch já está pronta para o próximo batch. Para ver o " & id & " de novo: Painel > Batch em exibição.", _
+          "A aba " & shBatch.Name & " já está pronta para o próximo batch. Para ver o " & id & " de novo: Painel > Batch em exibição.", _
           vbInformation, "Salvar no histórico"
 End Sub
 
@@ -521,7 +524,7 @@ Public Sub ConferenciaColada()
     Next c
     If Not vazia Then
         ' a linha 3 dos tecnicos vem com formulas (recalculadas aqui, com os dados daqui): vale o texto copiado
-        If comFormula Then msg = LerConferencia(TextoAreaTransferencia())
+        If comFormula Then msg = LerColado(TextoAreaTransferencia())
         If msg = "" Then msg = LerConferencia(t)
     End If
     EsvaziarLinhaCola
@@ -544,7 +547,7 @@ Public Sub ColarInteligente()
         If Not Intersect(Selection, Nm("bConfCola")) Is Nothing Then
             t = TextoAreaTransferencia()
             If Trim$(t) <> "" Then
-                msg = LerConferencia(t)
+                msg = LerColado(t)
                 EsvaziarLinhaCola
                 AvisoConferencia msg
                 Exit Sub
@@ -571,13 +574,23 @@ Public Sub LigarColar(ByVal ligar As Boolean)
     End If
 End Sub
 
+' O que foi copiado: o bloco inteiro do batch (aba Batch dos tecnicos) ou so a linha da conferencia
+Public Function LerColado(ByVal t As String) As String
+    If InStr(1, t, "HOR", vbTextCompare) > 0 And InStr(1, t, "Germano", vbTextCompare) > 0 And _
+       InStr(1, t, "DATA", vbTextCompare) > 0 Then
+        LerColado = ColarBloco(t)
+    Else
+        LerColado = LerConferencia(t)
+    End If
+End Function
+
 Private Sub AvisoConferencia(ByVal msg As String)
     If msg = "" Then
-        Aviso "Não reconheci o que foi colado. Na planilha dos técnicos, copie a linha do batch (na tabela " & _
-              "CONFERÊNCIA DOS BATCHES, da coluna BATCH a TEMPO EM UBU, ou a linha da conferência) e cole na " & _
-              "linha amarela COLE AQUI.", vbExclamation, "Conferência"
+        Aviso "Não reconheci o que foi colado. Na planilha dos técnicos, aba Batch, selecione o bloco do batch " & _
+              "inteiro (da faixa BATCH até a última linha da grade), Ctrl+C, e aqui Ctrl+V na linha amarela COLE AQUI." & _
+              IIf(mMotivoBloco <> "", vbCrLf & vbCrLf & "(" & mMotivoBloco & ")", ""), vbExclamation, "Colar batch"
     Else
-        Aviso msg, vbInformation, "Conferência"
+        Aviso msg, vbInformation, "Colar batch"
     End If
 End Sub
 
@@ -778,26 +791,262 @@ Private Function DecimaisPF(ByVal chave As String) As Long
     Next i
 End Function
 
+' ---------------------------------------------------------------- bloco do batch colado (planilha dos tecnicos)
+' Na planilha dos tecnicos, aba Batch, o bloco do batch (faixa BATCH n, resumo, observacoes e a grade com DATA,
+' HORARIO e, por analise, Germano / Alimentacao 04 / Diferenca) e copiado inteiro (Ctrl+C) e colado aqui (Ctrl+V na
+' linha COLE AQUI): o texto copiado e lido - batch, chegada em Ubu, nivel, inicio no processo, Germano (EB06),
+' extensao, horarios e os resultados de Germano e de Ubu - e vira o batch desta planilha (sem consulta ao MES).
+Public Function ColarBloco(ByVal texto As String) As String
+    Dim lin As Collection, cel As Variant, r As Long, j As Long, c0 As Long, idB As Long, t As String, obs As String
+    Dim datas As Variant, horas As Variant, n As Long, s As Long, p As Long, subRot As String, rotAtual As String
+    Dim ger() As Variant, ubu() As Variant, tU() As Variant, x As Double, d As Variant, k As Long, msg As String
+    Dim uIni As Variant, ip As Variant, gIni As Variant, gFim As Variant, nivel As String, ext As Double
+    Dim rD As Long, rH As Long
+
+    mMotivoBloco = ""
+    Set lin = LinhasDoTexto(texto)
+    ' numero do batch (faixa "BATCH 326") e observacoes (texto com a chegada em Ubu)
+    For r = 1 To lin.Count
+        cel = CelulasDaLinha(lin(r))
+        For j = LBound(cel) To UBound(cel)
+            t = Trim$(CStr(cel(j)))
+            If idB = 0 And UCase$(Left$(t, 6)) = "BATCH " Then
+                t = Trim$(Mid$(t, 7))
+                k = 1
+                Do While k <= Len(t)
+                    If Mid$(t, k, 1) < "0" Or Mid$(t, k, 1) > "9" Then Exit Do
+                    k = k + 1
+                Loop
+                If k > 1 Then idB = CLng(Left$(t, k - 1))
+            ElseIf obs = "" And (InStr(1, t, "Chegada em Ubu", vbTextCompare) > 0 Or InStr(1, t, "Germano (EB06)", vbTextCompare) > 0) Then
+                obs = t
+            End If
+        Next j
+        If rD = 0 And UBound(cel) >= LBound(cel) Then
+            For j = LBound(cel) To UBound(cel)
+                If UCase$(Trim$(CStr(cel(j)))) = "DATA" Then
+                    rD = r
+                    c0 = j
+                    Exit For
+                End If
+            Next j
+        End If
+    Next r
+    If rD = 0 Or idB = 0 Then
+        mMotivoBloco = "sem DATA (" & rD & ") ou sem BATCH (" & idB & ")"
+        Exit Function
+    End If
+    ' horario: a linha seguinte a DATA
+    rH = rD + 1
+    If rH > lin.Count Then Exit Function
+    datas = CelulasDaLinha(lin(rD))
+    horas = CelulasDaLinha(lin(rH))
+    If InStr(1, CStr(CelulaDe(horas, c0)), "HOR", vbTextCompare) = 0 Then
+        mMotivoBloco = "linha HORARIO nao veio depois de DATA"
+        Exit Function
+    End If
+    ReDim tU(1 To NMAX)
+    For s = 1 To NMAX
+        d = DataDoBloco(CStr(CelulaDe(datas, c0 + 1 + s)), CStr(CelulaDe(horas, c0 + 1 + s)))
+        If IsEmpty(d) Then Exit For
+        tU(s) = d
+        n = s
+    Next s
+    If n = 0 Then
+        mMotivoBloco = "nenhum horario lido (" & CelulaDe(datas, c0 + 2) & " / " & CelulaDe(horas, c0 + 2) & ")"
+        Exit Function
+    End If
+    ' resultados: por analise, a linha Germano e a linha Alimentacao 04 (a de baixo)
+    ReDim ger(1 To NP, 1 To NMAX)
+    ReDim ubu(1 To NP, 1 To NMAX)
+    For r = rH + 1 To lin.Count
+        cel = CelulasDaLinha(lin(r))
+        t = Trim$(CStr(CelulaDe(cel, c0)))
+        If t <> "" Then rotAtual = t
+        p = PIndice(Replace(rotAtual, "SiO2", "SiO" & ChrW(8322)))
+        If p = 0 Then p = PIndice(rotAtual)
+        subRot = Trim$(CStr(CelulaDe(cel, c0 + 1)))
+        If p > 0 And subRot <> "" Then
+            For s = 1 To n
+                If NumeroColado(CelulaDe(cel, c0 + 1 + s), x) Then
+                    If InStr(1, subRot, "Germano", vbTextCompare) > 0 Then
+                        ger(p, s) = x
+                    ElseIf InStr(1, subRot, "Diferen", vbTextCompare) = 0 Then
+                        ubu(p, s) = x                                   ' Alimentacao 04 (ou o nome de Ubu)
+                    End If
+                End If
+            Next s
+        End If
+    Next r
+    ' observacoes: chegada em Ubu, nivel, inicio no processo, Germano (EB06), batch estendido
+    uIni = DataDepois(obs, "Chegada em Ubu (UBU3):")
+    ip = DataDepois(obs, "Início no processo:")
+    gIni = DataDepois(obs, "Germano (EB06):")
+    gFim = DataDepois(obs, " a ", InStr(1, obs, "Germano (EB06):", vbTextCompare))
+    nivel = TextoDepois(obs, "Nível dos tanques:")
+    k = InStr(1, obs, "estendido +", vbTextCompare)
+    If k > 0 Then ext = Val(Mid$(obs, k + Len("estendido +")))
+
+    ' batch novo: aba limpa (PFUF e comentarios em branco); o mesmo batch colado de novo: so os dados do bloco
+    If Not ENumero(Nm("bId").Value) Then
+        LimparBatch
+    ElseIf CLng(Nm("bId").Value) <> idB Then
+        LimparBatch
+    End If
+    ModoCarga True
+    Desproteger shBatch
+    Nm("bId").Value = idB
+    Nm("bIniU").MergeArea.ClearContents
+    Nm("bIniG").MergeArea.ClearContents
+    Nm("bFimG").MergeArea.ClearContents
+    Nm("bFimU").MergeArea.ClearContents
+    Nm("bNivel").MergeArea.ClearContents
+    Nm("bIniPMan").MergeArea.ClearContents
+    Nm("bExtH").MergeArea.ClearContents
+    If Not IsEmpty(uIni) Then Nm("bIniU").Value = uIni
+    If Not IsEmpty(gIni) Then Nm("bIniG").Value = gIni
+    If Not IsEmpty(gFim) Then Nm("bFimG").Value = gFim
+    If nivel <> "" Then
+        Nm("bNivel").Value = nivel
+    ElseIf Not IsEmpty(ip) Then
+        Nm("bIniPMan").Value = ip
+    End If
+    If ext > 0 Then Nm("bExtH").Value = ext
+    Nm("bNHor").Value = n
+    ' grade: horario de Ubu e resultados de cada analise (Germano e Ubu)
+    shBatch.Range(shBatch.Cells(B_ROW_G0, B_COL_V1), shBatch.Cells(B_ROW_G0 + NMAX - 1, B_COL_V1 + 2 * NP - 1)).ClearContents
+    For s = 1 To NMAX
+        If s <= n Then
+            shBatch.Cells(B_ROW_G0 + s - 1, B_COL_TU).Value = CDate(tU(s))
+        Else
+            shBatch.Cells(B_ROW_G0 + s - 1, B_COL_TU).ClearContents
+        End If
+        For p = 1 To NP
+            If s <= n Then
+                If Not IsEmpty(ger(p, s)) Then shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 0)).Value = ger(p, s)
+                If Not IsEmpty(ubu(p, s)) Then shBatch.Cells(B_ROW_G0 + s - 1, ColValor(p, 1)).Value = ubu(p, s)
+            End If
+        Next p
+    Next s
+    msg = "Batch " & idB & " colado da planilha dos técnicos: " & n & " bi-horários (" & _
+          Format$(CDate(tU(1)), "dd\/mm hh:mm") & " a " & Format$(CDate(tU(n)), "dd\/mm hh:mm") & ")" & _
+          IIf(IsEmpty(uIni), "", "   ·   chegada em Ubu " & Format$(uIni, "dd\/mm hh:mm")) & _
+          IIf(IsEmpty(ip), "", "   ·   início " & Format$(ip, "dd\/mm hh:mm")) & IIf(ext > 0, "   ·   estendido +" & ext & " h", "")
+    Nm("bFasesMsg").Value = "'" & msg
+    Proteger shBatch
+    ModoCarga False
+    gAlterado = True
+    Recalcular
+    On Error Resume Next
+    AjustarGraficos
+    ColarBloco = msg & vbCrLf & vbCrLf & "Confira o Painel. Depois: pellet feed ultra fino (etapa 3), comentários e " & _
+                 "Salvar no histórico."
+End Function
+
+Public Function MotivoBloco() As String
+    MotivoBloco = mMotivoBloco
+End Function
+
+' Celula j da linha (vazio fora do limite)
+Private Function CelulaDe(cel As Variant, ByVal j As Long) As Variant
+    If j >= LBound(cel) And j <= UBound(cel) Then CelulaDe = cel(j) Else CelulaDe = ""
+End Function
+
+' Texto da area de transferencia em linhas (texto de cada linha; celulas separadas por tabulacao). Celula entre aspas
+' pode ter quebra de linha: dentro das aspas a quebra vira Chr(1) e volta em CelulasDaLinha.
+Private Function LinhasDoTexto(ByVal texto As String) As Collection
+    Dim res As New Collection, i As Long, ch As String, aspas As Boolean, s2 As String, partes As Variant
+    For i = 1 To Len(texto)
+        ch = Mid$(texto, i, 1)
+        If ch = """" Then aspas = Not aspas
+        If aspas And (ch = vbLf Or ch = vbCr) Then
+            If ch = vbLf Then s2 = s2 & Chr(1)
+        ElseIf ch <> vbCr Then
+            s2 = s2 & ch
+        End If
+    Next i
+    partes = Split(s2, vbLf)
+    For i = LBound(partes) To UBound(partes)
+        res.Add CStr(partes(i))
+    Next i
+    Set LinhasDoTexto = res
+End Function
+
+' Celulas de uma linha (aspas de fora tiradas, "" vira ", quebras de linha de volta)
+Private Function CelulasDaLinha(ByVal linha As String) As Variant
+    Dim c As Variant, i As Long, t As String
+    c = Split(linha, vbTab)
+    For i = LBound(c) To UBound(c)
+        t = CStr(c(i))
+        If Len(t) >= 2 And Left$(t, 1) = """" And Right$(t, 1) = """" Then t = Replace(Mid$(t, 2, Len(t) - 2), """""", """")
+        c(i) = Replace(t, Chr(1), vbLf)
+    Next i
+    CelulasDaLinha = c
+End Function
+
+' "23/11" + "9:30" -> data com o ano (o ano atual; se cair muito no futuro, o anterior)
+Private Function DataDoBloco(ByVal dm As String, ByVal hm As String) As Variant
+    Dim pd As Variant, ph As Variant, a As Long, d As Date
+    DataDoBloco = Empty
+    dm = Trim$(dm)
+    hm = Trim$(hm)
+    pd = Split(dm, "/")
+    ph = Split(hm, ":")
+    If UBound(pd) < 1 Or UBound(ph) < 1 Then Exit Function
+    If Not (IsNumeric(pd(0)) And IsNumeric(pd(1)) And IsNumeric(ph(0)) And IsNumeric(ph(1))) Then Exit Function
+    If CLng(pd(1)) < 1 Or CLng(pd(1)) > 12 Or CLng(pd(0)) < 1 Or CLng(pd(0)) > 31 Then Exit Function
+    If UBound(pd) >= 2 Then
+        a = CLng(Val(pd(2)))
+        If a < 100 Then a = a + 2000
+    Else
+        a = Year(Date)
+        If DateSerial(a, CLng(pd(1)), CLng(pd(0))) > Date + 60 Then a = a - 1
+    End If
+    d = DateSerial(a, CLng(pd(1)), CLng(pd(0))) + TimeSerial(CLng(ph(0)), CLng(Val(ph(1))), 0)
+    DataDoBloco = d
+End Function
+
+' Primeira "dd/mm hh:mm" depois do rotulo no texto das observacoes
+Private Function DataDepois(ByVal texto As String, ByVal rotulo As String, Optional ByVal desde As Long = 1) As Variant
+    Dim k As Long, resto As Variant
+    DataDepois = Empty
+    If desde < 1 Then Exit Function
+    k = InStr(desde, texto, rotulo, vbTextCompare)
+    If k = 0 Then Exit Function
+    resto = Split(Trim$(Replace(Replace(Mid$(texto, k + Len(rotulo)), vbLf, " "), vbCr, " ")), " ")
+    If UBound(resto) < 1 Then Exit Function
+    DataDepois = DataDoBloco(CStr(resto(0)), CStr(resto(1)))
+End Function
+
+' Texto depois do rotulo, ate o fim da linha (ou ate o proximo rotulo conhecido)
+Private Function TextoDepois(ByVal texto As String, ByVal rotulo As String) As String
+    Dim k As Long, t As String, fim As Variant, i As Long, q As Long
+    k = InStr(1, texto, rotulo, vbTextCompare)
+    If k = 0 Then Exit Function
+    t = Mid$(texto, k + Len(rotulo))
+    q = InStr(t, vbLf)
+    If q > 0 Then t = Left$(t, q - 1)
+    fim = Array("Início no processo", "Germano (EB06)", "Batch estendido", "Chegada em Ubu")
+    For i = LBound(fim) To UBound(fim)
+        q = InStr(1, t, CStr(fim(i)), vbTextCompare)
+        If q > 0 Then t = Left$(t, q - 1)
+    Next i
+    TextoDepois = Trim$(Replace(t, vbCr, ""))
+End Function
+
 ' ---------------------------------------------------------------- colar a CONFERENCIA da planilha dos tecnicos
 ' Na planilha de acompanhamento (aba Preenchimento) o tecnico ja tem a linha CONFERENCIA: Germano inicio/termino,
 ' Ubu chegada/termino, inicio no processo, bi-horarios, estendido, data e mineroduto. Copiada (Ctrl+C), o botao
 ' Colar conferencia le o texto da area de transferencia e preenche o batch daqui.
 Public Sub ColarConferencia()
-    Dim t As String, msg As String
+    Dim t As String
     t = TextoAreaTransferencia()
     If Trim$(t) = "" Then
-        Aviso "Nada copiado. Na planilha dos técnicos (aba Preenchimento), selecione a linha da CONFERÊNCIA " & _
-              "(de Germano · início a Mineroduto), Ctrl+C, e clique de novo em Colar conferência.", vbExclamation, _
-              "Colar conferência"
+        Aviso "Nada copiado. Na planilha dos técnicos, aba Batch, selecione o bloco do batch inteiro (da faixa BATCH " & _
+              "até a última linha da grade), Ctrl+C, e clique de novo em Colar batch.", vbExclamation, "Colar batch"
         Exit Sub
     End If
-    msg = LerConferencia(t)
-    If msg = "" Then
-        Aviso "Não reconheci a conferência no que foi copiado. Copie a linha de valores da CONFERÊNCIA da planilha " & _
-              "dos técnicos (de Germano · início a Mineroduto).", vbExclamation, "Colar conferência"
-    Else
-        Aviso msg, vbInformation, "Colar conferência"
-    End If
+    AvisoConferencia LerColado(t)
 End Sub
 
 ' Texto da area de transferencia (Ctrl+C no Excel, no aplicativo ou no navegador)

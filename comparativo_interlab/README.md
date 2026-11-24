@@ -84,15 +84,20 @@ de TI precisa permitir abrir .xlsm no navegador.
 em linhas e colunas fixas; apagar ou inserir uma linha/coluna desloca tudo e a macro deixa de achar o batch (o bloco
 "trava"). Largura de coluna e altura de linha dá para mudar; mudança de desenho vai no gerador.
 
-## Planilha 2 — Comparativo (report diário)
+## Planilha 2 — Comparativo (report diário), sem consulta ao MES
+
+Os dados vêm da planilha dos técnicos: o bloco do batch é copiado e colado; nada é buscado no MES.
 
 | Aba | Para quê |
 |---|---|
-| **Batch** | Preenchimento completo em etapas: **1 · Identificação** (batch Nº, nível dos tanques e atraso), **2 · Conferência** (colada da planilha dos técnicos), **Referência · últimos batches em Ubu**, **3 · Pellet feed ultra fino**, **4 · Comentários do report** e **5 · Leituras por horário** (Germano e Ubu); ajustes opcionais no fim. Ações: Buscar no MES (batch + PFUF), Salvar no histórico, Ver painel, Limpar leituras; na faixa do título: Configurações (com senha). **Salvar no histórico** já deixa a aba em branco para o próximo batch. |
-| **Painel** | O report: cabeçalho, **farol** (médias, diferença, tolerância, OK/NOK), **comentários**, **pellet feed ultra fino** (composto diário do dia anterior: Fe, SiO₂, P, S.E.) e os gráficos de **P, SiO₂, PPC, <325# e S.E.** (barras Germano × Ubu por horário + média, linha da diferença com rótulos, ◆ diferença das médias e linhas tracejadas da tolerância). Na barra de cima: *Batch em exibição*, Editar batch, Atualizar, Copiar imagem e Copiar resumo. |
-| **Colar conferência** | Na planilha dos técnicos, copie a linha do batch: da tabela **CONFERÊNCIA DOS BATCHES** (coluna BATCH a TEMPO EM UBU; o número do batch vem junto) ou da linha 3 · Conferência (sem o número: a planilha pergunta o batch). Aqui, na aba Batch, etapa 2, cole na linha amarela **COLE AQUI** (da tabela: 1ª célula; da linha 3: em GERMANO · INÍCIO). A linha COLE AQUI fica sempre vazia: a macro lê o que foi colado, preenche a conferência do batch (linha de cima: Germano, Ubu, nível ou início manual, bi-horários, estendido, mineroduto) e esvazia a linha. Na planilha dos técnicos a linha 3 não usa nomes nas fórmulas, então o Excel não pergunta "o nome já existe". O botão **Colar conferência** faz o mesmo pela área de transferência. Se o batch foi estendido, o Buscar no MES completa os bi-horários a mais com a média de Germano (o campo ESTENDER O BATCH também pode ser preenchido à mão). |
-| **Histórico** | Tabela `tbl_Batches`: um batch por linha, com médias, diferenças e status de cada análise. Botões: abrir e excluir o batch selecionado. Vem vazia. |
-| **BD_Leituras** (oculta) | Tabela `tbl_Leituras`: uma linha por batch × horário × análise (Germano, Ubu, diferença, tolerância, status). Base para o Power BI. |
+| **Colar batch** | Na planilha dos técnicos, aba **Batch**: selecione o bloco do batch inteiro (da faixa **BATCH n** até a última linha da grade) e **Ctrl+C**. Aqui: clique na linha amarela **COLE AQUI** (etapa 2) e **Ctrl+V** — ou o botão **Colar batch**. A planilha lê o texto copiado: número do batch; das Observações, chegada em Ubu, nível dos tanques ou início no processo, Germano (EB06) e a extensão; da grade, os horários de Ubu e, por análise, os resultados de Germano e de Alimentação 04 (inclusive os horários estendidos, com a média de Germano como os técnicos lançaram). Tudo cai na conferência e nas leituras por horário (dá para corrigir). Depois: **3 · pellet feed ultra fino** (data livre; os 4 resultados do MES colados na vertical, na ordem Fe, S.E., SiO₂, P), **4 · comentários** e **Salvar no histórico**. Colar de novo o mesmo batch atualiza só os dados do bloco (PFUF e comentários ficam); outro batch começa a aba limpa. |
+| **Painel** | O report: farol, comentários, pellet feed ultra fino e os gráficos, a partir do batch da aba Colar batch ou de um batch do histórico (*Batch em exibição*). |
+| **Histórico** | Tabela `tbl_Batches`: um batch por linha. Botões: abrir e excluir o batch selecionado. Vem vazia. |
+| **BD_Leituras** (oculta) | Tabela `tbl_Leituras`: uma linha por batch × horário × análise. Base para o Power BI. |
+
+O Ctrl+V da linha COLE AQUI e do PFUF é da planilha (lê só o texto copiado): fórmulas e nomes da planilha dos
+técnicos não chegam aqui, então o Excel não pergunta "o nome já existe". Também aceita colar só a linha da
+conferência dos técnicos (nesse caso os resultados ficam como estão).
 
 ## Abas ocultas (nas duas)
 
