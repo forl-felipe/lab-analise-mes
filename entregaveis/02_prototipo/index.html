@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Compressão Online Usina 4</title>
 <!--
-  Protótipo da tela Compressão Online Usina 4 (versão 8, padrão visual Samarco, sem o composto de 2 h).
+  Protótipo da tela Compressão Online Usina 4 (versão 9: faixa abaixo de 200 no destaque e desvio padrão junto das faixas).
   Dados simulados. Tudo o que aparece aqui vira objeto nativo do Aspen (polígonos, textos, campos de dados,
   tendências e lâmpadas animadas), gerado por ferramentas/gerar_atgraphic.py.
   Parâmetros na URL:
@@ -162,19 +162,19 @@
     </div>
   </section>
 
-  <!-- Desvio padrão -->
+  <!-- Abaixo de 200 kgf/pelota -->
   <section class="card kpi" style="left:558px; top:117px; width:506px; height:260px;">
-    <h2><span class="acento"></span>Desvio padrão</h2>
+    <h2><span class="acento"></span>Abaixo de 200 kgf/pelota<span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200" style="margin-left:6px"></span></h2>
     <div class="corpo">
       <div>
-        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-gi2" data-slot="6">--</span><span class="unid">kgf/pelota</span></div>
-        <div class="rot" style="margin-top:6px">Dispersão entre as pelotas do ensaio</div>
+        <div style="display:flex; align-items:baseline"><span class="slot v-grande" style="width:205px" id="s-qi3" data-slot="6">--</span></div>
+        <div class="rot" style="margin-top:6px">Faixa de compressão do último ensaio</div>
       </div>
       <div class="slot" style="width:140px; height:90px" data-slot="7"><svg id="sp2" width="140" height="90"></svg></div>
     </div>
     <div class="rodape">
-      <div><span class="rot">Atualizado às</span><span class="slot v-peq" style="width:165px" id="s-gi2-ts" data-slot="8">--</span></div>
-      <div><span class="rot">Qualidade</span><span class="slot v-peq" style="width:80px; font-weight:700" id="s-gi2-q" data-slot="9">--</span></div>
+      <div><span class="rot">Atualizado às</span><span class="slot v-peq" style="width:165px" id="s-qi3-ts" data-slot="8">--</span></div>
+      <div><span class="rot">Qualidade</span><span class="slot v-peq" style="width:80px; font-weight:700" id="s-qi3-q" data-slot="9">--</span></div>
     </div>
   </section>
 
@@ -213,9 +213,9 @@
   <section class="card faixas" style="left:1182px; top:397px; width:386px; height:215px;">
     <h2><span class="acento"></span>Faixas de compressão</h2>
     <div class="rot" style="margin-top:4px; margin-bottom:6px">Último ensaio da prensa automática</div>
-    <div class="linha"><span class="lampada" id="lq3" data-tag="307-QI-003" data-lo="0.5" data-hi="100000" data-ativa="--lim-200"></span><span class="nome">Abaixo de 200 kgf/pelota</span><span class="slot" id="s-qi3" data-slot="14">--</span></div>
     <div class="linha"><span class="lampada" id="lq2" data-tag="307-QI-002" data-lo="0.5" data-hi="100000" data-ativa="--lim-150"></span><span class="nome">Abaixo de 150 kgf/pelota</span><span class="slot" id="s-qi2" data-slot="15">--</span></div>
     <div class="linha"><span class="lampada" id="lq1" data-tag="307-QI-001" data-lo="0.5" data-hi="100000" data-ativa="--lim-100"></span><span class="nome">Abaixo de 100 kgf/pelota</span><span class="slot" id="s-qi1" data-slot="16">--</span></div>
+    <div class="linha"><span class="nome" style="margin-left:0">Desvio padrão</span><span class="slot" id="s-gi2" data-slot="14" style="width:70px">--</span><span class="un" style="width:66px; margin-left:4px">kgf/pelota</span></div>
   </section>
 
   <!-- Cortadores -->
@@ -362,7 +362,8 @@
     const ul = lab[lab.length - 1];
     set('s-atual', dh(ts));
     set('s-gi1', num(u.m)); set('s-gi1-ts', dh(ts)); set('s-gi1-q', q, q === 'Good' ? '' : 'var(--sam-laranja)');
-    set('s-gi2', num(u.s)); set('s-gi2-ts', dh(ts)); set('s-gi2-q', 'Good');
+    set('s-gi2', num(u.s));
+    set('s-qi3-ts', dh(ts)); set('s-qi3-q', q, q === 'Good' ? '' : 'var(--sam-laranja)');
     set('s-lab', String(ul.v)); set('s-lab-ts', dh(new Date(ul.t)));
     set('s-qi1', String(cont[0])); set('s-qi2', String(cont[1])); set('s-qi3', String(cont[2]));
     lampada('lq1', cont[0]); lampada('lq2', cont[1]); lampada('lq3', cont[2]);
@@ -370,7 +371,8 @@
     lampada('c1a', 32); lampada('c1m', 32);
     lampada('c2a', m2); lampada('c2m', m2);
     spark(document.getElementById('sp1'), pts, 'm', 500);
-    spark(document.getElementById('sp2'), pts, 's', 150);
+    // minitendência da faixa abaixo de 200 (escala 0 a 20), com o histórico simulado do cenário
+    spark(document.getElementById('sp2'), pts.map((p, i) => ({ f: i === pts.length - 1 ? cont[2] : Math.round(Math.max(0, (330 - p.m) / 12)) })), 'f', 20);
     spark(document.getElementById('sp3'), lab.map(l => ({ v: l.v })), 'v', 500);
     tendencia(pts, lab);
     const m1 = Array.from({ length: 24 }, (_, i) => (i >= 9 && i < 12 ? 16 : 32));

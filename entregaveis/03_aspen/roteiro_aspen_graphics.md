@@ -1,6 +1,6 @@
-# Passo a passo: tela Compressão Online Usina 4 no Aspen (versão 8)
+# Passo a passo: tela Compressão Online Usina 4 no Aspen (versão 9)
 
-**Tela:** Compressão Online Usina 4, padrão visual Samarco: média e desvio padrão da prensa automática, referência do laboratório, faixas de compressão e cortadores da amostragem com tendência
+**Tela:** Compressão Online Usina 4, padrão visual Samarco: média da compressão online, faixa abaixo de 200 kgf/pelota em destaque, referência do laboratório, faixas de compressão com o desvio padrão e cortadores da amostragem com tendência
 
 **Resultado esperado:** igual a `tela_exemplo_normal.png`
 
@@ -36,21 +36,21 @@ O arquivo `LCE_Compressao_Online_Usina4.atgraphic` segue o mesmo formato da vers
 |---|---|
 | 1 | Última atualização (cabeçalho) |
 | 4 | Média compressão online: atualizado às |
-| 8 | Desvio padrão: atualizado às |
+| 8 | Abaixo de 200 kgf/pelota: atualizado às |
 | 12 | Referência laboratório: atualizado às |
 
 Dica: depois de achar o atributo certo no objeto 1, me diga o nome. Na próxima versão ele já vem configurado em todos.
 
-**B2. Atributo de qualidade** nos objetos 5 e 9 (qualidade da média e do desvio padrão), com a regra de cor: `Good` em branco e qualquer outro texto em laranja (RGB 243, 112, 33).
+**B2. Atributo de qualidade** nos objetos 5 e 9 (qualidade da média e da faixa abaixo de 200), com a regra de cor: `Good` em branco e qualquer outro texto em laranja (RGB 243, 112, 33).
 
-**B3. Mapa dos discretos.** Os objetos 14, 15 e 16 (faixas de compressão) e as três lâmpadas ao lado deles usam o mapa `IP_DISCRETEMAP`, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.
+**B3. Mapa dos discretos.** Os objetos 6 a 9 (abaixo de 200), 15 e 16 (abaixo de 150 e de 100) e as três lâmpadas das faixas usam o mapa `IP_DISCRETEMAP`, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.
 
 ## Parte C. Tendências
 
 | Objeto | Penas | Escala |
 |---|---|---|
 | 3 (minitendência da média) | `307-GI-001` | 0 a 500 |
-| 7 (minitendência do desvio padrão) | `307-GI-002` | 0 a 150 |
+| 7 (minitendência da faixa abaixo de 200) | `307-QI-003` (mapa `IP_DISCRETEMAP`) | 0 a 20 |
 | 11 (minitendência do laboratório) | `M4710050020-0031-HHLFU` | 0 a 500 |
 | 13 (tendência principal) | `307-GI-001` (compressão online, azul claro) e `M4710050020-0031-HHLFU` (referência laboratório, branca) | 50 a 450 nas duas |
 | 17 e 18 (cortadores) | `U04-07CR001` e `U04-07CR002` (mapa `IP_PIDMAP03`) | 8 a 40 |
@@ -164,41 +164,42 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Formato | Texto |
 | Regra de cor | Texto igual a `Good`: RGB 255, 255, 255. Qualquer outro texto: RGB 243, 112, 33 |
 
-### Objeto 6: Desvio padrão: valor
+### Objeto 6: Abaixo de 200 kgf/pelota: valor
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 18,22 ; 5,47 |
 | Tamanho em unidades (largura ; altura) | 6,41 ; 2,63 |
-| Tag | `307-GI-002` |
-| Mapa | `IP_ANALOGMAP` |
+| Tag | `307-QI-003` |
+| Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |
 | Atributo | `VAL` |
 | Fonte | Arial negrito, já definida no arquivo |
 | Alinhamento | Direita |
 | Cor do texto | RGB 255, 255, 255 |
 | Cor de fundo | RGB 0, 51, 90 (ou transparente), sem borda |
-| Formato | 1 casa decimal (0,0) |
+| Formato | Sem casas decimais (0) |
 | Regra de cor | Nenhuma |
+| Observação | A lâmpada ao lado do título acende em amarelo quando o valor é maior que zero (já vem pronta no arquivo). |
 
-### Objeto 7: Desvio padrão: minitendência
+### Objeto 7: Abaixo de 200 kgf/pelota: minitendência
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
 | Posição em unidades (X ; Y) | 28,09 ; 5,97 |
 | Tamanho em unidades (largura ; altura) | 4,38 ; 2,81 |
-| Observação | Já vem pronta no arquivo, escala 0 a 150. Ver Parte C. |
+| Observação | Já vem pronta no arquivo, escala 0 a 20. Ver Parte C. |
 
-### Objeto 8: Desvio padrão: atualizado às
+### Objeto 8: Abaixo de 200 kgf/pelota: atualizado às
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 21,10 ; 9,69 |
 | Tamanho em unidades (largura ; altura) | 5,16 ; 0,69 |
-| Tag | `307-GI-002` |
-| Mapa | `IP_ANALOGMAP` |
+| Tag | `307-QI-003` |
+| Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |
 | Atributo | `VAL` no arquivo: **trocar pelo atributo de data e hora** (Parte B) |
 | Fonte | Arial, já definida no arquivo |
 | Alinhamento | Esquerda |
@@ -207,15 +208,15 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Formato | dd/mm/aaaa hh:mm:ss |
 | Regra de cor | Nenhuma |
 
-### Objeto 9: Desvio padrão: qualidade
+### Objeto 9: Abaixo de 200 kgf/pelota: qualidade
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 29,18 ; 9,69 |
 | Tamanho em unidades (largura ; altura) | 2,50 ; 0,69 |
-| Tag | `307-GI-002` |
-| Mapa | `IP_ANALOGMAP` |
+| Tag | `307-QI-003` |
+| Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |
 | Atributo | `VAL` no arquivo: **trocar pelo atributo de qualidade** (Parte B) |
 | Fonte | Arial negrito, já definida no arquivo |
 | Alinhamento | Esquerda |
@@ -277,30 +278,30 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Tamanho em unidades (largura ; altura) | 30,94 ; 17,50 |
 | Observação | Já vem pronta no arquivo, com as 2 penas e escala 50 a 450. Ver Parte C. |
 
-### Objeto 14: Faixa abaixo de 200 kgf/pelota
+### Objeto 14: Faixas de compressão: desvio padrão
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 46,03 ; 14,83 |
-| Tamanho em unidades (largura ; altura) | 2,00 ; 0,94 |
-| Tag | `307-QI-003` |
-| Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |
+| Posição em unidades (X ; Y) | 43,66 ; 17,58 |
+| Tamanho em unidades (largura ; altura) | 2,19 ; 0,94 |
+| Tag | `307-GI-002` |
+| Mapa | `IP_ANALOGMAP` |
 | Atributo | `VAL` |
 | Fonte | Arial negrito, já definida no arquivo |
 | Alinhamento | Direita |
 | Cor do texto | RGB 255, 255, 255 |
 | Cor de fundo | RGB 0, 51, 90 (ou transparente), sem borda |
-| Formato | Sem casas decimais (0) |
+| Formato | 1 casa decimal (0,0) |
 | Regra de cor | Nenhuma |
-| Observação | A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo). |
+| Observação | Dispersão entre as pelotas do ensaio, em kgf/pelota. |
 
 ### Objeto 15: Faixa abaixo de 150 kgf/pelota
 
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 46,03 ; 16,20 |
+| Posição em unidades (X ; Y) | 46,03 ; 14,83 |
 | Tamanho em unidades (largura ; altura) | 2,00 ; 0,94 |
 | Tag | `307-QI-002` |
 | Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |
@@ -318,7 +319,7 @@ Referência caso algum objeto precise ser refeito à mão. Posições em unidade
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 46,03 ; 17,58 |
+| Posição em unidades (X ; Y) | 46,03 ; 16,20 |
 | Tamanho em unidades (largura ; altura) | 2,00 ; 0,94 |
 | Tag | `307-QI-001` |
 | Mapa | `IP_DISCRETEMAP` no arquivo: **conferir** (Parte B) |

@@ -1,6 +1,6 @@
-# Passo a passo: tela Compressão Online Usina 4 no Aspen (versão 8)
+# Passo a passo: tela Compressão Online Usina 4 no Aspen (versão 9)
 
-**Tela:** Compressão Online Usina 4, padrão visual Samarco: média e desvio padrão da prensa automática, referência do laboratório, faixas de compressão e cortadores da amostragem com tendência
+**Tela:** Compressão Online Usina 4, padrão visual Samarco: média da compressão online, faixa abaixo de 200 kgf/pelota em destaque, referência do laboratório, faixas de compressão com o desvio padrão e cortadores da amostragem com tendência
 
 **Resultado esperado:** igual a `tela_exemplo_normal.png`
 
@@ -36,21 +36,21 @@ O arquivo `LCE_Compressao_Online_Usina4.atgraphic` segue o mesmo formato da vers
 |---|---|
 | 1 | Última atualização (cabeçalho) |
 | 4 | Média compressão online: atualizado às |
-| 8 | Desvio padrão: atualizado às |
+| 8 | Abaixo de 200 kgf/pelota: atualizado às |
 | 12 | Referência laboratório: atualizado às |
 
 Dica: depois de achar o atributo certo no objeto 1, me diga o nome. Na próxima versão ele já vem configurado em todos.
 
-**B2. Atributo de qualidade** nos objetos 5 e 9 (qualidade da média e do desvio padrão), com a regra de cor: `Good` em branco e qualquer outro texto em laranja (RGB 243, 112, 33).
+**B2. Atributo de qualidade** nos objetos 5 e 9 (qualidade da média e da faixa abaixo de 200), com a regra de cor: `Good` em branco e qualquer outro texto em laranja (RGB 243, 112, 33).
 
-**B3. Mapa dos discretos.** Os objetos 14, 15 e 16 (faixas de compressão) e as três lâmpadas ao lado deles usam o mapa `IP_DISCRETEMAP`, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.
+**B3. Mapa dos discretos.** Os objetos 6 a 9 (abaixo de 200), 15 e 16 (abaixo de 150 e de 100) e as três lâmpadas das faixas usam o mapa `IP_DISCRETEMAP`, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.
 
 ## Parte C. Tendências
 
 | Objeto | Penas | Escala |
 |---|---|---|
 | 3 (minitendência da média) | `307-GI-001` | 0 a 500 |
-| 7 (minitendência do desvio padrão) | `307-GI-002` | 0 a 150 |
+| 7 (minitendência da faixa abaixo de 200) | `307-QI-003` (mapa `IP_DISCRETEMAP`) | 0 a 20 |
 | 11 (minitendência do laboratório) | `M4710050020-0031-HHLFU` | 0 a 500 |
 | 13 (tendência principal) | `307-GI-001` (compressão online, azul claro) e `M4710050020-0031-HHLFU` (referência laboratório, branca) | 50 a 450 nas duas |
 | 17 e 18 (cortadores) | `U04-07CR001` e `U04-07CR002` (mapa `IP_PIDMAP03`) | 8 a 40 |

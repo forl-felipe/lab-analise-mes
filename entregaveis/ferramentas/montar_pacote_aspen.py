@@ -54,10 +54,11 @@ SPEC = {
     3: tendencia("Média compressão online: minitendência", "Já vem pronta no arquivo, escala 0 a 500. Ver Parte C.", "307-GI-001"),
     4: campo("Média compressão online: atualizado às", "307-GI-001", A, HORA, 11, False, "Esquerda", PAINEL, DH),
     5: campo("Média compressão online: qualidade", "307-GI-001", A, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
-    6: campo("Desvio padrão: valor", "307-GI-002", A, "VAL", 57, True, "Direita", PAINEL, "1 casa decimal (0,0)"),
-    7: tendencia("Desvio padrão: minitendência", "Já vem pronta no arquivo, escala 0 a 150. Ver Parte C.", "307-GI-002"),
-    8: campo("Desvio padrão: atualizado às", "307-GI-002", A, HORA, 11, False, "Esquerda", PAINEL, DH),
-    9: campo("Desvio padrão: qualidade", "307-GI-002", A, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
+    6: campo("Abaixo de 200 kgf/pelota: valor", "307-QI-003", DISC, "VAL", 57, True, "Direita", PAINEL, "Sem casas decimais (0)",
+             obs="A lâmpada ao lado do título acende em amarelo quando o valor é maior que zero (já vem pronta no arquivo)."),
+    7: tendencia("Abaixo de 200 kgf/pelota: minitendência", "Já vem pronta no arquivo, escala 0 a 20. Ver Parte C.", "307-QI-003"),
+    8: campo("Abaixo de 200 kgf/pelota: atualizado às", "307-QI-003", DISC, HORA, 11, False, "Esquerda", PAINEL, DH),
+    9: campo("Abaixo de 200 kgf/pelota: qualidade", "307-QI-003", DISC, QUAL, 11, True, "Esquerda", PAINEL, "Texto", REGRA_QUAL),
     10: campo("Referência laboratório: valor", MES, "IP_MESVALOR", "VAL", 57, True, "Direita", PAINEL, "Sem casas decimais (0)",
               obs="Mesmo vínculo do campo Compressão da tela PQ US04."),
     11: tendencia("Referência laboratório: minitendência", "Já vem pronta no arquivo, escala 0 a 500. Ver Parte C.", MES),
@@ -65,7 +66,9 @@ SPEC = {
     13: tendencia("Tendência: compressão online x referência laboratório", "Já vem pronta no arquivo, com as 2 penas e escala 50 a 450. Ver Parte C.",
                   "307-GI-001 e " + MES),
 }
-for n, tag, lim in ((14, "307-QI-003", 200), (15, "307-QI-002", 150), (16, "307-QI-001", 100)):
+SPEC[14] = campo("Faixas de compressão: desvio padrão", "307-GI-002", A, "VAL", 18, True, "Direita", PAINEL, "1 casa decimal (0,0)",
+                 obs="Dispersão entre as pelotas do ensaio, em kgf/pelota.")
+for n, tag, lim in ((15, "307-QI-002", 150), (16, "307-QI-001", 100)):
     SPEC[n] = campo(f"Faixa abaixo de {lim} kgf/pelota", tag, DISC, "VAL", 18, True, "Direita", PAINEL, "Sem casas decimais (0)",
                     obs="A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo).")
 for n, eq in ((17, "07CR001"), (18, "07CR002")):

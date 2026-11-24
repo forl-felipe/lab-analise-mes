@@ -122,7 +122,7 @@ def campo(c, spec):
 # Penas das tendências: (tag, mapa, mínimo, máximo, cor RGB). Escala fixa, igual para todas as penas.
 PENAS = {
     3: [("307-GI-001", "IP_ANALOGMAP", 0, 500, (89, 198, 242))],
-    7: [("307-GI-002", "IP_ANALOGMAP", 0, 150, (89, 198, 242))],
+    7: [("307-QI-003", "IP_DISCRETEMAP", 0, 20, (89, 198, 242))],
     11: [("M4710050020-0031-HHLFU", "IP_MESVALOR", 0, 500, (89, 198, 242))],
     13: [("M4710050020-0031-HHLFU", "IP_MESVALOR", 50, 450, (255, 255, 255)),     # referência do laboratório
          ("307-GI-001", "IP_ANALOGMAP", 50, 450, (89, 198, 242))],                # compressão online, cada ensaio

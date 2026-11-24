@@ -12,8 +12,8 @@ code { background: #eef1f5; padding: 1px 4px; border-radius: 3px; font-size: 13p
 img { max-width: 100%; border: 1px solid #c5ccd6; }
 blockquote { border-left: 4px solid #f2994a; margin: 10px 0; padding: 4px 12px; background: #fff7ef; }
 hr { border: 0; border-top: 1px solid #c5ccd6; }
-</style></head><body><h1>Passo a passo: tela Compressão Online Usina 4 no Aspen (versão 8)</h1>
-<p><strong>Tela:</strong> Compressão Online Usina 4, padrão visual Samarco: média e desvio padrão da prensa automática, referência do laboratório, faixas de compressão e cortadores da amostragem com tendência</p>
+</style></head><body><h1>Passo a passo: tela Compressão Online Usina 4 no Aspen (versão 9)</h1>
+<p><strong>Tela:</strong> Compressão Online Usina 4, padrão visual Samarco: média da compressão online, faixa abaixo de 200 kgf/pelota em destaque, referência do laboratório, faixas de compressão com o desvio padrão e cortadores da amostragem com tendência</p>
 <p><strong>Resultado esperado:</strong> igual a <code>tela_exemplo_normal.png</code></p>
 <p><strong>Tempo estimado:</strong> 20 minutos</p>
 <p><img alt="Resultado esperado" src="tela_exemplo_normal.png" /></p>
@@ -73,7 +73,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>8</td>
-<td>Desvio padrão: atualizado às</td>
+<td>Abaixo de 200 kgf/pelota: atualizado às</td>
 </tr>
 <tr>
 <td>12</td>
@@ -82,8 +82,8 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tbody>
 </table>
 <p>Dica: depois de achar o atributo certo no objeto 1, me diga o nome. Na próxima versão ele já vem configurado em todos.</p>
-<p><strong>B2. Atributo de qualidade</strong> nos objetos 5 e 9 (qualidade da média e do desvio padrão), com a regra de cor: <code>Good</code> em branco e qualquer outro texto em laranja (RGB 243, 112, 33).</p>
-<p><strong>B3. Mapa dos discretos.</strong> Os objetos 14, 15 e 16 (faixas de compressão) e as três lâmpadas ao lado deles usam o mapa <code>IP_DISCRETEMAP</code>, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.</p>
+<p><strong>B2. Atributo de qualidade</strong> nos objetos 5 e 9 (qualidade da média e da faixa abaixo de 200), com a regra de cor: <code>Good</code> em branco e qualquer outro texto em laranja (RGB 243, 112, 33).</p>
+<p><strong>B3. Mapa dos discretos.</strong> Os objetos 6 a 9 (abaixo de 200), 15 e 16 (abaixo de 150 e de 100) e as três lâmpadas das faixas usam o mapa <code>IP_DISCRETEMAP</code>, o mesmo da versão anterior, que funcionou. Nada a fazer, a menos que apareça erro.</p>
 <h2>Parte C. Tendências</h2>
 <table>
 <thead>
@@ -100,9 +100,9 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 <td>0 a 500</td>
 </tr>
 <tr>
-<td>7 (minitendência do desvio padrão)</td>
-<td><code>307-GI-002</code></td>
-<td>0 a 150</td>
+<td>7 (minitendência da faixa abaixo de 200)</td>
+<td><code>307-QI-003</code> (mapa <code>IP_DISCRETEMAP</code>)</td>
+<td>0 a 20</td>
 </tr>
 <tr>
 <td>11 (minitendência do laboratório)</td>
@@ -449,7 +449,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 6: Desvio padrão: valor</h3>
+<h3>Objeto 6: Abaixo de 200 kgf/pelota: valor</h3>
 <table>
 <thead>
 <tr>
@@ -472,11 +472,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Tag</td>
-<td><code>307-GI-002</code></td>
+<td><code>307-QI-003</code></td>
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
+<td><code>IP_DISCRETEMAP</code> no arquivo: <strong>conferir</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -500,15 +500,19 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Formato</td>
-<td>1 casa decimal (0,0)</td>
+<td>Sem casas decimais (0)</td>
 </tr>
 <tr>
 <td>Regra de cor</td>
 <td>Nenhuma</td>
 </tr>
+<tr>
+<td>Observação</td>
+<td>A lâmpada ao lado do título acende em amarelo quando o valor é maior que zero (já vem pronta no arquivo).</td>
+</tr>
 </tbody>
 </table>
-<h3>Objeto 7: Desvio padrão: minitendência</h3>
+<h3>Objeto 7: Abaixo de 200 kgf/pelota: minitendência</h3>
 <table>
 <thead>
 <tr>
@@ -531,11 +535,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>Já vem pronta no arquivo, escala 0 a 150. Ver Parte C.</td>
+<td>Já vem pronta no arquivo, escala 0 a 20. Ver Parte C.</td>
 </tr>
 </tbody>
 </table>
-<h3>Objeto 8: Desvio padrão: atualizado às</h3>
+<h3>Objeto 8: Abaixo de 200 kgf/pelota: atualizado às</h3>
 <table>
 <thead>
 <tr>
@@ -558,11 +562,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Tag</td>
-<td><code>307-GI-002</code></td>
+<td><code>307-QI-003</code></td>
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
+<td><code>IP_DISCRETEMAP</code> no arquivo: <strong>conferir</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -594,7 +598,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 9: Desvio padrão: qualidade</h3>
+<h3>Objeto 9: Abaixo de 200 kgf/pelota: qualidade</h3>
 <table>
 <thead>
 <tr>
@@ -617,11 +621,11 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Tag</td>
-<td><code>307-GI-002</code></td>
+<td><code>307-QI-003</code></td>
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_ANALOGMAP</code></td>
+<td><code>IP_DISCRETEMAP</code> no arquivo: <strong>conferir</strong> (Parte B)</td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -829,7 +833,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 </tbody>
 </table>
-<h3>Objeto 14: Faixa abaixo de 200 kgf/pelota</h3>
+<h3>Objeto 14: Faixas de compressão: desvio padrão</h3>
 <table>
 <thead>
 <tr>
@@ -844,19 +848,19 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>46,03 ; 14,83</td>
+<td>43,66 ; 17,58</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
-<td>2,00 ; 0,94</td>
+<td>2,19 ; 0,94</td>
 </tr>
 <tr>
 <td>Tag</td>
-<td><code>307-QI-003</code></td>
+<td><code>307-GI-002</code></td>
 </tr>
 <tr>
 <td>Mapa</td>
-<td><code>IP_DISCRETEMAP</code> no arquivo: <strong>conferir</strong> (Parte B)</td>
+<td><code>IP_ANALOGMAP</code></td>
 </tr>
 <tr>
 <td>Atributo</td>
@@ -880,7 +884,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Formato</td>
-<td>Sem casas decimais (0)</td>
+<td>1 casa decimal (0,0)</td>
 </tr>
 <tr>
 <td>Regra de cor</td>
@@ -888,7 +892,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Observação</td>
-<td>A lâmpada ao lado acende na cor da faixa quando o valor é maior que zero (já vem pronta no arquivo).</td>
+<td>Dispersão entre as pelotas do ensaio, em kgf/pelota.</td>
 </tr>
 </tbody>
 </table>
@@ -907,7 +911,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>46,03 ; 16,20</td>
+<td>46,03 ; 14,83</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
@@ -970,7 +974,7 @@ hr { border: 0; border-top: 1px solid #c5ccd6; }
 </tr>
 <tr>
 <td>Posição em unidades (X ; Y)</td>
-<td>46,03 ; 17,58</td>
+<td>46,03 ; 16,20</td>
 </tr>
 <tr>
 <td>Tamanho em unidades (largura ; altura)</td>
