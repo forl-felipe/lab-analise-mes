@@ -118,7 +118,10 @@ MAPA_PADRAO = 'IP_MESVALOR'
 MAPA_PFUF = 'IP_AnalogMap'
 # Fe (%) de Ubu e tag de analise do laboratorio (como as do batch): mapa IP_MESVALOR
 MAPA_PFUF_TAG = {}
-ORDEM_PF = ['Fe', 'SE', 'SiO2', 'P']   # ordem dos resultados do PFUF copiados do MES (linhas da aba Batch)            # mapa diferente para alguma tag do PFUF (chave -> mapa)
+ORDEM_PF = ['Fe', 'SE', 'SiO2', 'P']
+# texto da faixa COLE AQUI do comparativo (o VBA recoloca depois de cada colagem)
+TEXTO_COLA_RESTO = 'CLIQUE AQUI E CTRL+V   ·   bloco do batch copiado da planilha dos técnicos'
+TEXTO_COLA = '▶   ' + TEXTO_COLA_RESTO   # ordem dos resultados do PFUF copiados do MES (linhas da aba Batch)            # mapa diferente para alguma tag do PFUF (chave -> mapa)
 # Pellet Feed Ultra Fino (elutriacao) - composto diario de Ubu, tags informadas pelo laboratorio (22/10/2026)
 # (chave, rotulo no painel, tag, descricao no MES, decimais, faixa valida, valor tipico (simulacao))
 # Fe: tag de Fe da elutriacao (no lugar da de FeO), lista do laboratorio de 23/11/2026
@@ -600,6 +603,9 @@ class Construtor:
         # legenda dos campos (para saber exatamente onde preencher); a planilha de acompanhamento fica sem ela
         if VARIANTE == 'ACOMP':
             ws.set_row(2, 6)
+        elif VARIANTE == 'COMP':
+            # comparativo: a linha 2 tem so os botoes (Colar batch, Salvar no historico, Ver painel, Limpar)
+            ws.set_row(2, 40)
         else:
             ws.set_row(2, 20)
             ws.write(2, 1, 'Campos:', self.f(bold=True, font_size=8, font_color=MUTED, align='right'))
@@ -710,14 +716,15 @@ class Construtor:
             for r in range(9, 18):
                 ws.set_row(r, None, None, {'hidden': True})
         # conferencia (preenchida sozinha; da para corrigir): rotulos na linha RL, valores na RV
-        RL, RV = 19, 20
+        # (comparativo: a faixa COLE AQUI vem logo depois do titulo e a conferencia embaixo dela)
+        RL, RV = (19, 20) if VARIANTE == 'ACOMP' else (20, 21)
         if VARIANTE == 'ACOMP':
             self.secao(ws, 18, 1, 13, '3 · CONFERÊNCIA   (preenchida pelas fases e pelo MES — corrija se precisar)')
         else:
             # comparativo: a linha do batch e copiada na planilha dos tecnicos e colada na linha amarela embaixo
             # (sempre vazia); o VBA le, preenche a conferencia e esvazia a linha (ModBatch.ConferenciaColada)
-            self.secao(ws, 18, 0, 13, '2 · BATCH DOS TÉCNICOS   (aba Batch deles: selecione o bloco do batch inteiro > '
-                                      'Ctrl+C; aqui, clique na linha amarela COLE AQUI > Ctrl+V)')
+            self.secao(ws, 18, 0, 13, '1 · COLE AQUI O BATCH   (planilha dos técnicos, aba Batch: selecione o bloco do '
+                                      'batch inteiro, da faixa BATCH até a última linha, e Ctrl+C)')
         conf = [(1, 2, 'Germano · início (EB06)', 'bIniG', fauto_dt), (3, 3, 'Germano · término', 'bFimG', fauto_dt),
                 (4, 5, 'Ubu · chegada (UBU3)', 'bIniU', fauto_dt), (6, 7, 'Ubu · término', 'bFimU', fauto_dt)]
         for c1, c2, rot, nm, fmt in conf:
@@ -785,17 +792,15 @@ class Construtor:
         if VARIANTE == 'ACOMP':
             ws.set_row(RV + 1, 8)
         else:
-            # linha COLE AQUI: vazia, desbloqueada, com as mesmas mesclas da linha dos tecnicos (coluna A = batch,
-            # quando a linha vem da tabela CONFERENCIA DOS BATCHES; da linha 3 deles, comeca em GERMANO · INICIO)
-            fcola = self.fi(font_size=8, font_color=MUTED, align='center', border=4)
-            for c1, c2 in [(0, 0), (1, 2), (3, 3), (4, 5), (6, 7), (8, 9), (10, 10), (11, 11), (12, 12), (13, 13)]:
-                if c2 > c1:
-                    ws.merge_range(RV + 1, c1, RV + 1, c2, '', fcola)
-                else:
-                    ws.write_blank(RV + 1, c1, None, fcola)
-            ws.set_row(RV + 1, 24)
-            self.nome('bConfCola', ws, RV + 1, 0, RV + 1, 13)
-            ws.data_validation(RV + 1, 0, RV + 1, 13, {'validate': 'any', 'input_title': 'COLE AQUI (Ctrl+V)',
+            # faixa COLE AQUI (logo abaixo do titulo): uma celula so, desbloqueada; o Ctrl+V da planilha le o texto
+            # copiado (ModBatch.ColarInteligente) e a faixa volta ao texto dela (EsvaziarLinhaCola)
+            fcola = self.fi(font_size=12, bold=True, font_color=AZUL_PROF, align='center', valign='vcenter', border=2,
+                            border_color=AMARELO)
+            ws.merge_range(19, 0, 19, 13, TEXTO_COLA, fcola)
+            ws.set_row(19, 40)
+            self.nome('bConfCola', ws, 19, 0, 19, 13)
+            ws.set_row(RV + 1, 10)
+            ws.data_validation(19, 0, 19, 13, {'validate': 'any', 'input_title': 'COLE AQUI (Ctrl+V)',
                                                        'input_message': 'Planilha dos técnicos, aba Batch: selecione o '
                                                        'bloco do batch (da faixa BATCH até a última linha da grade) e '
                                                        'Ctrl+C. Aqui: clique nesta linha e Ctrl+V. Batch, horários, '
@@ -810,10 +815,13 @@ class Construtor:
             self.tabela_conferencias(ws, r, fu_l, fu)
         else:
             self.tabela_referencia(ws, r, fu_l, fu)
+            # comparativo: identificacao (4-8) e referencia ficam ocultas (os campos continuam para as macros)
+            for rr in list(range(4, 9)) + list(range(B_ROW_ULT - 2, B_ROW_ULT + N_ULT + 1)):
+                ws.set_row(rr, None, None, {'hidden': True})
 
         # --- pellet feed ultra fino: composto diario do dia anterior, lancado a mao (copiado do MES, na vertical)
         r = B_ROW_ULT + N_ULT + 1
-        self.secao(ws, r, 1, 13, ('4' if VARIANTE == 'ACOMP' else '3') + ' · PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO '
+        self.secao(ws, r, 1, 13, ('4' if VARIANTE == 'ACOMP' else '2') + ' · PELLET FEED ULTRA FINO — COMPOSTO DIÁRIO DO '
                                  'DIA ANTERIOR   (no MES, copie os 4 resultados na vertical e cole em Fe)')
         ws.merge_range(r + 1, 1, r + 1, 2, 'DATA DO COMPOSTO', fl)
         # data livre (digitada); o VBA so sugere o dia anterior a um batch novo
@@ -844,7 +852,7 @@ class Construtor:
         # --- comentarios do report (logo abaixo da conferencia, para editar antes de salvar)
         r = B_ROW_ULT + N_ULT + 7
         assert r + 10 == B_ROW_G0 - 2
-        self.secao(ws, r, 1, 13, ('5' if VARIANTE == 'ACOMP' else '4') + ' · COMENTÁRIOS DO REPORT   (os dois primeiros são automáticos — dá para editar)')
+        self.secao(ws, r, 1, 13, ('5' if VARIANTE == 'ACOMP' else '3') + ' · COMENTÁRIOS DO REPORT   (os dois primeiros são automáticos — dá para editar)')
         fauto = self.fi(italic=True, font_size=9.5, font_color=INK2, text_wrap=True, bg_color=AUTO)
         for rr, rot, form, nm, nm_inc in [(r + 1, 'Parâmetros fora', '=gFrase', 'bFrase', 'bIncFrase'),
                                           (r + 2, 'Acompanhamento', '=gAcomp', 'bAcomp', 'bIncAcomp')]:
@@ -869,7 +877,7 @@ class Construtor:
         ws.set_row(r + 9, 8)
 
         # --- leituras
-        self.secao(ws, B_ROW_G0 - 2, 1, 13, ('6' if VARIANTE == 'ACOMP' else '5') + ' · LEITURAS POR HORÁRIO   (' + ('vêm do MES' if VARIANTE == 'ACOMP' else 'vêm do bloco colado; dá para corrigir') + ')')
+        self.secao(ws, B_ROW_G0 - 2, 1, 13, ('6' if VARIANTE == 'ACOMP' else '4') + ' · LEITURAS POR HORÁRIO   (' + ('vêm do MES' if VARIANTE == 'ACOMP' else 'vêm do bloco colado; dá para corrigir') + ')')
         r0 = B_ROW_G0
         fgh = self.f(bold=True, font_size=8.5, font_color=BRANCO, bg_color=NAVY2, align='center', border=1,
                      border_color=BRANCO, text_wrap=True)
@@ -1005,10 +1013,10 @@ class Construtor:
         else:
             # comparativo: as linhas das fases ficam ocultas, entao as acoes cabem ao lado da identificacao
             # sem consulta ao MES: o batch vem colado da planilha dos tecnicos (bloco da aba Batch deles)
-            self.botao(ws, 5, 10, 'Colar batch', 'ColarConferencia', 127, 34, 'a', x=8, y=4)
-            self.botao(ws, 5, 12, 'Salvar no histórico', 'SalvarHistorico', 127, 34, 'g', x=4, y=4)
-            self.botao(ws, 7, 10, 'Ver painel →', 'IrPainel', 127, 26, 'n', x=8, y=0)
-            self.botao(ws, 7, 12, 'Limpar leituras', 'LimparLeituras', 127, 26, 'd', x=4, y=0)
+            self.botao(ws, 2, 1, 'Colar batch', 'ColarConferencia', 150, 30, 'a', x=4, y=5)
+            self.botao(ws, 2, 1, 'Salvar no histórico', 'SalvarHistorico', 160, 30, 'g', x=164, y=5)
+            self.botao(ws, 2, 1, 'Ver painel →', 'IrPainel', 130, 30, 'n', x=334, y=5)
+            self.botao(ws, 2, 1, 'Limpar', 'NovoBatch', 100, 30, 'd', x=474, y=5)
         ws.print_area(0, 0, self.b_fim, 13)
         ws.freeze_panes(2, 0)
         if VARIANTE == 'ACOMP':
@@ -1790,7 +1798,8 @@ class Construtor:
              "Public Const H_COL_INIP As Long = %d" % (H_COLS.index('Início no processo') + 1),
              'Public Const PF_CHAVES As String = "%s"' % '|'.join(k[0] for k in PFUF),
              'Public Const PF_DECIMAIS As String = "%s"' % '|'.join(str(k[4]) for k in PFUF),
-             'Public Const ORDEM_PF As String = "%s"' % '|'.join(ORDEM_PF)]
+             'Public Const ORDEM_PF As String = "%s"' % '|'.join(ORDEM_PF),
+             'Public Const TEXTO_COLA_RESTO As String = "%s"' % TEXTO_COLA_RESTO]
         for k, v in C_COL.items():
             L.append("Public Const C_COL_%s As Long = %d" % (k, v + 1))
         L += ["' aba _Graf",

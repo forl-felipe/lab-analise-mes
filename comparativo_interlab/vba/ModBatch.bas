@@ -399,7 +399,7 @@ Public Sub NovoBatch()
     LimparBatch
     On Error Resume Next
     shBatch.Activate
-    Nm("bId").Select
+    If VARIANTE = "COMP" Then Nm("bConfCola").Cells(1, 1).Select Else Nm("bId").Select
 End Sub
 
 ' Deixa a aba Batch em branco para o proximo batch (numero em branco; tolerancias, laboratorios,
@@ -511,25 +511,24 @@ End Function
 
 Public Sub ConferenciaColada()
     Static ocupado As Boolean
-    Dim msg As String, t As String, c As Long, lin As Range, vazia As Boolean, comFormula As Boolean
+    Dim msg As String, t As String, c As Long, lin As Range
     If ocupado Then Exit Sub                     ' nunca roda por cima de si mesma
     ocupado = True
     On Error GoTo Falha
     Set lin = LinhaConf()
-    vazia = True
+    ' o que ficou nas celulas (o colar do Excel); a propria faixa com o texto dela nao conta
     For c = 1 To lin.Columns.Count
-        t = t & IIf(c > 1, vbTab, "") & lin.Cells(1, c).Text
-        If Trim$(lin.Cells(1, c).Text) <> "" Then vazia = False
-        If lin.Cells(1, c).HasFormula Then comFormula = True
+        If Trim$(lin.Cells(1, c).Text) <> "" Then t = t & IIf(t <> "", vbTab, "") & lin.Cells(1, c).Text
     Next c
-    If Not vazia Then
-        ' a linha 3 dos tecnicos vem com formulas (recalculadas aqui, com os dados daqui): vale o texto copiado
-        If comFormula Then msg = LerColado(TextoAreaTransferencia())
-        If msg = "" Then msg = LerConferencia(t)
+    If InStr(t, TEXTO_COLA_RESTO) > 0 Then t = ""
+    If t <> "" Then
+        ' vale o texto copiado (sem formulas da outra planilha); sem ele, o que ficou nas celulas
+        msg = LerColado(TextoAreaTransferencia())
+        If msg = "" Then msg = LerColado(t)
     End If
     EsvaziarLinhaCola
     ocupado = False
-    If vazia Then Exit Sub
+    If t = "" Then Exit Sub
     AvisoConferencia msg
     Exit Sub
 Falha:
@@ -602,10 +601,14 @@ Private Sub EsvaziarLinhaCola()
     Desproteger shBatch
     Set lin = LinhaConf()
     lin.ClearContents
+    If lin.Columns.Count > 1 And Not lin.Cells(1, 1).MergeCells Then lin.Merge
+    lin.Cells(1, 1).Value = ChrW(9654) & "   " & TEXTO_COLA_RESTO
     lin.NumberFormat = "General"
     lin.Interior.Color = RGB(255, 242, 204)
-    lin.Font.Color = RGB(91, 107, 119)
-    lin.Font.Bold = False
+    lin.Font.Color = RGB(0, 38, 67)
+    lin.Font.Bold = True
+    lin.Font.Size = 12
+    lin.HorizontalAlignment = -4108
     lin.Locked = False
     Proteger shBatch
     ModoCarga False

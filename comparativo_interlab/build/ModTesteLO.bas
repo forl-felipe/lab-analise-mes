@@ -149,20 +149,14 @@ Private Sub TesteVariante(ByVal pSi As Long, ByVal pSE As Long)
         Nm("bId").Value = 266
         Set lc = LinhaConf()
         Desproteger shBatch
-        lc.Cells(1, 2).Value = "'14/11/26 00:00"
-        lc.Cells(1, 4).Value = "'15/11/26 03:00"
-        lc.Cells(1, 5).Value = "'16/11/26 16:14"
-        lc.Cells(1, 7).Value = "'17/11/26 16:31"
-        lc.Cells(1, 9).Value = "'16/11/26 17:30"
-        lc.Cells(1, 11).Value = 13
-        lc.Cells(1, 12).Value = "'+4 h"
-        lc.Cells(1, 13).Value = "'17/11/26"
-        lc.Cells(1, 14).Value = "'03"
+        lc.Cells(1, 1).Value = "'14/11/26 00:00" & vbTab & vbTab & "15/11/26 03:00" & vbTab & "16/11/26 16:14" & vbTab & _
+            vbTab & "17/11/26 16:31" & vbTab & vbTab & "16/11/26 17:30" & vbTab & vbTab & "13" & vbTab & "+4 h" & vbTab & _
+            "17/11/26" & vbTab & "03"
         ConferenciaColada
         Ok EData(V("bIniG")) And EData(V("bFimU")) And CLng(V("bNHor")) = 13 And CDbl(V("bExtH")) = 4, _
            "Ctrl+V da conferencia: Germano, Ubu, 13 bi-horarios, +4 h"
-        Ok Vazio(lc.Cells(1, 2).Value) And Vazio(lc.Cells(1, 9).Value) And Not lc.Cells(1, 2).Locked, _
-           "linha COLE AQUI vazia de novo depois de colar"
+        Ok InStr(CStr(lc.Cells(1, 1).Value), "CLIQUE AQUI") > 0 And Not lc.Cells(1, 1).Locked, _
+           "faixa COLE AQUI volta ao texto dela depois de colar"
         Ok CStr(V("bId")) = "266", "batch 266 (o que ja estava, colando a linha sem o numero)"
         Ok Nm("bIniP").HasFormula And Nm("bDef").HasFormula And Abs(CDbl(V("bIniP")) - CDbl(DateSerial(2026, 11, 16) + _
            TimeSerial(17, 30, 0))) < 0.0001, "Ctrl+V da conferencia: formulas refeitas, inicio manual 16/11 17:30"
