@@ -1,0 +1,24 @@
+TOLERÂNCIA DA S.E. POR FAIXA — como aplicar na planilha do comparativo que já está em uso
+=========================================================================================
+
+Critério novo (definido pela média de Germano e Ubu do batch):
+    S.E. até 2000 cm²/g ............ tolerância ±150
+    S.E. de 2000 a 2200 cm²/g ...... tolerância ±200
+    S.E. acima de 2200 cm²/g ....... tolerância ±250
+O farol (OK/NOK), o vermelho da diferença, a frase do report e o histórico passam a usar essa tolerância.
+
+Passo a passo (uma vez só, leva 1 minuto):
+ 1. Faça uma cópia de segurança da planilha (por garantia).
+ 2. Abra a planilha no Excel e habilite as macros.
+ 3. Aperte Alt+F11 (abre o editor do VBA).
+ 4. Menu Arquivo > Importar arquivo...  e escolha  ModToleranciaSE.bas
+    (aparece um módulo "ModToleranciaSE" na pasta Módulos, à esquerda).
+ 5. Clique dentro do texto do módulo e aperte F5 (ou menu Executar > Executar Sub).
+    Se pedir o nome da macro, escolha AjustarToleranciaSE.
+ 6. Aparece a mensagem "Tolerância da S.E. agora é por faixa". Clique OK.
+ 7. (Opcional) Clique com o botão direito no ModToleranciaSE > Remover ModToleranciaSE > Não (não exportar).
+ 8. Feche o editor e salve a planilha (Ctrl+S), mantendo o formato .xlsm.
+
+Observações:
+ - Os batches que já estão no Histórico continuam com a tolerância com que foram salvos (150).
+ - Se o batch que estiver na aba "Colar batch" tiver média acima de 2000, o farol dele já é refeito com a nova faixa.

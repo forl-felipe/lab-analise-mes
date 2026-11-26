@@ -26,6 +26,33 @@ Private Function Lin(ParamArray c() As Variant) As String
     Lin = Lin & vbCrLf
 End Function
 
+' Tolerancia da S.E. por faixa da media Germano/Ubu: ate 2000 -> 150; 2000 a 2200 -> 200; acima -> 250
+Private Sub TesteTolSE(ByVal pSE As Long)
+    Dim casos As Variant, k As Long, a As Double, b As Double, esp As Double, t As Double
+    casos = Array(1900, 1950, 150, 2000, 2000, 150, 2050, 2100, 200, 2200, 2200, 200, 2190, 2260, 250, 2400, 2300, 250)
+    Desproteger shBatch
+    For k = 0 To UBound(casos) Step 3
+        a = casos(k): b = casos(k + 1): esp = casos(k + 2)
+        shBatch.Cells(B_ROW_G0, ColValor(pSE, 0)).Value = a
+        shBatch.Cells(B_ROW_G0, ColValor(pSE, 1)).Value = b
+        Application.Calculate
+        t = CDbl(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_ST + 2).Value)
+        Ok t = esp And CDbl(V("bTol_SE")) = esp, "tolerancia S.E. por faixa: " & a & "/" & b & " -> " & t & " (esperado " & esp & ")"
+    Next k
+    shBatch.Cells(B_ROW_G0, ColValor(pSE, 0)).Value = 1900
+    shBatch.Cells(B_ROW_G0, ColValor(pSE, 1)).Value = 1720
+    Application.Calculate
+    Ok CStr(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_ST).Value) = "NOK", "S.E. 1900/1720 (dif 180 > 150): farol NOK"
+    shBatch.Cells(B_ROW_G0, ColValor(pSE, 0)).Value = 2300
+    shBatch.Cells(B_ROW_G0, ColValor(pSE, 1)).Value = 2120
+    Application.Calculate
+    Ok CStr(shGraf.Cells(G_ROW_ST + pSE - 1, G_COL_ST).Value) = "OK", "S.E. 2300/2120 (dif 180, tol 250): farol OK"
+    shBatch.Cells(B_ROW_G0, ColValor(pSE, 0)).ClearContents
+    shBatch.Cells(B_ROW_G0, ColValor(pSE, 1)).ClearContents
+    Application.Calculate
+    Ok CDbl(V("bTol_SE")) = 150, "sem S.E. lancada: tolerancia 150"
+End Sub
+
 Private Function Celula(ByVal i As Long, ByVal p As Long, ByVal lab As Long) As Variant
     Celula = shBatch.Cells(B_ROW_G0 + i - 1, ColValor(p, lab)).Value
 End Function
@@ -166,7 +193,7 @@ End Sub
 
 Public Sub TesteLO()
     Dim n As Long, id As Long, r As Long, nL As Long, i As Long, a As Variant, b As Variant, s As String
-    Dim pSE As Long, pSi As Long, salvo1 As Variant, salvo2 As Variant
+    Dim pSE As Long, pSi As Long, salvo1 As Variant, salvo2 As Variant, tSE As Variant
     On Error GoTo Erro
     gSilencioso = True
     gTesteLO = True
@@ -175,6 +202,7 @@ Public Sub TesteLO()
     pSE = PIndice("SE")
     pSi = PIndice("SiO2")
     Recalcular
+    TesteTolSE pSE
     ' planilhas padrao (acompanhamento / comparativo): teste proprio de cada uma
     If VARIANTE <> "COMPLETA" Then
         TesteVariante pSi, pSE
@@ -439,6 +467,14 @@ Public Sub TesteLO()
     Ok Abs(CDbl(shAcomp.Cells(LinhaHora(rb), ColHora(1)).Value) - CDbl(shBatch.Cells(B_ROW_G0, B_COL_TU).Value)) < 0.0001, _
        "horario da coluna = horario de Ubu"
     ' Ubu lancado a mao: diferenca, media e status no resumo; refazer a busca nao apaga
+    For i = 1 To NP
+        rRes = LinhaResumo(rb, i)
+        If InStr(CStr(shAcomp.Cells(rRes, 7).Formula), "2200") > 0 Then Exit For
+    Next i
+    Ok i = NP + 1 Or InStr(CStr(shAcomp.Cells(rRes, 2).Value), "S.E") > 0, "tolerancia por faixa so na linha da S.E. (" & shAcomp.Cells(rRes, 2).Value & ")"
+    Ok i <= NP, "tolerancia S.E. do bloco por faixa (" & shAcomp.Cells(rRes, 7).Formula & ")"
+    tSE = shAcomp.Cells(rRes, 7).Value
+    Ok tSE = 150 Or tSE = 200 Or tSE = 250, "tolerancia S.E. do bloco = " & tSE
     rRes = LinhaResumo(rb, 1)
     Desproteger shAcomp
     For i = 1 To n

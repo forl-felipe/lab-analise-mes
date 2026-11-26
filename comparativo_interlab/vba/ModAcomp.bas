@@ -483,7 +483,11 @@ Private Sub DesenharBloco(ByVal ws As Worksheet, ByVal i As Long, ByVal id As Va
         Set tol = ws.Cells(rr, R_COL_TOL)
         CelulaTabela tol, False
         ' tolerancia (Configuracoes); na planilha online vai o numero (ela nao depende desta)
-        If ws.Parent Is ThisWorkbook Then
+        If chave = "SE" Then
+            ' S.E.: tolerancia pela faixa da media deste batch (ate 2000: 150; 2000 a 2200: 200; acima: 250)
+            tol.Formula = FormulaTolSE(ws.Cells(rr, R_COL_G).Address(False, False) & "," & _
+                                       ws.Cells(rr, R_COL_U).Address(False, False))
+        ElseIf ws.Parent Is ThisWorkbook Then
             tol.Formula = "=padTol_" & chave
         Else
             tol.Value = CDbl(Nm("padTol_" & chave).Value)
@@ -670,6 +674,13 @@ Private Sub CelulaDigitar(ByVal rg As Range)
     End With
     rg.Locked = False
 End Sub
+
+' Tolerancia da S.E. por faixa a partir das medias dos dois laboratorios (a media delas define a faixa)
+Public Function FormulaTolSE(ByVal medias As String) As String
+    Dim m As String
+    m = "AVERAGE(" & medias & ")"
+    FormulaTolSE = "=IF(COUNT(" & medias & ")=0,150,IF(" & m & "<=2000,150,IF(" & m & "<=2200,200,250)))"
+End Function
 
 Private Function ForaTol(ByVal c As Range, ByVal dec As Long, ByVal tol As Range) As String
     ForaTol = "=AND(ISNUMBER(" & c.Address(False, False) & "),ISNUMBER(" & tol.Address(True, True) & "),ABS(ROUND(" & _

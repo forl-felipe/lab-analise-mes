@@ -113,7 +113,10 @@ batches).
 
 - Média de cada laboratório = média de **todas** as leituras dele no batch.
 - Diferença = avaliado − referência (padrão: **Ubu − Germano**; a referência pode ser trocada no batch).
-- **OK** quando |diferença arredondada| ≤ tolerância. Tolerâncias padrão: S.E. 150 · <325# 1,0 · SiO₂ 0,19 · P 0,003 · PPC 0,08.
+- **OK** quando |diferença arredondada| ≤ tolerância. Tolerâncias padrão: S.E. por faixa · <325# 1,0 · SiO₂ 0,19 · P 0,003 · PPC 0,08.
+- **S.E. por faixa** (pela média das médias de Germano e Ubu do batch): até 2000 cm²/g → ±150; de 2000 a 2200 → ±200;
+  acima de 2200 → ±250. Na planilha dos técnicos, cada bloco usa a média do próprio batch. Para uma planilha já em uso,
+  `atualizacoes/ModToleranciaSE.bas` (ver `atualizacoes/COMO_APLICAR.txt`).
 - Os gráficos mostram só os horários com leitura nos dois laboratórios (ex.: química de Ubu de 4 em 4 h ×
   Germano de 2 em 2 h), mais a coluna **Média**, que é a média de todas as leituras de cada laboratório.
 - **Escala de cada análise** (Configurações: frequência e 1º horário): o MES devolve a análise de 4 h em duas

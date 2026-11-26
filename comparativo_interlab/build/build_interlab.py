@@ -93,6 +93,21 @@ PARAMS = [
     ('PPC', 'PPC', 'PPC', 'PPC', 2, 0.08, (0, 15), 3.60, 3.55),
 ]
 NP = len(PARAMS)
+# tolerancia da S.E. por faixa (pedido da gestao): (limite superior da faixa, tolerancia); acima do ultimo, SE_TOL_ACIMA.
+# A faixa e definida pela media das medias dos dois laboratorios (so uma, se a outra faltar).
+SE_FAIXAS = [(2000, 150), (2200, 200)]
+SE_TOL_ACIMA = 250
+SE_TOL_ROTULO = 'Tolerância S.E. (±) por faixa'
+SE_TOL_NOTA = 'até 2000 → 150 · 2000 a 2200 → 200 · acima de 2200 → 250 (pela média Germano/Ubu)'
+
+
+def formula_tol_se(medias):
+    """Formula (sem '=') da tolerancia da S.E. a partir de um intervalo/lista com as medias dos dois laboratorios."""
+    m = 'AVERAGE(%s)' % medias
+    f = str(SE_TOL_ACIMA)
+    for lim, tol in reversed(SE_FAIXAS):
+        f = 'IF(%s<=%s,%s,%s)' % (m, lim, tol, f)
+    return 'IF(COUNT(%s)=0,%s,%s)' % (medias, SE_FAIXAS[0][1], f)
 PK = [p[0] for p in PARAMS]
 # ordem dos graficos no painel (como no HTML)
 ORDEM_GRAF = ['P', 'SiO2', 'PPC', '325', 'SE']
@@ -542,16 +557,25 @@ class Construtor:
                ('padCom', 'Comentário padrão (1º tópico)', 'Ponto de amostragem do PF recebido na descarga '
                                                         'da filtragem.')]
         for k, pr in enumerate(PARAMS):
-            pad.append(('padTol_%s' % pr[0], 'Tolerância %s (±)' % pr[1], pr[5]))
+            if pr[0] == 'SE':
+                # S.E.: tolerancia pela faixa da media do batch em andamento (linha da S.E. no _Graf)
+                lin = G_ROW_ST + k + 1
+                pad.append(('padTol_SE', SE_TOL_ROTULO, '=' + formula_tol_se("_Graf!$B$%d:$C$%d" % (lin, lin))))
+            else:
+                pad.append(('padTol_%s' % pr[0], 'Tolerância %s (±)' % pr[1], pr[5]))
         for i, (nm, rot, val) in enumerate(pad):
             rr = r + 1 + i
             ws.write(rr, 1, rot, fr)
             ws.merge_range(rr, 2, rr, 5, '', self.fi())
-            if isinstance(val, str):
+            if isinstance(val, str) and val.startswith('='):
+                ws.write_formula(rr, 2, val, self.fi(num_format='General', align='left'), SE_FAIXAS[0][1])
+            elif isinstance(val, str):
                 ws.write_string(rr, 2, val, self.fi())
             else:
                 ws.write(rr, 2, val, self.fi(num_format='General', align='left'))
             self.nome(nm, ws, rr, 2)
+            if nm == 'padTol_SE':
+                ws.write(rr, 6, SE_TOL_NOTA, self.f(font_size=9, font_color=MUTED, italic=True))
         r = r + 1 + len(pad) + 1
         self.secao(ws, r, 1, 8, 'TÍTULOS DOS GRÁFICOS')
         for i, pr in enumerate(PARAMS):
