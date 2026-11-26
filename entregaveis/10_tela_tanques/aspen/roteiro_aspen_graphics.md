@@ -17,7 +17,7 @@ O arquivo `Tanques_e_Fluxos.atgraphic` foi gerado pelo mesmo processo das telas 
 | Barras de nível dos tanques (com a fórmula da tela original) | 11 |
 | Campos de dados ligados às tags ou às fórmulas | 33 |
 | Tendências com penas e escala definidas | 19 |
-| Textos fixos | 101 |
+| Textos fixos | 89 |
 
 ## Parte A. Abrir
 
@@ -79,8 +79,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 2,36 ; 11,28 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 2,33 ; 11,28 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -107,8 +107,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 7,30 ; 11,28 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 7,27 ; 11,28 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -135,8 +135,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 12,23 ; 11,28 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 12,20 ; 11,28 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -163,8 +163,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 17,17 ; 11,28 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 17,14 ; 11,28 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -191,8 +191,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 22,11 ; 11,28 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 22,08 ; 11,28 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -219,8 +219,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 2,36 ; 21,16 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 2,33 ; 21,16 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -247,8 +247,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 7,30 ; 21,16 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 7,27 ; 21,16 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -275,8 +275,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 12,23 ; 21,16 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 12,20 ; 21,16 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -303,8 +303,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 17,17 ; 21,16 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 17,14 ; 21,16 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -331,8 +331,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 22,11 ; 21,16 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 22,08 ; 21,16 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -359,8 +359,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 27,05 ; 21,16 |
-| Tamanho em unidades (largura ; altura) | 2,38 ; 0,94 |
+| Posição em unidades (X ; Y) | 27,02 ; 21,16 |
+| Tamanho em unidades (largura ; altura) | 2,31 ; 0,81 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -378,7 +378,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 1,78 ; 25,72 |
-| Tamanho em unidades (largura ; altura) | 6,25 ; 2,25 |
+| Tamanho em unidades (largura ; altura) | 6,25 ; 1,88 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -395,8 +395,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 5,28 ; 28,53 |
-| Tamanho em unidades (largura ; altura) | 2,81 ; 0,75 |
+| Posição em unidades (X ; Y) | 5,84 ; 28,16 |
+| Tamanho em unidades (largura ; altura) | 2,50 ; 0,75 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -413,8 +413,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 5,28 ; 29,84 |
-| Tamanho em unidades (largura ; altura) | 2,81 ; 0,75 |
+| Posição em unidades (X ; Y) | 5,84 ; 29,47 |
+| Tamanho em unidades (largura ; altura) | 2,50 ; 0,75 |
 | Tag | Fórmula da tela original (ver Parte B) |
 | Mapa | `Fixed` |
 | Atributo | `VAL` |
@@ -440,8 +440,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 34,06 ; 6,91 |
-| Tamanho em unidades (largura ; altura) | 4,63 ; 1,25 |
+| Posição em unidades (X ; Y) | 34,94 ; 6,97 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,13 |
 | Tag | `M4650030010-0013-HHLQU` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | `VAL` |
@@ -466,8 +466,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 39,88 ; 6,91 |
-| Tamanho em unidades (largura ; altura) | 4,63 ; 1,25 |
+| Posição em unidades (X ; Y) | 40,75 ; 6,97 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,13 |
 | Tag | `M4710050020-0004-HHLQU` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | `VAL` |
@@ -492,8 +492,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 45,69 ; 6,91 |
-| Tamanho em unidades (largura ; altura) | 4,63 ; 1,25 |
+| Posição em unidades (X ; Y) | 46,56 ; 6,97 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,13 |
 | Tag | `M4710050020-0493-HHLQU` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | `VAL` |
@@ -518,8 +518,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 51,50 ; 6,91 |
-| Tamanho em unidades (largura ; altura) | 4,63 ; 1,25 |
+| Posição em unidades (X ; Y) | 52,38 ; 6,97 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,13 |
 | Tag | `M4710050020-0029-HHLFU` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | `VAL` |
@@ -544,8 +544,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 57,31 ; 6,91 |
-| Tamanho em unidades (largura ; altura) | 4,63 ; 1,25 |
+| Posição em unidades (X ; Y) | 58,19 ; 6,97 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,13 |
 | Tag | `M4710050020-0031-HHLFU` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | `VAL` |
@@ -570,8 +570,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 63,13 ; 6,91 |
-| Tamanho em unidades (largura ; altura) | 4,63 ; 1,25 |
+| Posição em unidades (X ; Y) | 64,00 ; 6,97 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,13 |
 | Tag | `M4710050020-0035-HHLFU` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | `VAL` |
@@ -597,7 +597,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 33,47 ; 13,00 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `407-WIQ-001_1 ` |
 | Mapa | `IP_PIDMAP03` |
 | Atributo | `VAL` |
@@ -613,8 +613,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 33,47 ; 15,47 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 33,47 ; 15,13 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 407-WI-001_10 de 0 a 2000. |
 
 ### Objeto 41: Pelotas Usina 3: acumulado do dia (t)
@@ -623,7 +623,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 42,59 ; 13,00 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `307-WI-001_10_Dia` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | `VAL` |
@@ -639,8 +639,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 42,59 ; 15,47 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 42,59 ; 15,13 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 307-WI-001 de 0 a 2000. |
 
 ### Objeto 43: Ritmo (MES): ritmo informado no mes (t/dia)
@@ -649,7 +649,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 51,72 ; 13,00 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `M4710050031-0150-HHCC` |
 | Mapa | `IP_MESVALOR` |
 | Atributo | `VAL` |
@@ -665,8 +665,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 51,72 ; 15,47 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 51,72 ; 15,13 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: M4710050031-0150-HHCC de 0 a 30000. |
 
 ### Objeto 45: Repolpagem: valor atual
@@ -675,7 +675,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 60,84 ; 13,00 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `U00-001WIT-1000` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | `VAL` |
@@ -691,8 +691,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 60,84 ; 15,47 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 60,84 ; 15,13 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 001-WI-1000 de 0 a 400. |
 
 ### Objeto 47: Material para emergência 3: vazão atual (t/h)
@@ -701,7 +701,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 33,47 ; 20,66 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `307TP008-WIT003-R` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | `VAL` |
@@ -717,8 +717,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 33,47 ; 23,13 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 33,47 ; 22,78 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 307TP008-WIT003-R de 0 a 3000. |
 
 ### Objeto 49: Material para emergência 4: acumulado do dia (t)
@@ -727,7 +727,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 42,59 ; 20,66 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `407-WIQ-007` |
 | Mapa | `IP_PIDMAP03` |
 | Atributo | `VAL` |
@@ -743,8 +743,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 42,59 ; 23,13 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 42,59 ; 22,78 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 407-FIQ-707 de 0 a 3000. |
 
 ### Objeto 51: Emergência 4: acumulado do dia (t)
@@ -753,7 +753,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 51,72 ; 20,66 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `406-FIQ-610_1-Dia` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | `VAL` |
@@ -769,8 +769,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 51,72 ; 23,13 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 51,72 ; 22,78 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 406-FIQ-610 de 0 a 2000. |
 
 ### Objeto 53: Emergência 2: acumulado do dia (t)
@@ -779,7 +779,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 60,84 ; 20,66 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `008-WIQ-010_10` |
 | Mapa | `IP_PIDMAP03` |
 | Atributo | `VAL` |
@@ -795,8 +795,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 60,84 ; 23,13 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 60,84 ; 22,78 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 008-WI-010_1 de 0 a 2000. |
 
 ### Objeto 55: PSC pátio: acumulado do dia (t)
@@ -805,7 +805,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 33,47 ; 28,31 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `407-WIQ-003_10` |
 | Mapa | `IP_PIDMAP03` |
 | Atributo | `VAL` |
@@ -821,8 +821,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 33,47 ; 30,78 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 33,47 ; 30,44 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 407-WI-003_10 de 0 a 100. |
 
 ### Objeto 57: PSC MI: acumulado do dia (t)
@@ -831,7 +831,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 42,59 ; 28,31 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `407-WIQ-003_2_D` |
 | Mapa | `IP_ANALOGMAP` |
 | Atributo | `VAL` |
@@ -847,8 +847,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 42,59 ; 30,78 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 42,59 ; 30,44 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 407-WI-003_2 de 0 a 100. |
 
 ### Objeto 59: Retorno de pellet feed: valor atual
@@ -857,7 +857,7 @@ Posições em unidades da tela de 70 x 35.
 |---|---|
 | Ferramenta | Campo de dados |
 | Posição em unidades (X ; Y) | 51,72 ; 28,31 |
-| Tamanho em unidades (largura ; altura) | 4,69 ; 1,13 |
+| Tamanho em unidades (largura ; altura) | 3,75 ; 1,00 |
 | Tag | `U04-03TP003` |
 | Mapa | `IP_PIDMAP08` |
 | Atributo | `VAL` |
@@ -873,8 +873,8 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 51,72 ; 30,78 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 51,72 ; 30,44 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: U04-03TP003 de 0 a 100. |
 
 ### Objeto 61: Pellet feed Usina 3: retorno (t)
@@ -899,7 +899,7 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Campo de dados |
-| Posição em unidades (X ; Y) | 64,21 ; 28,72 |
+| Posição em unidades (X ; Y) | 64,33 ; 28,72 |
 | Tamanho em unidades (largura ; altura) | 2,50 ; 0,88 |
 | Tag | `008-WIQ-010_20` |
 | Mapa | `IP_PIDMAP03` |
@@ -916,7 +916,7 @@ Posições em unidades da tela de 70 x 35.
 | Propriedade | Valor |
 |---|---|
 | Ferramenta | Tendência (plot) |
-| Posição em unidades (X ; Y) | 60,84 ; 30,72 |
-| Tamanho em unidades (largura ; altura) | 7,63 ; 2,88 |
+| Posição em unidades (X ; Y) | 60,84 ; 30,38 |
+| Tamanho em unidades (largura ; altura) | 7,63 ; 3,13 |
 | Observação | Já vem pronta no arquivo: 303TP005-IT001-R de 0 a 100; 303TP005-WI001.1-R de 0 a 5000. |
 

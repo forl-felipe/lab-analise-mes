@@ -83,7 +83,7 @@ FLUXOS = [
      [("008-WIQ-010_30", PID3, 0, "Retorno", "t"), ("008-WIQ-010_20", PID3, 0, "Expedição", "t")]),
 ]
 
-AZUL_CLARO, BRANCO, AMARELO = (89, 198, 242), (255, 255, 255), (255, 192, 0)
+AZUL_CLARO, BRANCO, CINZA = (89, 198, 242), (255, 255, 255), (181, 190, 196)
 PLOT = (1, 41, 74)
 
 
@@ -114,13 +114,13 @@ def prototipo():
             nv = slot(dict(tipo="campo", tag="= " + termo(tag), mapa="Fixed", dec=0, nome=f"{titulo}: {nome}, estoque (tms)"))
             cols.append((nome, v, 5000, nb, nv, "var(--sam-azul-claro)"))
         tot = sum(c[1] for c in cols)
-        nb = slot(dict(tipo="barra", tag=f_total, mapa="Fixed", min=0, max=max_total, cor="255, 192, 0",
+        nb = slot(dict(tipo="barra", tag=f_total, mapa="Fixed", min=0, max=max_total, cor="255, 255, 255",
                        nome=f"{titulo}: total, nível em tms"))
         nv = slot(dict(tipo="campo", tag=f_total, mapa="Fixed", dec=0, nome=f"{titulo}: total (tms)"))
-        cols.append(("Total", tot, max_total, nb, nv, "var(--sam-amarelo)"))
+        cols.append(("Total", tot, max_total, nb, nv, "#FFFFFF"))
         html = []
         for nome, v, mx, nb, nv, cor in cols:
-            html.append(f'''      <div class="tq{' total' if nome == 'Total' else ''}"><div class="tq-nome">{nome}</div>
+            html.append(f'''      <div class="tq"><div class="tq-nome">{nome}</div>
         <div class="slot barra" data-slot="{nb}"><div class="enche" style="height:{v / mx * 100:.0f}%; background:{cor}"></div></div>
         <div class="tq-val"><span class="slot" data-slot="{nv}">{v:.0f}</span><span class="un">tms</span></div></div>''')
         return f'''  <section class="card" style="left:32px; top:{top}px; width:1000px; height:300px;">
@@ -138,7 +138,7 @@ def prototipo():
     np1 = slot(dict(tipo="campo", tag=F_P1, mapa="Fixed", dec=0, nome="Estoque total: Preparação 1 (tms)"))
     np2 = slot(dict(tipo="campo", tag=F_P2, mapa="Fixed", dec=0, nome="Estoque total: Preparação 2 (tms)"))
     ntend = slot(dict(tipo="tendencia", nome="Estoque total: tendência",
-                      penas=[(F_P2, "Fixed", 0, 45000, BRANCO), (F_P1, "Fixed", 0, 45000, AMARELO), (F_TOT, "Fixed", 0, 45000, AZUL_CLARO)]))
+                      penas=[(F_P2, "Fixed", 0, 45000, BRANCO), (F_P1, "Fixed", 0, 45000, CINZA), (F_TOT, "Fixed", 0, 45000, AZUL_CLARO)]))
     PW, PH = 600, 210
     grade = "".join(f'<div class="gl sobre" style="top:{(1 - v / 45000) * PH:.0f}px"></div><div class="ylab" style="top:{(1 - v / 45000) * PH - 8:.0f}px">{v}</div>'
                     for v in (15000, 30000))
@@ -148,14 +148,14 @@ def prototipo():
       <div class="tot-esq">
         <div class="rot">Preparação 1 + Preparação 2</div>
         <div style="display:flex; align-items:baseline"><span class="slot v-grande" data-slot="{ntot}" style="width:200px">26318</span><span class="unid">tms</span></div>
-        <div class="tot-sub"><span class="traco" style="background:var(--sam-amarelo)"></span><span class="rot">Preparação 1</span><span class="slot v-med" data-slot="{np1}" style="width:90px">10433</span><span class="rot">tms</span></div>
-        <div class="tot-sub"><span class="traco" style="background:#FFFFFF"></span><span class="rot">Preparação 2</span><span class="slot v-med" data-slot="{np2}" style="width:90px">15885</span><span class="rot">tms</span></div>
+        <div class="tot-sub"><span class="traco" style="background:var(--sam-cinza)"></span><span class="rot" style="width:96px">Preparação 1</span><span class="slot v-med" data-slot="{np1}" style="width:80px">10433</span><span class="rot" style="margin-left:6px">tms</span></div>
+        <div class="tot-sub"><span class="traco" style="background:#FFFFFF"></span><span class="rot" style="width:96px">Preparação 2</span><span class="slot v-med" data-slot="{np2}" style="width:80px">15885</span><span class="rot" style="margin-left:6px">tms</span></div>
       </div>
       <div class="graf" style="width:{PW + 48}px; height:{PH}px">
         <div class="plot-bg" style="width:{PW}px; height:{PH}px"></div>{grade}
         <div class="slot" data-slot="{ntend}" style="position:absolute; left:48px; top:0; width:{PW}px; height:{PH}px"><svg width="{PW}" height="{PH}">
-          {linha(serie(base=0.58, amp=0.05), PW, PH, "var(--sam-azul-claro)", 3)}{linha(serie(base=0.35, amp=0.04), PW, PH, "#FFFFFF", 2)}{linha(serie(base=0.23, amp=0.04), PW, PH, "var(--sam-amarelo)", 2)}</svg></div>
-        <div class="leg"><span class="traco" style="background:var(--sam-azul-claro)"></span>Total<span class="traco" style="background:var(--sam-amarelo)"></span>Preparação 1<span class="traco" style="background:#FFFFFF"></span>Preparação 2<span class="rot">escala 0 a 45000 tms</span></div>
+          {linha(serie(base=0.58, amp=0.05), PW, PH, "var(--sam-azul-claro)", 3)}{linha(serie(base=0.35, amp=0.04), PW, PH, "#FFFFFF", 2)}{linha(serie(base=0.23, amp=0.04), PW, PH, "var(--sam-cinza)", 2)}</svg></div>
+        <div class="leg"><span class="traco" style="background:var(--sam-azul-claro)"></span>Total<span class="traco" style="background:var(--sam-cinza)"></span>Preparação 1<span class="traco" style="background:#FFFFFF"></span>Preparação 2<span class="rot">escala 0 a 45000 tms</span></div>
       </div>
     </div>
   </section>''')
@@ -166,7 +166,7 @@ def prototipo():
         nv = slot(dict(tipo="campo", tag=tag, mapa=MES, dec=dec, nome=f"Qualidade: {nome} ({un})"))
         nt = slot(dict(tipo="tendencia", nome=f"Qualidade: {nome}, minitendência", penas=[(tag, MES, mn, mx, AZUL_CLARO)]))
         v = random.uniform(mn + (mx - mn) * 0.4, mn + (mx - mn) * 0.7)
-        tiles.append(f'''      <div class="ql"><div class="ql-nome">{nome}</div><div class="ql-un">{un}, escala {mn} a {mx}</div>
+        tiles.append(f'''      <div class="ql"><div class="ql-nome">{nome}</div><div class="ql-un">{un}</div>
         <span class="slot ql-val" data-slot="{nv}">{f"{v:.{dec}f}".replace(".", ",")}</span>
         <div class="slot" data-slot="{nt}" style="width:146px; height:44px"><svg width="146" height="44">{linha(serie(20, 0.55, 0.15), 146, 44, "var(--sam-azul-claro)", 2)}</svg></div></div>''')
     corpo.append(f'''  <section class="card" style="left:1052px; top:117px; width:1156px; height:236px;">
@@ -188,7 +188,7 @@ def prototipo():
         cores = [AZUL_CLARO, BRANCO]
         nt = slot(dict(tipo="tendencia", nome=f"{titulo}: tendência",
                        penas=[(t, m, mn, mx, cores[i]) for i, (t, m, mn, mx) in enumerate(penas)][::-1]))
-        traco = "".join(linha(serie(30, 0.55 - 0.25 * i, 0.15), 244, 92, "var(--sam-azul-claro)" if i == 0 else "#FFFFFF", 2.5) for i in range(len(penas)))
+        traco = "".join(linha(serie(30, 0.55 - 0.25 * i, 0.15), 244, 100, "var(--sam-azul-claro)" if i == 0 else "#FFFFFF", 2.5) for i in range(len(penas)))
         if len(vals) == 1:
             nv, v, rot, un = vals[0]
             valores = f'''<div class="fx-val"><span class="slot fx-num" data-slot="{nv}">{v}</span><span class="un">{un}</span></div>
@@ -200,9 +200,8 @@ def prototipo():
         corpo.append(f'''  <section class="card fx" style="left:{x}px; top:{y}px; width:280px; height:233px;">
     <h3><span class="acento"></span>{titulo}</h3>
       {valores}
-    <div class="rot fx-esc">{escala}</div>
-    <div class="fx-graf"><div class="plot-bg" style="left:0; width:244px; height:92px"></div>
-      <div class="slot" data-slot="{nt}" style="position:absolute; left:0; top:0; width:244px; height:92px"><svg width="244" height="92">{traco}</svg></div></div>
+    <div class="fx-graf"><div class="plot-bg" style="left:0; width:244px; height:100px"></div>
+      <div class="slot" data-slot="{nt}" style="position:absolute; left:0; top:0; width:244px; height:100px"><svg width="244" height="100">{traco}</svg></div></div>
   </section>''')
 
     html = MODELO.replace("{{CORPO}}", "\n\n".join(corpo))
@@ -238,27 +237,29 @@ MODELO = """<!DOCTYPE html>
   .logo, .logo img { width: 220px; height: 48px; display: block; }
   .sep { width: 1px; height: 44px; background: #2C5C85; margin: 0 28px; }
   .cab h1 { font-size: 27px; font-weight: 700; }
-  .card { position: absolute; background: var(--card); border: 1px solid var(--card-line); border-radius: 10px; padding: 16px 24px; }
+  /* Borda da mesma cor do preenchimento: o Aspen pinta o quadro com a cor da borda, e os textos e campos
+     têm o fundo do painel; com cores diferentes, cada texto apareceria dentro de uma caixa escura. */
+  .card { position: absolute; background: var(--card); border: 1px solid var(--card); border-radius: 10px; padding: 16px 24px; }
   .card h2 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; height: 26px; }
-  .card h3 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; height: 22px; white-space: nowrap; }
+  .card h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; height: 22px; white-space: nowrap; }
   .topo { display: flex; align-items: center; }
   .acento { width: 5px; height: 22px; background: var(--sam-amarelo); border-radius: 2px; }
   h3 .acento { height: 18px; }
   .rot { font-size: 13px; color: var(--muted); }
   .un, .unid { font-size: 13px; color: var(--muted); margin-left: 6px; }
-  .unid { font-size: 18px; margin-left: 10px; }
+  .unid { font-size: 18px; margin-left: 14px; }
   .slot { display: inline-block; white-space: nowrap; overflow: hidden; color: var(--text); font-family: var(--ui); }
-  .v-grande { font-size: 64px; font-weight: 700; line-height: 72px; height: 72px; text-align: right; }
+  .v-grande { font-size: 52px; font-weight: 700; line-height: 60px; height: 60px; text-align: right; }
   .v-med { font-size: 18px; font-weight: 700; line-height: 24px; height: 24px; text-align: right; }
 
   .tanques { display: flex; gap: 18px; margin-top: 14px; }
-  .tq { width: 140px; background: var(--tile); border: 1px solid var(--card-line); border-radius: 8px; padding: 10px 12px; height: 226px; }
-  .tq.total { border-color: var(--sam-amarelo); }
+  .tq { width: 140px; background: var(--tile); border: 1px solid var(--tile); border-radius: 8px; padding: 10px 12px; height: 226px; }
   .tq-nome { font-size: 17px; font-weight: 700; text-align: center; height: 22px; }
   .barra { display: block; width: 56px; height: 140px; margin: 6px auto 0; background: var(--plot); position: relative; }
   .enche { position: absolute; left: 0; right: 0; bottom: 0; }
   .tq-val { display: flex; align-items: baseline; justify-content: center; margin-top: 8px; }
-  .tq-val .slot { font-size: 24px; font-weight: 700; line-height: 30px; height: 30px; width: 76px; text-align: right; }
+  .tq-val .slot { font-size: 20px; font-weight: 700; line-height: 26px; height: 26px; width: 74px; text-align: right; }
+  .tq-val .un { margin-left: 10px; }
 
   .tot { display: flex; gap: 32px; margin-top: 16px; align-items: flex-start; }
   .tot-esq { width: 280px; }
@@ -272,19 +273,20 @@ MODELO = """<!DOCTYPE html>
   .leg .traco { margin-left: 10px; }
 
   .qls { display: flex; gap: 12px; margin-top: 12px; }
-  .ql { width: 174px; height: 160px; background: var(--tile); border: 1px solid var(--card-line); border-radius: 8px; padding: 10px 12px; }
+  .ql { width: 174px; height: 160px; background: var(--tile); border: 1px solid var(--tile); border-radius: 8px; padding: 10px 12px; }
   .ql-nome { font-size: 14px; font-weight: 700; height: 19px; white-space: nowrap; }
   .ql-un { font-size: 11px; color: var(--muted); height: 15px; white-space: nowrap; }
-  .ql-val { display: block; font-size: 32px; font-weight: 700; line-height: 40px; height: 40px; text-align: right; margin: 4px 0 6px; }
+  .ql-val { display: block; font-size: 28px; font-weight: 700; line-height: 36px; height: 36px; width: 120px; margin: 6px 0 8px auto; text-align: right; }
 
   .fx { padding: 14px 18px; }
   .fx-val { display: flex; align-items: baseline; margin-top: 10px; height: 36px; }
-  .fx-num { font-size: 30px; font-weight: 700; line-height: 36px; height: 36px; width: 150px; text-align: right; }
+  .fx-num { font-size: 26px; font-weight: 700; line-height: 32px; height: 32px; width: 120px; text-align: right; }
+  .fx .un { margin-left: 10px; }
   .fx-rot { height: 16px; margin-top: 2px; }
   .fx-dois { display: flex; gap: 18px; margin-top: 8px; height: 54px; }
   .fx-num2 { font-size: 22px; font-weight: 700; line-height: 28px; height: 28px; width: 80px; text-align: right; }
   .fx-esc { font-size: 11px; height: 15px; margin-top: 6px; white-space: nowrap; }
-  .fx-graf { position: relative; width: 244px; height: 92px; margin-top: 4px; }
+  .fx-graf { position: relative; width: 244px; height: 100px; margin-top: 14px; }
 
   body.fundo .slot { visibility: hidden; }
   body.mapa .slot { visibility: visible !important; color: transparent !important; outline: 2px dashed #ff4fd8; outline-offset: -2px; position: relative; background: rgba(255,79,216,.12); }
@@ -347,6 +349,7 @@ def aspen():
                 ", ".join(p[0] if p[1] != "Fixed" else "fórmula" for p in penas))
             PENAS[n] = penas
     g.SPEC, g.PENAS, g.FUNDO_TENDENCIA = SPEC, PENAS, {n: PLOT for n in PENAS}
+    g.FOLGA_TEXTO = 0.15
     mp.SPEC = SPEC
 
     with open(os.path.join(SAIDA, "objetos_tela.json"), encoding="utf-8") as fh:

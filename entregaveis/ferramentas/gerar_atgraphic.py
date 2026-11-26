@@ -93,9 +93,15 @@ def retangulo_arredondado(x, y, w, h, r):
     return p + [p[0]]
 
 
+# Folga extra à direita das caixas de texto, em fração da largura. O Aspen desenha as letras um pouco mais
+# largas que o navegador e corta o fim do texto quando a tela é exibida menor que o protótipo (telas de 70
+# unidades). As telas de 50 unidades usam 0 e não mudam.
+FOLGA_TEXTO = 0
+
+
 def texto(t):
     pad = 3
-    ret = (u(t["x"] - pad), u(t["y"]), u(t["x"] + t["w"] + pad), u(t["y"] + t["h"]))
+    ret = (u(t["x"] - pad), u(t["y"]), u(t["x"] + t["w"] + pad + t["w"] * FOLGA_TEXTO), u(t["y"] + t["h"]))
     altura = int(round(t["tamanho"] * 1.117 * ESCALA))
     peso = 700 if t["peso"] >= 600 else 400
     c = rgb(t["cor"])
