@@ -1,0 +1,2964 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Passo a passo Aspen</title>
+<style>
+body { font-family: Arial, sans-serif; font-size: 14px; color: #1b1f24; max-width: 1000px; margin: 24px auto; padding: 0 16px; line-height: 1.5; }
+h1 { font-size: 24px; border-bottom: 3px solid #1f2630; padding-bottom: 6px; }
+h2 { font-size: 19px; margin-top: 32px; background: #1f2630; color: #fff; padding: 6px 10px; border-radius: 4px; page-break-after: avoid; }
+h3 { font-size: 16px; margin-top: 22px; color: #0b5c80; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 14px; page-break-inside: avoid; }
+th, td { border: 1px solid #c5ccd6; padding: 5px 8px; text-align: left; vertical-align: top; }
+th { background: #e9edf2; }
+td:first-child { white-space: nowrap; }
+code { background: #eef1f5; padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+img { max-width: 100%; border: 1px solid #c5ccd6; }
+blockquote { border-left: 4px solid #f2994a; margin: 10px 0; padding: 4px 12px; background: #fff7ef; }
+hr { border: 0; border-top: 1px solid #c5ccd6; }
+</style></head><body><h1>Passo a passo: tela Tanques e Fluxos no Aspen (versão 1)</h1>
+<p><strong>Tela:</strong> Tanques e Fluxos, padrão visual Samarco. Refaz a tela Tanques com as mesmas tags, fórmulas e escalas: estoque dos 9 tanques e totais, qualidade do MES e 12 fluxos com tendência.</p>
+<p><strong>Resultado esperado:</strong> igual a <code>tela_exemplo_normal.png</code> (dados simulados)</p>
+<p><strong>Tempo estimado:</strong> 15 minutos</p>
+<p><img alt="Resultado esperado" src="tela_exemplo_normal.png" /></p>
+<h2>O que vem pronto no arquivo</h2>
+<p>O arquivo <code>Tanques_e_Fluxos.atgraphic</code> foi gerado pelo mesmo processo das telas Compressão Online Usina 4 e Qualidade de Embarque. Tudo é objeto nativo do Aspen e não perde nitidez ao maximizar. A tela tem 70 x 35 unidades, como a original.</p>
+<table>
+<thead>
+<tr>
+<th>Conteúdo</th>
+<th>Quantidade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Barras de nível dos tanques (com a fórmula da tela original)</td>
+<td>11</td>
+</tr>
+<tr>
+<td>Campos de dados ligados às tags ou às fórmulas</td>
+<td>33</td>
+</tr>
+<tr>
+<td>Tendências com penas e escala definidas</td>
+<td>19</td>
+</tr>
+<tr>
+<td>Textos fixos</td>
+<td>101</td>
+</tr>
+</tbody>
+</table>
+<h2>Parte A. Abrir</h2>
+<p><strong>A1.</strong> Copie <code>Tanques_e_Fluxos.atgraphic</code> para a pasta de rede das telas. A tela antiga pode ficar até esta ser conferida.</p>
+<p><strong>A2.</strong> Abra no <strong>Aspen Process Graphics Editor</strong>, compare com <code>tela_exemplo_normal.png</code> e maximize.</p>
+<p><strong>Se der erro ao abrir:</strong> tente <code>teste_minimo.atgraphic</code> (uma barra, um campo e uma tendência) e me envie a captura da mensagem.</p>
+<h2>Parte B. Conferência rápida</h2>
+<p><strong>B1. Estoque dos tanques.</strong> Cada tanque usa a fórmula da tela original: estoque em tms = (nível - 1,5 m) x 400, zero abaixo de 1,5 m. Compare os valores com a tela antiga aberta ao lado: devem ser iguais.</p>
+<table>
+<thead>
+<tr>
+<th>Grupo</th>
+<th>Tanques e tags de nível</th>
+<th>Escala das barras</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Preparação 1</td>
+<td>TQ 01 <code>lt-803</code>, TQ 02 <code>lt-805</code>, TQ 03 <code>lt-807</code>, TQ 04 <code>li-3802</code></td>
+<td>0 a 5000 por tanque; total 0 a 20000</td>
+</tr>
+<tr>
+<td>Preparação 2</td>
+<td>TQ 01 <code>301HG001-LIT001-R</code>, TQ 02 <code>301HG002-LIT002-R</code>, TQ 08 <code>401-LI-001</code>, TQ 09 <code>401-LI-002</code>, TQ 10 <code>401-LI-004</code></td>
+<td>0 a 5000 por tanque; total 0 a 25000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>B2. Nomes dos grupos.</strong> Os nomes Preparação 1 e Preparação 2 seguem o texto "PREP 1 + PREP 2" da tela original. Se a fileira estiver trocada, me avise que eu inverto.</p>
+<p><strong>B3. Qualidade e fluxos.</strong> As tags, os mapas e as escalas são os da tela original. Nada a fazer, a menos que algum campo mostre <code>***</code>.</p>
+<h2>Parte C. Tendências</h2>
+<p><strong>C1.</strong> Na barra de tempo de cada tendência, use o período que preferir (a tela original não define). Sugestão: <strong><code>24:00:00</code></strong>.</p>
+<p><strong>C2.</strong> Não altere a escala das penas: as escalas escritas na tela (por exemplo, "Vazão, 0 a 2000 t/h") são texto fixo.</p>
+<h2>Parte D. Salvar</h2>
+<p><strong>D1.</strong> <strong>Arquivo &gt; Salvar</strong>. Abra no Process Explorer e maximize para conferir.</p>
+<h2>Parte E. Problemas comuns</h2>
+<table>
+<thead>
+<tr>
+<th>Problema</th>
+<th>Solução</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Erro ao abrir</td>
+<td>Tente <code>teste_minimo.atgraphic</code> e envie a captura (Parte A)</td>
+</tr>
+<tr>
+<td>Campo com <code>***</code></td>
+<td>Tag sem valor no PIMS: confira a mesma tag na tela antiga</td>
+</tr>
+<tr>
+<td>Estoque diferente da tela antiga</td>
+<td>Me envie as duas telas lado a lado</td>
+</tr>
+</tbody>
+</table>
+<h2>Anexo. Fichas dos objetos dinâmicos</h2>
+<p>Posições em unidades da tela de 70 x 35.</p>
+<p><img alt="Mapa de posicionamento" src="mapa_posicionamento.png" /></p>
+<h3>Objeto 1: Tanques: Preparação 1: TQ 01, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>3,09 ; 6,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 2: Tanques: Preparação 1: TQ 01, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>2,36 ; 11,28</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 3: Tanques: Preparação 1: TQ 02, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>8,03 ; 6,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 4: Tanques: Preparação 1: TQ 02, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>7,30 ; 11,28</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 5: Tanques: Preparação 1: TQ 03, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>12,97 ; 6,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 6: Tanques: Preparação 1: TQ 03, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>12,23 ; 11,28</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 7: Tanques: Preparação 1: TQ 04, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>17,91 ; 6,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 8: Tanques: Preparação 1: TQ 04, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>17,17 ; 11,28</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 9: Tanques: Preparação 1: total, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>22,84 ; 6,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 20000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 10: Tanques: Preparação 1: total (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>22,11 ; 11,28</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 11: Tanques: Preparação 2: TQ 01, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>3,09 ; 16,53</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 12: Tanques: Preparação 2: TQ 01, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>2,36 ; 21,16</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 13: Tanques: Preparação 2: TQ 02, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>8,03 ; 16,53</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 14: Tanques: Preparação 2: TQ 02, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>7,30 ; 21,16</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 15: Tanques: Preparação 2: TQ 08, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>12,97 ; 16,53</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 16: Tanques: Preparação 2: TQ 08, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>12,23 ; 21,16</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 17: Tanques: Preparação 2: TQ 09, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>17,91 ; 16,53</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 18: Tanques: Preparação 2: TQ 09, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>17,17 ; 21,16</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 19: Tanques: Preparação 2: TQ 10, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>22,84 ; 16,53</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 5000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 20: Tanques: Preparação 2: TQ 10, estoque (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>22,11 ; 21,16</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 21: Tanques: Preparação 2: total, nível em tms</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Barra (bargraph)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>27,78 ; 16,53</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>1,75 ; 4,38</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Escala</td>
+<td>0 a 25000 tms</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 22: Tanques: Preparação 2: total (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>27,05 ; 21,16</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,38 ; 0,94</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 23: Estoque total: Preparação 1 + 2 (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>1,78 ; 25,72</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>6,25 ; 2,25</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 24: Estoque total: Preparação 1 (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>5,28 ; 28,53</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 25: Estoque total: Preparação 2 (tms)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>5,28 ; 29,84</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,81 ; 0,75</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td>Fórmula da tela original (ver Parte B)</td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>Fixed</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Campo calculado (fórmula da tela original).</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 26: Estoque total: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>12,94 ; 25,25</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>18,75 ; 6,56</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: fórmula de 0 a 45000; fórmula de 0 a 45000; fórmula de 0 a 45000.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 27: Qualidade: PPC pellet feed (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>34,06 ; 6,91</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,63 ; 1,25</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M4650030010-0013-HHLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 28: Qualidade: PPC pellet feed, minitendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>34,06 ; 8,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,56 ; 1,38</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: M4650030010-0013-HHLQU de 0 a 5.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 29: Qualidade: SiO2 (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>39,88 ; 6,91</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,63 ; 1,25</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M4710050020-0004-HHLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 30: Qualidade: SiO2, minitendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>39,88 ; 8,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,56 ; 1,38</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: M4710050020-0004-HHLQU de 0 a 5.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 31: Qualidade: Carbono (%C) (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>45,69 ; 6,91</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,63 ; 1,25</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M4710050020-0493-HHLQU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 32: Qualidade: Carbono (%C), minitendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>45,69 ; 8,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,56 ; 1,38</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: M4710050020-0493-HHLQU de 0 a 5.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 33: Qualidade: Tamboramento (%)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>51,50 ; 6,91</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,63 ; 1,25</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M4710050020-0029-HHLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>2 casas decimais (0,00)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 34: Qualidade: Tamboramento, minitendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>51,50 ; 8,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,56 ; 1,38</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: M4710050020-0029-HHLFU de 91 a 95.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 35: Qualidade: Compressão FX maior (kgf/pelota)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>57,31 ; 6,91</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,63 ; 1,25</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M4710050020-0031-HHLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 36: Qualidade: Compressão FX maior, minitendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>57,31 ; 8,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,56 ; 1,38</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: M4710050020-0031-HHLFU de 150 a 350.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 37: Qualidade: Compressão FX menor (kgf/pelota)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>63,13 ; 6,91</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,63 ; 1,25</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M4710050020-0035-HHLFU</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 38: Qualidade: Compressão FX menor, minitendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>63,13 ; 8,34</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,56 ; 1,38</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: M4710050020-0035-HHLFU de 150 a 350.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 39: Pelotas Usina 4: acumulado do dia (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,47 ; 13,00</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>407-WIQ-001_1</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_PIDMAP03</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 40: Pelotas Usina 4: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,47 ; 15,47</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 407-WI-001_10 de 0 a 2000.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 41: Pelotas Usina 3: acumulado do dia (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>42,59 ; 13,00</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>307-WI-001_10_Dia</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 42: Pelotas Usina 3: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>42,59 ; 15,47</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 307-WI-001 de 0 a 2000.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 43: Ritmo (MES): ritmo informado no mes (t/dia)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>51,72 ; 13,00</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>M4710050031-0150-HHCC</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_MESVALOR</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 44: Ritmo (MES): tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>51,72 ; 15,47</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: M4710050031-0150-HHCC de 0 a 30000.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 45: Repolpagem: valor atual</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>60,84 ; 13,00</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>U00-001WIT-1000</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 46: Repolpagem: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>60,84 ; 15,47</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 001-WI-1000 de 0 a 400.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 47: Material para emergência 3: vazão atual (t/h)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,47 ; 20,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>307TP008-WIT003-R</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 48: Material para emergência 3: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,47 ; 23,13</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 307TP008-WIT003-R de 0 a 3000.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 49: Material para emergência 4: acumulado do dia (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>42,59 ; 20,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>407-WIQ-007</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_PIDMAP03</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 50: Material para emergência 4: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>42,59 ; 23,13</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 407-FIQ-707 de 0 a 3000.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 51: Emergência 4: acumulado do dia (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>51,72 ; 20,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>406-FIQ-610_1-Dia</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 52: Emergência 4: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>51,72 ; 23,13</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 406-FIQ-610 de 0 a 2000.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 53: Emergência 2: acumulado do dia (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>60,84 ; 20,66</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>008-WIQ-010_10</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_PIDMAP03</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 54: Emergência 2: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>60,84 ; 23,13</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 008-WI-010_1 de 0 a 2000.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 55: PSC pátio: acumulado do dia (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,47 ; 28,31</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>407-WIQ-003_10</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_PIDMAP03</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 56: PSC pátio: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>33,47 ; 30,78</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 407-WI-003_10 de 0 a 100.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 57: PSC MI: acumulado do dia (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>42,59 ; 28,31</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>407-WIQ-003_2_D</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_ANALOGMAP</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 58: PSC MI: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>42,59 ; 30,78</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 407-WI-003_2 de 0 a 100.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 59: Retorno de pellet feed: valor atual</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>51,72 ; 28,31</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>4,69 ; 1,13</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>U04-03TP003</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_PIDMAP08</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>1 casa decimal (0,0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 60: Retorno de pellet feed: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>51,72 ; 30,78</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: U04-03TP003 de 0 a 100.</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 61: Pellet feed Usina 3: retorno (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>60,84 ; 28,72</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,50 ; 0,88</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>008-WIQ-010_30</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_PIDMAP03</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 62: Pellet feed Usina 3: expedição (t)</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Campo de dados</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>64,21 ; 28,72</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>2,50 ; 0,88</td>
+</tr>
+<tr>
+<td>Tag</td>
+<td><code>008-WIQ-010_20</code></td>
+</tr>
+<tr>
+<td>Mapa</td>
+<td><code>IP_PIDMAP03</code></td>
+</tr>
+<tr>
+<td>Atributo</td>
+<td><code>VAL</code></td>
+</tr>
+<tr>
+<td>Fonte</td>
+<td>Arial negrito, já definida no arquivo</td>
+</tr>
+<tr>
+<td>Alinhamento</td>
+<td>Direita</td>
+</tr>
+<tr>
+<td>Cor do texto</td>
+<td>RGB 255, 255, 255</td>
+</tr>
+<tr>
+<td>Cor de fundo</td>
+<td>RGB 1, 62, 107 (ou transparente), sem borda</td>
+</tr>
+<tr>
+<td>Formato</td>
+<td>Sem casas decimais (0)</td>
+</tr>
+<tr>
+<td>Regra de cor</td>
+<td>Nenhuma</td>
+</tr>
+</tbody>
+</table>
+<h3>Objeto 63: Pellet feed Usina 3: tendência</h3>
+<table>
+<thead>
+<tr>
+<th>Propriedade</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ferramenta</td>
+<td>Tendência (plot)</td>
+</tr>
+<tr>
+<td>Posição em unidades (X ; Y)</td>
+<td>60,84 ; 30,72</td>
+</tr>
+<tr>
+<td>Tamanho em unidades (largura ; altura)</td>
+<td>7,63 ; 2,88</td>
+</tr>
+<tr>
+<td>Observação</td>
+<td>Já vem pronta no arquivo: 303TP005-IT001-R de 0 a 100; 303TP005-WI001.1-R de 0 a 5000.</td>
+</tr>
+</tbody>
+</table></body></html>

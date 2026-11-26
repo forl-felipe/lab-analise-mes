@@ -88,6 +88,9 @@ def ler(caminho):
                 c = cor()
                 p += 2
                 ob["penas"].append((t, m, mn, mx, c))
+        elif nome == "AtBargraph":
+            ob["faixa"] = rd("<2f")
+            p += 2
         elif nome == "AtDataField":
             p += 4
             ob["largura"], ob["decimais"] = rd("<2I")
@@ -113,6 +116,11 @@ def svg(tela, caminho):
             pts = " ".join(f"{a},{b}" for a, b in o["pontos"])
             fill = "none" if o["f1"] else o.get("acesa", o["c1"])
             s.append(f'<polygon points="{pts}" fill="{fill}" stroke="{o["c2"]}" stroke-width="3"/>')
+        elif o["classe"] == "AtBargraph":
+            s.append(f'<rect x="{x1}" y="{y1}" width="{x2 - x1}" height="{y2 - y1}" fill="{o["c3"]}" stroke="#ff4fd8" stroke-width="4" stroke-dasharray="12 8"/>')
+            s.append(f'<rect x="{x1}" y="{(y1 + y2) / 2}" width="{x2 - x1}" height="{(y2 - y1) / 2}" fill="{o["c1"]}"/>')
+            s.append(f'<text x="{(x1 + x2) / 2}" y="{y1 + 40}" font-family="Arial" font-size="28" fill="#ff4fd8" text-anchor="middle">'
+                     f'0 a {o["faixa"][1]:g}</text>')
         elif o["classe"] == "AtTrend":
             s.append(f'<rect x="{x1}" y="{y1}" width="{x2 - x1}" height="{y2 - y1}" fill="{o["c1"]}" stroke="#ff4fd8" stroke-width="4" stroke-dasharray="12 8"/>')
             for i, (t, m, mn, mx, c) in enumerate(o["penas"]):

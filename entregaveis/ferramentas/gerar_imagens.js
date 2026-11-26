@@ -1,5 +1,5 @@
 // Gera, a partir do protótipo, as imagens e as posições usadas na montagem da tela no Aspen Process Graphics Editor.
-// Uso: node gerar_imagens.js [protótipo.html] [pasta de saída] [cenários separados por vírgula]
+// Uso: node gerar_imagens.js [protótipo.html] [pasta de saída] [cenários separados por vírgula] [largura em px]
 //      (requer Playwright com Chromium). Sem argumentos, usa a tela de compressão; depois rode montar_pacote_aspen.py.
 // A tela do Aspen mede 50 x 35 unidades (proporção 10:7, a mesma da tela PQ US04). O protótipo é desenhado
 // em 1600 x 1120 (32 px por unidade) e as imagens saem em 1400 x 980 (28 px por unidade), perto do tamanho
@@ -20,7 +20,9 @@ fs.mkdirSync(saida, { recursive: true });
 
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1120 }, deviceScaleFactor: 1400 / 1600 });
+  // largura da tela em px do protótipo (32 px por unidade): 1600 = 50 unidades; a tela Tanques tem 2240 = 70 unidades
+  const largura = +(process.argv[5] || 1600);
+  const page = await browser.newPage({ viewport: { width: largura, height: 1120 }, deviceScaleFactor: 1400 / 1600 });
   const abrir = async (q) => { await page.goto(`${html}?captura=1&${q}`); await page.evaluate(() => document.fonts.ready); };
 
   // Parte fixa da tela: painéis, linhas, textos e símbolos, para virar objetos nativos do Aspen.

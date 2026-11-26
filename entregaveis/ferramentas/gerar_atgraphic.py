@@ -61,9 +61,9 @@ def logfont(altura, peso):
     return struct.pack("<5i", altura, 0, 0, 0, peso) + bytes([0, 0, 0, 1, 0, 0, 2, 0x20]) + nome
 
 
-def comum(ret, c1, f1, c2, f2, c3, f3, tag="", atributo="VAL", mapa="", servidor="GERMANO"):
+def comum(ret, c1, f1, c2, f2, c3, f3, tag="", atributo="VAL", mapa="", servidor="GERMANO", reservado=bytes(12)):
     x1, y1, x2, y2 = ret
-    return (struct.pack("<4i", x1, y1, x2, y2) + bytes(12)
+    return (struct.pack("<4i", x1, y1, x2, y2) + reservado
             + cor(c1) + struct.pack("<I", f1) + cor(c2) + struct.pack("<I", f2) + cor(c3) + struct.pack("<I", f3)
             + wstr(tag) + wstr(atributo) + wstr(mapa) + wstr(servidor))
 
@@ -105,7 +105,8 @@ def texto(t):
 
 def campo(c, spec):
     ret = (u(c["x"]), u(c["y"]), u(c["x"] + c["w"]), u(c["y"] + c["h"]))
-    mapa = spec["mapa"] if spec["mapa"].startswith("IP_") else MAPA_DISCRETO
+    # "Fixed" = campo calculado: a tag é uma fórmula do Aspen, como "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE ...)*400"
+    mapa = spec["mapa"] if spec["mapa"].startswith("IP_") or spec["mapa"] == "Fixed" else MAPA_DISCRETO
     formato = spec["formato"]
     m = re.match(r"(\d) casa", formato)
     decimais = int(m.group(1)) if m else 0
@@ -142,6 +143,16 @@ def tendencia(c):
     for tag, mapa, mn, mx, cor_pena in penas:
         corpo += wstr(tag) + wstr("VAL") + wstr(mapa) + wstr(SERVIDOR) + struct.pack("<2f", mn, mx) + cor(cor_pena) + b"\xff\xff"
     return "AtTrend", corpo
+
+
+def barra(c, spec):
+    """Barra de nível (AtBargraph), no formato da tela Tanques: cor da barra, cor do fundo, tag ou fórmula e escala."""
+    ret = (u(c["x"]), u(c["y"]), u(c["x"] + c["w"]), u(c["y"] + c["h"]))
+    cor_barra = tuple(int(v) for v in spec["cor"].split(","))
+    fundo = tuple(int(v) for v in spec["fundo_barra"].split(","))
+    corpo = comum(ret, cor_barra, 0, cor_barra, 0, fundo, 1, tag=spec["tag"], atributo="VAL", mapa=spec["mapa"],
+                  servidor=SERVIDOR, reservado=bytes.fromhex("000000000100000000000000"))
+    return "AtBargraph", corpo + bytes(10) + struct.pack("<2f", spec["min"], spec["max"]) + bytes(2)
 
 
 def lampada(l):
@@ -208,12 +219,13 @@ def conteudo(dados):
     objetos += [simbolo(s) for s in dados["simbolos"]]
     objetos += [lampada(l) for l in dados.get("lampadas", [])]
     objetos += [texto(t) for t in dados["textos"]]
+    objetos += [barra(c, SPEC[c["n"]]) for c in dados["campos"] if SPEC[c["n"]]["ferramenta"] == "Barra"]
     for c in dados["campos"]:
         spec = SPEC[c["n"]]
         if spec["ferramenta"] == "Campo de dados":
             objetos.append(campo(c, spec))
 
-    cab = (b"AzPn" + struct.pack("<H", 5) + struct.pack("<2i", 5000, 3500)
+    cab = (b"AzPn" + struct.pack("<H", 5) + struct.pack("<2i", u(dados["largura"]), u(dados["altura"]))
            + cor(rgb(dados["fundoTela"])) + cor((192, 192, 192)) + struct.pack("<2i", 100, 100) + wstr("")
            + struct.pack("<5i", 120, 0, 0, 0, 0) + bytes([0, 0, 0, 1, 0, 0, 2, 0x20]) + "Arial".encode("utf-16-le").ljust(64, b"\0")
            + struct.pack("<H", len(objetos)))

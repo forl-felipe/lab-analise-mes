@@ -1,0 +1,688 @@
+{
+ "1": {
+  "tipo": "barra",
+  "tag": "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE   {lt-803} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 1: TQ 01, nível em tms"
+ },
+ "2": {
+  "tipo": "campo",
+  "tag": "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE   {lt-803} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 1: TQ 01, estoque (tms)"
+ },
+ "3": {
+  "tipo": "barra",
+  "tag": "= ( IF {lt-805} -1.5 < 0 THEN 0 ELSE   {lt-805} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 1: TQ 02, nível em tms"
+ },
+ "4": {
+  "tipo": "campo",
+  "tag": "= ( IF {lt-805} -1.5 < 0 THEN 0 ELSE   {lt-805} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 1: TQ 02, estoque (tms)"
+ },
+ "5": {
+  "tipo": "barra",
+  "tag": "= ( IF {lt-807} -1.5 < 0 THEN 0 ELSE   {lt-807} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 1: TQ 03, nível em tms"
+ },
+ "6": {
+  "tipo": "campo",
+  "tag": "= ( IF {lt-807} -1.5 < 0 THEN 0 ELSE   {lt-807} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 1: TQ 03, estoque (tms)"
+ },
+ "7": {
+  "tipo": "barra",
+  "tag": "= ( IF {li-3802} -1.5 < 0 THEN 0 ELSE   {li-3802} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 1: TQ 04, nível em tms"
+ },
+ "8": {
+  "tipo": "campo",
+  "tag": "= ( IF {li-3802} -1.5 < 0 THEN 0 ELSE   {li-3802} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 1: TQ 04, estoque (tms)"
+ },
+ "9": {
+  "tipo": "barra",
+  "tag": "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE   {lt-803} - 1.5)*400 + ( IF {lt-805} -1.5 < 0 THEN 0 ELSE   {lt-805} - 1.5)*400 + ( IF {lt-807} -1.5 < 0 THEN 0 ELSE   {lt-807} - 1.5)*400 + ( IF {li-3802} -1.5 < 0 THEN 0 ELSE   {li-3802} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 20000,
+  "cor": "255, 192, 0",
+  "nome": "Tanques: Preparação 1: total, nível em tms"
+ },
+ "10": {
+  "tipo": "campo",
+  "tag": "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE   {lt-803} - 1.5)*400 + ( IF {lt-805} -1.5 < 0 THEN 0 ELSE   {lt-805} - 1.5)*400 + ( IF {lt-807} -1.5 < 0 THEN 0 ELSE   {lt-807} - 1.5)*400 + ( IF {li-3802} -1.5 < 0 THEN 0 ELSE   {li-3802} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 1: total (tms)"
+ },
+ "11": {
+  "tipo": "barra",
+  "tag": "= ( IF {301HG001-LIT001-R} -1.5 < 0 THEN 0 ELSE   {301HG001-LIT001-R} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 2: TQ 01, nível em tms"
+ },
+ "12": {
+  "tipo": "campo",
+  "tag": "= ( IF {301HG001-LIT001-R} -1.5 < 0 THEN 0 ELSE   {301HG001-LIT001-R} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 2: TQ 01, estoque (tms)"
+ },
+ "13": {
+  "tipo": "barra",
+  "tag": "= ( IF {301HG002-LIT002-R} -1.5 < 0 THEN 0 ELSE   {301HG002-LIT002-R} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 2: TQ 02, nível em tms"
+ },
+ "14": {
+  "tipo": "campo",
+  "tag": "= ( IF {301HG002-LIT002-R} -1.5 < 0 THEN 0 ELSE   {301HG002-LIT002-R} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 2: TQ 02, estoque (tms)"
+ },
+ "15": {
+  "tipo": "barra",
+  "tag": "= ( IF {401-LI-001} -1.5 < 0 THEN 0 ELSE   {401-LI-001} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 2: TQ 08, nível em tms"
+ },
+ "16": {
+  "tipo": "campo",
+  "tag": "= ( IF {401-LI-001} -1.5 < 0 THEN 0 ELSE   {401-LI-001} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 2: TQ 08, estoque (tms)"
+ },
+ "17": {
+  "tipo": "barra",
+  "tag": "= ( IF {401-LI-002} -1.5 < 0 THEN 0 ELSE   {401-LI-002} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 2: TQ 09, nível em tms"
+ },
+ "18": {
+  "tipo": "campo",
+  "tag": "= ( IF {401-LI-002} -1.5 < 0 THEN 0 ELSE   {401-LI-002} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 2: TQ 09, estoque (tms)"
+ },
+ "19": {
+  "tipo": "barra",
+  "tag": "= ( IF {401-LI-004} -1.5 < 0 THEN 0 ELSE   {401-LI-004} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 5000,
+  "cor": "89, 198, 242",
+  "nome": "Tanques: Preparação 2: TQ 10, nível em tms"
+ },
+ "20": {
+  "tipo": "campo",
+  "tag": "= ( IF {401-LI-004} -1.5 < 0 THEN 0 ELSE   {401-LI-004} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 2: TQ 10, estoque (tms)"
+ },
+ "21": {
+  "tipo": "barra",
+  "tag": "= ( IF {301HG001-LIT001-R} -1.5 < 0 THEN 0 ELSE   {301HG001-LIT001-R} - 1.5)*400 + ( IF {301HG002-LIT002-R} -1.5 < 0 THEN 0 ELSE   {301HG002-LIT002-R} - 1.5)*400 + ( IF {401-LI-001} -1.5 < 0 THEN 0 ELSE   {401-LI-001} - 1.5)*400 + ( IF {401-LI-002} -1.5 < 0 THEN 0 ELSE   {401-LI-002} - 1.5)*400 + ( IF {401-LI-004} -1.5 < 0 THEN 0 ELSE   {401-LI-004} - 1.5)*400",
+  "mapa": "Fixed",
+  "min": 0,
+  "max": 25000,
+  "cor": "255, 192, 0",
+  "nome": "Tanques: Preparação 2: total, nível em tms"
+ },
+ "22": {
+  "tipo": "campo",
+  "tag": "= ( IF {301HG001-LIT001-R} -1.5 < 0 THEN 0 ELSE   {301HG001-LIT001-R} - 1.5)*400 + ( IF {301HG002-LIT002-R} -1.5 < 0 THEN 0 ELSE   {301HG002-LIT002-R} - 1.5)*400 + ( IF {401-LI-001} -1.5 < 0 THEN 0 ELSE   {401-LI-001} - 1.5)*400 + ( IF {401-LI-002} -1.5 < 0 THEN 0 ELSE   {401-LI-002} - 1.5)*400 + ( IF {401-LI-004} -1.5 < 0 THEN 0 ELSE   {401-LI-004} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Tanques: Preparação 2: total (tms)"
+ },
+ "23": {
+  "tipo": "campo",
+  "tag": "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE   {lt-803} - 1.5)*400 + ( IF {lt-805} -1.5 < 0 THEN 0 ELSE   {lt-805} - 1.5)*400 + ( IF {lt-807} -1.5 < 0 THEN 0 ELSE   {lt-807} - 1.5)*400 + ( IF {li-3802} -1.5 < 0 THEN 0 ELSE   {li-3802} - 1.5)*400 + ( IF {301HG001-LIT001-R} -1.5 < 0 THEN 0 ELSE   {301HG001-LIT001-R} - 1.5)*400 + ( IF {301HG002-LIT002-R} -1.5 < 0 THEN 0 ELSE   {301HG002-LIT002-R} - 1.5)*400 + ( IF {401-LI-001} -1.5 < 0 THEN 0 ELSE   {401-LI-001} - 1.5)*400 + ( IF {401-LI-002} -1.5 < 0 THEN 0 ELSE   {401-LI-002} - 1.5)*400 + ( IF {401-LI-004} -1.5 < 0 THEN 0 ELSE   {401-LI-004} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Estoque total: Preparação 1 + 2 (tms)"
+ },
+ "24": {
+  "tipo": "campo",
+  "tag": "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE   {lt-803} - 1.5)*400 + ( IF {lt-805} -1.5 < 0 THEN 0 ELSE   {lt-805} - 1.5)*400 + ( IF {lt-807} -1.5 < 0 THEN 0 ELSE   {lt-807} - 1.5)*400 + ( IF {li-3802} -1.5 < 0 THEN 0 ELSE   {li-3802} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Estoque total: Preparação 1 (tms)"
+ },
+ "25": {
+  "tipo": "campo",
+  "tag": "= ( IF {301HG001-LIT001-R} -1.5 < 0 THEN 0 ELSE   {301HG001-LIT001-R} - 1.5)*400 + ( IF {301HG002-LIT002-R} -1.5 < 0 THEN 0 ELSE   {301HG002-LIT002-R} - 1.5)*400 + ( IF {401-LI-001} -1.5 < 0 THEN 0 ELSE   {401-LI-001} - 1.5)*400 + ( IF {401-LI-002} -1.5 < 0 THEN 0 ELSE   {401-LI-002} - 1.5)*400 + ( IF {401-LI-004} -1.5 < 0 THEN 0 ELSE   {401-LI-004} - 1.5)*400",
+  "mapa": "Fixed",
+  "dec": 0,
+  "nome": "Estoque total: Preparação 2 (tms)"
+ },
+ "26": {
+  "tipo": "tendencia",
+  "nome": "Estoque total: tendência",
+  "penas": [
+   [
+    "= ( IF {301HG001-LIT001-R} -1.5 < 0 THEN 0 ELSE   {301HG001-LIT001-R} - 1.5)*400 + ( IF {301HG002-LIT002-R} -1.5 < 0 THEN 0 ELSE   {301HG002-LIT002-R} - 1.5)*400 + ( IF {401-LI-001} -1.5 < 0 THEN 0 ELSE   {401-LI-001} - 1.5)*400 + ( IF {401-LI-002} -1.5 < 0 THEN 0 ELSE   {401-LI-002} - 1.5)*400 + ( IF {401-LI-004} -1.5 < 0 THEN 0 ELSE   {401-LI-004} - 1.5)*400",
+    "Fixed",
+    0,
+    45000,
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   [
+    "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE   {lt-803} - 1.5)*400 + ( IF {lt-805} -1.5 < 0 THEN 0 ELSE   {lt-805} - 1.5)*400 + ( IF {lt-807} -1.5 < 0 THEN 0 ELSE   {lt-807} - 1.5)*400 + ( IF {li-3802} -1.5 < 0 THEN 0 ELSE   {li-3802} - 1.5)*400",
+    "Fixed",
+    0,
+    45000,
+    [
+     255,
+     192,
+     0
+    ]
+   ],
+   [
+    "= ( IF {lt-803} -1.5 < 0 THEN 0 ELSE   {lt-803} - 1.5)*400 + ( IF {lt-805} -1.5 < 0 THEN 0 ELSE   {lt-805} - 1.5)*400 + ( IF {lt-807} -1.5 < 0 THEN 0 ELSE   {lt-807} - 1.5)*400 + ( IF {li-3802} -1.5 < 0 THEN 0 ELSE   {li-3802} - 1.5)*400 + ( IF {301HG001-LIT001-R} -1.5 < 0 THEN 0 ELSE   {301HG001-LIT001-R} - 1.5)*400 + ( IF {301HG002-LIT002-R} -1.5 < 0 THEN 0 ELSE   {301HG002-LIT002-R} - 1.5)*400 + ( IF {401-LI-001} -1.5 < 0 THEN 0 ELSE   {401-LI-001} - 1.5)*400 + ( IF {401-LI-002} -1.5 < 0 THEN 0 ELSE   {401-LI-002} - 1.5)*400 + ( IF {401-LI-004} -1.5 < 0 THEN 0 ELSE   {401-LI-004} - 1.5)*400",
+    "Fixed",
+    0,
+    45000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "27": {
+  "tipo": "campo",
+  "tag": "M4650030010-0013-HHLQU",
+  "mapa": "IP_MESVALOR",
+  "dec": 2,
+  "nome": "Qualidade: PPC pellet feed (%)"
+ },
+ "28": {
+  "tipo": "tendencia",
+  "nome": "Qualidade: PPC pellet feed, minitendência",
+  "penas": [
+   [
+    "M4650030010-0013-HHLQU",
+    "IP_MESVALOR",
+    0,
+    5,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "29": {
+  "tipo": "campo",
+  "tag": "M4710050020-0004-HHLQU",
+  "mapa": "IP_MESVALOR",
+  "dec": 2,
+  "nome": "Qualidade: SiO2 (%)"
+ },
+ "30": {
+  "tipo": "tendencia",
+  "nome": "Qualidade: SiO2, minitendência",
+  "penas": [
+   [
+    "M4710050020-0004-HHLQU",
+    "IP_MESVALOR",
+    0,
+    5,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "31": {
+  "tipo": "campo",
+  "tag": "M4710050020-0493-HHLQU",
+  "mapa": "IP_MESVALOR",
+  "dec": 2,
+  "nome": "Qualidade: Carbono (%C) (%)"
+ },
+ "32": {
+  "tipo": "tendencia",
+  "nome": "Qualidade: Carbono (%C), minitendência",
+  "penas": [
+   [
+    "M4710050020-0493-HHLQU",
+    "IP_MESVALOR",
+    0,
+    5,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "33": {
+  "tipo": "campo",
+  "tag": "M4710050020-0029-HHLFU",
+  "mapa": "IP_MESVALOR",
+  "dec": 2,
+  "nome": "Qualidade: Tamboramento (%)"
+ },
+ "34": {
+  "tipo": "tendencia",
+  "nome": "Qualidade: Tamboramento, minitendência",
+  "penas": [
+   [
+    "M4710050020-0029-HHLFU",
+    "IP_MESVALOR",
+    91,
+    95,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "35": {
+  "tipo": "campo",
+  "tag": "M4710050020-0031-HHLFU",
+  "mapa": "IP_MESVALOR",
+  "dec": 0,
+  "nome": "Qualidade: Compressão FX maior (kgf/pelota)"
+ },
+ "36": {
+  "tipo": "tendencia",
+  "nome": "Qualidade: Compressão FX maior, minitendência",
+  "penas": [
+   [
+    "M4710050020-0031-HHLFU",
+    "IP_MESVALOR",
+    150,
+    350,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "37": {
+  "tipo": "campo",
+  "tag": "M4710050020-0035-HHLFU",
+  "mapa": "IP_MESVALOR",
+  "dec": 0,
+  "nome": "Qualidade: Compressão FX menor (kgf/pelota)"
+ },
+ "38": {
+  "tipo": "tendencia",
+  "nome": "Qualidade: Compressão FX menor, minitendência",
+  "penas": [
+   [
+    "M4710050020-0035-HHLFU",
+    "IP_MESVALOR",
+    150,
+    350,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "39": {
+  "tipo": "campo",
+  "tag": "407-WIQ-001_1 ",
+  "mapa": "IP_PIDMAP03",
+  "dec": 0,
+  "nome": "Pelotas Usina 4: acumulado do dia (t)"
+ },
+ "40": {
+  "tipo": "tendencia",
+  "nome": "Pelotas Usina 4: tendência",
+  "penas": [
+   [
+    "407-WI-001_10",
+    "IP_ANALOGMAP",
+    0,
+    2000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "41": {
+  "tipo": "campo",
+  "tag": "307-WI-001_10_Dia",
+  "mapa": "IP_ANALOGMAP",
+  "dec": 0,
+  "nome": "Pelotas Usina 3: acumulado do dia (t)"
+ },
+ "42": {
+  "tipo": "tendencia",
+  "nome": "Pelotas Usina 3: tendência",
+  "penas": [
+   [
+    "307-WI-001",
+    "IP_ANALOGMAP",
+    0,
+    2000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "43": {
+  "tipo": "campo",
+  "tag": "M4710050031-0150-HHCC",
+  "mapa": "IP_MESVALOR",
+  "dec": 0,
+  "nome": "Ritmo (MES): ritmo informado no mes (t/dia)"
+ },
+ "44": {
+  "tipo": "tendencia",
+  "nome": "Ritmo (MES): tendência",
+  "penas": [
+   [
+    "M4710050031-0150-HHCC",
+    "IP_MESVALOR",
+    0,
+    30000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "45": {
+  "tipo": "campo",
+  "tag": "U00-001WIT-1000",
+  "mapa": "IP_ANALOGMAP",
+  "dec": 0,
+  "nome": "Repolpagem: valor atual"
+ },
+ "46": {
+  "tipo": "tendencia",
+  "nome": "Repolpagem: tendência",
+  "penas": [
+   [
+    "001-WI-1000",
+    "IP_ANALOGMAP",
+    0,
+    400,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "47": {
+  "tipo": "campo",
+  "tag": "307TP008-WIT003-R",
+  "mapa": "IP_ANALOGMAP",
+  "dec": 0,
+  "nome": "Material para emergência 3: vazão atual (t/h)"
+ },
+ "48": {
+  "tipo": "tendencia",
+  "nome": "Material para emergência 3: tendência",
+  "penas": [
+   [
+    "307TP008-WIT003-R",
+    "IP_ANALOGMAP",
+    0,
+    3000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "49": {
+  "tipo": "campo",
+  "tag": "407-WIQ-007",
+  "mapa": "IP_PIDMAP03",
+  "dec": 0,
+  "nome": "Material para emergência 4: acumulado do dia (t)"
+ },
+ "50": {
+  "tipo": "tendencia",
+  "nome": "Material para emergência 4: tendência",
+  "penas": [
+   [
+    "407-FIQ-707",
+    "IP_ANALOGMAP",
+    0,
+    3000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "51": {
+  "tipo": "campo",
+  "tag": "406-FIQ-610_1-Dia",
+  "mapa": "IP_ANALOGMAP",
+  "dec": 0,
+  "nome": "Emergência 4: acumulado do dia (t)"
+ },
+ "52": {
+  "tipo": "tendencia",
+  "nome": "Emergência 4: tendência",
+  "penas": [
+   [
+    "406-FIQ-610",
+    "IP_ANALOGMAP",
+    0,
+    2000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "53": {
+  "tipo": "campo",
+  "tag": "008-WIQ-010_10",
+  "mapa": "IP_PIDMAP03",
+  "dec": 0,
+  "nome": "Emergência 2: acumulado do dia (t)"
+ },
+ "54": {
+  "tipo": "tendencia",
+  "nome": "Emergência 2: tendência",
+  "penas": [
+   [
+    "008-WI-010_1",
+    "IP_ANALOGMAP",
+    0,
+    2000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "55": {
+  "tipo": "campo",
+  "tag": "407-WIQ-003_10",
+  "mapa": "IP_PIDMAP03",
+  "dec": 0,
+  "nome": "PSC pátio: acumulado do dia (t)"
+ },
+ "56": {
+  "tipo": "tendencia",
+  "nome": "PSC pátio: tendência",
+  "penas": [
+   [
+    "407-WI-003_10",
+    "IP_ANALOGMAP",
+    0,
+    100,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "57": {
+  "tipo": "campo",
+  "tag": "407-WIQ-003_2_D",
+  "mapa": "IP_ANALOGMAP",
+  "dec": 0,
+  "nome": "PSC MI: acumulado do dia (t)"
+ },
+ "58": {
+  "tipo": "tendencia",
+  "nome": "PSC MI: tendência",
+  "penas": [
+   [
+    "407-WI-003_2",
+    "IP_ANALOGMAP",
+    0,
+    100,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "59": {
+  "tipo": "campo",
+  "tag": "U04-03TP003",
+  "mapa": "IP_PIDMAP08",
+  "dec": 1,
+  "nome": "Retorno de pellet feed: valor atual"
+ },
+ "60": {
+  "tipo": "tendencia",
+  "nome": "Retorno de pellet feed: tendência",
+  "penas": [
+   [
+    "U04-03TP003",
+    "IP_PIDMAP08",
+    0,
+    100,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ },
+ "61": {
+  "tipo": "campo",
+  "tag": "008-WIQ-010_30",
+  "mapa": "IP_PIDMAP03",
+  "dec": 0,
+  "nome": "Pellet feed Usina 3: retorno (t)"
+ },
+ "62": {
+  "tipo": "campo",
+  "tag": "008-WIQ-010_20",
+  "mapa": "IP_PIDMAP03",
+  "dec": 0,
+  "nome": "Pellet feed Usina 3: expedição (t)"
+ },
+ "63": {
+  "tipo": "tendencia",
+  "nome": "Pellet feed Usina 3: tendência",
+  "penas": [
+   [
+    "303TP005-IT001-R",
+    "IP_ANALOGMAP",
+    0,
+    100,
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   [
+    "303TP005-WI001.1-R",
+    "IP_ANALOGMAP",
+    0,
+    5000,
+    [
+     89,
+     198,
+     242
+    ]
+   ]
+  ]
+ }
+}
